@@ -45,7 +45,7 @@
                 @include('layouts.partials.alert.error')
                 @yield('content')
             </section>
-                    @section('content')
+            <section>
                     <div class="container-fluid">
                         <div class="row">
                         <!-- Log on to codeastro.com for more projects -->
@@ -109,14 +109,10 @@
                             <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
                             </div>
                         </div>
-                        <!-- ./col -->
-
                     <div class="col-lg-4 col-6">
-                        <!-- small box -->
                         <div class="small-box bg-red">
                         <div class="inner">
                             <h3>{{$customers_count}}</h3>
-
                             <p>{{ __('trans.total_customers') }}</p>
                         </div>
                         <div class="icon">
@@ -125,10 +121,9 @@
                         <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('trans.more_info') }}<i class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
-                    <!-- ./col -->
                     </div>
-                </div><!-- Log on to codeastro.com for more projects -->
-                @endsection
+                </div>
+            </section>
         </div>
         @include('layouts.partials.footer')
     <script src="{{ asset('js/app.js') }}"></script>

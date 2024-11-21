@@ -68,11 +68,14 @@ return [
     'payment_tracking'=>'Suivi des Dévis',
     'quote_list'=>'Liste des Dévis',
     'add_quote'=>'Ajouter un Dévis',
+    'my_quote'=>'Mes Dévis',
     'add_provider'=>'Ajouter un Gestionnaire',
     'provider'=>'Gestionnaire',
     'provider_list'=>'Liste des Gestionnaires',
     'on_old'=>'En Attente',
     'history'=>'Historique',
+    'request_a_service'=>'Demander une Prestation',
+    
     
     
     

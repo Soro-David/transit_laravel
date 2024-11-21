@@ -12,14 +12,25 @@
     </div>
     <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-                <img src="{{ auth()->user()->getAvatar() }}" class="img-circle elevation-2" alt="User Image">
-            </div>
-            <div class="info">
-                <a href="#" class="d-block">{{ auth()->user()->getFullname() }}</a>
+            <div class="profile">
+                <div class="profile-photo">
+                    <!-- Formulaire pour changer la photo -->
+                    <form action="#" method="" enctype="multipart/form-data">
+                        @csrf
+                        <label for="photo-upload" style="cursor: pointer;">
+                            <img src="{{ auth()->user()->photo_url ?: asset('images/default-avatar.png') }}" 
+                                 alt="Photo de {{ auth()->user()->getFullname() }}" 
+                                 class="img-fluid rounded-circle elevation-2">
+                        </label>
+                        <input type="file" name="photo" id="photo-upload" accept="image/*" 
+                               style="display: none;" onchange="this.form.submit()">
+                    </form>
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block">{{ auth()->user()->getFullname() }}</a>
+                </div>
             </div>
         </div>
-
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
@@ -31,24 +42,36 @@
                         <p>{{ __('trans.Dashboard') }}</p>
                     </a>
                 </li>
+{{--  --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-history"></i>
+                        <p>
+                            {{ __('trans.my_quote') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.on_old') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.history') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+{{--  --}}
                 <!-- Request for Service -->
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-clipboard-list"></i>
-                        <p>{{ __('trans.request_for_service') }}</p>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="#" class="submenu-item">{{ __('Lease Property') }}</a></li>
-                        <li><a href="#" class="submenu-item">{{ __('Lease Property') }}</a></li>
-                        <li><a href="#" class="submenu-item">{{ __('Lease Property') }}</a></li>
-                    </ul>
-                </li>
-        
-                <!-- Clients -->
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('customers.index') }}" class="nav-link {{ activeSegment('customers') }}">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>{{ __('Clients') }}</p>
+                        <p>{{ __('trans.request_a_service') }}</p>
                     </a>
                 </li>
         
@@ -69,3 +92,8 @@
     </div><!-- Log on to codeastro.com for more projects -->
     <!-- /.sidebar -->
 </aside>
+
+<style>
+ 
+
+</style>

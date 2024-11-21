@@ -36,7 +36,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
 // customer
 Route::prefix('customer')->middleware('auth')->group(function () {
-    Route::get('/', [HomeController::class, 'dashboardcustomer'])->name('dashboard.customer');
+    Route::get('/', [HomeController::class, 'dashboard_customer'])->name('dashboard.customer');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])->name('dashboard.profile');
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');

@@ -1,4 +1,3 @@
-<!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-purple elevation-4">
 
     <div class="d-flex align-items-center">
@@ -19,8 +18,6 @@
                 <a href="#" class="d-block">{{ auth()->user()->getFullname() }}</a>
             </div>
         </div>
-
-        <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item has-treeview">
@@ -31,33 +28,59 @@
                 </li>
                 <li class="nav-item has-treeview">
                     <a href="{{ route('products.index') }}" class="nav-link {{ activeSegment('products') }}">
-                        <i class="nav-icon fas fa-boxes"></i>
-                        <p>{{ __('trans.products') }}</p>
+                        <i class="fas fa-concierge-bell"></i>
+                        <p>{{ __('trans.consult_the_services') }}</p>
+                        <i class="right fas fa-angle-left"></i>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.on_old') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.history') }}</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item has-treeview">
                     <a href="{{ route('customers.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>Clients</p>
                     </a>
-                </li> 
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
-                        <i class="nav-icon fas fa-cash-register"></i>
-                        <p>{{ __('trans.pos_system') }}</p>
-                    </a>
                 </li>
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('orders.index') }}" class="nav-link {{ activeSegment('orders') }}">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <p>{{ __('trans.orders') }}</p>
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-history"></i>
+                        <p>
+                            {{ __('trans.quote_management') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
                     </a>
-                </li>
-            <li class="nav-item has-treeview">
-                    <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
-                        <i class="nav-icon fas fa-cogs"></i>
-                        <p>{{ __('trans.settings') }}</p>
-                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.add_quote') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.quote_list') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.payment_tracking') }}</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit()">
@@ -70,7 +93,5 @@
                 </li>
             </ul>
         </nav>
-        <!-- /.sidebar-menu -->
-    </div><!-- Log on to codeastro.com for more projects -->
-    <!-- /.sidebar -->
+    </div>
 </aside>

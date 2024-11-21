@@ -49,7 +49,7 @@ class HomeController extends Controller
         ]);
     }
 
-    public function dashboardcustomer()
+    public function dashboard_customer()
     {
         // dd(request());
         return view('customer.dashboard');
@@ -62,7 +62,7 @@ class HomeController extends Controller
         $customers_count = Customer::count();
         $products_count = Product::count();
 
-        return view('home', [
+        return view('provider.dashboard', [
             'orders_count' => $orders->count(),
             'income' => $orders->map(function($i) {
                 if($i->receivedAmount() > $i->total()) {
