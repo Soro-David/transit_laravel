@@ -3,7 +3,7 @@
 @section('title', 'Product Management')
 @section('content-header', 'Product Management')
 @section('content-actions')
-<a href="{{route('products.create')}}" class="btn btn-success"><i class="fas fa-plus"></i> Add New Product</a>
+<a href="{{route('products.create')}}" class="btn btn-success"><i class="fas fa-plus"></i>{{ __('trans.add_new_product') }}</a>
 @endsection
 @section('css')
 <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.min.css') }}">
@@ -14,16 +14,16 @@
         <table class="table table-bordered table-hover">
             <thead class="thead-dark">
                 <tr><!-- Log on to codeastro.com for more projects -->
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Barcode</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                    <th>Actions</th>
+                    <th>{{ __('trans.id') }}</th>
+                    <th>{{ __('trans.name') }}</th>
+                    <th>{{ __('trans.image') }}</th>
+                    <th>{{ __('trans.barcode') }}</th>
+                    <th>{{ __('trans.price') }}</th>
+                    <th>{{ __('trans.quantity') }}</th>
+                    <th>{{ __('trans.status') }}</th>
+                    <th>{{ __('trans.created_at') }}</th>
+                    <th>{{ __('trans.updated_at') }}</th>
+                    <th>{{ __('trans.actions') }}</th>
                 </tr>
             </thead>
             <tbody>

@@ -48,4 +48,37 @@ class HomeController extends Controller
             'products_count' => $products_count
         ]);
     }
+
+    public function dashboardcustomer()
+    {
+        // dd(request());
+        return view('customer.dashboard');
+    }
+    
+    public function dashboard_provider()
+    {
+        // dd(request());
+        $orders = Order::with(['items', 'payments'])->get();
+        $customers_count = Customer::count();
+        $products_count = Product::count();
+
+        return view('home', [
+            'orders_count' => $orders->count(),
+            'income' => $orders->map(function($i) {
+                if($i->receivedAmount() > $i->total()) {
+                    return $i->total();
+                }
+                return $i->receivedAmount();
+            })->sum(),
+            'income_today' => $orders->where('created_at', '>=', date('Y-m-d').' 00:00:00')->map(function($i) {
+                if($i->receivedAmount() > $i->total()) {
+                    return $i->total();
+                }
+                return $i->receivedAmount();
+            })->sum(),
+            'customers_count' => $customers_count,
+            'products_count' => $products_count
+        ]);
+        return view('provider.dashboard');
+    }
 }

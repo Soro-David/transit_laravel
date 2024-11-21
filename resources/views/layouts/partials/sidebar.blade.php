@@ -1,16 +1,16 @@
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-purple elevation-4">
-    <!-- Brand Logo -->
-    <a href="{{route('home')}}" class="brand-link">
-        <img src="{{ asset('images/poslg.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
-             style="opacity: .8">
-        <span class="brand-text font-weight-light">{{ config('app.name') }}</span>
-    </a>
-	<!-- Log on to codeastro.com for more projects -->
 
-    <!-- Sidebar -->
+    <div class="d-flex align-items-center">
+        <div class="navbar-brand-box">
+            <a href="{{ route('home') }}" class="logo logo-light">
+                <span class="logo-sm">
+                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo">
+                </span>
+            </a>
+        </div>
+    </div>
     <div class="sidebar">
-        <!-- Sidebar user (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
                 <img src="{{ auth()->user()->getAvatar() }}" class="img-circle elevation-2" alt="User Image">
@@ -26,43 +26,114 @@
                 <li class="nav-item has-treeview">
                     <a href="{{route('home')}}" class="nav-link {{ activeSegment('') }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
-                        <p>Dashboard</p>
+                        <p>{{ __('trans.Dashboard') }}</p>
                     </a>
                 </li>
+                {{--  --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-plus"></i>
+                        <p>{{ __('trans.provider') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.add_provider') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.provider_list') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {{--  --}}
+
                 <li class="nav-item has-treeview">
                     <a href="{{ route('products.index') }}" class="nav-link {{ activeSegment('products') }}">
-                        <i class="nav-icon fas fa-boxes"></i>
-                        <p>Products</p>
+                        <i class="fas fa-concierge-bell"></i>
+                        <p>{{ __('trans.consult_the_services') }}</p>
+                        <i class="right fas fa-angle-left"></i>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.on_old') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.history') }}</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item has-treeview">
                     <a href="{{ route('customers.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
-                        <p>Customers</p>
+                        <p>Clients</p>
                     </a>
                 </li>
-                <li class="nav-item has-treeview">
+                {{-- <li class="nav-item has-treeview">
                     <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
                         <i class="nav-icon fas fa-cash-register"></i>
-                        <p>POS System</p>
+                        <p>{{ __('trans.pos_system') }}</p>
                     </a>
-                </li>
-                <li class="nav-item has-treeview">
+                </li> --}}
+                {{-- <li class="nav-item has-treeview">
                     <a href="{{ route('orders.index') }}" class="nav-link {{ activeSegment('orders') }}">
                         <i class="nav-icon fas fa-chart-line"></i>
-                        <p>Orders</p>
+                        <p>{{ __('trans.orders') }}</p>
                     </a>
+                </li> --}}
+                {{--  --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-history"></i>
+                        <p>
+                            {{ __('trans.quote_management') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.add_quote') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.quote_list') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.payment_tracking') }}</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+                
+                {{--  --}}
                 <li class="nav-item has-treeview">
                     <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>
-                        <p>Settings</p>
+                        <p>{{ __('trans.settings') }}</p>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit()">
                         <i class="nav-icon fas fa-power-off"></i>
-                        <p>Logout</p>
+                        <p>{{ __('trans.logout') }}</p>
                         <form action="{{route('logout')}}" method="POST" id="logout-form">
                             @csrf
                         </form>

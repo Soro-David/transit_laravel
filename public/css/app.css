@@ -13148,7 +13148,8 @@ body:not(.layout-fixed).layout-navbar-fixed.text-sm
 .layout-top-nav .wrapper .main-header .brand-image {
     margin-top: -0.5rem;
     margin-right: 0.2rem;
-    height: 33px;
+    height: 50%;
+    width: 80%;
 }
 .layout-top-nav .wrapper .main-sidebar {
     bottom: inherit;

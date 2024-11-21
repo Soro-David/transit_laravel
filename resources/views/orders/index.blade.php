@@ -21,7 +21,7 @@
                             <input type="date" name="end_date" class="form-control" value="{{request('end_date')}}" />
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+                            <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filtre</button>
                         </div>
                     </div>
                 </form>

@@ -13,7 +13,7 @@
                 @method('PUT')
 
                 <div class="form-group">
-                    <label for="first_name">First Name</label>
+                    <label for="first_name">{{ __('trans.first_name') }}</label>
                     <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror"
                            id="first_name"
                            placeholder="First Name" value="{{ old('first_name', $customer->first_name) }}">
@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="last_name">Last Name</label>
+                    <label for="last_name">{{ __('trans.last_name') }}</label>
                     <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror"
                            id="last_name"
                            placeholder="Last Name" value="{{ old('last_name', $customer->last_name) }}">
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">{{ __('trans.email') }}</label>
                     <input type="text" name="email" class="form-control @error('email') is-invalid @enderror" id="email"
                            placeholder="Email" value="{{ old('email', $customer->email) }}">
                     @error('email')
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Phone</label>
+                    <label for="phone">{{ __('trans.phone') }}</label>
                     <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" id="phone"
                            placeholder="Phone" value="{{ old('phone', $customer->phone) }}">
                     @error('phone')
@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="address">Address</label>
+                    <label for="address">{{ __('trans.address') }}</label>
                     <input type="text" name="address" class="form-control @error('address') is-invalid @enderror"
                            id="address"
                            placeholder="Address" value="{{ old('address', $customer->address) }}">
@@ -71,10 +71,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="avatar">Avatar</label>
+                    <label for="avatar">{{ __('trans.avatar') }}</label>
                     <div class="custom-file">
                         <input type="file" class="custom-file-input" name="avatar" id="avatar">
-                        <label class="custom-file-label" for="avatar">Choose file</label>
+                        <label class="custom-file-label" for="avatar">{{ __('trans.choose_file') }}</label>
                     </div>
                     @error('avatar')
                     <span class="invalid-feedback" role="alert">
@@ -84,7 +84,7 @@
                 </div>
 
 
-                <button class="btn btn-success btn-block btn-lg" type="submit">Save Changes</button>
+                <button class="btn btn-success btn-block btn-lg" type="submit">{{ __('trans.save_changes') }}</button>
             </form>
         </div>
     </div>

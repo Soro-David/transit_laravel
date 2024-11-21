@@ -1,0 +1,58 @@
+.img-fluid {
+    width: 80%;
+    height: 50%;
+}
+.navbar-brand-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 200px;
+}
+
+.custom-logo {
+    width: 100px;
+    height: auto;
+    transition: transform 0.3s ease-in-out;
+}
+
+.custom-logo:hover {
+    transform: scale(1.1);
+}
+
+.d-flex {
+    margin: 10px auto;
+    max-width: 300px;
+}
+
+.dropdown-menu {
+    margin-top: 0.5rem; /* Ajuste l'espacement vertical */
+    border-radius: 0.25rem; /* Bordures arrondies */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Effet d'ombre */
+}
+
+.notification-icon {
+    position: relative;
+    font-size: 24px; /* Augmente la taille de l'icône */
+    color: #ff4500; /* Couleur orange vif */
+}
+
+.notification-icon .fa-bell {
+    margin-right: 10px; /* Espace entre l'icône et le badge */
+}
+
+.navbar-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    background-color: #ff4500; /* Même couleur que l'icône */
+    color: white;
+    font-size: 12px; /* Taille du texte du badge */
+    padding: 2px 6px;
+    border-radius: 50%;
+    border: 1px solid white; /* Ajout d'une bordure blanche */
+}

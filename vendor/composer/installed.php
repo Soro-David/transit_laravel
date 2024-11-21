@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'ae65456ace588878b271bb30f982b8fa0134a1c8',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -430,9 +430,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'ae65456ace588878b271bb30f982b8fa0134a1c8',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -498,6 +498,15 @@
             'reference' => 'aa70e813a6ad3d1558fc927863d47309b4c23e69',
             'type' => 'library',
             'install_path' => __DIR__ . '/../league/mime-type-detection',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'mariuzzo/laravel-js-localization' => array(
+            'pretty_version' => 'v1.11.1',
+            'version' => '1.11.1.0',
+            'reference' => 'beda21f30ad8b3160ad17146fab6dcb79fe38eac',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../mariuzzo/laravel-js-localization',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -801,8 +810,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0|3.0',
-                1 => '1.0.0 || 2.0.0 || 3.0.0',
+                0 => '1.0.0 || 2.0.0 || 3.0.0',
+                1 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -1294,6 +1303,15 @@
             'reference' => '7b701676fc64f9ef11f9b4870f16b48f66be4834',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/var-dumper',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'tedivm/jshrink' => array(
+            'pretty_version' => 'v1.7.0',
+            'version' => '1.7.0.0',
+            'reference' => '7a35f5a4651ca2ce77295eb8a3b4e133ba47e19e',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../tedivm/jshrink',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

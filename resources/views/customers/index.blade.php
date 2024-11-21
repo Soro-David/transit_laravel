@@ -3,7 +3,7 @@
 @section('title', 'Customer Management')
 @section('content-header', 'Customer Management')
 @section('content-actions')
-    <a href="{{route('customers.create')}}" class="btn btn-success"><i class="fas fa-plus"></i> Add New Customer</a>
+    <a href="{{route('customers.create')}}" class="btn btn-success"><i class="fas fa-plus"></i> {{ __('trans.add_new_customer') }}</a>
 @endsection
 @section('css')
     <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.min.css') }}">
@@ -14,14 +14,14 @@
         <table class="table table-bordered table-hover">
             <thead class="thead-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Avatar</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Contact</th>
-                    <th>Address</th>
-                    <th>Created At</th>
-                    <th>Actions</th>
+                    <th>{{ __('trans.id') }}</th>
+                    <th>{{ __('trans.avatar') }}</th>
+                    <th>{{ __('trans.name') }}</th>
+                    <th>{{ __('trans.email') }}</th>
+                    <th>{{ __('trans.contact') }}</th>
+                    <th>{{ __('trans.address') }}</th>
+                    <th>{{ __('trans.created_at') }}</th>
+                    <th>{{ __('trans.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>

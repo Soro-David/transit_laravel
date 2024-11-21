@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('content-header', 'Dashboard')
+@section('content-header', 'Tableau de Bord')
 
 @section('content')
     <div class="container-fluid">
@@ -11,12 +11,12 @@
             <div class="small-box bg-purple">
               <div class="inner">
                   <h3>{{$products_count}}</h3>
-                <p>Total Products</p>
+                <p>{{ __('trans.total_products') }}</p>
               </div>
               <div class="icon">
               <i class="fas fa-dolly-flatbed"></i>
               </div>
-              <a href="{{route('products.index')}}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{{route('products.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <div class="col-lg-4 col-6">
@@ -24,12 +24,12 @@
             <div class="small-box bg-primary">
               <div class="inner">
                   <h3>{{$orders_count}}</h3>
-                <p>Orders Count</p>
+                <p>{{ __('trans.orders_count') }}</p>
               </div>
               <div class="icon">
               <i class="fas fa-chart-line"></i>
               </div>
-              <a href="{{route('orders.index')}}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -38,12 +38,12 @@
             <div class="small-box bg-green">
               <div class="inner">
                   <h3>{{config('settings.currency_symbol')}} {{number_format($income, 2)}}</h3>
-                <p>Total Income</p>
+                <p>{{ __('trans.total_income') }}</p>
               </div>
               <div class="icon">
               <i class="fas fa-dollar-sign"></i>
               </div>
-              <a href="{{route('orders.index')}}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -58,12 +58,12 @@
               <div class="inner">
                 <h3>{{config('settings.currency_symbol')}} {{number_format($income_today, 2)}}</h3>
 
-                <p>Today's Income</p>
+                <p>{{ __('trans.todays_income') }}</p>
               </div>
               <div class="icon">
                 <i class="fas fa-money-check-alt"></i>
               </div>
-              <a href="{{route('orders.index')}}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -74,12 +74,12 @@
           <div class="inner">
             <h3>{{$customers_count}}</h3>
 
-            <p>Total Customers</p>
+            <p>{{ __('trans.total_customers') }}</p>
           </div>
           <div class="icon">
           <i class="fas fa-users"></i>
           </div>
-          <a href="{{ route('customers.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('trans.more_info') }}<i class="fas fa-arrow-circle-right"></i></a>
         </div>
       </div>
       <!-- ./col -->

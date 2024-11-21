@@ -13,7 +13,7 @@
             @method('PUT')
 
             <div class="form-group">
-                <label for="name">Name</label>
+                <label for="name">{{ __('trans.name') }}</label>
                 <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" id="name"
                     placeholder="Name" value="{{ old('name', $product->name) }}">
                 @error('name')
@@ -25,22 +25,22 @@
 
 
             <div class="form-group">
-                <label for="description">Description</label>
+                <label for="description">{{ __('trans.description') }}</label>
                 <textarea name="description" class="form-control @error('description') is-invalid @enderror"
                     id="description"
                     placeholder="description">{{ old('description', $product->description) }}</textarea>
                 @error('description')
                 <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
+                    <strong>{{ __('trans.id') }}{{ $message }}</strong>
                 </span>
                 @enderror
             </div>
 
             <div class="form-group">
-                <label for="image">Image</label>
+                <label for="image">{{ __('trans.image') }}</label>
                 <div class="custom-file">
                     <input type="file" class="custom-file-input" name="image" id="image">
-                    <label class="custom-file-label" for="image">Choose file</label>
+                    <label class="custom-file-label" for="image">{{ __('trans.choose_file') }}</label>
                 </div>
                 @error('image')
                 <span class="invalid-feedback" role="alert">
@@ -50,7 +50,7 @@
             </div>
 
             <div class="form-group">
-                <label for="barcode">Barcode</label>
+                <label for="barcode">{{ __('trans.barcode') }}</label>
                 <input type="text" name="barcode" class="form-control @error('barcode') is-invalid @enderror"
                     id="barcode" placeholder="barcode" value="{{ old('barcode', $product->barcode) }}">
                 @error('barcode')
@@ -61,7 +61,7 @@
             </div>
 
             <div class="form-group">
-                <label for="price">Price</label>
+                <label for="price">{{ __('trans.price') }}</label>
                 <input type="text" name="price" class="form-control @error('price') is-invalid @enderror" id="price"
                     placeholder="price" value="{{ old('price', $product->price) }}">
                 @error('price')
@@ -72,7 +72,7 @@
             </div>
 
             <div class="form-group">
-                <label for="quantity">Quantity</label>
+                <label for="quantity">{{ __('trans.quantity') }}</label>
                 <input type="text" name="quantity" class="form-control @error('quantity') is-invalid @enderror"
                     id="quantity" placeholder="Quantity" value="{{ old('quantity', $product->quantity) }}">
                 @error('quantity')
@@ -83,7 +83,7 @@
             </div>
 
             <div class="form-group">
-                <label for="status">Status</label>
+                <label for="status">{{ __('trans.status') }}</label>
                 <select name="status" class="form-control @error('status') is-invalid @enderror" id="status">
                     <option value="1" {{ old('status', $product->status) === 1 ? 'selected' : ''}}>Active</option>
                     <option value="0" {{ old('status', $product->status) === 0 ? 'selected' : ''}}>Inactive</option>
@@ -95,7 +95,7 @@
                 @enderror
             </div>
 
-            <button class="btn btn-success btn-block btn-lg" type="submit">Save Changes</button>
+            <button class="btn btn-success btn-block btn-lg" type="submit">{{ __('trans.save_changes') }}</button>
         </form>
     </div>
 </div>

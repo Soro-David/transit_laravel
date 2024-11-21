@@ -113,6 +113,7 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         'M' => 
         array (
             'Monolog\\' => 8,
+            'Mariuzzo\\LaravelJsLocalization\\' => 31,
         ),
         'L' => 
         array (
@@ -188,8 +189,8 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         'phpDocumentor\\Reflection\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
-            1 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
-            2 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+            1 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+            2 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
         ),
         'Whoops\\' => 
         array (
@@ -349,8 +350,8 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -387,6 +388,10 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'Mariuzzo\\LaravelJsLocalization\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mariuzzo/laravel-js-localization/src/Mariuzzo/LaravelJsLocalization',
         ),
         'League\\MimeTypeDetection\\' => 
         array (
@@ -546,6 +551,13 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
             'Mockery' => 
             array (
                 0 => __DIR__ . '/..' . '/mockery/mockery/library',
+            ),
+        ),
+        'J' => 
+        array (
+            'JShrink' => 
+            array (
+                0 => __DIR__ . '/..' . '/tedivm/jshrink/src',
             ),
         ),
     );
@@ -2978,6 +2990,7 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         'Illuminate\\View\\ViewFinderInterface' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewFinderInterface.php',
         'Illuminate\\View\\ViewName' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewName.php',
         'Illuminate\\View\\ViewServiceProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewServiceProvider.php',
+        'JShrink\\Minifier' => __DIR__ . '/..' . '/tedivm/jshrink/src/JShrink/Minifier.php',
         'Laravel\\SerializableClosure\\Contracts\\Serializable' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Contracts/Serializable.php',
         'Laravel\\SerializableClosure\\Contracts\\Signer' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Contracts/Signer.php',
         'Laravel\\SerializableClosure\\Exceptions\\InvalidSignatureException' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Exceptions/InvalidSignatureException.php',
@@ -3337,6 +3350,9 @@ class ComposerStaticInitb40973f0ea3c94d6fc1caf95b693b3f4
         'League\\MimeTypeDetection\\GeneratedExtensionToMimeTypeMap' => __DIR__ . '/..' . '/league/mime-type-detection/src/GeneratedExtensionToMimeTypeMap.php',
         'League\\MimeTypeDetection\\MimeTypeDetector' => __DIR__ . '/..' . '/league/mime-type-detection/src/MimeTypeDetector.php',
         'League\\MimeTypeDetection\\OverridingExtensionToMimeTypeMap' => __DIR__ . '/..' . '/league/mime-type-detection/src/OverridingExtensionToMimeTypeMap.php',
+        'Mariuzzo\\LaravelJsLocalization\\Commands\\LangJsCommand' => __DIR__ . '/..' . '/mariuzzo/laravel-js-localization/src/Mariuzzo/LaravelJsLocalization/Commands/LangJsCommand.php',
+        'Mariuzzo\\LaravelJsLocalization\\Generators\\LangJsGenerator' => __DIR__ . '/..' . '/mariuzzo/laravel-js-localization/src/Mariuzzo/LaravelJsLocalization/Generators/LangJsGenerator.php',
+        'Mariuzzo\\LaravelJsLocalization\\LaravelJsLocalizationServiceProvider' => __DIR__ . '/..' . '/mariuzzo/laravel-js-localization/src/Mariuzzo/LaravelJsLocalization/LaravelJsLocalizationServiceProvider.php',
         'Mockery' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery.php',
         'Mockery\\Adapter\\Phpunit\\MockeryPHPUnitIntegration' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/Adapter/Phpunit/MockeryPHPUnitIntegration.php',
         'Mockery\\Adapter\\Phpunit\\MockeryPHPUnitIntegrationAssertPostConditions' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/Adapter/Phpunit/MockeryPHPUnitIntegrationAssertPostConditions.php',
