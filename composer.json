@@ -15,7 +15,8 @@
         "laravel/framework": "^9.0",
         "laravel/tinker": "^2.7",
         "laravel/ui": "^3.0",
-        "mariuzzo/laravel-js-localization": "^1.11"
+        "mariuzzo/laravel-js-localization": "^1.11",
+        "yajra/laravel-datatables": "^9.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.6.7",

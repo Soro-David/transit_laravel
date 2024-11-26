@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('ladmin.ayouts.app')
 
 @section('content')
 <div class="container">
@@ -35,7 +35,7 @@
 
                                 @if (Route::has('password.request'))
                                     <a class="btn btn-link" href="{{ route('password.request') }}">
-                                        {{ __('Forgot Your Password?') }}
+                                        {{ __('Vous avez oublié votre mot de passe ?') }}
                                     </a>
                                 @endif
                             </div>

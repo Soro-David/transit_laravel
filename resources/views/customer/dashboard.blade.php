@@ -41,8 +41,8 @@
                 </div>
             </section>
             <section class="content">
-                @include('layouts.partials.alert.success')
-                @include('layouts.partials.alert.error')
+                @include('admin.layouts.partials.alert.success')
+                @include('admin.layouts.partials.alert.error')
                 @yield('content')
             </section>
             <section>
@@ -108,7 +108,7 @@
                 </div>
             </section>
         </div>
-        @include('layouts.partials.footer')
+        @include('admin.layouts.partials.footer')
     <script src="{{ asset('js/app.js') }}"></script>
     @yield('js')
 </body>

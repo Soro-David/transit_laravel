@@ -41,16 +41,14 @@
                 </div>
             </section>
             <section class="content">
-                @include('layouts.partials.alert.success')
-                @include('layouts.partials.alert.error')
+                @include('admin.layouts.partials.alert.success')
+                @include('admin.layouts.partials.alert.error')
                 @yield('content')
             </section>
             <section>
                     <div class="container-fluid">
                         <div class="row">
-                        <!-- Log on to codeastro.com for more projects -->
                         <div class="col-lg-4 col-6">
-                            <!-- small box -->
                             <div class="small-box bg-purple">
                             <div class="inner">
                                 <h3>{{$products_count}}</h3>
@@ -63,7 +61,6 @@
                             </div>
                         </div>
                         <div class="col-lg-4 col-6">
-                            <!-- small box -->
                             <div class="small-box bg-primary">
                             <div class="inner">
                                 <h3>{{$orders_count}}</h3>
@@ -75,9 +72,7 @@
                             <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
                             </div>
                         </div>
-                        <!-- ./col -->
                         <div class="col-lg-4 col-6">
-                            <!-- small box -->
                             <div class="small-box bg-green">
                             <div class="inner">
                                 <h3>{{config('settings.currency_symbol')}} {{number_format($income, 2)}}</h3>
@@ -89,18 +84,12 @@
                             <a href="{{route('orders.index')}}" class="small-box-footer">{{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i></a>
                             </div>
                         </div>
-                        <!-- ./col -->
-                        
-                        
                     </div>
-
-                    <div class="row"><!-- Log on to codeastro.com for more projects -->
+                    <div class="row">
                     <div class="col-lg-4 col-6">
-                            <!-- small box -->
                             <div class="small-box bg-teal">
                             <div class="inner">
                                 <h3>{{config('settings.currency_symbol')}} {{number_format($income_today, 2)}}</h3>
-
                                 <p>{{ __('trans.todays_income') }}</p>
                             </div>
                             <div class="icon">
@@ -125,7 +114,7 @@
                 </div>
             </section>
         </div>
-        @include('layouts.partials.footer')
+        @include('admin.layouts.partials.footer')
     <script src="{{ asset('js/app.js') }}"></script>
     @yield('js')
 </body>

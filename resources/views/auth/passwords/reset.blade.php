@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('admin.layouts.app')
 
 @section('content')
 <form method="POST" action="{{ route('password.update') }}">
@@ -54,7 +54,7 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <button type="submit" class="btn btn-primary btn-block">Request new password</button>
+            <button type="submit" class="btn btn-primary btn-block"> Nouveau mot de passe</button>
         </div>
         <!-- /.col -->
     </div>
@@ -63,7 +63,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
+                <div class="card-header">{{ __('Réinitialiser le mot de passe') }}</div>
 
                 <div class="card-body">
                     <form method="POST" action="{{ route('password.update') }}">
@@ -73,7 +73,7 @@
 
                         <div class="form-group row">
                             <label for="email"
-                                class="col-md-4 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
+                                class="col-md-4 col-form-label text-md-right">{{ __('Adresse E-Mail') }}</label>
 
                             <div class="col-md-6">
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
@@ -90,7 +90,7 @@
 
                         <div class="form-group row">
                             <label for="password"
-                                class="col-md-4 col-form-label text-md-right">{{ __('Password') }}</label>
+                                class="col-md-4 col-form-label text-md-right">{{ __('Mot de Passe') }}</label>
 
                             <div class="col-md-6">
                                 <input id="password" type="password"
@@ -107,7 +107,7 @@
 
                         <div class="form-group row">
                             <label for="password-confirm"
-                                class="col-md-4 col-form-label text-md-right">{{ __('Confirm Password') }}</label>
+                                class="col-md-4 col-form-label text-md-right">{{ __('Confirmez le mot de passe') }}</label>
 
                             <div class="col-md-6">
                                 <input id="password-confirm" type="password" class="form-control"
@@ -118,7 +118,7 @@
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
-                                    {{ __('Reset Password') }}
+                                    {{ __('Réinitialiser le mot de passe') }}
                                 </button>
                             </div>
                         </div>

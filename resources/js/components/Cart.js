@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { sum } from "lodash";
+import $ from "jquery";
 
 class Cart extends Component {
     constructor(props) {
@@ -26,7 +27,7 @@ class Cart extends Component {
         this.handleChangeSearch = this.handleChangeSearch.bind(this);
         this.handleSeach = this.handleSeach.bind(this);
         this.setCustomerId = this.setCustomerId.bind(this);
-        this.handleClickSubmit = this.handleClickSubmit.bind(this)
+        this.handleClickSubmit = this.handleClickSubmit.bind(this);
     }
 
     componentDidMount() {
@@ -91,7 +92,7 @@ class Cart extends Component {
 
         axios
             .post("/admin/cart/change-qty", { product_id, quantity: qty })
-            .then(res => { })
+            .then(res => {})
             .catch(err => {
                 Swal.fire("Error!", err.response.data.message, "error");
             });
@@ -133,7 +134,10 @@ class Cart extends Component {
                 // update quantity
                 this.setState({
                     cart: this.state.cart.map(c => {
-                        if (c.id === product.id && product.quantity > c.pivot.quantity) {
+                        if (
+                            c.id === product.id &&
+                            product.quantity > c.pivot.quantity
+                        ) {
                             c.pivot.quantity = c.pivot.quantity + 1;
                         }
                         return c;
@@ -171,27 +175,32 @@ class Cart extends Component {
     }
     handleClickSubmit() {
         Swal.fire({
-            title: 'Received Amount',
-            input: 'text',
+            title: "Received Amount",
+            input: "text",
             inputValue: this.getTotal(this.state.cart),
             showCancelButton: true,
-            confirmButtonText: 'Send',
+            confirmButtonText: "Send",
             showLoaderOnConfirm: true,
-            preConfirm: (amount) => {
-                return axios.post('/admin/orders', { customer_id: this.state.customer_id, amount }).then(res => {
-                    this.loadCart();
-                    return res.data;
-                }).catch(err => {
-                    Swal.showValidationMessage(err.response.data.message)
-                })
+            preConfirm: amount => {
+                return axios
+                    .post("/admin/orders", {
+                        customer_id: this.state.customer_id,
+                        amount
+                    })
+                    .then(res => {
+                        this.loadCart();
+                        return res.data;
+                    })
+                    .catch(err => {
+                        Swal.showValidationMessage(err.response.data.message);
+                    });
             },
             allowOutsideClick: () => !Swal.isLoading()
-        }).then((result) => {
+        }).then(result => {
             if (result.value) {
                 //
             }
-        })
-
+        });
     }
     render() {
         const { cart, products, customers, barcode } = this.state;
@@ -321,8 +330,20 @@ class Cart extends Component {
                                 key={p.id}
                                 className="item"
                             >
-                                <img src={p.image_url} class="rounded mx-auto d-block" alt="" />
-                                <h5 style={window.APP.warning_quantity > p.quantity ? { color: 'red' } : {}}>{p.name}({p.quantity})</h5>
+                                <img
+                                    src={p.image_url}
+                                    class="rounded mx-auto d-block"
+                                    alt=""
+                                />
+                                <h5
+                                    style={
+                                        window.APP.warning_quantity > p.quantity
+                                            ? { color: "red" }
+                                            : {}
+                                    }
+                                >
+                                    {p.name}({p.quantity})
+                                </h5>
                             </div>
                         ))}
                     </div>
