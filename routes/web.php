@@ -7,6 +7,8 @@ use App\Http\Controllers\customer\HController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\ColisController;
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Middleware\RoleMiddleware;
+
 
 
 
@@ -35,6 +38,23 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/managers/show',[adminController::class, 'show'])->name('managers.show'); //DataTable route
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
+
+
+    Route::prefix('colis')->name('colis.')->group(function(){
+        Route::get('/', [ColisController::class,'index'])->name('index'); 
+        Route::get('/on-hold', [ColisController::class,'hold'])->name('hold'); 
+        Route::get('/history', [ColisController::class,'history'])->name('history'); 
+        Route::get('/create', [ColisController::class,'create'])->name('create'); 
+        Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
+
+
+        Route::post('/store', [ColisController::class,'store'])->name('store'); 
+        Route::get('/{coli}', [ColisController::class,'show'])->name('show'); 
+        Route::get('/{coli}/edit', [ColisController::class,'edit'])->name('edit'); 
+        Route::put('/{coli}', [ColisController::class,'update'])->name('update'); 
+        Route::delete('/{coli}', [ColisController::class,'destroy'])->name('destroy');
+    });
+
 });
 
 Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () {

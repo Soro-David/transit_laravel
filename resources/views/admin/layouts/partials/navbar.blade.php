@@ -1,15 +1,12 @@
-<!-- Navbar -->
-<nav class="main-header navbar navbar-expand navbar-white navbar-light">
-  <!-- Left navbar links -->
+<nav class="main-header navbar navbar-expand navbar-white navbar-light fixed-top">
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" data-widget="pushmenu" href="{{route('home')}}" role="button"><i class="fas fa-bars"></i></a>
+      <a class="nav-link" data-widget="pushmenu" href="{{ route('home') }}" role="button">
+        <i class="fas fa-bars"></i>
+      </a>
     </li>
   </ul>
-
-  <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto">
-    <!-- Notifications Dropdown Menu -->
     <li class="nav-item dropdown">
       <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
         <i class="fa fa-bell mx-5" aria-hidden="true"></i>
@@ -36,66 +33,95 @@
         <a href="#" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
       </div>
     </li>
+
+    <li class="nav-item">
+      <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit()">
+        <i class="nav-icon fas fa-power-off"></i>
+        <p>{{ __('trans.logout') }}</p>
+        <form action="{{ route('logout') }}" method="POST" id="logout-form">
+          @csrf
+        </form>
+      </a>
+    </li>
   </ul>
 </nav>
-<!-- /.navbar -->
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-  // Fonction pour mettre à jour les notifications
-  function updateNotifications() {
-    // Exemple de notifications (vous pouvez récupérer cela depuis votre backend)
-    const notifications = [
-      { message: 'Nouveau devis reçu', icon: 'fas fa-envelope', time: '3 mins' },
-      { message: 'Prestation validée', icon: 'fas fa-file-alt', time: '1 hour' },
-      { message: 'Colis pris en charge', icon: 'fas fa-box', time: '2 hours' }
-    ];
+    // Fonction pour mettre à jour les notifications
+    function updateNotifications() {
+      const notifications = [
+        { message: 'Nouveau devis reçu', icon: 'fas fa-envelope', time: '3 mins' },
+        { message: 'Prestation validée', icon: 'fas fa-file-alt', time: '1 hour' },
+        { message: 'Colis pris en charge', icon: 'fas fa-box', time: '2 hours' }
+      ];
 
-    // Mise à jour du compteur de notifications
-    document.getElementById('notification-count').textContent = notifications.length;
+      document.getElementById('notification-count').textContent = notifications.length;
 
-    // Mise à jour des éléments de la liste déroulante
-    const dropdownMenu = document.querySelector('.dropdown-menu-right');
-    dropdownMenu.innerHTML = `<span class="dropdown-item dropdown-header">${notifications.length} Notifications</span>`;
-    notifications.forEach(notification => {
-      const item = `
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="${notification.icon} mr-2"></i> ${notification.message}
-          <span class="float-right text-muted text-sm">${notification.time}</span>
-        </a>
-      `;
-      dropdownMenu.insertAdjacentHTML('beforeend', item);
-    });
-    dropdownMenu.insertAdjacentHTML('beforeend', '<div class="dropdown-divider"></div><a href="#" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>');
-  }
+      const dropdownMenu = document.querySelector('.dropdown-menu-right');
+      dropdownMenu.innerHTML = `<span class="dropdown-item dropdown-header">${notifications.length} Notifications</span>`;
+      notifications.forEach(notification => {
+        const item = `
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="${notification.icon} mr-2"></i> ${notification.message}
+            <span class="float-right text-muted text-sm">${notification.time}</span>
+          </a>
+        `;
+        dropdownMenu.insertAdjacentHTML('beforeend', item);
+      });
+      dropdownMenu.insertAdjacentHTML('beforeend', '<div class="dropdown-divider"></div><a href="#" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>');
+    }
 
-  // Appel initial pour charger les notifications
-  updateNotifications();
-
-  // Simuler la réception de nouvelles notifications toutes les 10 secondes
-  setInterval(updateNotifications, 10000);
-});
-
+    updateNotifications();
+    setInterval(updateNotifications, 10000);
+  });
 </script>
 
 <style>
   .notification-icon i {
-  font-size: 24px; /* Augmente la taille de l'icône */
-  color: #ff4500; /* Couleur orange vif pour attirer l'attention */
+    font-size: 24px;
+    color: #ff4500;
+  }
+
+  .navbar-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    background-color: #ff4500;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    border: 1px solid white;
+    
+  }
+  .main-header.navbar {
+    height: 70px;
+    line-height: 10px;
 }
 
-.navbar-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%);
-  background-color: #ff4500; /* Couleur de fond du badge */
-  color: white;
-  font-size: 12px; /* Taille du texte du badge */
-  padding: 2px 6px;
-  border-radius: 50%;
-  border: 1px solid white; /* Bordure blanche autour du badge */
-}
+
+
+
+
+  body {
+    padding-top: 50px;
+  }
+  .power-off-icon {
+    font-size: 30px;  
+    color: #dc3545;   
+    margin-left: 10px; 
+    display: inline-block;
+    vertical-align: middle; 
+    transition: transform 0.3s, color 0.3s; 
+  }
+
+  .power-off-icon:hover {
+    transform: scale(1.2); 
+    color: #c82333; 
+  }
+
 
 </style>

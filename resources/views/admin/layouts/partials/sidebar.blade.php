@@ -1,5 +1,5 @@
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-purple elevation-4">
+<aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
 
     <div class="d-flex align-items-center">
         <div class="navbar-brand-box">
@@ -54,26 +54,61 @@
                 {{--  --}}
 
                 <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-concierge-bell"></i>
+                        <p>{{ __('trans.view_packages') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('colis.create') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.add') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.hold') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.on_old') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.history') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.history') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.history') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.package_tracking') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {{-- StartRDV --}}
+                <li class="nav-item has-treeview">
                     <a href="{{ route('products.index') }}" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-concierge-bell"></i>
-                        <p>{{ __('trans.consult_the_services') }}</p>
+                        <p>{{ __('RDV') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.on_old') }}</p>
+                                <p>{{ __('Liste RDV') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.history') }}</p>
+                                <p>{{ __('Historique des RDV') }}</p>
                             </a>
                         </li>
                     </ul>
                 </li>
+                {{-- endRDV --}}
                 <li class="nav-item has-treeview">
                     <a href="{{ route('customers.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
@@ -102,12 +137,12 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('trans.add_quote') }}</p>
                             </a>
-                        </li>
+                        </li> --}}
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -122,26 +157,13 @@
                         </li>
                     </ul>
                 </li>
-                
-                {{--  --}}
                 <li class="nav-item has-treeview">
                     <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>
                         <p>{{ __('trans.settings') }}</p>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit()">
-                        <i class="nav-icon fas fa-power-off"></i>
-                        <p>{{ __('trans.logout') }}</p>
-                        <form action="{{route('logout')}}" method="POST" id="logout-form">
-                            @csrf
-                        </form>
-                    </a>
-                </li>
             </ul>
         </nav>
-        <!-- /.sidebar-menu -->
-    </div><!-- Log on to codeastro.com for more projects -->
-    <!-- /.sidebar -->
+    </div>
 </aside>

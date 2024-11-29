@@ -1,58 +1,270 @@
-.img-fluid {
-    width: 80%;
-    height: 50%;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+body {
+    font-family: "Poppin", "sans-serif";
+    font-size: small;
 }
-.navbar-brand-box {
-    display: flex;
-    justify-content: center;
+
+.gradient-orange-blue {
+    background: linear-gradient(to right, orange, rgb(24, 145, 64));
+    color: white;
+    border: none;
+}
+
+.btn:hover {
+    background-color: #cc8400;
+}
+
+/* Pied de page */
+.footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 0.5rem;
+    margin-top: 2rem;
+}
+
+.footer p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .section {
+        padding: 1.5rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+.swal2-popup.swal2-toast {
+    flex-direction: row;
     align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 200px;
+    width: auto;
+    padding: 0.625em;
+    overflow-y: hidden;
+    background: #fff;
+    box-shadow: 0 0 0.625em #d9d9d9;
 }
 
-.custom-logo {
-    width: 100px;
+.swal2-popup.swal2-toast .swal2-header {
+    flex-direction: row;
+    padding: 0;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    flex-grow: 1;
+    justify-content: flex-start;
+    margin: 0 0.6em;
+    font-size: 1em;
+}
+
+.swal2-popup.swal2-toast .swal2-footer {
+    margin: 0.5em 0 0;
+    padding: 0.5em 0 0;
+    font-size: 0.8em;
+}
+
+.swal2-popup.swal2-toast .swal2-close {
+    position: static;
+    width: 0.8em;
+    height: 0.8em;
+    line-height: 0.8;
+}
+
+.swal2-popup.swal2-toast .swal2-content {
+    justify-content: flex-start;
+    padding: 0;
+    font-size: 1em;
+}
+
+.swal2-popup.swal2-toast .swal2-icon {
+    width: 2em;
+    min-width: 2em;
+    height: 2em;
+    margin: 0;
+}
+
+.swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
+    display: flex;
+    align-items: center;
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+    .swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
+        font-size: 0.25em;
+    }
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring {
+    width: 2em;
+    height: 2em;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^="swal2-x-mark-line"] {
+    top: 0.875em;
+    width: 1.375em;
+}
+
+.swal2-popup.swal2-toast .swal2-actions {
+    flex-basis: auto !important;
+    width: auto;
     height: auto;
-    transition: transform 0.3s ease-in-out;
+    margin: 0 0.3125em;
 }
 
-.custom-logo:hover {
-    transform: scale(1.1);
+.swal2-popup.swal2-toast .swal2-styled {
+    margin: 0 0.3125em;
+    padding: 0.3125em 0.625em;
+    font-size: 1em;
 }
 
-.d-flex {
-    margin: 10px auto;
-    max-width: 300px;
+.swal2-popup.swal2-toast .swal2-styled:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(50, 100, 150, 0.4);
 }
 
-.dropdown-menu {
-    margin-top: 0.5rem; /* Ajuste l'espacement vertical */
-    border-radius: 0.25rem; /* Bordures arrondies */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Effet d'ombre */
+.swal2-popup.swal2-toast .swal2-success {
+    border-color: #a5dc86;
 }
 
-.notification-icon {
-    position: relative;
-    font-size: 24px; /* Augmente la taille de l'icône */
-    color: #ff4500; /* Couleur orange vif */
-}
-
-.notification-icon .fa-bell {
-    margin-right: 10px; /* Espace entre l'icône et le badge */
-}
-
-.navbar-badge {
+.swal2-popup.swal2-toast .swal2-success [class^="swal2-success-circular-line"] {
     position: absolute;
+    width: 1.6em;
+    height: 3em;
+    transform: rotate(45deg);
+    border-radius: 50%;
+}
+
+.swal2-popup.swal2-toast .swal2-success .swal2-success-ring {
+    width: 2em;
+    height: 2em;
+}
+
+.swal2-popup.swal2-toast .swal2-success .swal2-success-fix {
+    top: 0;
+    left: 0.4375em;
+    width: 0.4375em;
+    height: 2.6875em;
+}
+
+.swal2-popup.swal2-toast .swal2-success [class^="swal2-success-line"] {
+    height: 0.3125em;
+}
+
+.swal2-popup.swal2-toast .swal2-success [class$="tip"] {
+    top: 1.125em;
+    left: 0.1875em;
+    width: 0.75em;
+}
+
+.swal2-popup.swal2-toast .swal2-success [class$="long"] {
+    top: 0.9375em;
+    right: 0.1875em;
+    width: 1.375em;
+}
+
+.swal2-popup.swal2-toast
+    .swal2-success.swal2-icon-show
+    .swal2-success-line-tip {
+    -webkit-animation: swal2-toast-animate-success-line-tip 0.75s;
+    animation: swal2-toast-animate-success-line-tip 0.75s;
+}
+
+.swal2-popup.swal2-toast
+    .swal2-success.swal2-icon-show
+    .swal2-success-line-long {
+    -webkit-animation: swal2-toast-animate-success-line-long 0.75s;
+    animation: swal2-toast-animate-success-line-long 0.75s;
+}
+
+.swal2-popup.swal2-toast.swal2-show {
+    -webkit-animation: swal2-toast-show 0.5s;
+    animation: swal2-toast-show 0.5s;
+}
+
+.swal2-popup.swal2-toast.swal2-hide {
+    -webkit-animation: swal2-toast-hide 0.1s forwards;
+    animation: swal2-toast-hide 0.1s forwards;
+}
+
+.swal2-container {
+    display: flex;
+    position: fixed;
+    z-index: 1060;
     top: 0;
     right: 0;
-    transform: translate(50%, -50%);
-    background-color: #ff4500; /* Même couleur que l'icône */
-    color: white;
-    font-size: 12px; /* Taille du texte du badge */
-    padding: 2px 6px;
-    border-radius: 50%;
-    border: 1px solid white; /* Ajout d'une bordure blanche */
+    bottom: 0;
+    left: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625em;
+    overflow-x: hidden;
+    transition: background-color 0.1s;
+    -webkit-overflow-scrolling: touch;
+}
+
+.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-noanimation {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.swal2-container.swal2-backdrop-hide {
+    background: 0 0 !important;
+}
+
+.swal2-container.swal2-top {
+    align-items: flex-start;
+}
+
+.swal2-container.swal2-top-left,
+.swal2-container.swal2-top-start {
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-top-right {
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.swal2-container.swal2-center {
+    align-items: center;
+}
+
+.swal2-container.swal2-center-left,
+.swal2-container.swal2-center-start {
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.swal2-container.swal2-center-end,
+.swal2-container.swal2-center-right {
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.swal2-container.swal2-bottom {
+    align-items: flex-end;
+}
+
+.swal2-container.swal2-bottom-left,
+.swal2-container.swal2-bottom-start {
+    align-items: flex-end;
+    justify-content: flex-start;
+}
+
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-bottom-right {
+    align-items: flex-end;
+    justify-content: flex-end;
 }

@@ -1,6 +1,6 @@
 @extends('admin.layouts.admin')
 
-@section('content-header',)
+@section('content-header')
 
 @section('content')
 <section class="py-3">
@@ -31,6 +31,9 @@
             $('#users-table').DataTable({                
                 processing: true,
                 serverSide: true,
+                        language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+                },
                 ajax: '{{ route('managers.getUsers') }}',
                 columns: [
                     { data: 'id', name: 'id' },
@@ -39,6 +42,7 @@
                     { data: 'role', name: 'role' },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
+                    
                 ]
             });
 
