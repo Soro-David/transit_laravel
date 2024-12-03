@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
@@ -8,6 +7,9 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Agence;
+use App\Models\Client;
+
 
 class ColisController extends Controller
 {
@@ -28,8 +30,19 @@ class ColisController extends Controller
      */
     public function create(Request $request)
     {
-        
-        return view('admin.colis.add');
+        $agences = Agence::select('nom_agence', 'id')->get();
+
+        // Selection les clients dont le type de client est expediteur
+        $client_expediteurs = Client::select('nom', 'prenom')
+            ->where('type_client', 'expediteur')
+            ->get();
+
+        // Selection les clients dont le type de client est destinataire
+        $client_destinataires = Client::select('nom', 'prenom')
+            ->where('type_client', 'destinataire')
+            ->get();
+
+        return view('admin.colis.add', compact('agences','client_expediteurs', 'client_destinataires'));
 
     }
 
@@ -49,6 +62,37 @@ class ColisController extends Controller
         ];
         return response()->json($product);
     }
+
+    public function store_expediteur(Request $request)
+    {
+        dd($request);
+        $expediteur = Client::create([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'email' => $request->email,
+            'telephone' => $request->telephone,
+            'adresse' => $request->adresse,
+            'agence' => $request->agence,
+            'type_client' => $request->type_client ?? 'destinataire', // Par défaut 'destinataire'
+        ]);
+        return redirect()->back()->with('success', 'expediteur cree avec succès !');
+    }
+
+    public function store_destinataire(Request $request)
+    {
+        $destinataire = Client::create([
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'email' => $request->email,
+            'telephone' => $request->telephone,
+            'lieu_livraison' => $request->lieu_livraison,
+            'agence' => $request->agence,
+            'type_client' => $request->type_client ?? 'expediteur', // Par défaut 'expediteur'
+        ]);
+
+        return redirect()->back()->with('success', 'Destinataire créé avec succès !');
+    }
+
 
     /**
      * Display the specified resource.
@@ -129,5 +173,15 @@ class ColisController extends Controller
             ->make(true);
     }
 }
+
+public function devis_hold()
+    {
+        return view('admin.devis.hold');
+    }
+
+public function liste_contenaire()
+    {
+        return view('admin.devis.liste_contenaire');
+    }
 
 }

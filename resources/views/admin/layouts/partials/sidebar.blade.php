@@ -1,25 +1,16 @@
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
 
-    <div class="d-flex align-items-center">
-        <div class="navbar-brand-box">
-            <a href="{{ route('home') }}" class="logo logo-light">
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="navbar-brand-box mx-2 py-4">
+            <a href="{{ route('home') }}" class="logo logo-light d-flex align-items-center">
                 <span class="logo-sm">
-                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo">
+                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo" style="max-height: 90px;">
                 </span>
             </a>
         </div>
     </div>
     <div class="sidebar">
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-                <img src="{{ auth()->user()->getAvatar() }}" class="img-circle elevation-2" alt="User Image">
-            </div>
-            <div class="info">
-                <a href="#" class="d-block">{{ auth()->user()->getFullname() }}</a>
-            </div>
-        </div>
-
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
@@ -38,15 +29,15 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('managers.create')}}" class="nav-link">
+                            <a href="{{route('managers.agent')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add_provider') }}</p>
+                                <p>{{ __('Agents') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('managers.show')}}" class="nav-link">
+                            <a href="{{route('managers.agence')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.provider_list') }}</p>
+                                <p>{{ __('Agences') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -72,16 +63,73 @@
                                 <p>{{ __('trans.on_old') }}</p>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="{{ route('colis.history') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.history') }}</p>
+                                <p>{{ __('trans.package_tracking') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('colis.history') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.package_tracking') }}</p>
+                                <p>{{ __('trans.history') }}</p>
+                            </a>
+                        </li> --}}
+                    </ul>
+                </li>
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-list-alt"></i>
+                        <p>
+                            {{ __('trans.quote_management') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        {{-- <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.add_quote') }}</p>
+                            </a>
+                        </li> --}}
+                        <li class="nav-item">
+                            <a href="{{ route('colis.devis.hold') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('trans.payment_tracking') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.liste.contenaire') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('liste des contenaire') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {{-- Scan --}}
+                <li class="nav-item has-treeview">
+                    <a href="" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-qrcode"></i>
+                        <p>{{ __('Scan') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Mise en Entrépot') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Chargement') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Dechargement') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -89,7 +137,7 @@
                 {{-- StartRDV --}}
                 <li class="nav-item has-treeview">
                     <a href="{{ route('products.index') }}" class="nav-link {{ activeSegment('products') }}">
-                        <i class="fas fa-concierge-bell"></i>
+                        <i class="fas fa-calendar-alt"></i>
                         <p>{{ __('RDV') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
@@ -126,33 +174,31 @@
                         <i class="nav-icon fas fa-chart-line"></i>
                         <p>{{ __('trans.orders') }}</p>
                     </a>
-                </li> --}}
-                {{--  --}}
+                </li> --}}                
+                {{-- progammz de transport --}}
                 <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
-                        <i class="fas fa-history"></i>
-                        <p>
-                            {{ __('trans.quote_management') }}
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
+                    <a href="" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-car"></i>
+                        <p>{{ __('Transport') }}</p>
+                        <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
-                        {{-- <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add_quote') }}</p>
-                            </a>
-                        </li> --}}
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.quote_list') }}</p>
+                                <p>{{ __('Suivi') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.payment_tracking') }}</p>
+                                <p>{{ __('Chargement') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Dechargement') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -167,3 +213,11 @@
         </nav>
     </div>
 </aside>
+
+<style>
+    .custom-logo {
+    max-height: 10px;
+    padding: 1px; /* Ajout d'un léger padding interne si nécessaire */
+    margin: 10 auto; /* Centrer l'image */
+}
+</style>

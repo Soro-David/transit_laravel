@@ -1,11 +1,8 @@
 @extends('admin.layouts.admin')
-
 @section('content-header', '')
-
 @section('content')
-
     <div class="container-fluid">
-      <h2 class="text-left"> Tableau de Bord</h2><br>
+      <h2 class="text-left"> </h2><br>
         <div class="row">
           <div class="col-lg-4 col-6">
             <div class="small-box bg-purple">

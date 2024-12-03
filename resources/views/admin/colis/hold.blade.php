@@ -30,7 +30,9 @@
                                 <tbody>
                                 </tbody>
                             </table>
-                        <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
+                            <div class="container">
+                                <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
+                            </div>
                         </div>
                     </div>
                 </div>

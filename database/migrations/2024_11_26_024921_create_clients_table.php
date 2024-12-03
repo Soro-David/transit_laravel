@@ -19,9 +19,10 @@ return new class extends Migration
             $table->string('prenom');
             $table->string('telephone');
             $table->string('email')->unique();
-            $table->text('adresse');
-            $table->enum('type_facture', ['Pro', 'Particulier']);
+            $table->text('adresse')->nullable();
+            $table->enum('type_client', ['expediteur', 'destinataire']);
             $table->string('agence');
+            $table->string('lieu_livraison')->nullable();
             $table->timestamp('date_inscription')->nullable();
             $table->timestamps();
         });

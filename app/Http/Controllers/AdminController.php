@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Agence;
 
 
 class AdminController extends Controller
@@ -46,31 +47,31 @@ class AdminController extends Controller
     }
 
   
-    public function create()
+    public function gestion_agence()
     {
-        return view('admin.gestionnaire.ajouter');
+        return view('admin.gestion.agence');
     }
 
 
     public function store(userRequest $request)
     {
-        
-   
+           
         User::create([
             'first_name' => $request->nom,
             'last_name' => $request->prenom,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'agence_id' => $request->agence_id,
         ]);
-
         return redirect()->back()->with('success', 'Gestionnaire ajouté avec succès !');
     }
 
 
-    public function show()
+    public function add_agent()
     {
-        return view('admin.gestionnaire.show'); 
+        $agences = Agence::select('nom_agence', 'id')->get();
+        return view('admin.gestion.agent', compact('agences')); 
     }
 
     public function get_users(Request $request)

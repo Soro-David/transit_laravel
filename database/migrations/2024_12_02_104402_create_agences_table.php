@@ -13,14 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('produits', function (Blueprint $table) {
+        Schema::create('agences', function (Blueprint $table) {
             $table->id();
-            $table->integer('quantite');
-            $table->decimal('prix_unitaire', 10, 2);
-            $table->decimal('prix_total', 10, 2);
-            $table->string('dimensions')->nullable(); // Exemple : "10x20x30"
-            $table->text('description')->nullable();
-            $table->foreignId('colis_id')->constrained('colis')->onDelete('cascade');
+            $table->string('nom_agence');
+            $table->string('adresse_agence');
+            $table->string('pays_agence');
+            $table->string('devise_agence');
+            $table->string('prix_au_kg');
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('produits');
+        Schema::dropIfExists('agences');
     }
 };

@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'role',
+        'first_name', 'last_name', 'email', 'password', 'role','agence_id',
     ];
 
     /**
@@ -40,6 +40,11 @@ class User extends Authenticatable
     public function cart()
     {
         return $this->belongsToMany(Product::class, 'user_cart')->withPivot('quantity');
+    }
+
+    public function agence()
+    {
+        return $this->belongsTo(Agence::class);
     }
 
     public function getFullname()

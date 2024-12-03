@@ -19,8 +19,8 @@ return new class extends Migration
             $table->date('date_entree');
             $table->date('date_sortie')->nullable();
             $table->string('destinataire');
-            $table->string('destinateur');
-            $table->enum('etat', ['En transit', 'Livré', 'En attente']);
+            $table->string('expediteur');
+            $table->enum('etat', ['En transit', 'Livré', 'En attente','En entrepot']);
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->timestamps();
         });

@@ -7,9 +7,10 @@
     </li>
   </ul>
   <ul class="navbar-nav ml-auto">
+    <!-- Notifications -->
     <li class="nav-item dropdown">
       <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
-        <i class="fa fa-bell mx-5" aria-hidden="true"></i>
+        <i class="fas fa-bell mx-5" aria-hidden="true"></i>
         <span class="badge badge-warning navbar-badge mx-5" id="notification-count">3</span>
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
@@ -34,94 +35,71 @@
       </div>
     </li>
 
-    <li class="nav-item">
-      <a href="#" class="nav-link" onclick="document.getElementById('logout-form').submit()">
-        <i class="nav-icon fas fa-power-off"></i>
-        <p>{{ __('trans.logout') }}</p>
-        <form action="{{ route('logout') }}" method="POST" id="logout-form">
+    <!-- User Profile -->
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#">
+        <img src="{{ Auth::user()->profile_photo_url ?? asset('images/poslg.png') }}" class="img-circle"  style="width: 30px; height: 30px;">
+            <span>{{ auth()->user()->getFullname() }}</span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right">
+        <a href="#" class="dropdown-item" data-toggle="modal" data-target="#changeProfilePhotoModal">
+          <i class="fas fa-user-circle mr-2"></i> Changer la photo de profil
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit()">
+          <i class="fas fa-sign-out-alt mr-2"></i> Se déconnecter
+        </a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
           @csrf
         </form>
-      </a>
+      </div>
     </li>
   </ul>
 </nav>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Fonction pour mettre à jour les notifications
-    function updateNotifications() {
-      const notifications = [
-        { message: 'Nouveau devis reçu', icon: 'fas fa-envelope', time: '3 mins' },
-        { message: 'Prestation validée', icon: 'fas fa-file-alt', time: '1 hour' },
-        { message: 'Colis pris en charge', icon: 'fas fa-box', time: '2 hours' }
-      ];
+<!-- Modal for Changing Profile Photo -->
+<div class="modal fade" id="changeProfilePhotoModal" tabindex="-1" role="dialog" aria-labelledby="changeProfilePhotoModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changeProfilePhotoModalLabel">Changer la photo de profil</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{{ route('profile.photo.update') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="profile_photo">Télécharger une nouvelle photo</label>
+            <input type="file" name="profile_photo" id="profile_photo" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+          <button type="submit" class="btn btn-primary">Sauvegarder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
-      document.getElementById('notification-count').textContent = notifications.length;
 
-      const dropdownMenu = document.querySelector('.dropdown-menu-right');
-      dropdownMenu.innerHTML = `<span class="dropdown-item dropdown-header">${notifications.length} Notifications</span>`;
-      notifications.forEach(notification => {
-        const item = `
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="${notification.icon} mr-2"></i> ${notification.message}
-            <span class="float-right text-muted text-sm">${notification.time}</span>
-          </a>
-        `;
-        dropdownMenu.insertAdjacentHTML('beforeend', item);
-      });
-      dropdownMenu.insertAdjacentHTML('beforeend', '<div class="dropdown-divider"></div><a href="#" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>');
-    }
-
-    updateNotifications();
-    setInterval(updateNotifications, 10000);
-  });
-</script>
-
+{{-- stylee  --}}
 <style>
-  .notification-icon i {
-    font-size: 24px;
-    color: #ff4500;
-  }
-
-  .navbar-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    transform: translate(50%, -50%);
-    background-color: #ff4500;
-    color: white;
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 50%;
-    border: 1px solid white;
-    
-  }
-  .main-header.navbar {
-    height: 70px;
-    line-height: 10px;
-}
-
-
-
-
-
-  body {
+  body{
     padding-top: 50px;
   }
-  .power-off-icon {
-    font-size: 30px;  
-    color: #dc3545;   
-    margin-left: 10px; 
-    display: inline-block;
-    vertical-align: middle; 
-    transition: transform 0.3s, color 0.3s; 
+  .navbar .img-circle {
+    border-radius: 50%;
+    object-fit: cover;
   }
-
-  .power-off-icon:hover {
-    transform: scale(1.2); 
-    color: #c82333; 
+  .navbar-nav .dropdown-menu {
+    min-width: 200px;
   }
-
-
+  .navbar-nav .dropdown-menu .dropdown-item {
+    font-size: 14px;
+    padding: 10px;
+  }
 </style>

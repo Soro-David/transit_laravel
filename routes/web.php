@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ColisController;
+use App\Http\Controllers\AgenceController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -30,13 +31,13 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('home');
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
-    Route::get('/managers/create', [AdminController::class, 'create'])->name('managers.create');
+    Route::get('/managers/agence', [AdminController::class, 'gestion_agence'])->name('managers.agence');
     Route::post('/managers',[adminController::class, 'store'])->name('managers.store');
     Route::resource('products', ProductController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
 
-    Route::get('/managers/show',[adminController::class, 'show'])->name('managers.show'); //DataTable route
+    Route::get('/managers/agent',[adminController::class, 'add_agent'])->name('managers.agent'); //DataTable route
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
 
 
@@ -46,14 +47,30 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/history', [ColisController::class,'history'])->name('history'); 
         Route::get('/create', [ColisController::class,'create'])->name('create'); 
         Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
-
+        Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
+        Route::get('/list-contenaire',[ColisController::class, 'liste_contenaire'])->name('liste.contenaire');
 
         Route::post('/store', [ColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [ColisController::class,'show'])->name('show'); 
         Route::get('/{coli}/edit', [ColisController::class,'edit'])->name('edit'); 
         Route::put('/{coli}', [ColisController::class,'update'])->name('update'); 
         Route::delete('/{coli}', [ColisController::class,'destroy'])->name('destroy');
+        Route::post('/store-expediteur', [ColisController::class,'store_expediteur'])->name('store.expediteur'); 
+        Route::post('/store-destinataire', [ColisController::class,'store_destinataire'])->name('store.destinataire'); 
+
+
     });
+        // agence Route 
+    Route::prefix('agence')->name('agence.')->group(function(){
+        Route::get('/', [AgenceController::class,'index'])->name('index'); 
+        Route::get('/create', [AgenceController::class,'create'])->name('create'); 
+        Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
+
+        Route::post('/store', [AgenceController::class,'store'])->name('store'); 
+
+    });
+     
+    Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
 
 });
 
@@ -70,9 +87,3 @@ Route::prefix('provider')->middleware(['auth', 'role:provider'])->group(function
 
     // Route::get('/', [HomeController::class, 'dashboard_provider'])->name('dashboard.provider');
 });
-
-
-
-
-
-
