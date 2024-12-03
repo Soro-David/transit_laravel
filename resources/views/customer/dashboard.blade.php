@@ -25,8 +25,8 @@
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
-        @include('customer.layouts.navbar')
-        @include('customer.layouts.sidebar')
+        @include('customer.layouts.partials.navbar')
+        @include('customer.layouts.partials.sidebar')
         <div class="content-wrapper">
             <section class="content-header">
                 <div class="container-fluid">

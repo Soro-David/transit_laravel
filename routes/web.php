@@ -9,6 +9,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ColisController;
 use App\Http\Controllers\AgenceController;
+use App\Http\Controllers\CustomerColisController;
+
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -79,6 +81,20 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/dashboard/profile', [DashboardController::class, 'profile'])->name('dashboard.profile');
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
+
+    Route::prefix('customer_colis')->name('customer_colis.')->group(function(){
+        Route::get('/', [CustomerColisController::class,'index'])->name('index'); 
+        Route::get('/create', [CustomerColisController::class,'create'])->name('create'); 
+        Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
+        Route::get('/history', [CustomerColisController::class,'history'])->name('history');
+        Route::get('/suivi', [CustomerColisController::class,'suivi'])->name('suivi');
+        Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
+
+        // Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
+
+        // Route::post('/store', [AgenceController::class,'store'])->name('store'); 
+
+    });
         
 });
 

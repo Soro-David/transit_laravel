@@ -116,7 +116,6 @@
     </form>
 </section>
 
-
 <!-- Modal Payment -->
 <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -179,6 +178,7 @@
         </div>
     </div>
 </div>
+
  <!-- Modal View -->
  <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

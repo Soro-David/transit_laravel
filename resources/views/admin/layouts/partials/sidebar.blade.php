@@ -1,6 +1,5 @@
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
-
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
             <a href="{{ route('home') }}" class="logo logo-light d-flex align-items-center">
@@ -24,7 +23,7 @@
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link">
                         <i class="fas fa-user-plus"></i>
-                        <p>{{ __('trans.provider') }}</p>
+                        <p>{{ __('Agences & Agents') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
