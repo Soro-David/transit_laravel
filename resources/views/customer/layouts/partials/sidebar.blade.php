@@ -1,7 +1,7 @@
 <aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
-            <a href="{{ route('home') }}" class="logo logo-light d-flex align-items-center">
+            <a href="{{ route('customer.dashboard') }}" class="logo logo-light d-flex align-items-center">
                 <span class="logo-sm">
                     <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo" style="max-height: 90px;">
                 </span>
@@ -14,7 +14,7 @@
 
                 <!-- Dashboard -->
                 <li class="nav-item has-treeview mb-3">
-                    <a href="{{ route('home') }}" class="nav-link {{ activeSegment('') }}">
+                    <a href="{{ route('customer.dashboard') }}" class="nav-link {{ activeSegment('') }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>{{ __('trans.Dashboard') }}</p>
                     </a>
