@@ -49,6 +49,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/history', [ColisController::class,'history'])->name('history'); 
         Route::get('/create', [ColisController::class,'create'])->name('create'); 
         Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-hold',[ColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
         Route::get('/list-contenaire',[ColisController::class, 'liste_contenaire'])->name('liste.contenaire');
 
@@ -59,6 +60,18 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::delete('/{coli}', [ColisController::class,'destroy'])->name('destroy');
         Route::post('/store-expediteur', [ColisController::class,'store_expediteur'])->name('store.expediteur'); 
         Route::post('/store-destinataire', [ColisController::class,'store_destinataire'])->name('store.destinataire'); 
+        Route::get('/search-expediteurs', [ColisController::class, 'search'])->name('search.expediteurs');
+
+        Route::get('/create/step1', [ColisController::class, 'createStep1'])->name('create.step1');
+        Route::post('/store/step1', [ColisController::class, 'storeStep1'])->name('store.step1');
+        Route::get('/create/step2', [ColisController::class, 'createStep2'])->name('create.step2');
+        Route::post('/store/step2', [ColisController::class, 'storeStep2'])->name('store.step2');
+        Route::get('/create/step3', [ColisController::class, 'createStep3'])->name('create.step3');
+        Route::post('/store/step3', [ColisController::class, 'storeStep3'])->name('store.step3');
+        Route::get('/create/payement', [ColisController::class, 'stepPayement'])->name('create.payement');
+        Route::post('/store/payement', [ColisController::class, 'storePayement'])->name('store.payement');
+        Route::get('/create/qrcode', [ColisController::class, 'qrcode'])->name('create.qrcode');
+        Route::get('/complete', [ColisController::class, 'complete'])->name('complete');
 
 
     });
@@ -88,11 +101,26 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
         Route::get('/history', [CustomerColisController::class,'history'])->name('history');
         Route::get('/suivi', [CustomerColisController::class,'suivi'])->name('suivi');
-        Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/facture', [CustomerColisController::class,'facture'])->name('facture');
+        Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
 
         // Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
 
         // Route::post('/store', [AgenceController::class,'store'])->name('store'); 
+        Route::get('/create/step1', [CustomerColisController::class, 'createStep1'])->name('create.step1');
+        Route::post('/store/step1', [CustomerColisController::class, 'storeStep1'])->name('store.step1');
+        Route::get('/create/step2', [CustomerColisController::class, 'createStep2'])->name('create.step2');
+        Route::post('/store/step2', [CustomerColisController::class, 'storeStep2'])->name('store.step2');
+        Route::get('/create/step3', [CustomerColisController::class, 'createStep3'])->name('create.step3');
+        Route::post('/store/step3', [CustomerColisController::class, 'storeStep3'])->name('store.step3');
+
+        Route::get('/create/step4', [CustomerColisController::class, 'createStep4'])->name('create.step4');
+        Route::post('/store/step4', [CustomerColisController::class, 'storeStep4'])->name('store.step4');
+
+        Route::get('/create/payement', [CustomerColisController::class, 'stepPayement'])->name('create.payement');
+        Route::post('/store/payement', [CustomerColisController::class, 'storePayement'])->name('store.payement');
+        Route::get('/create/qrcode', [CustomerColisController::class, 'qrcode'])->name('create.qrcode');
+        Route::get('/complete', [CustomerColisController::class, 'complete'])->name('complete');
 
     });
         

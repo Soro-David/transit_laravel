@@ -2,7 +2,7 @@
 
 @section('content')
 
-<p class="login-box-msg">You forgot your password? Here you can easily retrieve a new password.</p>
+<p class="login-box-msg">Vous avez oublié votre mot de passe ? Ici, vous pouvez facilement récupérer un nouveau mot de passe.</p>
 
 <form method="POST" action="{{ route('password.email') }}">
     @csrf
@@ -25,17 +25,17 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <button type="submit" class="btn btn-primary btn-block">Request new password</button>
+            <button type="submit" class="btn btn-primary btn-block">Demander un nouveau mot de passe</button>
         </div>
         <!-- /.col -->
     </div>
 </form>
 
 <p class="mt-3 mb-1">
-    <a href="{{ route('login') }}">Login</a>
+    <a href="{{ route('login') }}">Se connecter</a>
 </p>
 <p class="mb-0">
-    <a href="{{ route('register') }}" class="text-center">Register a new membership</a>
+    <a href="{{ route('register') }}" class="text-center">Enregistrez une nouvelle adhésion</a>
 </p>
 
 @endsection

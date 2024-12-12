@@ -6,46 +6,38 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>@yield('title', config('app.name'))</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
+    <!-- Fonts et styles -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" 
-    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" 
-    crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- Scripts globaux -->
+    <script>
+        window.APP = @json([
+            'currency_symbol' => config('settings.currency_symbol'),
+            'warning_quantity' => config('settings.warning_quantity')
+        ]);
     </script>
 
-    <link href="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.1.8/datatables.min.css" rel="stylesheet">
- 
-    <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-2.1.8/datatables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js" 
-        integrity="sha256-1m4qVbsdcSU19tulVTbeQReg0BjZiW6yGffnlr/NJu4=" crossorigin="anonymous">
-    </script>
+    <!-- jQuery (version unique) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     @yield('css')
-    <script>
-        window.APP = <?php echo json_encode([
-                            'currency_symbol' => config('settings.currency_symbol'),
-                            'warning_quantity' => config('settings.warning_quantity')
-                        ]) ?>
-    </script>
-    <!-- Importer jQuery via un CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body class="hold-transition sidebar-mini">
     <!-- Site wrapper -->
     <div class="wrapper">
-
         @include('admin.layouts.partials.navbar')
         @include('admin.layouts.partials.sidebar')
-        <!-- Content Wrapper. Contains page content -->
+
+        <!-- Content Wrapper -->
         <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
             <section class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
@@ -54,10 +46,10 @@
                         </div>
                         <div class="col-sm-6 text-right">
                             @yield('content-actions')
-                        </div><!-- /.col -->
+                        </div>
                     </div>
-                </div><!-- /.container-fluid -->
-            </section><!-- Log on to codeastro.com for more projects -->
+                </div>
+            </section>
 
             <!-- Main content -->
             <section class="content">
@@ -65,27 +57,26 @@
                 @include('admin.layouts.partials.alert.error')
                 @yield('content')
             </section>
-
         </div>
-        <!-- /.content-wrapper -->
 
+        <!-- Footer -->
         @include('admin.layouts.partials.footer')
 
         <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Control sidebar content goes here -->
-        </aside>
-        <!-- /.control-sidebar -->
-    </div><!-- Log on to codeastro.com for more projects -->
-    <!-- ./wrapper -->
+        <aside class="control-sidebar control-sidebar-dark"></aside>
+    </div>
 
+    <!-- Scripts principaux -->
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('jquery-ui-1.14.1.custom/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('select2-4.1.0-beta.1/dist/js/select2.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
     @yield('js')
+
 </body>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
 
 </html>

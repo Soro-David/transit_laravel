@@ -51,7 +51,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('colis.create') }}" class="nav-link">
+                            <a href="{{ route('colis.create.step1') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('trans.add') }}</p>
                             </a>

@@ -16,12 +16,13 @@
     <!-- Google Font: Source Sans Pro -->
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
     @yield('css')
-    <script>
-        window.APP = <?php echo json_encode([
-                            'currency_symbol' => config('settings.currency_symbol'),
-                            'warning_quantity' => config('settings.warning_quantity')
-                        ]) ?>
-    </script>
+        <script>
+                            window.APP = <?php echo json_encode([
+                                'currency_symbol' => config('settings.currency_symbol'),
+                                'warning_quantity' => config('settings.warning_quantity')
+                                ]) 
+                            ?>
+        </script>
 </head>
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
@@ -53,9 +54,6 @@
                                 <h3>{{ config('settings.currency_symbol') }}</h3>
                                 <p>{{ __('trans.total_income') }}</p>
                             </div>
-                            <div class="icon">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
                             <a href="{{ route('orders.index') }}" class="small-box-footer">
                                 {{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i>
                             </a>
@@ -66,9 +64,6 @@
                             <div class="inner">
                                 <h3>{{ config('settings.currency_symbol') }}</h3>
                                 <p>{{ __('trans.total_income') }}</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-dollar-sign"></i>
                             </div>
                             <a href="{{ route('orders.index') }}" class="small-box-footer">
                                 {{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i>
@@ -83,9 +78,6 @@
                                 <h3>{{ config('settings.currency_symbol') }}</h3>
                                 <p>{{ __('trans.total_income') }}</p>
                             </div>
-                            <div class="icon">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
                             <a href="{{ route('orders.index') }}" class="small-box-footer">
                                 {{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i>
                             </a>
@@ -96,9 +88,6 @@
                             <div class="inner">
                                 <h3>{{ config('settings.currency_symbol') }}</h3>
                                 <p>{{ __('trans.total_income') }}</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-dollar-sign"></i>
                             </div>
                             <a href="{{ route('orders.index') }}" class="small-box-footer">
                                 {{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i>

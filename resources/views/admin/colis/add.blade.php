@@ -6,7 +6,7 @@
     <form action="" method="post">
         @csrf
         <div class="container">
-            <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+            <div class="border p-4 rounded shadow-sm" style="border-color: #ffffff;">
                 <h4 class="text-center mb-4">
                     Informations Expéditeur et Destinataire
                 </h4>
@@ -31,33 +31,34 @@
          <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffffff;">
                         <h4 class="text-center mt-4">Expediteur & Destinataire</h4><br>
                         <div class="container mt-3">
                             <div class="row">
-                                <div class="col-md-4">
-                                    <label for="expediteur-left" class="form-label">Expéditeur</label>
-                                    <select id="expediteur-left" class="form-select">
-                                        <option value="" disabled selected>Sélectionnez un Expéditeur</option>
-                                        @foreach ($client_expediteurs as $client)
-                                            <option value="{{$client->id}}">{{ $client->nom }} {{ $client->prenom }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-4 offset-md-4">
-                                    <label for="expediteur-right" class="form-label">Destinataire</label>
-                                    <select id="expediteur-right" class="form-select">
-                                        <option value="" disabled selected>Sélectionnez un destinataire</option>
-                                        @foreach ($client_destinataires as $client)
-                                            <option value="{{$client->id}}">{{ $client->nom }} {{ $client->prenom }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                    <div class="col-md-4">
+                                        <label for="expediteur-left" class="form-label">Expéditeur</label>
+                                        <select id="expediteur-left" class="form-select select2">
+                                            <option value="" disabled selected>Sélectionnez un Expéditeur</option>
+                                            @foreach ($client_expediteurs as $client)
+                                                <option value="{{ $client->id }}">{{ $client->nom }} {{ $client->prenom }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 ">
+                                        <label for="expediteur-right" class="form-label">Destinataire</label>
+                                        <select id="expediteur-right" class="form-select">
+                                            <option value="" disabled selected>Sélectionnez un destinataire</option>
+                                            @foreach ($client_destinataires as $client)
+                                                <option value="{{$client->id}}">{{ $client->nom }} {{ $client->prenom }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                             </div>
                         </div><br>
                     </div>
                 </div>
             </div>
+            <input type="hidden" id="client_id" name="client_id">
         </div>
         <div id="products-container">
             <h4 class="text-center mt-4">Ajouter les produits</h4><br>
@@ -442,27 +443,73 @@
         });
 
          // Préparer les données pour chaque action
-    document.addEventListener('DOMContentLoaded', function () {
-        // Exemple : Remplir les informations du modal d'édition
-        document.querySelector('a[title="Edit"]').addEventListener('click', function () {
-            document.getElementById('editField').value = "Valeur actuelle à modifier";
-        });
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     // Exemple : Remplir les informations du modal d'édition
+    //     document.querySelector('a[title="Edit"]').addEventListener('click', function () {
+    //         document.getElementById('editField').value = "Valeur actuelle à modifier";
+    //     });
 
-        // Exemple : Afficher les détails dans le modal de visualisation
-        document.querySelector('a[title="View"]').addEventListener('click', function () {
-            document.getElementById('viewDetails').textContent = "Voici les détails de l'élément sélectionné.";
-        });
+    //     // Exemple : Afficher les détails dans le modal de visualisation
+    //     document.querySelector('a[title="View"]').addEventListener('click', function () {
+    //         document.getElementById('viewDetails').textContent = "Voici les détails de l'élément sélectionné.";
+    //     });
 
-        // Gestion du formulaire de paiement
-        document.getElementById('paymentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const selectedMethod = document.getElementById('paymentMethod').value;
-            alert("Mode de paiement choisi : " + selectedMethod);
-        });
+    //     // Gestion du formulaire de paiement
+    //     document.getElementById('paymentForm').addEventListener('submit', function (e) {
+    //         e.preventDefault();
+    //         const selectedMethod = document.getElementById('paymentMethod').value;
+    //         alert("Mode de paiement choisi : " + selectedMethod);
+    //     });
+    // });
+
+    // Recherche automatique 
+$(document).ready(function () {
+    $('#expediteur-left').select2({
+        placeholder: "Sélectionnez un Expéditeur",
+        allowClear: true, 
+        width: '100%', 
+        ajax: {
+            url: "{{ route('colis.search.expediteurs') }}",
+            type: "GET",
+            dataType: "json",
+            delay: 250,
+            data: function (params) {
+                return {
+                    term: params.term 
+                };
+            },
+            processResults: function (data) {
+                if (Array.isArray(data)) {
+                    return {
+                        results: data.map(function (item) {
+                            return {
+                                id: item.id, 
+                                text: item.nom + ' ' + item.prenom 
+                            };
+                        })
+                    };
+                } else {
+                    console.error("Les données renvoyées ne sont pas un tableau valide");
+                    return { results: [] };
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Erreur lors de l'appel AJAX :", error);
+            }
+        }
+    }).on('select2:select', function (e) {
+        var selected = e.params.data;
+        console.log("Client sélectionné :", selected);
+        $("#client_id").val(selected.id); // Enregistre l'ID du client dans un champ caché
     });
+});
+
 </script>
 
 <style>
+    section{
+        background-color: #fff !important;
+    }
     table.dataTable {
         width: 100% !important;
     }
@@ -470,10 +517,6 @@
     table.dataTable td {
         white-space: nowrap;
     }
-
-
-    
 </style>
-
 
 @endsection

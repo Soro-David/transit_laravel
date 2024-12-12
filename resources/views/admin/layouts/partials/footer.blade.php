@@ -4,3 +4,6 @@
     </div>
     <strong>&copy; <?php echo date('Y')?> AFT IMPORT EXPORT</strong>
   </footer>
+  <style>
+     
+  </style>

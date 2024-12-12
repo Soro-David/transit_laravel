@@ -1,13 +1,30 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
 body {
-    font-family: "Poppin", "sans-serif";
-    font-size: small;
+    font-family: "Poppins", "sans-serif";
+    font-size: 0.675rem; /* Diminue la taille de base */
+    background-color: #fff;
 }
 
+/* Styles pour les éléments spécifiques */
+label,
+.form-label,
+.btn,
+input,
+select,
+.form-select {
+    font-size: 0.875rem; /* Réduit la taille du texte dans les labels, boutons, inputs, selects */
+}
+
+/* Boutons */
 .gradient-orange-blue {
     background: linear-gradient(to right, orange, rgb(24, 145, 64));
     color: white;
     border: none;
+}
+
+.btn {
+    font-size: 0.875rem; /* Réduit la taille du texte dans les boutons */
 }
 
 .btn:hover {
@@ -20,8 +37,9 @@ body {
     color: #fff;
     text-align: center;
     padding: 1rem 0;
-    font-size: 0.5rem;
+    font-size: 0.75rem; /* Diminue la taille du texte dans le pied de page */
     margin-top: 2rem;
+    font-family: "Poppins", "sans-serif";
 }
 
 .footer p {
@@ -31,7 +49,7 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem; /* Réduit la taille des titres sur mobile */
     }
 
     .section {
@@ -43,6 +61,7 @@ body {
     }
 }
 
+/* Style des popups */
 .swal2-popup.swal2-toast {
     flex-direction: row;
     align-items: center;
@@ -53,218 +72,34 @@ body {
     box-shadow: 0 0 0.625em #d9d9d9;
 }
 
-.swal2-popup.swal2-toast .swal2-header {
-    flex-direction: row;
-    padding: 0;
-}
-
 .swal2-popup.swal2-toast .swal2-title {
     flex-grow: 1;
     justify-content: flex-start;
     margin: 0 0.6em;
-    font-size: 1em;
+    font-size: 0.875rem; /* Diminue la taille du titre */
+    font-family: "Poppins", "sans-serif";
 }
 
 .swal2-popup.swal2-toast .swal2-footer {
     margin: 0.5em 0 0;
     padding: 0.5em 0 0;
-    font-size: 0.8em;
-}
-
-.swal2-popup.swal2-toast .swal2-close {
-    position: static;
-    width: 0.8em;
-    height: 0.8em;
-    line-height: 0.8;
+    font-size: 0.75rem; /* Diminue la taille de la police du pied de la popup */
 }
 
 .swal2-popup.swal2-toast .swal2-content {
     justify-content: flex-start;
     padding: 0;
-    font-size: 1em;
-}
-
-.swal2-popup.swal2-toast .swal2-icon {
-    width: 2em;
-    min-width: 2em;
-    height: 2em;
-    margin: 0;
-}
-
-.swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
-    display: flex;
-    align-items: center;
-    font-size: 1.8em;
-    font-weight: 700;
-}
-
-@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-    .swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
-        font-size: 0.25em;
-    }
-}
-
-.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring {
-    width: 2em;
-    height: 2em;
-}
-
-.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^="swal2-x-mark-line"] {
-    top: 0.875em;
-    width: 1.375em;
-}
-
-.swal2-popup.swal2-toast .swal2-actions {
-    flex-basis: auto !important;
-    width: auto;
-    height: auto;
-    margin: 0 0.3125em;
+    font-size: 0.875rem; /* Diminue la taille du texte dans le contenu de la popup */
 }
 
 .swal2-popup.swal2-toast .swal2-styled {
     margin: 0 0.3125em;
     padding: 0.3125em 0.625em;
-    font-size: 1em;
+    font-size: 0.875rem; /* Diminue la taille du texte dans les boutons de la popup */
 }
 
-.swal2-popup.swal2-toast .swal2-styled:focus {
-    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(50, 100, 150, 0.4);
+.swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
+    font-size: 1.5rem; /* Réduit la taille de l'icône */
 }
 
-.swal2-popup.swal2-toast .swal2-success {
-    border-color: #a5dc86;
-}
-
-.swal2-popup.swal2-toast .swal2-success [class^="swal2-success-circular-line"] {
-    position: absolute;
-    width: 1.6em;
-    height: 3em;
-    transform: rotate(45deg);
-    border-radius: 50%;
-}
-
-.swal2-popup.swal2-toast .swal2-success .swal2-success-ring {
-    width: 2em;
-    height: 2em;
-}
-
-.swal2-popup.swal2-toast .swal2-success .swal2-success-fix {
-    top: 0;
-    left: 0.4375em;
-    width: 0.4375em;
-    height: 2.6875em;
-}
-
-.swal2-popup.swal2-toast .swal2-success [class^="swal2-success-line"] {
-    height: 0.3125em;
-}
-
-.swal2-popup.swal2-toast .swal2-success [class$="tip"] {
-    top: 1.125em;
-    left: 0.1875em;
-    width: 0.75em;
-}
-
-.swal2-popup.swal2-toast .swal2-success [class$="long"] {
-    top: 0.9375em;
-    right: 0.1875em;
-    width: 1.375em;
-}
-
-.swal2-popup.swal2-toast
-    .swal2-success.swal2-icon-show
-    .swal2-success-line-tip {
-    -webkit-animation: swal2-toast-animate-success-line-tip 0.75s;
-    animation: swal2-toast-animate-success-line-tip 0.75s;
-}
-
-.swal2-popup.swal2-toast
-    .swal2-success.swal2-icon-show
-    .swal2-success-line-long {
-    -webkit-animation: swal2-toast-animate-success-line-long 0.75s;
-    animation: swal2-toast-animate-success-line-long 0.75s;
-}
-
-.swal2-popup.swal2-toast.swal2-show {
-    -webkit-animation: swal2-toast-show 0.5s;
-    animation: swal2-toast-show 0.5s;
-}
-
-.swal2-popup.swal2-toast.swal2-hide {
-    -webkit-animation: swal2-toast-hide 0.1s forwards;
-    animation: swal2-toast-hide 0.1s forwards;
-}
-
-.swal2-container {
-    display: flex;
-    position: fixed;
-    z-index: 1060;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    padding: 0.625em;
-    overflow-x: hidden;
-    transition: background-color 0.1s;
-    -webkit-overflow-scrolling: touch;
-}
-
-.swal2-container.swal2-backdrop-show,
-.swal2-container.swal2-noanimation {
-    background: rgba(0, 0, 0, 0.4);
-}
-
-.swal2-container.swal2-backdrop-hide {
-    background: 0 0 !important;
-}
-
-.swal2-container.swal2-top {
-    align-items: flex-start;
-}
-
-.swal2-container.swal2-top-left,
-.swal2-container.swal2-top-start {
-    align-items: flex-start;
-    justify-content: flex-start;
-}
-
-.swal2-container.swal2-top-end,
-.swal2-container.swal2-top-right {
-    align-items: flex-start;
-    justify-content: flex-end;
-}
-
-.swal2-container.swal2-center {
-    align-items: center;
-}
-
-.swal2-container.swal2-center-left,
-.swal2-container.swal2-center-start {
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.swal2-container.swal2-center-end,
-.swal2-container.swal2-center-right {
-    align-items: center;
-    justify-content: flex-end;
-}
-
-.swal2-container.swal2-bottom {
-    align-items: flex-end;
-}
-
-.swal2-container.swal2-bottom-left,
-.swal2-container.swal2-bottom-start {
-    align-items: flex-end;
-    justify-content: flex-start;
-}
-
-.swal2-container.swal2-bottom-end,
-.swal2-container.swal2-bottom-right {
-    align-items: flex-end;
-    justify-content: flex-end;
-}
+/* Animation et autres styles restent inchangés */

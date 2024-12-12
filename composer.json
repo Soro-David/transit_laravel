@@ -10,21 +10,23 @@
     "require": {
         "php": "^8.0.2",
         "doctrine/dbal": "^3.3",
+        "endroid/qr-code": "^5.0",
         "fruitcake/laravel-cors": "^2.0.5",
         "guzzlehttp/guzzle": "^7.0.2",
         "laravel/framework": "^9.0",
         "laravel/tinker": "^2.7",
         "laravel/ui": "^3.0",
         "mariuzzo/laravel-js-localization": "^1.11",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "yajra/laravel-datatables": "^9.0"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^3.6.7",
-        "spatie/laravel-ignition": "^1.0",
+        "barryvdh/laravel-debugbar": "^3.8",
         "fzaninotto/faker": "^1.9.1",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^6.1",
-        "phpunit/phpunit": "^9.5.10"
+        "phpunit/phpunit": "^9.5.10",
+        "spatie/laravel-ignition": "^1.0"
     },
     "config": {
         "optimize-autoloader": true,

@@ -14,6 +14,7 @@ class UserController extends Controller
 
     public function index()
     {
+        $id=request();
         // dd(request());
         return view('customer.dashboard');
     }

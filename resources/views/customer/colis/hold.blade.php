@@ -14,13 +14,13 @@
                             <table id="productTable" class="display">
                                 <thead>
                                     <tr>
-                                        <th>Description</th>
-                                        <th>Expéditeur</th>
-                                        <th>Quantité</th>
-                                        <th>Dimensions</th>
-                                        <th>Prix</th>
-                                        <th>Status</th>
-                                        <th> Destinataire</th>
+                                        <th>Nom Expéditeur</th>
+                                        <th>Prenom Expéditeur</th>
+                                        <th>Email Expediteur</th>
+                                        <th>Agence Expéditeur</th>
+                                        <th>Agence Destinataire</th>
+                                        <th> Status</th>
+                                        <th> Etat</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -40,42 +40,63 @@
 </div>
 <!-- Script JavaScript -->
 <script>
-    $(document).ready(function() {
+   $(document).ready(function() {
     var table = $("#productTable").DataTable({
-        responsive: true,
+        responsive: true, // Rend la table responsive
         language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
-        }
+            url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/fr-FR.json"
+        },
+        ajax: {
+            url: '{{ route("customer_colis.get.colis") }}',
+            // type: 'GET', // Méthode HTTP pour récupérer les données
+            // dataType: 'json' // Type de données attendu
+        },
+        columns: [
+            { data: 'nom_expediteur', name: 'nom_expediteur' },
+            { data: 'prenom_expediteur', name: 'prenom_expediteur' },
+            { data: 'email_expediteur', name: 'email_expediteur' },
+            { data: 'agence_expedition', name: 'agence_expedition' },
+            { data: 'agence_destination', name: 'agence_destination' },
+            { data: 'status', name: 'status' },
+            { data: 'etat', name: 'etat' },
+            { 
+                data: 'action', 
+                name: 'action', 
+                orderable: false, 
+                searchable: false // Actions non triables et non recherchables
+            }
+        ]
     });
-    $(".add-product").on("click", function() {
-        var description = $("#description").val();
-        var quantite = $("#quantite").val();
-        var dimension = $("#dimension").val();
-        var prix = $("#prix").val();
-        if (description && quantite && dimension && prix) {
-            $.ajax({
-                url: '{{ route("colis.store") }}',
-                method: "POST",
-                data: {
-                    description: description,
-                    quantite: quantite,
-                    dimension: dimension,
-                    prix: prix,
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function(response) {
-                    table.row
-                        .add([
-                            response.description,
-                            response.quantite,
-                            response.dimension,
-                            response.prix
-                        ])
-                        .draw(false);
-                }
-            });
-        }
-    });
+
+    // $(".add-product").on("click", function() {
+    //     var description = $("#description").val();
+    //     var quantite = $("#quantite").val();
+    //     var dimension = $("#dimension").val();
+    //     var prix = $("#prix").val();
+    //     if (description && quantite && dimension && prix) {
+    //         $.ajax({
+    //             url: '{{ route("customer_colis.get.colis") }}',
+    //             method: "POST",
+    //             data: {
+    //                 description: description,
+    //                 quantite: quantite,
+    //                 dimension: dimension,
+    //                 prix: prix,
+    //                 _token: "{{ csrf_token() }}"
+    //             },
+    //             success: function(response) {
+    //                 table.row
+    //                     .add([
+    //                         response.description,
+    //                         response.quantite,
+    //                         response.dimension,
+    //                         response.prix
+    //                     ])
+    //                     .draw(false);
+    //             }
+    //         });
+    //     }
+    // });
 });
 </script>
 @endsection

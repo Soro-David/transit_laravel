@@ -14,3 +14,7 @@ require("./bootstrap");
 
 require("./components/Cart");
 import $ from "jquery";
+import "jquery-ui/ui/widgets/autocomplete";
+import "select2/dist/css/select2.min.css";
+import "select2/dist/js/select2.min.js";
+import "select2";

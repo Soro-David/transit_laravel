@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Agence;
 use App\Models\Client;
+use App\Models\Les_colis;
 
 
 class CustomerColisController extends Controller
@@ -30,11 +31,8 @@ class CustomerColisController extends Controller
      */
     public function create(Request $request)
     {
-       
         return view('customer.colis.add');
-
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -46,8 +44,167 @@ class CustomerColisController extends Controller
         return response()->json($product);
     }
 
-   
+    public function createStep1()
+    {
+        $id = auth()->user()->getIdUSer();
+        $user = User::findOrfail($id);
+        // Chargement des données
+        $agences = Agence::select('nom_agence', 'id')->get();
+        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+        return view('customer.colis.add.step1', compact('agences', 'client_expediteurs', 'client_destinataires','user'));
+    }
 
+    /**
+     * Enregistre les données de l'étape 1.
+     */
+    public function storeStep1(Request $request)
+    {
+        // Validation des données
+        $request->validate([
+            // Ajouter les règles de validation si nécessaires
+        ]);
+
+        // Stockage des données en session
+        session(['step1' => $request->only([
+            'nom_expediteur', 'prenom_expediteur', 'email_expediteur', 'tel_expediteur',
+            'agence_expedition', 'lieu_expedition', 'nom_destinataire', 'prenom_destinataire',
+            'email_destinataire', 'tel_destinataire', 'agence_destination', 'lieu_destination'
+        ])]);
+
+        return redirect()->route('customer_colis.create.step2');
+    }
+
+    /**
+     * Étape 2 : Détails du colis.
+     */
+    public function createStep2()
+    {
+        return view('customer.colis.add.step2');
+    }
+
+    public function storeStep2(Request $request)
+    {
+        $request->validate([
+            'description' => 'required',
+            'quantite' => 'required',
+            'dimension' => 'required',
+            'poids' => 'required',
+        ]);
+        session(['step2' => $request->only([
+            'description', 'quantite', 'dimension', 'dimension', 'poids'
+            ])]);
+// dd($request->all());
+        return redirect()->route('customer_colis.create.step3');
+    }
+    /**
+     * Étape 3 : Informations de transit.
+     */
+    public function createStep3()
+    {
+        return view('customer.colis.add.step3');
+    }
+    public function storeStep3(Request $request)
+    {
+        $request->validate([
+            'quantite' => 'required',
+            'type_emballage' => 'required',
+            'dimension' => 'required',
+            'description_colis' => 'required',
+            'poids_colis' => 'required',
+            'valeur_colis' => 'required',
+        ]);
+        session(['step3' => $request->only([
+            'quantite', 'type_emballage','dimension','description_colis','poids_colis','valeur_colis'
+        ])]);
+        return redirect()->route('customer_colis.create.step4');
+    }
+    public function createStep4()
+    {
+        return view('customer.colis.add.step4');
+    }
+
+    public function storeStep4(Request $request)
+    {
+        $request->validate([
+            'mode_transit' => 'required',
+            'reference_colis' => 'required',
+        ]);
+        session(['step4' => $request->only([
+            'mode_transit', 'reference_colis'
+        ])]);
+        return redirect()->route('customer_colis.complete');
+    }
+    
+    public function complete(Request $request)
+    {
+        $data = array_merge(
+            session('step1', []),
+            session('step2', []),
+            session('step3', []),
+            session('step4', []) 
+        );
+        // $data['status'] = $data['mode_payement'] ?? 'non payé';
+        $colis = Les_colis::create($data);
+        // Nettoyer les sessions
+        session()->forget(['step1', 'step2', 'step3', 'step4']);
+        return view('customer.colis.add.complete',compact('colis','data'));
+    }
+    /**
+     * Enregistre les informations de paiement.
+     */
+    public function stepPayement()
+    {
+        return view('customer.colis.add.payement');
+    }
+    public function storePayement(Request $request)
+    {
+        $request->validate([
+            'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+            // Validation pour le paiement bancaire
+            'numero_compte' => 'required_if:mode_payement,bank|max:255',
+            'nom_banque' => 'required_if:mode_payement,bank|max:255',
+            'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+            // Validation pour Mobile Money
+            'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+            'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+            // Validation pour le paiement par chèque
+            'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+            'nom_banque' => 'required_if:mode_payement,cheque|max:255',
+            // Validation pour le paiement en espèces
+            'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+        ]);
+        session(['step4' => $request->only([
+            'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+            'tel', 'operateur', 'numero_cheque', 'montant_reçu',
+        ])]);
+        return redirect()->route('customer_colis.create.qrcode');
+    }
+    public function qrcode(Request $request)
+    {
+        $data = array_merge(
+            session('step1', []),
+            session('step2', []),
+            session('step3', []),
+            session('step4', []) 
+        );
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
+        $colis = Les_colis::create($data);
+        // Générer le contenu du QR code (par exemple : ID du colis + statut)
+        // Nettoyer les sessions
+        session()->forget(['step1', 'step2', 'step3', 'step4']);
+        // return redirect()->route('colis.complete');
+        return view('customer.colis.add.complete',compact('colis','data'));
+    }
+    
+    /**
+     * Étape finale : Confirmation.
+     */
+    // public function complete()
+    // {
+
+    //     return view('customer.colis.add.complete');
+    // }
 
     /**
      * Display the specified resource.
@@ -73,6 +230,10 @@ class CustomerColisController extends Controller
     public function suivi()
     {
         return view('customer.colis.suivi');
+    }
+    public function facture()
+    {
+        return view('customer.facture.invoice1');
     }
 
     /**
@@ -111,28 +272,54 @@ class CustomerColisController extends Controller
 
     public function get_colis(Request $request)
 {
+    // Récupération de l'email de l'utilisateur connecté
+    $email = auth()->user()->email;
+
     if ($request->ajax()) {
-        $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
-        return DataTables::of($users)
+        // Récupérer les colis associés à l'email
+        $colis = Les_colis::select(
+            // 'id', // Incluez 'id' si nécessaire pour les actions
+            'nom_expediteur',
+            'prenom_expediteur',
+            'email_expediteur',
+            'agence_expedition',
+            'agence_destination',
+            'status',
+            'etat'
+        )
+        ->where('email_expediteur', $email)
+        ->get();
+
+        // Construire et retourner la DataTable
+        return DataTables::of($colis)
+            // // Ajouter une colonne calculée : nom complet
+            // ->addColumn('nom_complet', function ($row) {
+            //     return $row->nom_expediteur . ' ' . $row->prenom_expediteur;
+            // })
+            // Ajouter une colonne d'action
             ->addColumn('action', function ($row) {
-                $editUrl = '/users/' . $row->id . '/edit';
+                $editUrl = url('/users/' . $row->id . '/edit'); // Génère une URL pour l'édition
 
                 return '
                     <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#viewModal">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="Modifier">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <a href="#" class="btn btn-sm btn-success" title="Paiement" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fas fa-credit-card"></i>
                         </a>
                     </div>
-                   
                 ';
             })
-            ->rawColumns(['action']) // Permet de rendre le HTML
+            // Permettre le rendu des colonnes contenant du HTML
+            ->rawColumns(['action'])
             ->make(true);
     }
+
+    // Retourner une réponse d'erreur si la requête n'est pas AJAX
+    return response()->json(['message' => 'Requête non valide'], 400);
 }
+
 
 public function devis_hold()
     {

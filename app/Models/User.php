@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'role','agence_id',
+        'id','first_name', 'last_name', 'email', 'password', 'role','agence_id',
     ];
 
     /**
@@ -50,6 +50,14 @@ class User extends Authenticatable
     public function getFullname()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+    public function getMail()
+    {
+        return $this->email;
+    }
+    public function getIdUser()
+    {
+        return $this->id;
     }
 
     public function getAvatar()
