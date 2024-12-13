@@ -104,6 +104,7 @@ class CustomerColisController extends Controller
     {
         return view('customer.colis.add.step3');
     }
+
     public function storeStep3(Request $request)
     {
         $request->validate([
@@ -114,11 +115,25 @@ class CustomerColisController extends Controller
             'poids_colis' => 'required',
             'valeur_colis' => 'required',
         ]);
-        session(['step3' => $request->only([
-            'quantite', 'type_emballage','dimension','description_colis','poids_colis','valeur_colis'
-        ])]);
+    
+        // Ajout du champ 'etat' avec la valeur 'En attente'
+        session(['step3' => array_merge(
+            $request->only([
+                'quantite',
+                'type_emballage',
+                'dimension',
+                'description_colis',
+                'poids_colis',
+                'valeur_colis'
+            ]),
+            ['etat' => 'En attente'] // Ajout du champ 'etat'
+        )]);
+    
+    
+
         return redirect()->route('customer_colis.create.step4');
     }
+
     public function createStep4()
     {
         return view('customer.colis.add.step4');
@@ -126,6 +141,7 @@ class CustomerColisController extends Controller
 
     public function storeStep4(Request $request)
     {
+
         $request->validate([
             'mode_transit' => 'required',
             'reference_colis' => 'required',
@@ -144,6 +160,7 @@ class CustomerColisController extends Controller
             session('step3', []),
             session('step4', []) 
         );
+
         // $data['status'] = $data['mode_payement'] ?? 'non payé';
         $colis = Les_colis::create($data);
         // Nettoyer les sessions
@@ -276,9 +293,8 @@ class CustomerColisController extends Controller
     $email = auth()->user()->email;
 
     if ($request->ajax()) {
-        // Récupérer les colis associés à l'email
+        // Récupérer les colis associés à l'email et à l'état "en attente"
         $colis = Les_colis::select(
-            // 'id', // Incluez 'id' si nécessaire pour les actions
             'nom_expediteur',
             'prenom_expediteur',
             'email_expediteur',
@@ -287,27 +303,28 @@ class CustomerColisController extends Controller
             'status',
             'etat'
         )
-        ->where('email_expediteur', $email)
+        ->where('email_expediteur', $email) // Comparer l'email
+        ->where('etat', 'en attente') // Vérifier que l'état est "en attente"
         ->get();
 
         // Construire et retourner la DataTable
         return DataTables::of($colis)
-            // // Ajouter une colonne calculée : nom complet
-            // ->addColumn('nom_complet', function ($row) {
-            //     return $row->nom_expediteur . ' ' . $row->prenom_expediteur;
-            // })
             // Ajouter une colonne d'action
             ->addColumn('action', function ($row) {
                 $editUrl = url('/users/' . $row->id . '/edit'); // Génère une URL pour l'édition
 
                 return '
-                    <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="Modifier">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="#" class="btn btn-sm btn-success" title="Paiement" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-credit-card"></i>
-                        </a>
+                   <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
+                            <i class="fas fa-edit"></i> 
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fas fa-hand-holding-usd"></i> 
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash-alt"></i> 
+                        </button>
+
                     </div>
                 ';
             })
@@ -315,7 +332,6 @@ class CustomerColisController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     // Retourner une réponse d'erreur si la requête n'est pas AJAX
     return response()->json(['message' => 'Requête non valide'], 400);
 }

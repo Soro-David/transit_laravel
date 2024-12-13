@@ -103,3 +103,113 @@ select,
 }
 
 /* Animation et autres styles restent inchangés */
+
+/* css des btn du print datatable  */
+/* Style commun pour tous les boutons */
+/* Centrer le DataTable et ajuster la largeur */
+/* Centrer le DataTable et ajuster la largeur */
+.dataTable-wrapper {
+    width: 80% !important;
+    margin: 20px auto; /* Ajoute une marge autour du tableau */
+    padding: 15px; /* Ajoute un peu de padding pour le confort visuel */
+    border: 1px solid #ccc; /* Ajoute une bordure discrète */
+    border-radius: 12px; /* Bordures arrondies du tableau */
+    background: #f9f9f9; /* Fond clair pour distinguer le tableau */
+}
+
+/* Style commun pour tous les boutons */
+/* Style commun pour tous les boutons */
+
+/* Bouton Excel */
+.dt-buttons {
+    gap: 0;
+}
+.buttons-excel {
+    background-color: #37924c !important; /* Vert */
+    color: white !important;
+    border-color: #218838; /* Bordure verte */
+    gap: 0;
+    border-radius: 10 !important;
+}
+.buttons-excel:hover {
+    background-color: #048620 !important; /* Vert plus sombre */
+    border-color: #1e7e34; /* Bordure plus sombre */
+    box-shadow: 0 4px 8px rgba(0, 180, 0, 0.2); /* Ombre sur hover */
+}
+
+/* Bouton PDF */
+.buttons-pdf {
+    background-color: #dc3545 !important; /* Rouge */
+    color: white !important;
+    /* margin: 4px !important;
+    padding: 10px !important; */
+    border-color: #c82333;
+}
+.buttons-pdf:hover {
+    background-color: #df0c0c !important;
+    border-color: #bd2130;
+    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+    border-radius: 50px;
+}
+
+/* Bouton Print */
+.buttons-print {
+    background-color: rgb(32, 48, 187) !important;
+    color: white !important;
+    border-color: rgb(25, 38, 150);
+}
+.buttons-print:hover {
+    background-color: rgb(8, 23, 165) !important;
+    border-color: rgb(18, 27, 112);
+    box-shadow: 0 4px 8px rgba(0, 0, 255, 0.2);
+    border-radius: 50px;
+}
+
+/* Ajuster la largeur du tableau */
+table.dataTable {
+    width: 100% !important;
+    border-collapse: collapse; /* Fusion des bordures */
+    border-radius: 12px; /* Bordures arrondies du tableau */
+}
+
+/* Ajouter un arrondi pour les en-têtes et les lignes du tableau */
+table.dataTable th,
+table.dataTable td {
+    border-radius: 10px; /* Bordures arrondies des cellules */
+    padding: 10px; /* Espacement à l'intérieur des cellules */
+}
+
+.dt-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+dt-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    margin: 0;
+    gap: 0;
+}
+
+.dt-button {
+    padding: 10px 20px;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: none;
+    gap: 0;
+}
+
+/* Fusion visuelle des boutons */
+.dt-button:not(:last-child) {
+    border-right: none;
+}
+
+.dt-button:hover {
+    opacity: 0.9;
+}

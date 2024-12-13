@@ -362,14 +362,26 @@ class ColisController extends Controller
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-        $colis = Les_colis::select(['nom_expediteur', 'prenom_expediteur','tel_expediteur','agence_expedition', 'nom_destinataire', 'prenom_destinataire','agence_destination', 'tel_destinataire','etat','created_at']);
+        $colis = Les_colis::select('nom_expediteur',
+         'prenom_expediteur',
+         'tel_expediteur',
+         'agence_expedition', 
+         'nom_destinataire', 
+         'prenom_destinataire',
+         'agence_destination', 
+         'tel_destinataire',
+         'etat',
+         'created_at'
+                )
+        ->where('etat', 'en attente')
+        ->get();
         return DataTables::of($colis)
             ->addColumn('action', function ($row) {
                 $editUrl = '/users/' . $row->id . '/edit';
 
                 return '
                     <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#viewModal">
+                        <a href="#" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
                             <i class="fas fa-edit"></i>
                         </a>
                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">

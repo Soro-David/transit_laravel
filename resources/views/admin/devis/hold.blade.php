@@ -67,38 +67,59 @@
 
     <!-- Script JavaScript -->
         <script>
-    $(document).ready(function () {
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
+   $(document).ready(function () {
+    var table = $("#productTable").DataTable({
+        responsive: true, // Rend le tableau réactif
+        language: {
+            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json" // Traduction en français
+        },
+        ajax: '{{ route("colis.get.colis.hold") }}', // URL pour récupérer les données
+        columns: [
+            {
+                data: null,
+                name: 'nom_expediteur',
+                render: function (data, type, row) {
+                    return row.nom_expediteur + ' ' + row.prenom_expediteur; // Nom complet expéditeur
+                }
             },
-            ajax: '{{ route('colis.get.colis.hold') }}',
-            columns: [
-                {
-                    data: null,
-                    name: 'nom_expediteur',
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
-                    }
-                },
-                { data: 'tel_expediteur', name: 'contact_expediteur' },
-                { data: 'agence_expedition', name: 'agence_expedition' },
-                {
-                    data: null,
-                    name: 'nom_destinataire',
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
-                    }
-                },
-                { data: 'tel_destinataire', name: 'contact_destinataire' },
-                { data: 'agence_destination', name: 'agence_destination' },
-                { data: 'etat', name: 'etat' },
-                { data: 'created_at', name: 'created_at' },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
-            ]
-        });
+            { data: 'tel_expediteur', name: 'contact_expediteur' },
+            { data: 'agence_expedition', name: 'agence_expedition' },
+            {
+                data: null,
+                name: 'nom_destinataire',
+                render: function (data, type, row) {
+                    return row.nom_destinataire + ' ' + row.prenom_destinataire; // Nom complet destinataire
+                }
+            },
+            { data: 'tel_destinataire', name: 'contact_destinataire' },
+            { data: 'agence_destination', name: 'agence_destination' },
+            { data: 'etat', name: 'etat' },
+            { data: 'created_at', name: 'created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        dom: 'Bfrtip', // Active les boutons et positionne les contrôles
+        buttons: [
+            {
+                extend: 'excelHtml5', 
+                text: 'Exporter en Excel', 
+                title: 'Liste des devis en attente' 
+            },
+            {
+                extend: 'pdfHtml5',   
+                text: 'Exporter en PDF', 
+                title: 'Liste des devis en attente', 
+                orientation: 'landscape', 
+                pageSize: 'A4' 
+            },
+            {
+                extend: 'print', 
+                text: 'Imprimer', 
+                title: 'Liste des devis en attente' 
+            }
+        ]
     });
+});
+
 </script>
 </section>
 <style>

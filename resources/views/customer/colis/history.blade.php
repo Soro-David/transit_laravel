@@ -11,22 +11,24 @@
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
                         <h4 class="text-left mt-4">Historique des colis</h4><br>
                         <div id="products-container">
-                            <table id="productTable" class="display">
-                                <thead>
-                                    <tr>
-                                        <th>Description</th>
-                                        <th>Expéditeur</th>
-                                        <th>Quantité</th>
-                                        <th>Dimensions</th>
-                                        <th>Prix</th>
-                                        <th>Status</th>
-                                        <th> Destinataire</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table id="productTable" class="display">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th>Expéditeur</th>
+                                            <th>Quantité</th>
+                                            <th>Dimensions</th>
+                                            <th>Prix</th>
+                                            <th>Status</th>
+                                            <th> Destinataire</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
                         </div>
                     </div>

@@ -1,4 +1,6 @@
 
+ /* resources/css/app.css */
+ @import "datatables.net-buttons-dt/css/buttons.dataTables.css";
 .swal2-popup.swal2-toast {
     flex-direction: row;
     align-items: center;
