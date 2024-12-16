@@ -1,6 +1,7 @@
 @extends('admin.layouts.admin')
 @section('content-header')
 @endsection
+
 @section('content')
 <section class="py-3">
     <div class="container">
@@ -27,13 +28,9 @@
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
-                                {{-- <div class="container">
-                                    <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
-                                </div> --}}
                             </div>
                         </div>
                     </div>
@@ -41,7 +38,8 @@
             </div>
         </form>
     </div>
-    {{-- modal  --}}
+
+    <!-- Modal for editing -->
     <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -51,182 +49,148 @@
                 </div>
                 <div class="modal-body">
                     <form id="editForm" action="/users/{id}/edit" method="GET">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="prix_colis" class="form-label">Prix du Colis</label>
-                                    <input type="number" name="prix_colis" class="form-control">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="montant_paye" class="form-label">Montant Payé</label>
-                                    <input type="number" name="montant_paye" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="reste" class="form-label">Reste</label>
-                                    <input type="number" name="reste" placeholder="-Reste-" class="form-control" disabled required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="referrence" class="form-label">Reférence du colis</label>
-                                    <input type="text" name="referrence_colis" class="form-control" disabled required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="reference_contenaire" class="form-label">Reférence du Contenaire</label>
-                                    <input type="text" name="reference_contenaire" class="form-control" disabled required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="mode_transit" class="form-label">Mode de Transit</label>
-                                    <input type="text" name="mode_transit" class="form-control" required disabled>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="poids" class="form-label">Le Poids du Colis en Kg</label>
-                                    <input type="number" name="poids" class="form-control" required disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="valeur_colis" class="form-label">Valeur du Colis</label>
-                                    <input type="number" name="valeur_colis" class="form-control" required disabled>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                                <button type="submit" class="btn btn-primary">Valider</button>
-                            </div>
+                        <!-- Form fields go here -->
+                        <!-- Example fields: Prix du colis, Montant payé, etc. -->
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Script JavaScript -->
-<script>
- $(document).ready(function () {
+    <!-- JavaScript for DataTable and Export -->
+    <script>
+$(document).ready(function () {
+    // Initialisation de la table DataTable
     var table = $("#productTable").DataTable({
-        responsive: true, // Active le design réactif pour le tableau
+        responsive: true,
         language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json" // Traduction en français
+            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json" // Traduction française
         },
-        ajax: '{{ route("colis.get.colis.hold") }}', // URL pour récupérer les données via AJAX
+        ajax: '{{ route("colis.get.colis.hold") }}', // Récupération des données via AJAX
         columns: [
-            { 
-                data: null, // Données combinées
-                name: 'nom_expediteur',
+            {
+                data: null,
                 render: function (data, type, row) {
-                    // Combinaison nom + prénom de l'expéditeur
                     return row.nom_expediteur + ' ' + row.prenom_expediteur;
                 }
             },
-            { 
-                data: 'tel_expediteur', 
-                name: 'tel_expediteur' // Correction du nom de la colonne
-            },
-            { 
-                data: 'agence_expedition', 
-                name: 'agence_expedition' 
-            },
-            { 
-                data: null, // Données combinées
-                name: 'nom_destinataire',
+            { data: 'tel_expediteur' },
+            { data: 'agence_expedition' },
+            {
+                data: null,
                 render: function (data, type, row) {
-                    // Combinaison nom + prénom du destinataire
                     return row.nom_destinataire + ' ' + row.prenom_destinataire;
                 }
             },
-            { 
-                data: 'tel_destinataire', 
-                name: 'tel_destinataire' // Correction du nom de la colonne
-            },
-            { 
-                data: 'agence_destination', 
-                name: 'agence_destination' 
-            },
-            { 
-                data: 'etat', 
-                name: 'etat' 
-            },
-            { 
-                data: 'created_at', 
-                name: 'created_at' 
-            },
-            { 
-                data: 'action', // Colonne des actions
-                name: 'action', 
-                orderable: false, // Ne pas permettre de tri sur cette colonne
-                searchable: false // Ne pas permettre la recherche sur cette colonne
-            }
+            { data: 'tel_destinataire' },
+            { data: 'agence_destination' },
+            { data: 'etat' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
         ],
-        dom: 'Bfrtip', // Barre de boutons pour les fonctionnalités supplémentaires
+        dom: 'Bfrtip', // Placement des boutons
         buttons: [
+            // Bouton Excel
             {
-                extend: 'excelHtml5', // Export en Excel
-                text: 'Exporter en Excel', // Texte du bouton
-                title: 'Liste des Colis en attente' // Titre du fichier exporté
+                extend: 'excelHtml5',
+                text: 'Exporter en Excel',
+                title: 'Liste des Colis en attente',
+                customize: function (xlsx) {
+                    console.log("Exportation Excel réussie sans image.");
+                }
             },
+            // Bouton PDF
             {
-                extend: 'pdfHtml5',   // Export en PDF
-                text: 'Exporter en PDF', // Texte du bouton
-                title: 'Liste des Colis en attente', // Titre du fichier exporté
-                orientation: 'landscape', // Orientation du document
-                pageSize: 'A4' // Taille de la page
+                extend: 'pdfHtml5',
+                text: 'Exporter en PDF',
+                title: 'Liste des Colis en attente',
+                orientation: 'landscape', // Mode paysage
+                pageSize: 'A4', // Taille de la page
+                customize: function (doc) {
+                    // Ajout du logo encodé en Base64 dans le PDF
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    toDataURL(logoUrl, function (dataUrl) {
+                        // Ajout de l'image au début du contenu PDF
+                        console.log(dataUrl);
+                        
+                        doc.content.unshift({
+                            image: dataUrl,
+                            width: 100, // Taille du logo
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10] // Espacement
+                        });
+                    });
+                }
             },
+            // Bouton Imprimer
             {
-                extend: 'print', // Impression
-                text: 'Imprimer', // Texte du bouton
-                title: 'Liste des Colis en attente' // Titre de l'impression
+                extend: 'print',
+                text: 'Imprimer',
+                title: 'Liste des Colis en attente',
+                customize: function (win) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                    $(win.document.body).find('h1')
+                        .css('text-align', 'center')
+                        .css('margin-top', '10px');
+                    $(win.document.body).find('h1').after(logo);
+                    $(win.document.body).find('table').css('margin-top', '30px');
+                }
             }
         ]
     });
+
+    /**
+     * Fonction pour convertir une image en Base64
+     * @param {string} url - L'URL de l'image
+     * @param {function} callback - Fonction de retour contenant l'image en Base64
+     */
+    function toDataURL(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                callback(reader.result); // Retourne l'image encodée en Base64
+            };
+            reader.readAsDataURL(xhr.response);
+        };
+        xhr.open('GET', url);
+        xhr.responseType = 'blob'; // Type de réponse : Blob
+        xhr.send();
+    }
 });
 
-</script>
+    </script>
+    
+    
 </section>
+
 <style>
-    /* ajuster la taille du btn */
     .btn {
-        width: 15%;  
-        height: 40px;  
-        font-size: 18px; 
+        width: 15%;
+        height: 40px;
+        font-size: 18px;
     }
-   /* Centrer le DataTable et ajuster la largeur */
-.dataTable-wrapper {
-    width: 80% !important;
-    margin: 20px auto; 
-    padding: 15px; 
-    border: 1px solid #ccc; 
-    border-radius: 8px; 
-    background: #f9f9f9; 
-}
 
-/* Style commun pour tous les boutons */
-.dt-button {
-    padding: 10px 20px; $
-    margin: 5px;
-    border: 1px solid transparent; 
-    border-radius: 5px; 
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.3s ease; 
-}
+    .dataTable-wrapper {
+        width: 80% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
 
-
-
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
 </style>
 @endsection

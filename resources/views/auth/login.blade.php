@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-12">
+        <div class="col-12 col-md-12 col-lg-12">
                 <div class="card-header bg-primary text-white text-center">
                     <h4>Connectez-vous</h4>
                 </div>
@@ -25,7 +25,6 @@
                             </span>
                             @enderror
                         </div>
-
                         <div class="form-group">
                             <label for="password">Mot de passe</label>
                             <div class="input-group">
@@ -41,7 +40,6 @@
                             </span>
                             @enderror
                         </div>
-
                         <div class="form-group d-flex justify-content-between align-items-center">
                             <div class="form-check">
                                 <input type="checkbox" name="remember" id="remember" class="form-check-input"
@@ -61,7 +59,7 @@
                             <a href="{{ route('register') }}">Créer un compte</a>
                         </p>
                     </div>
-            </div>
+                </div>
         </div>
     </div>
 </div>
@@ -69,15 +67,58 @@
 
 @section('css')
 <style>
-    @media (min-width: 1200px) {
-        .card {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-    }
+    body {
+    background-image: url('{{ asset('images/font_login.jpg') }}'); /* Chemin de l'image de fond */
+    background-size: auto; /* L'image garde sa taille d'origine */
+    background-position: center; /* L'image reste centrée */
+    background-repeat: no-repeat; /* L'image ne se répète pas */
+    height: 100vh; /* Hauteur pleine de la fenêtre */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centre le formulaire au milieu de l'écran */
+}
 
-    .invalid-feedback {
-        display: block;
+.card-body {
+    
+    width: 100%;
+    max-width: 100%; /* Limite la largeur du formulaire */
+    min-width: 100%;
+   
+}
+
+.container {
+    padding: 10px;
+    width: 100%;
+}
+
+.card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    background-color: #007bff; /* Couleur de fond du header */
+    color: white;
+}
+
+.invalid-feedback {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-check-label {
+    font-size: 0.875rem;
+}
+
+.form-control {
+    border-radius: 0.25rem; /* Arrondir les bords des champs de texte */
+}
+
+@media (min-width: 1200px) {
+    .card {
+        max-width: 800px; /* Peut augmenter la taille du formulaire sur des écrans plus larges */
     }
+}
+
 </style>
 @endsection

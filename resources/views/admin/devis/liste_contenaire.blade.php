@@ -195,6 +195,7 @@
                     { data: 'created_at', name: 'created_at' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                         ]
+                        
     });
     $(".add-product").on("click", function() {
         var description = $("#description").val();

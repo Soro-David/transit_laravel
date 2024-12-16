@@ -66,7 +66,7 @@
     </div>
 
     <!-- Script JavaScript -->
-        <script>
+<script>
    $(document).ready(function () {
     var table = $("#productTable").DataTable({
         responsive: true, // Rend le tableau réactif
@@ -114,11 +114,18 @@
             {
                 extend: 'print', 
                 text: 'Imprimer', 
-                title: 'Liste des devis en attente' 
-            }
-        ]
+                title: 'Liste des devis en attente',
+                customize: function (win) {
+                            var logoUrl = "{{ asset('images/LOGOAFT.png') }}";
+                            var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                            $(win.document.body).find('h1').css('text-align', 'center').css('border', '2px solid #000').css('padding', '1px').css('margin-top', '10px');
+                            $(win.document.body).find('h1').after(logo);
+                            $(win.document.body).find('table').css('margin-top', '30px');
+                        }
+                }
+            ]
+        });
     });
-});
 
 </script>
 </section>

@@ -1,46 +1,49 @@
 @extends('admin.layouts.admin')
 
 @section('content-header')
+    <!-- Contenu du header si nécessaire -->
+@endsection
 
 @section('content')
 <section class="py-3">
 
-<div class="container">
-    <form action="" method="POST" class="mt-4">
-        @csrf
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                        <h4 class="text-left mt-4">Historique des colis</h4><br>
-                        <div id="products-container">
-                            <div class="table-responsive">
-                                <table id="productTable" class="display">
-                                    <thead>
-                                        <tr>
-                                            <th>Description</th>
-                                            <th>Expéditeur</th>
-                                            <th>Quantité</th>
-                                            <th>Dimensions</th>
-                                            <th>Prix</th>
-                                            <th>Status</th>
-                                            <th> Destinataire</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
+    <div class="container">
+        <form action="" method="POST" class="mt-4">
+            @csrf
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                            <h4 class="text-left mt-4">Historique des colis</h4><br>
+                            <div id="products-container">
+                                <div class="table-responsive">
+                                    <table id="productTable" class="display">
+                                        <thead>
+                                            <tr>
+                                                <th>Description</th>
+                                                <th>Expéditeur</th>
+                                                <th>Quantité</th>
+                                                <th>Dimensions</th>
+                                                <th>Prix</th>
+                                                <th>Status</th>
+                                                <th>Destinataire</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
                             </div>
-                        <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
     </div>
 </div>
+
 <!-- Script JavaScript -->
 
 <script>
@@ -68,7 +71,14 @@
             {
                 extend: 'print', // Impression
                 text: 'Imprimer', // Texte du bouton Imprimer
-                title: 'Liste des Produits' // Titre de l'impression
+                title: 'Liste des Produits', // Titre de l'impression
+                customize: function (win) {
+                            var logoUrl = "{{ asset('images/LOGOAFT.png') }}";
+                            var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                            $(win.document.body).find('h1').css('text-align', 'center').css('border', '2px solid #000').css('padding', '1px').css('margin-top', '10px');
+                            $(win.document.body).find('h1').after(logo);
+                            $(win.document.body).find('table').css('margin-top', '30px');
+                        }
             }
         ]
     });
