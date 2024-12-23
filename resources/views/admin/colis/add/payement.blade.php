@@ -6,7 +6,12 @@
 <section class="p-4 mx-auto">
     <form id="paymentForm" action="#" method="POST" class="form-container">
         @csrf
-        {{-- Sélection du Mode de Paiement --}}
+        <div class="progress-card">
+            <h3>Progression de la soumission</h3>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: 100%;">Étape 5 / 5</div>
+            </div>
+        </div>
         <div class="form-section">
             <div class="row">
                 <div class="col-md-6">
@@ -139,9 +144,15 @@
             $.ajax({
                 url: '{{route('colis.store.payement')}}',
                 method: 'POST',
-                data: formData,
+                contentType: 'application/json',
+                data: JSON.stringify(formDataJson),
                 success: function (response) {
                     alert('Paiement enregistré avec succès !');
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        console.error('Aucune URL de redirection fournie');
+                    }
                     $('#paymentForm')[0].reset();
                     hideSections();
                 },
@@ -157,7 +168,7 @@
 {{-- CSS Personnalisé --}}
 <style>
     .form-container {
-        max-width: 1000px;
+        max-width: 95%;
         margin: auto;
         background-color: #fff;
         padding: 30px;
@@ -165,7 +176,7 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
     .form-section {
-        margin-bottom: 20px;
+        margin-bottom: 0px;
     }
     .payment-section {
         border: 1px solid #ddd;
@@ -173,6 +184,57 @@
         border-radius: 5px;
         margin-top: 10px;
         display: none;
+    }
+    body {
+        background-color: #f7f7f7;
+    }
+
+    .form-container {
+        max-width: 95%;
+        margin: auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+   
+
+    /* Card contenant la barre de progression */
+    .progress-card {
+        background-color: #fff;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* Conteneur de la barre de progression */
+    .progress-container {
+        width: 100%; /* Prend toute la largeur de l'écran */
+        background-color: #e0e0e0;
+        border-radius: 25px;
+        height: 30px;
+        margin: 20px 0;
+    }
+
+    /* Barre de progression */
+    .progress-bar {
+        height: 100%;
+        width: 40%; /* Étape actuelle (40% pour la deuxième étape) */
+        background-color: #4caf50;
+        border-radius: 25px;
+        text-align: center;
+        color: white;
+        line-height: 30px; /* Pour centrer le texte verticalement */
     }
 </style>
 @endsection

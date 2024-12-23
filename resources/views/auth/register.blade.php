@@ -109,14 +109,18 @@
     align-items: center; /* Centre le formulaire au milieu de l'écran */
 }
     body {
-    background-image: url('{{ asset('images/font_login.jpg') }}'); /* Chemin de l'image de fond */
+        background-image: url('{{ asset('images/font_login1.jpg') }}'); /* Chemin de l'image de fond */
     background-size: auto; /* L'image garde sa taille d'origine */
     background-position: center; /* L'image reste centrée */
     background-repeat: no-repeat; /* L'image ne se répète pas */
     height: 100vh; /* Hauteur pleine de la fenêtre */
     display: flex;
     justify-content: center;
-    align-items: center; /* Centre le formulaire au milieu de l'écran */
+    align-items: center; 
+}
+.card-body{
+    width: 100%;
+    max-width: 600px; /
 }
 
 .card {
@@ -159,7 +163,7 @@
 
 @media (min-width: 1200px) {
     .card {
-        max-width: 800px; /* Peut augmenter la taille du formulaire sur des écrans plus larges */
+        max-width: 1200px; /* Peut augmenter la taille du formulaire sur des écrans plus larges */
     }
 }
 

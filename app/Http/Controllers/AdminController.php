@@ -10,6 +10,8 @@ use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Agence;
+use ConsoleTVs\Charts\Classes\Chartjs\Chart;
+
 
 
 class AdminController extends Controller
@@ -21,30 +23,44 @@ class AdminController extends Controller
     $this->middleware('role:admin');
 }
 
-    public function index()
-    {
-        $orders = Order::with(['items', 'payments'])->get();
-        $customers_count = Customer::count();
-        $products_count = Product::count();
+public function index()
+{
+    // Récupérer les commandes avec les éléments et paiements associés
+    $orders = Order::with(['items', 'payments'])->get();
+    
+    // Compter les clients et produits
+    $customers_count = Customer::count();
+    $products_count = Product::count();
+    $agence = Agence::select('nom_agence')->first();
+    // Créer un graphique
+    $chart = new Chart;
+    $chart->labels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']);
+    $chart->dataset('Revenue by Month', 'line', [10, 20, 30, 40, 50, 60])
+        ->color('#ff0000')
+        ->backgroundColor('rgba(255, 0, 0, 0.3)');
 
-        return view('admin.dashboard', [
-            'orders_count' => $orders->count(),
-            'income' => $orders->map(function($i) {
-                if($i->receivedAmount() > $i->total()) {
-                    return $i->total();
-                }
-                return $i->receivedAmount();
-            })->sum(),
-            'income_today' => $orders->where('created_at', '>=', date('Y-m-d').' 00:00:00')->map(function($i) {
-                if($i->receivedAmount() > $i->total()) {
-                    return $i->total();
-                }
-                return $i->receivedAmount();
-            })->sum(),
-            'customers_count' => $customers_count,
-            'products_count' => $products_count
-        ]);
-    }
+    // Calculer les revenus totaux et du jour
+    $income = $orders->map(function($order) {
+        return min($order->receivedAmount(), $order->total());
+    })->sum();
+
+    $income_today = $orders->where('created_at', '>=', date('Y-m-d').' 00:00:00')
+        ->map(function($order) {
+            return min($order->receivedAmount(), $order->total());
+        })->sum();
+
+    // Retourner la vue avec les données
+    return view('admin.dashboard', [
+        'orders_count' => $orders->count(),
+        'income' => $income,
+        'income_today' => $income_today,
+        'customers_count' => $customers_count,
+        'products_count' => $products_count,
+        'chart' => $chart,
+        'agence' => $agence,
+          // Passer le graphique à la vue
+    ]);
+}
 
   
     public function gestion_agence()

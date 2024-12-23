@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ColisController;
 use App\Http\Controllers\AgenceController;
 use App\Http\Controllers\CustomerColisController;
+use App\Http\Controllers\TransportController;
 
 
 use Illuminate\Support\Facades\Route;
@@ -68,10 +69,12 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/step2', [ColisController::class, 'storeStep2'])->name('store.step2');
         Route::get('/create/step3', [ColisController::class, 'createStep3'])->name('create.step3');
         Route::post('/store/step3', [ColisController::class, 'storeStep3'])->name('store.step3');
+        Route::get('/create/step4', [ColisController::class, 'createStep4'])->name('create.step4');
+        Route::post('/store/step4', [ColisController::class, 'storeStep4'])->name('store.step4');
         Route::get('/create/payement', [ColisController::class, 'stepPayement'])->name('create.payement');
         Route::post('/store/payement', [ColisController::class, 'storePayement'])->name('store.payement');
         Route::get('/create/qrcode', [ColisController::class, 'qrcode'])->name('create.qrcode');
-        Route::get('/complete', [ColisController::class, 'complete'])->name('complete');
+        Route::get('/create/complete', [ColisController::class, 'complete'])->name('complete');
 
 
     });
@@ -82,6 +85,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
 
         Route::post('/store', [AgenceController::class,'store'])->name('store'); 
+
+    });
+// transport
+    Route::prefix('transport')->name('transport.')->group(function(){
+        Route::get('/', [TransportController::class,'index'])->name('index'); 
+        Route::get('/create', [TransportController::class,'create'])->name('create');
+        Route::get('/show-chauffeur', [TransportController::class,'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/planing-chauffeur', [TransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
+        Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
+
+        Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+
+        Route::get('/store',[TransportController::class, 'store'])->name('store');
+        Route::post('/store', [TransportController::class,'store'])->name('store'); 
 
     });
      
@@ -103,6 +120,11 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/suivi', [CustomerColisController::class,'suivi'])->name('suivi');
         Route::get('/facture', [CustomerColisController::class,'facture'])->name('facture');
         Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
+        Route::get('/get-colis-valide',[CustomerColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');
+        Route::get('/facture/pdf', [CustomerColisController::class, 'telechargerPdf'])->name('facture.pdf');
+
+
 
         // Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
 

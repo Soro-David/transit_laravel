@@ -16,6 +16,9 @@ use App\Models\Les_colis;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
+use Endroid\QrCode\Builder\Builder;
+use Illuminate\Support\Facades\File;
+
 
 class ColisController extends Controller
 {
@@ -55,11 +58,12 @@ class ColisController extends Controller
     public function createStep1()
     {
         // Chargement des données
+        $step = 1;
         $agences = Agence::select('nom_agence', 'id')->get();
         $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
         $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
 
-        return view('admin.colis.add.step1', compact('agences', 'client_expediteurs', 'client_destinataires'));
+        return view('admin.colis.add.step1',['stepProgress' => 20], compact('agences', 'client_expediteurs', 'client_destinataires'));
     }
 
     /**
@@ -67,6 +71,7 @@ class ColisController extends Controller
      */
     public function storeStep1(Request $request)
     {
+        $request->session()->put('step1', $request->all());
         // Validation des données
         $request->validate([
             // Ajouter les règles de validation si nécessaires
@@ -87,11 +92,37 @@ class ColisController extends Controller
      */
     public function createStep2()
     {
-        return view('admin.colis.add.step2');
+        
+        return view('admin.colis.add.step2',['stepProgress' => 40]);
     }
 
     public function storeStep2(Request $request)
     {
+        $request->session()->put('step2', $request->all());
+        $request->validate([
+            'description' => 'required',
+            'quantite' => 'required',
+            'dimension' => 'required',
+            'poids' => 'required',
+            
+        ]);
+
+        session(['step2' => $request->only([
+            'description', 'quantite', 'dimension', 'dimension', 'poids',
+        ])]);
+
+        return redirect()->route('colis.create.step3');
+    }
+
+    public function createStep3()
+    {
+        $step = 3;
+        return view('admin.colis.add.step3',['stepProgress' => 60]);
+    }
+
+    public function storeStep3(Request $request)
+    {
+        $request->session()->put('step3', $request->all());
         $request->validate([
             'quantite' => 'required',
             'type_emballage' => 'required',
@@ -101,27 +132,30 @@ class ColisController extends Controller
             'valeur_colis' => 'required',
         ]);
 
-        session(['step2' => $request->only([
+        session(['step3' => $request->only([
             'quantite', 'type_emballage', 'dimension', 'description_colis', 'poids_colis', 'valeur_colis',
         ])]);
 
-        return redirect()->route('colis.create.step3');
+        return redirect()->route('colis.create.step4',['stepProgress' => 80]);
     }
     /**
      * Étape 3 : Informations de transit.
      */
-    public function createStep3()
+    public function createStep4()
     {
-        return view('admin.colis.add.step3');
+       
+        return view('admin.colis.add.step4',['stepProgress' => 80]);
     }
-    public function storeStep3(Request $request)
+    public function storeStep4(Request $request)
     {
+
+        $request->session()->put('step4', $request->all());
         $request->validate([
             // 'mode_transit' => 'required',
             // 'reference_colis' => 'required',
         ]);
 
-        session(['step3' => $request->only([
+        session(['step4' => $request->only([
             'mode_transit', 'reference_colis'
         ])]);
 
@@ -132,76 +166,106 @@ class ColisController extends Controller
      */
     public function stepPayement()
     {
-        return view('admin.colis.add.payement');
+       
+        return view('admin.colis.add.payement',['stepProgress' => 100]);
     }
     public function storePayement(Request $request)
     {
 
         $request->validate([
-            'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            // Validation pour le paiement bancaire
-            'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            'nom_banque' => 'required_if:mode_payement,bank|max:255',
-            'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+            // 'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+            // // Validation pour le paiement bancaire
+            // 'numero_compte' => 'required_if:mode_payement,bank|max:255',
+            // 'nom_banque' => 'required_if:mode_payement,bank|max:255',
+            // 'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
         
-            // Validation pour Mobile Money
-            'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            // Validation pour le paiement par chèque
-            'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            'nom_banque' => 'required_if:mode_payement,cheque|max:255',
-            // Validation pour le paiement en espèces
-            'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+            // // Validation pour Mobile Money
+            // 'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+            // 'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+            // // Validation pour le paiement par chèque
+            // 'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+            // 'nom_banque' => 'required_if:mode_payement,cheque|max:255',
+            // // Validation pour le paiement en espèces
+            // 'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
         ]);
-        session(['step4' => $request->only([
+
+        session(['step5' => $request->only([
             'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
             'tel', 'operateur', 'numero_cheque', 'montant_reçu',
         ])]);
-        
-        return redirect()->route('colis.create.qrcode');
-    }
-    public function qrcode(Request $request)
-    {
-        $data = array_merge(
-            session('step1', []),
-            session('step2', []),
-            session('step3', []),
-            session('step4', []) 
-        );
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
 
-        $colis = Les_colis::create($data);
-        // Générer le contenu du QR code (par exemple : ID du colis + statut)
-        $qrData = [
-            'id_colis' => $colis->id,
-            'status' => $colis->status,
-            'expediteur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
-            'destinataire' => $data['nom_destinataire'] . ' ' . $data['prenom_destinataire'],
-        ];
-        // Générer le QR code
-        $qrCodeContent = json_encode($qrData);
-        $qrCode = new QrCode($qrCodeContent);
-    
-        // Spécifiez le writer pour générer l'image en PNG
-        $writer = new PngWriter();
-        $qrCodeImage = $writer->write($qrCode); // Utilisation de 'write()' pour obtenir l'image
-    
-        // Définir le chemin du fichier QR code
-        $filePath = 'qrcodes/colis_' . $colis->id . '.png';
-    
-        // Sauvegarder l'image dans le stockage public
-        Storage::disk('public')->put($filePath, $qrCodeImage->getString()); // Utiliser 'getString()' pour obtenir le contenu binaire
-    
-        // Mettre à jour le chemin du QR code dans la base de données
-        $colis->update(['qr_code_path' => $filePath]);
-    
-        // Nettoyer les sessions
-        session()->forget(['step1', 'step2', 'step3', 'step4']);
-    
-        // Rediriger vers la page de confirmation
-        // return redirect()->route('colis.complete');
-        return view('admin.colis.add.complete',compact('colis','qrCodeImage','data'));
+        return response()->json([
+            'success' => true,
+            'redirect' => route('colis.create.qrcode'),
+        ]);
+        
     }
+
+public function qrcode(Request $request)
+{
+    $data = array_merge(
+        session('step1', []),
+        session('step2', []),
+        session('step3', []),
+        session('step4', []),
+        session('step5', [])
+    );
+
+    $data['status'] = $data['mode_payement'] ?? 'non payé';
+    $colis = Les_colis::create($data);
+
+    // Format lisible pour le QR code
+    $qrData = [
+        'Référence colis' => $data['reference_colis'],
+        'Statut' => $colis->status,
+        'Nom Expéditeur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
+        'Nom Destinataire' => $data['nom_destinataire'] . ' ' . $data['prenom_destinataire'],
+        'Téléphone Destinataire' => $data['tel_destinataire'],
+        'Agence Destination' => $data['agence_destination'],
+        'Lieu de Destination' => $data['lieu_destination'],
+    ];
+
+    $qrCodeContent = '';
+    foreach ($qrData as $key => $value) {
+        $qrCodeContent .= "{$key}: {$value}\n";
+    }
+
+    // Génération du QR code avec Builder
+    $result = Builder::create()
+        ->writer(new PngWriter())
+        ->data($qrCodeContent)
+        ->size(300)
+        ->margin(10)
+        ->build();
+
+    // Définir le chemin du fichier
+    $filePath = 'qrcodes/colis_' . $colis->id . '.png';
+    $fullPath = storage_path('app/public/' . $filePath);
+
+    // Vérifier et créer le répertoire cible si nécessaire
+    $directory = dirname($fullPath);
+    if (!File::exists($directory)) {
+        File::makeDirectory($directory, 0755, true);
+    }
+
+    // Sauvegarder le fichier QR code dans le storage
+    file_put_contents($fullPath, $result->getString()); // Utiliser getString pour obtenir les données PNG
+
+    // Enregistrer le chemin du QR code dans la base de données
+    $colis->update(['qr_code_path' => $filePath]);
+
+    session()->forget(['step1', 'step2', 'step3', 'step4', 'step5']);
+
+    return view('admin.colis.add.complete', compact('colis', 'data','filePath'));
+}
+
+
+    
+
+
+
+    
+
     
     /**
      * Étape finale : Confirmation.
@@ -362,18 +426,19 @@ class ColisController extends Controller
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-        $colis = Les_colis::select('nom_expediteur',
-         'prenom_expediteur',
-         'tel_expediteur',
-         'agence_expedition', 
-         'nom_destinataire', 
-         'prenom_destinataire',
-         'agence_destination', 
-         'tel_destinataire',
-         'etat',
-         'created_at'
-                )
-        ->where('etat', 'en attente')
+        $colis = Les_colis::select(
+            'nom_expediteur',
+            'prenom_expediteur',
+            'tel_expediteur',
+            'agence_expedition', 
+            'nom_destinataire', 
+            'prenom_destinataire',
+            'agence_destination', 
+            'tel_destinataire',
+            'etat',
+            'created_at'
+        )
+        ->whereIn('etat', ['En attente', 'En transit', 'Validé' , 'En entrepot'])
         ->get();
         return DataTables::of($colis)
             ->addColumn('action', function ($row) {

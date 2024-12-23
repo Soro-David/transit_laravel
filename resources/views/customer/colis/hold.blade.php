@@ -83,7 +83,6 @@
                                 <option value="bank">Paiement bancaire</option>
                                 <option value="mobile_money">Mobile Money</option>
                                 <option value="cheque">Chèque</option>
-                                <option value="cash">Espèces</option>
                             </select>
                         </div>
                         <div id="bank_payment" class="payment-section" style="display: none;">
@@ -122,7 +121,7 @@
                                         <select name="operateur" id="operateur" class="form-control">
                                             <option value="mtn">MTN</option>
                                             <option value="orange">Orange</option>
-                                            <option value="airtel">Airtel</option>
+                                            <option value="airtel">Moov</option>
                                         </select>
                                     </div>
                                 </div>
@@ -150,7 +149,7 @@
                             </div>
                         </div>
 
-                        <div id="cash_payment" class="payment-section" style="display: none;">
+                        {{-- <div id="cash_payment" class="payment-section" style="display: none;">
                             <h5 class="mb-3">Détails Espèces</h5>
                             <div class="row">
                                 <div class="col-md-6">
@@ -160,7 +159,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="text-end mt-4">
                         <button type="submit" class="btn btn-primary">Confirmer le paiement</button>

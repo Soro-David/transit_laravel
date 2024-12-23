@@ -38,47 +38,65 @@
     </form>
     </div>
 </div>
+
+{{-- les Modals --}}
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Les informations du colis validé</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" action="/users/{id}/edit" method="GET">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom destinataire</label>
+                        <input type="text" class="form-control" id="nom" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prenom" class="form-label">Prénom</label>
+                        <input type="text" class="form-control" id="prenom" name="prenom" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Script JavaScript -->
 
 <script>
-    $(document).ready(function() {
-    const table = $("#productTable").DataTable({
-        responsive: true,
-        language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
-        }
-    });
-    $(".add-product").on("click", function() {
-        var description = $("#description").val();
-        var quantite = $("#quantite").val();
-        var dimension = $("#dimension").val();
-        var prix = $("#prix").val();
 
-        if (description && quantite && dimension && prix) {
-            $.ajax({
-                url: '{{ route("colis.store") }}',
-                method: "POST",
-                data: {
-                    description: description,
-                    quantite: quantite,
-                    dimension: dimension,
-                    prix: prix,
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function(response) {
-                    table.row
-                        .add([
-                            response.description,
-                            response.quantite,
-                            response.dimension,
-                            response.prix
-                        ])
-                        .draw(false);
-                }
-            });
-        }
+$(document).ready(function() {
+    var table = $("#productTable").DataTable({
+        responsive: true, // Rend la table responsive
+        language: {
+            url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/fr-FR.json"
+        },
+        ajax: {
+            url: '{{ route("customer_colis.colis.valide") }}',
+            // type: 'GET', // Méthode HTTP pour récupérer les données
+            // dataType: 'json' // Type de données attendu
+        },
+        columns: [
+            { data: 'nom_expediteur', name: 'nom_expediteur' },
+            { data: 'prenom_expediteur', name: 'prenom_expediteur' },
+            { data: 'email_expediteur', name: 'email_expediteur' },
+            { data: 'agence_expedition', name: 'agence_expedition' },
+            { data: 'agence_destination', name: 'agence_destination' },
+            { data: 'status', name: 'status' },
+            { data: 'etat', name: 'etat' },
+            { 
+                data: 'action', 
+                name: 'action', 
+                orderable: false, 
+                searchable: false // Actions non triables et non recherchables
+            }
+        ]
+    })
     });
-});
+
         
 </script>
 

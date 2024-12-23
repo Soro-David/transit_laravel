@@ -62,6 +62,12 @@
                                 <p>{{ __('trans.on_old') }}</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.hold') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Arrivé') }}</p>
+                            </a>
+                        </li>
                         {{-- <li class="nav-item">
                             <a href="{{ route('colis.history') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -176,28 +182,22 @@
                 </li> --}}                
                 {{-- progammz de transport --}}
                 <li class="nav-item has-treeview">
-                    <a href="" class="nav-link {{ activeSegment('products') }}">
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-car"></i>
                         <p>{{ __('Transport') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('transport.show.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Suivi') }}</p>
+                                <p>{{ __('Chauffeurs') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('transport.planing.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Chargement') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Dechargement') }}</p>
+                                <p>{{ __('Planifier un chauffeur') }}</p>
                             </a>
                         </li>
                     </ul>

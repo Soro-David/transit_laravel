@@ -288,6 +288,55 @@ class CustomerColisController extends Controller
     }
 
     public function get_colis(Request $request)
+        {
+            // Récupération de l'email de l'utilisateur connecté
+            $email = auth()->user()->email;
+            if ($request->ajax()) {
+                // Récupérer les colis associés à l'email et à l'état "en attente"
+                $colis = Les_colis::select(
+                    'nom_expediteur',
+                    'prenom_expediteur',
+                    'email_expediteur',
+                    'agence_expedition',
+                    'agence_destination',
+                    'status',
+                    'etat'
+                )
+                ->where('email_expediteur', $email) // Comparer l'email
+                ->where('etat', 'en attente') // Vérifier que l'état est "en attente"
+                ->get();
+
+                // Construire et retourner la DataTable
+                return DataTables::of($colis)
+                    // Ajouter une colonne d'action
+                    ->addColumn('action', function ($row) {
+                        $editUrl = url('/users/' . $row->id . '/edit'); // Génère une URL pour l'édition
+
+                        return '
+                        <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
+                                    <i class="fas fa-edit"></i> 
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                    <i class="fas fa-hand-holding-usd"></i> 
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash-alt"></i> 
+                                </button>
+
+                            </div>
+                        ';
+                    })
+                    // Permettre le rendu des colonnes contenant du HTML
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
+            // Retourner une réponse d'erreur si la requête n'est pas AJAX
+            return response()->json(['message' => 'Requête non valide'], 400);
+        }
+
+// colis valider
+public function colis_valide(Request $request)
 {
     // Récupération de l'email de l'utilisateur connecté
     $email = auth()->user()->email;
@@ -304,7 +353,7 @@ class CustomerColisController extends Controller
             'etat'
         )
         ->where('email_expediteur', $email) // Comparer l'email
-        ->where('etat', 'en attente') // Vérifier que l'état est "en attente"
+        ->where('etat', 'Validé') // Vérifier que l'état est "en attente"
         ->get();
 
         // Construire et retourner la DataTable
@@ -318,16 +367,56 @@ class CustomerColisController extends Controller
                         <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
                             <i class="fas fa-edit"></i> 
                         </button>
-                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-hand-holding-usd"></i> 
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash-alt"></i> 
-                        </button>
-
                     </div>
                 ';
             })
+            // Permettre le rendu des colonnes contenant du HTML
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+    // Retourner une réponse d'erreur si la requête n'est pas AJAX
+    return response()->json(['message' => 'Requête non valide'], 400);
+}
+
+// facture
+public function get_facture(Request $request)
+{
+    // Récupération de l'email de l'utilisateur connecté
+    $email = auth()->user()->email;
+
+    if ($request->ajax()) {
+        // Récupérer les colis associés à l'email et à l'état "en attente"
+        $colis = Les_colis::select(
+            'nom_expediteur',
+            'prenom_expediteur',
+            'email_expediteur',
+            'agence_expedition',
+            'agence_destination',
+            'status',
+            'etat'
+        )
+        ->where('email_expediteur', $email) // Comparer l'email
+        ->where('etat', 'Validé') // Vérifier que l'état est "en attente"
+        ->get();
+
+        // Construire et retourner la DataTable
+        return DataTables::of($colis)
+            // Ajouter une colonne d'action
+            ->addColumn('action', function ($row) {
+                $id = auth()->user()->getIdUSer();
+                $pdfUrl = route('customer_colis.facture.pdf', ['id' => $id]); // URL pour le téléchargement PDF
+            
+                return '
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
+                            <i class="fas fa-edit"></i> 
+                        </button>
+                        <a href="' . $pdfUrl . '" class="btn btn-sm btn-primary" target="_blank">
+                            <i class="fas fa-print"></i> Print
+                        </a>
+                    </div>
+                ';
+            })            
             // Permettre le rendu des colonnes contenant du HTML
             ->rawColumns(['action'])
             ->make(true);
@@ -347,4 +436,30 @@ public function liste_contenaire()
         return view('customer.devis.liste_contenaire');
     }
 
+
+    public function telechargerPdf(Request $request )
+    {
+        $id = $request->id;
+        // Récupérer les données du colis par son ID
+        $colis = Les_colis::findOrFail($id);
+        dd($colis);
+
+        // Préparer les données pour le PDF
+        $data = [
+            'nom_expediteur' => $colis->nom_expediteur,
+            'prenom_expediteur' => $colis->prenom_expediteur,
+            'email_expediteur' => $colis->email_expediteur,
+            'agence_expedition' => $colis->agence_expedition,
+            'agence_destination' => $colis->agence_destination,
+            'status' => $colis->status,
+            'etat' => $colis->etat,
+            'date' => now()->format('d/m/Y'),
+        ];
+
+        // Générer le PDF avec DomPDF
+        $pdf = PDF::loadView('customer.facture.facture_template', $data)->setPaper('a3', 'portrait');
+
+        // Télécharger le PDF
+        return $pdf->download('facture_' . $id . '.pdf');
+    }
 }
