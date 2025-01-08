@@ -63,7 +63,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('colis.hold') }}" class="nav-link">
+                            <a href="{{ route('colis.dump') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Arrivé') }}</p>
                             </a>
@@ -100,13 +100,13 @@
                         <li class="nav-item">
                             <a href="{{ route('colis.devis.hold') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.payment_tracking') }}</p>
+                                <p>{{ __('Suivi') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('colis.liste.contenaire') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('liste des contenaire') }}</p>
+                                <p>{{ __('Contenaire') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -120,19 +120,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('scan.entrepot')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('scan.chargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chargement') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
                             </a>
@@ -197,7 +197,7 @@
                         <li class="nav-item">
                             <a href="{{ route('transport.planing.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Planifier un chauffeur') }}</p>
+                                <p>{{ __('Planifier') }}</p>
                             </a>
                         </li>
                     </ul>

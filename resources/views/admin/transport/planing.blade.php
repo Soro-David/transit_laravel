@@ -58,8 +58,8 @@
          source: function(request, response) {
                $.ajax({
                 url: '{{ route('transport.reference.auto', ['query' => 'PLACEHOLDER']) }}'.replace('PLACEHOLDER', request.term),
-                  type: 'GET',
-                  dataType: 'json',
+                type: 'GET',
+                dataType: 'json',
                   success: function(data) {
                      response(data.map(function(item) {
                            return {

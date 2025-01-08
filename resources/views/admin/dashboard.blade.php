@@ -21,15 +21,18 @@
             </div>
         </div>
     </div> --}}
-    <div class="dashboard-bar shadow-sm p-3 mb-4 bg-white rounded">
-        <h2 class="text-center text-primary m-0 ">Tableau de bord</h2>
-        <h4 class="scrolling-agency">Agence: {{$agence->nom_agence}}</h4>
+    <div class="dashboard-bar  p-3 mb-4 bg-white rounded">
+        <h2 class="text-center text-primary m-0">Tableau de bord</h2>
+        <div class="scrolling-container">
+            <h4 class="scrolling-agency">Agence: {{$agence->nom_agence}}</h4>
+        </div>
     </div>
+    
     <!-- Row 1: Products, Orders, Income -->
     <div class="row">
        
         <!-- Total Products -->
-        <div class="col-lg-4 col-6">
+        <div class="col-lg-6 col-4">
             <div class="small-box bg-red">
                 <div class="inner">
                     <h3>{{$products_count}}</h3>
@@ -44,7 +47,7 @@
             </div>
         </div>
         <!-- Orders Count -->
-        <div class="col-lg-4 col-4">
+        <div class="col-lg-6 col-4">
             <div class="small-box bg-primary">
                 <div class="inner">
                     <h3>{{$orders_count}}</h3>
@@ -59,7 +62,7 @@
             </div>
         </div>
         <!-- Total Income -->
-        <div class="col-lg-4 col-4">
+        <div class="col-lg-6 col-4">
             <div class="small-box bg-green">
                 <div class="inner">
                     <h3>{{ config('settings.currency_symbol') }} {{ number_format($income, 2) }}</h3>
@@ -74,7 +77,7 @@
             </div>
         </div>
         <!-- Today's Income -->
-        <div class="col-lg-4 col-4">
+        <div class="col-lg-6 col-4">
             <div class="small-box bg-teal">
                 <div class="inner">
                     <h3>{{ config('settings.currency_symbol') }} {{ number_format($income_today, 2) }}</h3>
@@ -173,23 +176,92 @@
 </script>
  <!-- Ajoutez ce style pour personnaliser l'apparence -->
  <style>
-    .dashboard-bar {
-        border: 1px solid rgba(0, 0, 0, 0.1); /* Bordure légère */
-        border-radius: 8px; /* Coins arrondis */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre subtile */
-        background-color: #4a4c4e; /* Couleur d'arrière-plan */
-    }
+     body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .card-box {
+            background-color: #fff;
+            border-radius: 15px;
+            /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+            padding: 10px !important;
+            margin: 10px 0 !important;
+            height: 10px !important;
+        }
+
+        .card-box img {
+            max-width: 100%;
+            border-radius: 10px;
+            /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+        }
+
+        .card-box h4 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .card-box .weight-200 {
+            font-size: 1.5rem;
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .card-box p {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .small-box {
+            border-radius: 10px;
+            /* padding: 1px !important; */
+            text-align: center;
+            color: white;
+            /* margin: 15px 0; */
+        }
+
+        .small-box a {
+            display: block;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .bg-red { background-color: #d9534f; }
+        .bg-primary { background-color: #007bff; }
+        .bg-green { background-color: #5cb85c; }
+        .bg-teal { background-color: #20c997; }
+
+
 
     .dashboard-bar h2 {
         font-size: 1.8rem; /* Taille de la police */
         font-weight: 600; /* Épaisseur du texte */
     }
-    .scrolling-agency {
+    .dashboard-bar {
+    position: relative;
+}
+
+.scrolling-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden; /* Masquer le texte qui dépasse */
+}
+
+.scrolling-agency {
     white-space: nowrap;
     display: inline-block;
     font-size: 40px;
     animation: scroll-left 20s linear infinite;
 }
+
 
 @keyframes scroll-left {
     0% {

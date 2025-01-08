@@ -65,7 +65,7 @@ public function index()
   
     public function gestion_agence()
     {
-        return view('admin.gestion.agence');
+        return view('admin.gestion.agence.index');
     }
 
 
@@ -83,38 +83,37 @@ public function index()
         return redirect()->back()->with('success', 'Gestionnaire ajouté avec succès !');
     }
 
-
     public function add_agent()
     {
         $agences = Agence::select('nom_agence', 'id')->get();
-        return view('admin.gestion.agent', compact('agences')); 
+        return view('admin.gestion.agent.index', compact('agences')); 
     }
 
     public function get_users(Request $request)
-{
-    if ($request->ajax()) {
-        $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
-        return DataTables::of($users)
-            ->addColumn('action', function ($row) {
-                $editUrl = '/users/' . $row->id . '/edit';
-                $deleteUrl = '/users/' . $row->id; // Route pour supprimer (à adapter)
-
-                return '
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-primary" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify">
-                        <i class="fas fa-pencil-alt"></i>
-                    </a>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                ';
-            })
-            ->rawColumns(['action']) // Permet de rendre le HTML
-            ->make(true);
+    {
+        if ($request->ajax()) {
+            $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
+            return DataTables::of($users)
+                ->addColumn('action', function ($row) {
+                    $editUrl = route('agence.agent.edit', ['id' => $row->id]);
+                    $showUrl = route('agence.agent.show', ['id' => $row->id]);
+                    $deleteUrl = route('agence.agent.destroy', ['id' => $row->id]);
+                    return '
+                        <a href="' . $showUrl . '" class="btn btn-sm btn-primary" title="Edit" data-bs-target="#editModal">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify" data-bs-target="#modifModal">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
+                                <i class="fas fa-trash"></i>
+                        </button>
+                    ';
+                })
+                ->rawColumns(['action']) 
+                ->make(true);
+        }
     }
-}
 
 }
 

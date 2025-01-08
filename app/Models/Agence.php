@@ -21,4 +21,9 @@ class Agence extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function agents()
+    {
+        return $this->hasMany(Agent::class);
+    }
 }

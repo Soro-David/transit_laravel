@@ -88,12 +88,11 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="nom_agence">Agence:</label>
-                                        <select name="nom_agence" 
-                                                class="form-control" 
-                                                value="{{ old('nom_agence') }}" 
-                                                id="nom_agence">
-                                            <option value="" disabled selected>Selectionnez une Agence</option>
-                                            <option value="Côte d'Ivoire">CI</option>
+                                        <select name="agence_expedition" id="agence_expedition" class="form-control">
+                                            <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                            @foreach ($agences as $agence)
+                                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>

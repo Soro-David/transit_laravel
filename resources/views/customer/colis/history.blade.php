@@ -2,10 +2,8 @@
 @section('content-header')
 @section('content')
 <section class="py-3">
-<div class="container">
     <form action="" method="POST" class="mt-4">
         @csrf
-        <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -15,13 +13,15 @@
                                 <table id="productTable" class="display">
                                     <thead>
                                         <tr>
-                                            <th>Description</th>
-                                            <th>Expéditeur</th>
-                                            <th>Quantité</th>
-                                            <th>Dimensions</th>
-                                            <th>Prix</th>
-                                            <th>Status</th>
-                                            <th> Destinataire</th>
+                                            <th>Reference colis</th>
+                                            <th>Nom Expéditeur</th>
+                                            <th>Email Expéditeur</th>
+                                            <th>Agence Expéditeur</th>
+                                            <th>Nom Destinataire</th>
+                                            <th>Email Destinataire</th>
+                                            <th>Agence Destinataire</th>
+                                            {{-- <th> Status</th> --}}
+                                            <th> Etat</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -34,7 +34,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </form>
     </div>
 </div>
@@ -75,25 +74,31 @@ $(document).ready(function() {
             url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/fr-FR.json"
         },
         ajax: {
-            url: '{{ route("customer_colis.colis.valide") }}',
+            url: '{{ route("customer_colis.get.colis.valide") }}',
             // type: 'GET', // Méthode HTTP pour récupérer les données
             // dataType: 'json' // Type de données attendu
         },
         columns: [
-            { data: 'nom_expediteur', name: 'nom_expediteur' },
-            { data: 'prenom_expediteur', name: 'prenom_expediteur' },
-            { data: 'email_expediteur', name: 'email_expediteur' },
-            { data: 'agence_expedition', name: 'agence_expedition' },
-            { data: 'agence_destination', name: 'agence_destination' },
-            { data: 'status', name: 'status' },
-            { data: 'etat', name: 'etat' },
-            { 
-                data: 'action', 
-                name: 'action', 
-                orderable: false, 
-                searchable: false // Actions non triables et non recherchables
-            }
-        ]
+            { data: 'reference_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
+                }
+            },
+            { data: 'expediteur_email' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                }
+            },
+            { data: 'destinataire_email' },
+            { data: 'destinataire_agence' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
+        ],
     })
     });
 

@@ -53,13 +53,11 @@
             </div>
             <div class="col-md-4">
                 <div class="mb-3">
-                    <label for="lieu_expedition" class="form-label">Lieu d'expédition'</label>
-                    <select name="lieu_expedition" id="lieu_expedition" class="form-control" required>
-                        <option value="" disabled selected>-- Sélectionnez le lieu de Expédition --</option>
-                        <option value="angre">Angré</option>
-                        <option value="cocody">Cocody</option>
-                        <option value="yop">Yopougon</option>
-                    </select>
+                    <div class="mb-3">
+                        <label for="adresse_expediteur" class="form-label">Adresse</label>
+                        <input type="text" name="adresse_expediteur" id="adresse_expediteur" 
+                                value="{{$user->email}}" class="form-control" required>
+                    </div>
                 </div>
             </div>
         </div>
@@ -112,13 +110,9 @@
                 </div>
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label for="lieu_destination" class="form-label">Lieu de Livraison</label>
-                        <select name="lieu_destination" id="lieu_destination" class="form-control" required>
-                            <option value="" disabled selected>-- Sélectionnez le lieu de livraison --</option>
-                            <option value="angre">Angré</option>
-                            <option value="cocody">Cocody</option>
-                            <option value="yop">Yopougon</option>
-                        </select>
+                        <label for="adresse_destinataire" class="form-label">Adresse</label>
+                        <input type="text" name="adresse_destinataire" id="adresse_destinataire" 
+                                value="{{ old('adresse_destinataire') }}" class="form-control" required>
                     </div>
                 </div>
             </div>

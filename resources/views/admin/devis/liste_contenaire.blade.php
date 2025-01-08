@@ -2,11 +2,9 @@
 @section('content-header')
 @section('content')
 <section class="py-3">
-<div class="container">
     <h2 class="">Colis en attente</h2>
-    <form action="" method="POST" class="mt-4">
+    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
-        <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -15,13 +13,14 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Description</th>
-                                                <th>Expéditeur</th>
-                                                <th>Quantité</th>
-                                                <th>Dimensions</th>
-                                                <th>Prix</th>
-                                                <th>Status</th>
-                                                <th>Destinataire</th>
+                                                <th>Nom Expéditeur</th>
+                                                <th>Contact Expéditeur</th>
+                                                <th>Agence Expéditeur</th>
+                                                <th>Nom Destinataire</th>
+                                                <th>Contact Destinataire</th>
+                                                <th>Agence Destinataire</th>
+                                                <th>Etat du Colis</th>
+                                                <th>Date de Création</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -44,9 +43,10 @@
                                     <div class="col-md-6">
                                         <div class="col-8">
                                             <label for="reference_contenaire" class="form-label">Référence Contenaire</label>
-                                            <input type="text" name="reference_contenaire" id="reference_contenaire" placeholder="Référence du contenaire" class="form-control">
+                                            <input type="text" name="reference_contenaire" id="reference_contenaire" value="{{ $referenceContenaire}}" placeholder="Référence du contenaire" class="form-control" readonly>
                                         </div>
                                     </div>
+                                    <input type="hidden" name="colis_data" id="colis_data">
                                     <div class="container text-right">
                                         <button type="submit" class="btn btn-danger mt-3">
                                             <i class="fas fa-times mr-2"></i> Fermer le conteneur
@@ -57,10 +57,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
     </form>
-
     <!-- Modal View -->
     <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -107,7 +104,6 @@
                             </div>
                         </div>
                     </form>
-                    
                 </div>
             </div>
         </div>
@@ -176,58 +172,81 @@
         </div>
     </div>
 </div>
+</section>
 <!-- Script JavaScript -->
 <script>
-    $(document).ready(function() {
+   $(document).ready(function () {
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
-        },
-        ajax: '{{ route('colis.getColis') }}',
-                columns: [
-                    { data: 'id', name: 'id' },
-                    { data: 'first_name', name: 'first_name' },
-                    { data: 'email', name: 'email' },
-                    { data: 'role', name: 'role' },
-                    { data: 'role', name: 'role' },
-                    { data: 'role', name: 'role' },
-                    { data: 'created_at', name: 'created_at' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
-                        ]
-                        
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
+        ajax: '{{ route('colis.get.colis.contenaire') }}',
+        columns: [
+            {
+                data: null,
+                render: function (data, type, row) {
+                    console.log(data);
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+            { data: 'etat' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
+        ],
     });
-    $(".add-product").on("click", function() {
-        var description = $("#description").val();
-        var quantite = $("#quantite").val();
-        var dimension = $("#dimension").val();
-        var prix = $("#prix").val();
 
-        if (description && quantite && dimension && prix) {
-            $.ajax({
-                url: '{{ route("colis.store") }}',
-                method: "POST",
-                data: {
-                    description: description,
-                    quantite: quantite,
-                    dimension: dimension,
-                    prix: prix,
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function(response) {
-                    table.row
-                        .add([
-                            response.description,
-                            response.quantite,
-                            response.dimension,
-                            response.prix
-                        ])
-                        .draw(false);
+        $(".add-product").on("click", function () {
+                var description = $("#description").val();
+                var quantite = $("#quantite").val();
+                var dimension = $("#dimension").val();
+                var prix = $("#prix").val();
+
+                if (description && quantite && dimension && prix) {
+                    $.ajax({
+                        url: '{{ route("colis.store") }}',
+                        method: "POST",
+                        data: {
+                            description: description,
+                            quantite: quantite,
+                            dimension: dimension,
+                            prix: prix,
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (response) {
+                            table.row
+                                .add({
+                                    id: response.id,
+                                    first_name: response.first_name,
+                                    email: response.email,
+                                    role: response.role,
+                                    created_at: response.created_at,
+                                    action: response.action
+                                })
+                                .draw(false);
+                        }
+                    });
                 }
             });
-        }
-    });
-});
+            // Avant la soumission du formulaire
+            $('form').on('submit', function (e) {
+                // Collecte des données de la Datatable
+                var allData = table.rows().data().toArray();
+
+                // Met les données dans le champ caché
+                $('#colis_data').val(JSON.stringify(allData));
+            });
+        });
         $(document).ready(function() {
             $('#paymentMethod').change(function() {
                 $('.payment-details').hide();

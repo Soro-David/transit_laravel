@@ -1,6 +1,7 @@
 @extends('admin.layouts.admin')
 
 @section('content-header')
+    {{-- <h2>Création de Colis</h2> --}}
 @endsection
 
 @section('content')
@@ -13,74 +14,129 @@
                 <div class="progress-bar" style="width: 40%;">Étape 2 / 5</div>
             </div>
         </div>
+        
 
+        <h5 class="text-center mb-4 mt-5">Informations du colis</h5>
         <div class="form-section">
-            <div id="products-container">
-                <h4 class="text-center mt-4">Ajouter des Articles</h4><br>
-                <div id="dynamic-form">
-                    <div class="form-row align-items-end mb-3 product-row">
-                        <div class="col-4">
-                            <label for="description">Description</label>
-                            <input type="text" name="description[]" class="form-control" placeholder="Description" required>
-                        </div>
-                        <div class="col">
-                            <label for="quantite">Quantité</label>
-                            <input type="number" name="quantite[]" class="form-control" placeholder="Quantité" required>
-                        </div>
-                        <div class="col">
-                            <label for="dimension">Dimensions</label>
-                            <input type="text" name="dimension[]" class="form-control" placeholder="Dimensions" required>
-                        </div>
-                        <div class="col">
-                            <label for="poids">Poids (Kg)</label>
-                            <input type="number" name="poids[]" class="form-control" placeholder="Poids en Kg" required>
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-success add-product" style="margin-top: 32px;">+</button>
-                        </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="quantite" class="form-label">Quantité</label>
+                        <input type="number" name="quantite_colis" class="form-control" required>
                     </div>
                 </div>
-                <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                    <a href="#" class="btn btn-secondary">Retour</a>
-                    <button type="submit" class="btn btn-primary">Suivant</button>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="type_emballage" class="form-label">Type d'emballage</label>
+                        <input type="text" name="type_embalage" class="form-control">
+                    </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="dimension" class="form-label">Dimension</label>
+                        <input type="text" name="dimension_colis" class="form-control dimension" placeholder="exemple: 20x10x20">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="description_colis" class="form-label">Description</label>
+                        <textarea name="description_colis" id="description_colis" class="form-control" cols="4" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="poids_colis" class="form-label">Poids</label>
+                        <input type="number" name="poids_colis" id="poids_colis" class="form-control poids">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="valeur_colis" class="form-label">Valeur déclarée en devise</label>
+                        <input type="number" name="valeur_colis" id="valeur_colis" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary">Suivant</button>
             </div>
         </div>
     </form>
 </section>
 
+{{-- Scripts JS --}}
 <script>
-    $(document).ready(function () {
-        // Gestion des produits dynamiques
-        $(".add-product").on("click", function () {
-            let newRow = `
-                <div class="form-row align-items-end mb-3 product-row">
-                    <div class="col-4">
-                        <input type="text" name="description[]" class="form-control" placeholder="Description" required>
-                    </div>
-                    <div class="col">
-                        <input type="number" name="quantite[]" class="form-control" placeholder="Quantité" required>
-                    </div>
-                    <div class="col">
-                        <input type="text" name="dimension[]" class="form-control" placeholder="Dimensions" required>
-                    </div>
-                    <div class="col">
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids en Kg" required>
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-danger remove-product" style="margin-top: 32px;">-</button>
-                    </div>
-                </div>`;
-            $("#dynamic-form").append(newRow);
-        });
-        
-        // Supprimer une ligne au clic sur "-"
-        $(document).on('click', '.remove-product', function () {
-            $(this).closest('.product-row').remove();
-        });
-    });
+    // $(document).ready(function () {
+    //     // Cacher/Afficher les champs en fonction du mode de transit
+    //     function toggleProductSections() {
+    //         const selectedMode = $('#mode_transit').val();
+    //         if (selectedMode === 'maritime') {
+    //             $('#poids_section').hide();
+    //             $('#dimension_section').show();
+    //         } else if (selectedMode === 'aerien') {
+    //             $('#dimension_section').hide();
+    //             $('#poids_section').show();
+    //         } else {
+    //             $('#poids_section, #dimension_section').hide();
+    //         }
+    //     }
+
+    //     // Initialisation : cacher les champs au chargement
+    //     toggleProductSections();
+
+    //     // Lorsque le mode de transit change
+    //     $('#mode_transit').on('change', function () {
+    //         toggleProductSections();
+    //     });
+
+    //     // Ajouter une nouvelle ligne au clic sur "+"
+    //     $(document).on('click', '.add-product', function () {
+    //         const newRow = `
+    //             <div class="row product-row">
+    //                 <div class="col-md-2">
+    //                     <div class="mb-3">
+    //                         <input type="text" name="quantite[]" class="form-control quantite" required>
+    //                     </div>
+    //                 </div>
+    //                 <div class="col-md-3" id="dimension_section">
+    //                     <div class="mb-3">
+    //                         <input type="text" name="dimension[]" class="form-control dimension">
+    //                     </div>
+    //                 </div>
+    //                 <div class="col-md-2" id="poids_section">
+    //                     <div class="mb-3">
+    //                         <input type="text" name="poids[]" class="form-control poids">
+    //                     </div>
+    //                 </div>
+    //                 <div class="col-md-2">
+    //                     <div class="mb-3">
+    //                         <input type="text" name="prix_unitaire[]" class="form-control prix_unitaire">
+    //                     </div>
+    //                 </div>
+    //                 <div class="col-md-2">
+    //                     <div class="mb-3">
+    //                         <input type="text" name="prix_total[]" class="form-control prix_total">
+    //                     </div>
+    //                 </div>
+    //                 <div class="col-auto">
+    //                     <button type="button" class="btn btn-danger remove-product" style="margin-top: 32px;">-</button>
+    //                 </div>
+    //             </div>`;
+    //         $('#product-list').append(newRow);
+    //         // Mettre à jour la logique d'affichage pour chaque nouvelle ligne
+    //         toggleProductSections();
+    //     });
+
+    //     // Supprimer une ligne au clic sur "-"
+    //     $(document).on('click', '.remove-product', function () {
+    //         $(this).closest('.product-row').remove();
+    //         toggleProductSections();
+    //     });
+    // });
 </script>
 
+{{-- CSS Personnalisé --}}
 <style>
     body {
         background-color: #f7f7f7;
@@ -128,7 +184,7 @@
     /* Barre de progression */
     .progress-bar {
         height: 100%;
-        width: 40%; /* Étape actuelle (40% pour la deuxième étape) */
+        width: 20%; /* Étape actuelle (20% pour la troisième étape) */
         background-color: #4caf50;
         border-radius: 25px;
         text-align: center;

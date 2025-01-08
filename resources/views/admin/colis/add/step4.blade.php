@@ -33,7 +33,8 @@
                     <div class="mb-3">
                         <label for="reference_colis" class="form-label">Référence</label>
                         <input type="text" name="reference_colis" id="reference_colis" 
-                               value="{{ old('reference_colis') }}" class="form-control" required>
+                            value="{{ $referenceColis}}" 
+                            class="form-control" readonly>
                     </div>
                 </div>
             </div>

@@ -52,8 +52,8 @@
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json" // Traduction en français
-        },
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
         dom: 'Bfrtip', // Barre de boutons pour les fonctionnalités supplémentaires
         buttons: [
             {

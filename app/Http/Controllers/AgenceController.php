@@ -59,11 +59,7 @@ class AgenceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        
-    }
-
+   
     public function hold()
     {
         return view('admin.colis.hold');
@@ -82,7 +78,15 @@ class AgenceController extends Controller
      */
     public function edit($id)
     {
-        //
+        $agence = Agence::findOrFail($id);
+        
+        return view('admin.gestion.agence.edit', compact('agence'));
+    }
+    public function show($id)
+    {
+        $agence = Agence::findOrFail($id);
+        
+        return view('admin.gestion.agence.show', compact('agence'));
     }
 
     /**
@@ -93,9 +97,20 @@ class AgenceController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
-        //
-    }
+{
+    $request->validate([
+        // 'nom_agence' => 'required|string|max:255',
+        // 'adresse_agence' => 'required|string|max:255',
+        // 'pays_agence' => 'required|string|max:255',
+        // 'devise_agence' => 'required|string|max:255',
+        // 'prix_au_kg' => 'required|numeric',
+    ]);
+
+    $agence = Agence::findOrFail($id);
+    $agence->update($request->all());
+
+    return redirect()->route('managers.agence')->with('success', 'Agence mise à jour avec succès!');
+}
 
     /**
      * Remove the specified resource from storage.
@@ -105,8 +120,15 @@ class AgenceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $agence = Agence::findOrFail($id);
+            $agence->delete();
+            return response()->json(['success' => true, 'message' => 'Agence supprimée avec succès.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Une erreur est survenue.']);
+        }
     }
+
 
     public function get_agence(Request $request)
     {
@@ -114,19 +136,20 @@ class AgenceController extends Controller
             $agence = Agence::select(['id','nom_agence', 'adresse_agence', 'pays_agence', 'devise_agence', 'prix_au_kg']);
             return DataTables::of($agence)
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit';
-                    $deleteUrl = '/users/' . $row->id; // Route pour supprimer (à adapter)
+                    $editUrl = route('agence.agence.edit', ['id' => $row->id]);
+                    $showUrl = route('agence.agence.show', ['id' => $row->id]);
+                    $deleteUrl = route('agence.agence.destroy', ['id' => $row->id]);  // Route pour supprimer (à adapter)
     
                     return '
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-primary" title="Edit">
+                        <a href="' . $showUrl . '" class="btn btn-sm btn-primary" title="Edit" data-bs-target="#editModal">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify" data-bs-target="#modifModal">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                         <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
+                                <i class="fas fa-trash"></i>
+                         </button>
                     ';
                 })
                 ->rawColumns(['action']) // Permet de rendre le HTML
@@ -134,14 +157,19 @@ class AgenceController extends Controller
         }
     }
 
-public function devis_hold()
+    
+
+    
+
+    public function devis_hold()
     {
         return view('admin.devis.hold');
     }
 
-public function liste_contenaire()
+    public function liste_contenaire()
     {
         return view('admin.devis.liste_contenaire');
     }
 
+    
 }

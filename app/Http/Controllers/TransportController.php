@@ -24,12 +24,15 @@ class TransportController extends Controller
     }
     public function show_chauffeur()
     {
-        return view('admin.transport.chauffeur');
+        $agences = Agence::select('nom_agence', 'id')->get();
+        return view('admin.transport.chauffeur', compact('agences'));
     }
 
     public function planing_chauffeur()
     {
-        return view('admin.transport.planing');
+        $agences = Agence::select('nom_agence', 'id')->get();
+        
+        return view('admin.transport.planing', compact('agences'));
     }
     
     /**

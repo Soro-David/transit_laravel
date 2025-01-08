@@ -102,4 +102,24 @@
     font-size: 14px;
     padding: 10px;
   }
+  body{
+    padding-top: 50px;
+    
+
+  }
+  .main-header{
+    background-color: #ff9a03e8;
+    color: #f09c1f;
+  }
+  .navbar .img-circle {
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .navbar-nav .dropdown-menu {
+    min-width: 200px;
+  }
+  .navbar-nav .dropdown-menu .dropdown-item {
+    font-size: 14px;
+    padding: 10px;
+  }
 </style>

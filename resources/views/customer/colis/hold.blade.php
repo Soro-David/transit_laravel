@@ -2,10 +2,8 @@
 @section('content-header')
 @section('content')
 <section class="py-3">
-<div class="container">
     <form action="" method="POST" class="mt-4">
         @csrf
-        <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -15,12 +13,14 @@
                                 <table id="productTable" class="display">
                                     <thead>
                                         <tr>
+                                            <th>Reference colis</th>
                                             <th>Nom Expéditeur</th>
-                                            <th>Prenom Expéditeur</th>
-                                            <th>Email Expediteur</th>
+                                            <th>Email Expéditeur</th>
                                             <th>Agence Expéditeur</th>
+                                            <th>Nom Destinataire</th>
+                                            <th>Email Destinataire</th>
                                             <th>Agence Destinataire</th>
-                                            <th> Status</th>
+                                            {{-- <th> Status</th> --}}
                                             <th> Etat</th>
                                             <th>Action</th>
                                         </tr>
@@ -36,9 +36,7 @@
                     </div>
                 </div>
             </div>
-        </div>
     </form>
-    </div>
 </div>
 
 {{-- les Modals --}}
@@ -51,15 +49,55 @@
             </div>
             <div class="modal-body">
                 <form id="editForm" action="/users/{id}/edit" method="GET">
-                    <div class="mb-3">
-                        <label for="nom" class="form-label">Nom</label>
-                        <input type="text" class="form-control" id="nom" name="nom" required>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nom_expediteur" class="form-label">Nom destinataire</label>
+                                <input type="text" name="nom_expediteur" id="nom_expediteur" 
+                                        value="{{ old('nom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prenom_expediteur" class="form-label">Prénom destinataire</label>
+                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
+                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prenom_expediteur" class="form-label">E-mail destinataire</label>
+                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
+                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="prenom" class="form-label">Prénom</label>
-                        <input type="text" class="form-control" id="prenom" name="prenom" required>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nom_expediteur" class="form-label">Agence destination</label>
+                                <input type="text" name="nom_expediteur" id="nom_expediteur" 
+                                        value="{{ old('nom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prenom_expediteur" class="form-label">Agence expédition</label>
+                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
+                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prenom_expediteur" class="form-label">Status</label>
+                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
+                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -239,28 +277,33 @@
     var table = $("#productTable").DataTable({
         responsive: true, // Rend la table responsive
         language: {
-            url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/fr-FR.json"
-        },
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
         ajax: {
             url: '{{ route("customer_colis.get.colis") }}',
-            // type: 'GET', // Méthode HTTP pour récupérer les données
-            // dataType: 'json' // Type de données attendu
+
         },
         columns: [
-            { data: 'nom_expediteur', name: 'nom_expediteur' },
-            { data: 'prenom_expediteur', name: 'prenom_expediteur' },
-            { data: 'email_expediteur', name: 'email_expediteur' },
-            { data: 'agence_expedition', name: 'agence_expedition' },
-            { data: 'agence_destination', name: 'agence_destination' },
-            { data: 'status', name: 'status' },
-            { data: 'etat', name: 'etat' },
-            { 
-                data: 'action', 
-                name: 'action', 
-                orderable: false, 
-                searchable: false // Actions non triables et non recherchables
-            }
-        ]
+            { data: 'reference_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
+                }
+            },
+            { data: 'expediteur_email' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                }
+            },
+            { data: 'destinataire_email' },
+            { data: 'destinataire_agence' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
+        ],
     });
 
     // $(".add-product").on("click", function() {

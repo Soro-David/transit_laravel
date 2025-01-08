@@ -5,10 +5,8 @@
 
 @section('content')
 <section class="py-3">
-    <div class="form-container">
         <form action="" method="POST" class="mt-4">
             @csrf
-            <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -46,9 +44,9 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="col-8">
+                                        <div class="col-6">
                                             <label for="reference_contenaire" class="form-label">Référence Contenaire</label>
-                                            <input type="text" name="reference_contenaire" id="reference_contenaire" placeholder="Référence du contenaire" class="form-control">
+                                            <input type="text" name="reference_contenaire" id="reference_contenaire"  placeholder="Référence du contenaire" class="form-control" readonly>
                                         </div>
                                     </div>
                                     <div class="container text-right">
@@ -61,73 +59,77 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </form>
     </div>
-
+</section>
     <!-- Script JavaScript -->
-<script>
-   $(document).ready(function () {
-    var table = $("#productTable").DataTable({
-        responsive: true, // Rend le tableau réactif
-        language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json" // Traduction en français
-        },
-        ajax: '{{ route("colis.get.colis.hold") }}', // URL pour récupérer les données
-        columns: [
-            {
-                data: null,
-                name: 'nom_expediteur',
-                render: function (data, type, row) {
-                    return row.nom_expediteur + ' ' + row.prenom_expediteur; // Nom complet expéditeur
-                }
-            },
-            { data: 'tel_expediteur', name: 'contact_expediteur' },
-            { data: 'agence_expedition', name: 'agence_expedition' },
-            {
-                data: null,
-                name: 'nom_destinataire',
-                render: function (data, type, row) {
-                    return row.nom_destinataire + ' ' + row.prenom_destinataire; // Nom complet destinataire
-                }
-            },
-            { data: 'tel_destinataire', name: 'contact_destinataire' },
-            { data: 'agence_destination', name: 'agence_destination' },
-            { data: 'etat', name: 'etat' },
-            { data: 'created_at', name: 'created_at' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
-        ],
-        dom: 'Bfrtip', // Active les boutons et positionne les contrôles
-        buttons: [
-            {
-                extend: 'excelHtml5', 
-                text: 'Exporter en Excel', 
-                title: 'Liste des devis en attente' 
-            },
-            {
-                extend: 'pdfHtml5',   
-                text: 'Exporter en PDF', 
-                title: 'Liste des devis en attente', 
-                orientation: 'landscape', 
-                pageSize: 'A4' 
-            },
-            {
-                extend: 'print', 
-                text: 'Imprimer', 
-                title: 'Liste des devis en attente',
-                customize: function (win) {
+    <script>
+        $(document).ready(function () {
+            var table = $("#productTable").DataTable({
+                responsive: true, // Rend le tableau réactif
+                language: {
+                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                },
+                ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
+                columns: [
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            console.log(data);
+                            return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                        }
+                    },
+                    { data: 'expediteur_tel' },
+                    { data: 'expediteur_agence' },
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                        }
+                    },
+                    { data: 'destinataire_agence' },
+                    { data: 'destinataire_tel' },
+                    { data: 'etat' },
+                    { data: 'created_at' },
+                    { data: 'action', orderable: false, searchable: false }
+                ],
+                dom: 'Bfrtip', // Active les boutons et positionne les contrôles
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exporter en Excel',
+                        title: 'Liste des devis en attente'
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Exporter en PDF',
+                        title: 'Liste des devis en attente',
+                        orientation: 'landscape',
+                        pageSize: 'A4'
+                    },
+                    {
+                        extend: 'print',
+                        text: 'Imprimer',
+                        title: 'Liste des devis en attente',
+                        customize: function (win) {
                             var logoUrl = "{{ asset('images/LOGOAFT.png') }}";
                             var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                            $(win.document.body).find('h1').css('text-align', 'center').css('border', '2px solid #000').css('padding', '1px').css('margin-top', '10px');
+                            $(win.document.body).find('h1').css({
+                                textAlign: 'center',
+                                border: '2px solid #000',
+                                padding: '1px',
+                                marginTop: '10px'
+                            });
                             $(win.document.body).find('h1').after(logo);
                             $(win.document.body).find('table').css('margin-top', '30px');
                         }
-                }
-            ]
+                    }
+                ]
+            });
         });
-    });
-
-</script>
+    </script>
+    
+    
 </section>
 <style>
     body {

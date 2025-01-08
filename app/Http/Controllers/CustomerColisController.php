@@ -10,6 +10,17 @@ use App\Models\Product;
 use App\Models\Agence;
 use App\Models\Client;
 use App\Models\Les_colis;
+use App\Models\Colis;
+use App\Models\Expediteur;
+use App\Models\Destinataire;
+use App\Models\Paiement;
+use App\Models\Article;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\Storage;
+use Endroid\QrCode\Builder\Builder;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 
 class CustomerColisController extends Controller
@@ -58,6 +69,19 @@ class CustomerColisController extends Controller
     /**
      * Enregistre les données de l'étape 1.
      */
+
+         /**
+     * Génère une référence de colis unique
+     *
+     * @return string
+     */
+    private function generateReferenceColis()
+    {
+        // Exemple : "COLIS-12202423-XXXXXX"
+        return 'COLIS-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+    }
+
+
     public function storeStep1(Request $request)
     {
         // Validation des données
@@ -68,8 +92,8 @@ class CustomerColisController extends Controller
         // Stockage des données en session
         session(['step1' => $request->only([
             'nom_expediteur', 'prenom_expediteur', 'email_expediteur', 'tel_expediteur',
-            'agence_expedition', 'lieu_expedition', 'nom_destinataire', 'prenom_destinataire',
-            'email_destinataire', 'tel_destinataire', 'agence_destination', 'lieu_destination'
+            'agence_expedition', 'adresse_expediteur', 'nom_destinataire', 'prenom_destinataire',
+            'email_destinataire', 'tel_destinataire', 'agence_destination', 'adresse_destinataire',
         ])]);
 
         return redirect()->route('customer_colis.create.step2');
@@ -85,16 +109,30 @@ class CustomerColisController extends Controller
 
     public function storeStep2(Request $request)
     {
+
         $request->validate([
-            'description' => 'required',
-            'quantite' => 'required',
-            'dimension' => 'required',
-            'poids' => 'required',
+            'quantite_colis' => 'required',
+            'type_embalage' => 'required',
+            'dimension_colis' => 'required',
+            'description_colis' => 'required',
+            'poids_colis' => 'required',
+            'valeur_colis' => 'required',
         ]);
-        session(['step2' => $request->only([
-            'description', 'quantite', 'dimension', 'dimension', 'poids'
-            ])]);
-// dd($request->all());
+    
+        // Ajout du champ 'etat' avec la valeur 'En attente'
+        session(['step2' => array_merge(
+            $request->only([
+                'quantite_colis',
+                'type_embalage', 
+                'dimension_colis', 
+                'description_colis', 
+                'poids_colis', 
+                'valeur_colis',
+            ]),
+            // ['etat' => 'En attente'] // Ajout du champ 'etat'
+        )]);
+    
+
         return redirect()->route('customer_colis.create.step3');
     }
     /**
@@ -107,41 +145,34 @@ class CustomerColisController extends Controller
 
     public function storeStep3(Request $request)
     {
-        $request->validate([
-            'quantite' => 'required',
-            'type_emballage' => 'required',
-            'dimension' => 'required',
-            'description_colis' => 'required',
-            'poids_colis' => 'required',
-            'valeur_colis' => 'required',
-        ]);
-    
-        // Ajout du champ 'etat' avec la valeur 'En attente'
-        session(['step3' => array_merge(
-            $request->only([
-                'quantite',
-                'type_emballage',
-                'dimension',
-                'description_colis',
-                'poids_colis',
-                'valeur_colis'
-            ]),
-            ['etat' => 'En attente'] // Ajout du champ 'etat'
-        )]);
-    
-    
 
+        $request->validate([
+            'articles.*.description' => 'required|string|max:255',
+            'articles.*.quantite' => 'required|integer|min:1',
+            'articles.*.dimension' => 'required|string|max:255',
+            'articles.*.poids' => 'required|numeric|min:0',
+        ]);
+        session(['step3' => $request->only([
+            'description', 
+            'quantite', 
+            'dimension', 
+            'poids'
+            ])]);
+    
         return redirect()->route('customer_colis.create.step4');
     }
 
-    public function createStep4()
+    public function createStep4(Request $request)
     {
-        return view('customer.colis.add.step4');
+        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        // dd($referenceColis);
+        return view('customer.colis.add.step4',['referenceColis' => $referenceColis]);
     }
 
     public function storeStep4(Request $request)
     {
 
+       
         $request->validate([
             'mode_transit' => 'required',
             'reference_colis' => 'required',
@@ -160,9 +191,103 @@ class CustomerColisController extends Controller
             session('step3', []),
             session('step4', []) 
         );
+        // Ajouter le statut au tableau de données
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
+        $data['etat'] = $data['etat'] ?? 'En attente';
+        // dd($data);
 
-        // $data['status'] = $data['mode_payement'] ?? 'non payé';
-        $colis = Les_colis::create($data);
+
+        // Vérifiez que les données sont bien réparties pour chaque table
+        $expediteurData = [
+            'nom' => $data['nom_expediteur'] ,
+            'prenom' => $data['prenom_expediteur'] ,
+            'email' => $data['email_expediteur'] ,
+            'tel' => $data['tel_expediteur'] ,
+            'agence' => $data['agence_expedition'] ,
+            'adresse' => $data['adresse_expediteur'] ,
+        ];
+
+
+        $destinataireData = [
+            'nom' => $data['nom_destinataire'] ,
+            'prenom' => $data['prenom_destinataire'] ,
+            'email' => $data['email_destinataire'] ,
+            'tel' => $data['tel_destinataire'] ,
+            'agence' => $data['agence_destination'] ,
+            'adresse' => $data['adresse_destinataire'] ,
+        ];
+        // dd($data);
+
+        // Vérification que les tableaux nécessaires existent et sont synchronisés
+    if (
+        isset($data['description'], $data['quantite'], $data['dimension'], $data['poids']) &&
+        is_array($data['description']) &&
+        is_array($data['quantite']) &&
+        is_array($data['dimension']) &&
+        is_array($data['poids']) &&
+        count($data['description']) === count($data['quantite']) &&
+        count($data['quantite']) === count($data['dimension']) &&
+        count($data['dimension']) === count($data['poids'])
+    ) {
+        // Construction du tableau d'articles
+        $articleData = [];
+        foreach ($data['description'] as $index => $description) {
+            $articleData[] = [
+                'description' => $description,
+                'quantite' => $data['quantite'][$index],
+                'dimension' => $data['dimension'][$index],
+                'poids' => $data['poids'][$index],
+            ];
+        }
+    
+
+        // Afficher ou traiter $articleData
+        // dd($articleData); // Affiche les données sous forme de tableau structuré
+    } else {
+        // Gestion d'erreur
+        throw new \Exception('Les données des articles sont manquantes ou incohérentes.');
+    }
+
+        $colisData = [
+            'reference_colis' => $data['reference_colis'] ,
+            'reference_contenaire' => $data['reference_contenaire'] ?? null,
+            'quantite_colis' => $data['quantite_colis'] ,
+            'type_embalage' => $data['type_embalage'] ,
+            'valeur_colis' => $data['valeur_colis'],
+            'poids_colis' => $data['poids_colis'] ,
+            'dimension_colis' => $data['dimension_colis'] ,
+            'mode_transit' => $data['mode_transit'] ,
+            'status' => $data['status'],
+            'etat' => $data['etat'],
+        ];
+        // $payementData = [
+        //     'mode_de_payement' => $data['mode_payement'] ,
+        //     'montant_reçu' => $data['montant_reçu'] ,
+        //     'operateur_mobile' => $data['operateur_mobile'] ,
+        //     'numero_compte' => $data['numero_compte'],
+        //     'nom_banque' => $data['nom_banque'] ,
+        //     'id_transaction' => $data['transaction_id'],
+        //     'numero_tel' => $data['numero_tel'],
+        //     'numero_cheque' => $data['numero_cheque'] ,
+        // ];
+
+        // dd($expediteurData, $destinataireData, $articleData, $colisData, $payementData);
+
+
+        // Insérer les données dans chaque table
+        $expediteur = Expediteur::create($expediteurData);
+        $destinataire = Destinataire::create($destinataireData);
+        // $article = Article::create($articleData);
+        // $payement = Paiement::create($payementData);
+        $colis = Colis::create(array_merge($colisData, [
+            'expediteur_id' => $expediteur->id,
+            'destinataire_id' => $destinataire->id,
+            // 'paement_id' => $payement->id,
+        ]));
+        foreach ($articleData as $article) {
+            $article['colis_id'] = $colis->id;
+            Article::create($article);
+        }
         // Nettoyer les sessions
         session()->forget(['step1', 'step2', 'step3', 'step4']);
         return view('customer.colis.add.complete',compact('colis','data'));
@@ -234,8 +359,12 @@ class CustomerColisController extends Controller
         //
     }
 
-    public function hold()
+    public function hold(Request $request)
     {
+        $email = auth()->user()->email;
+        // Récupérer tous les colis liés à cet email
+        $colis = Les_colis::where('email', $email);
+        // dd( $colis);
         return view('customer.colis.hold');
     }
 
@@ -288,95 +417,144 @@ class CustomerColisController extends Controller
     }
 
     public function get_colis(Request $request)
-        {
-            // Récupération de l'email de l'utilisateur connecté
-            $email = auth()->user()->email;
-            if ($request->ajax()) {
-                // Récupérer les colis associés à l'email et à l'état "en attente"
-                $colis = Les_colis::select(
-                    'nom_expediteur',
-                    'prenom_expediteur',
-                    'email_expediteur',
-                    'agence_expedition',
-                    'agence_destination',
-                    'status',
-                    'etat'
-                )
-                ->where('email_expediteur', $email) // Comparer l'email
-                ->where('etat', 'en attente') // Vérifier que l'état est "en attente"
-                ->get();
-
-                // Construire et retourner la DataTable
-                return DataTables::of($colis)
-                    // Ajouter une colonne d'action
-                    ->addColumn('action', function ($row) {
-                        $editUrl = url('/users/' . $row->id . '/edit'); // Génère une URL pour l'édition
-
-                        return '
-                        <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
-                                    <i class="fas fa-edit"></i> 
-                                </button>
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                    <i class="fas fa-hand-holding-usd"></i> 
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-trash-alt"></i> 
-                                </button>
-
-                            </div>
-                        ';
-                    })
-                    // Permettre le rendu des colonnes contenant du HTML
-                    ->rawColumns(['action'])
-                    ->make(true);
-            }
-            // Retourner une réponse d'erreur si la requête n'est pas AJAX
+    {
+        // Vérifie que la requête est AJAX
+        if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-
-// colis valider
-public function colis_valide(Request $request)
-{
-    // Récupération de l'email de l'utilisateur connecté
-    $email = auth()->user()->email;
-
-    if ($request->ajax()) {
+        // Récupération de l'email de l'utilisateur connecté
+        $email = auth()->user()->email;
         // Récupérer les colis associés à l'email et à l'état "en attente"
-        $colis = Les_colis::select(
-            'nom_expediteur',
-            'prenom_expediteur',
-            'email_expediteur',
-            'agence_expedition',
-            'agence_destination',
-            'status',
-            'etat'
+        $colis = Colis::select(
+            'colis.*', // Toutes les colonnes de la table colis
+            'expediteurs.nom as expediteur_nom',
+            'expediteurs.prenom as expediteur_prenom',
+            'expediteurs.email as expediteur_email',
+            'expediteurs.agence as expediteur_agence',
+            'destinataires.nom as destinataire_nom',
+            'destinataires.prenom as destinataire_prenom',
+            'destinataires.agence as destinataire_agence',
+            'destinataires.email as destinataire_email',
+            'colis.reference_colis as reference_colis',
+            'colis.etat as etat',
+            'colis.created_at as created_at'
         )
-        ->where('email_expediteur', $email) // Comparer l'email
-        ->where('etat', 'Validé') // Vérifier que l'état est "en attente"
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
+        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
+        ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
+        ->where('etat', 'en attente') 
         ->get();
-
         // Construire et retourner la DataTable
         return DataTables::of($colis)
-            // Ajouter une colonne d'action
             ->addColumn('action', function ($row) {
-                $editUrl = url('/users/' . $row->id . '/edit'); // Génère une URL pour l'édition
-
                 return '
-                   <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal">
-                            <i class="fas fa-edit"></i> 
-                        </button>
-                    </div>
-                ';
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal" data-id="' . $row->id . '">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="' . $row->id . '">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </button>
+                </div>';
             })
-            // Permettre le rendu des colonnes contenant du HTML
-            ->rawColumns(['action'])
+            ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
             ->make(true);
     }
-    // Retourner une réponse d'erreur si la requête n'est pas AJAX
-    return response()->json(['message' => 'Requête non valide'], 400);
-}
+
+
+// colis valider
+    public function get_colis_valide(Request $request)
+    {
+        if (!$request->ajax()) {
+            return response()->json(['message' => 'Requête non valide'], 400);
+        }
+        // Récupération de l'email de l'utilisateur connecté
+        $email = auth()->user()->email;
+        // Récupérer les colis associés à l'email et à l'état "en attente"
+        $colis = Colis::select(
+            'colis.*', // Toutes les colonnes de la table colis
+            'expediteurs.nom as expediteur_nom',
+            'expediteurs.prenom as expediteur_prenom',
+            'expediteurs.email as expediteur_email',
+            'expediteurs.agence as expediteur_agence',
+            'destinataires.nom as destinataire_nom',
+            'destinataires.prenom as destinataire_prenom',
+            'destinataires.agence as destinataire_agence',
+            'destinataires.email as destinataire_email',
+            'colis.reference_colis as reference_colis',
+            'colis.etat as etat',
+            'colis.created_at as created_at'
+        )
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
+        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
+        ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
+        ->where('etat', 'Validé') 
+        ->get();
+        // Construire et retourner la DataTable
+        return DataTables::of($colis)
+            ->addColumn('action', function ($row) {
+                return '
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal" data-id="' . $row->id . '">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="' . $row->id . '">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </button>
+                </div>';
+            })
+            ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
+            ->make(true);
+        // Retourner une réponse d'erreur si la requête n'est pas AJAX
+        return response()->json(['message' => 'Requête non valide'], 400);
+    }
+
+    // AJAX pour récupérer la liste des colis en Suivi
+    public function get_colis_suivi(Request $request)
+    {
+        if (!$request->ajax()) {
+            return response()->json(['message' => 'Requête non valide'], 400);
+        }
+        // Récupération de l'email de l'utilisateur connecté
+        $email = auth()->user()->email;
+        // Récupérer les colis associés à l'email et à l'état "en attente"
+        $colis = Colis::select(
+            'colis.*', // Toutes les colonnes de la table colis
+            'expediteurs.nom as expediteur_nom',
+            'expediteurs.prenom as expediteur_prenom',
+            'expediteurs.email as expediteur_email',
+            'expediteurs.agence as expediteur_agence',
+            'destinataires.nom as destinataire_nom',
+            'destinataires.prenom as destinataire_prenom',
+            'destinataires.agence as destinataire_agence',
+            'destinataires.email as destinataire_email',
+            'colis.reference_colis as reference_colis',
+            'colis.etat as etat',
+            'colis.created_at as created_at'
+        )
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
+        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
+        ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
+        ->whereIn('etat', ['En transit', 'Déchargé', 'Chargé'])  
+        ->get();
+        // Construire et retourner la DataTable    
+        return DataTables::of($colis)
+            ->addColumn('action', function ($row) {
+                return '
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal" data-id="' . $row->id . '">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="' . $row->id . '">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </button>
+                </div>';
+            })
+            ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
+            ->make(true);
+        // Retourner une réponse d'erreur si la requête n'est pas AJAX
+        return response()->json(['message' => 'Requête non valide'], 400);
+    }
 
 // facture
 public function get_facture(Request $request)

@@ -10,7 +10,11 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ColisController;
 use App\Http\Controllers\AgenceController;
 use App\Http\Controllers\CustomerColisController;
+use App\Http\Controllers\AgentColisController;
 use App\Http\Controllers\TransportController;
+use App\Http\Controllers\GestionAgentController;
+use App\Http\Controllers\ScanController;
+use App\Http\Controllers\QrcodeController;
 
 
 use Illuminate\Support\Facades\Route;
@@ -19,7 +23,7 @@ use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProviderController;
+use App\Http\Controllers\AgentController;
 use App\Http\Middleware\RoleMiddleware;
 
 
@@ -42,16 +46,24 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/managers/agent',[adminController::class, 'add_agent'])->name('managers.agent'); //DataTable route
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
+    Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
 
 
     Route::prefix('colis')->name('colis.')->group(function(){
         Route::get('/', [ColisController::class,'index'])->name('index'); 
         Route::get('/on-hold', [ColisController::class,'hold'])->name('hold'); 
+        Route::get('/on-dump', [ColisController::class,'dump'])->name('dump'); 
         Route::get('/history', [ColisController::class,'history'])->name('history'); 
         Route::get('/create', [ColisController::class,'create'])->name('create'); 
         Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-dump',[ColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-devis-colis',[ColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/get-contenaire-colis',[ColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/get-colis-hold',[ColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
+        // route contenaire fermer
+        Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+
         Route::get('/list-contenaire',[ColisController::class, 'liste_contenaire'])->name('liste.contenaire');
 
         Route::post('/store', [ColisController::class,'store'])->name('store'); 
@@ -84,7 +96,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/create', [AgenceController::class,'create'])->name('create'); 
         Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
 
+        Route::delete('/agences/{id}', [AgenceController::class, 'destroy'])->name('agence.destroy');
+
         Route::post('/store', [AgenceController::class,'store'])->name('store'); 
+        // Routes pour les agences
+        Route::get('/agence/{id}/edit', [AgenceController::class, 'edit'])->name('agence.edit');
+        Route::get('/agence/{id}/show', [AgenceController::class, 'show'])->name('agence.show');
+        Route::put('/agence/{id}', [AgenceController::class, 'update'])->name('agence.update');
+
+        // Route pour les agents
+        Route::get('/agent/data',[GestionAgentController::class, 'get_users'])->name('get.agent');
+        Route::get('/agent/{id}/edit', [GestionAgentController::class, 'edit'])->name('agent.edit');
+        Route::get('/agent/{id}/show', [GestionAgentController::class, 'show'])->name('agent.show');
+        Route::put('/agent/{id}', [GestionAgentController::class, 'update'])->name('agent.update');
+        Route::delete('/agent/{id}', [GestionAgentController::class, 'destroy'])->name('agent.destroy');
 
     });
 // transport
@@ -94,6 +119,22 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/show-chauffeur', [TransportController::class,'show_chauffeur'])->name('show.chauffeur');
         Route::get('/planing-chauffeur', [TransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
         Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
+
+        Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+
+        Route::get('/store',[TransportController::class, 'store'])->name('store');
+        Route::post('/store', [TransportController::class,'store'])->name('store'); 
+
+    });
+
+    // Scan
+    Route::prefix('scan')->name('scan.')->group(function(){
+        Route::get('/en-entrepot', [ScanController::class,'entrepot'])->name('entrepot'); 
+        Route::get('/en-chargement', [ScanController::class,'chargement'])->name('chargement'); 
+        Route::get('/en-dechargement', [ScanController::class,'dechargement'])->name('dechargement'); 
+        Route::get('/get-colis-entrepot',[ScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
+        Route::get('/get-colis-dechargement',[ScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
+        Route::get('/get-colis-chargement',[ScanController::class, 'get_colis_charge'])->name('get.colis.charge');
 
         Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
 
@@ -120,7 +161,8 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/suivi', [CustomerColisController::class,'suivi'])->name('suivi');
         Route::get('/facture', [CustomerColisController::class,'facture'])->name('facture');
         Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
-        Route::get('/get-colis-valide',[CustomerColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-suivi',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
+        Route::get('/get-colis-valide',[CustomerColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');
         Route::get('/facture/pdf', [CustomerColisController::class, 'telechargerPdf'])->name('facture.pdf');
 
@@ -148,8 +190,41 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         
 });
 
-Route::prefix('provider')->middleware(['auth', 'role:provider'])->group(function () {
-    Route::get('/', [ProviderController::class, 'index'])->name('provider.dashboard');
+Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
+    Route::get('/', [AgentController::class, 'index'])->name('agent.dashboard');
 
-    // Route::get('/', [HomeController::class, 'dashboard_provider'])->name('dashboard.provider');
+    Route::prefix('agent_colis')->name('agent_colis.')->group(function(){
+        Route::get('/', [AgentColisController::class,'index'])->name('index'); 
+        Route::get('/on-hold', [AgentColisController::class,'hold'])->name('hold'); 
+        Route::get('/history', [AgentColisController::class,'history'])->name('history'); 
+        Route::get('/create', [AgentColisController::class,'create'])->name('create'); 
+        Route::get('/get-colis',[AgentColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-hold',[AgentColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        // Route::get('/devis-hold',[AgentColisController::class, 'devis_hold'])->name('devis.hold');
+        // Route::get('/list-contenaire',[AgentColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+
+        Route::post('/store', [AgentColisController::class,'store'])->name('store'); 
+        Route::get('/{coli}', [AgentColisController::class,'show'])->name('show'); 
+        Route::get('/{coli}/edit', [AgentColisController::class,'edit'])->name('edit'); 
+        Route::put('/{coli}', [AgentColisController::class,'update'])->name('update'); 
+        Route::delete('/{coli}', [AgentColisController::class,'destroy'])->name('destroy');
+        Route::post('/store-expediteur', [AgentColisController::class,'store_expediteur'])->name('store.expediteur'); 
+        Route::post('/store-destinataire', [AgentColisController::class,'store_destinataire'])->name('store.destinataire'); 
+        Route::get('/search-expediteurs', [AgentColisController::class, 'search'])->name('search.expediteurs');
+
+        Route::get('/create/step1', [AgentColisController::class, 'createStep1'])->name('create.step1');
+        Route::post('/store/step1', [AgentColisController::class, 'storeStep1'])->name('store.step1');
+        Route::get('/create/step2', [AgentColisController::class, 'createStep2'])->name('create.step2');
+        Route::post('/store/step2', [AgentColisController::class, 'storeStep2'])->name('store.step2');
+        Route::get('/create/step3', [AgentColisController::class, 'createStep3'])->name('create.step3');
+        Route::post('/store/step3', [AgentColisController::class, 'storeStep3'])->name('store.step3');
+        Route::get('/create/step4', [AgentColisController::class, 'createStep4'])->name('create.step4');
+        Route::post('/store/step4', [AgentColisController::class, 'storeStep4'])->name('store.step4');
+        Route::get('/create/payement', [AgentColisController::class, 'stepPayement'])->name('create.payement');
+        Route::post('/store/payement', [AgentColisController::class, 'storePayement'])->name('store.payement');
+        Route::get('/create/qrcode', [AgentColisController::class, 'qrcode'])->name('create.qrcode');
+        Route::get('/create/complete', [AgentColisController::class, 'complete'])->name('complete');
+
+
+    });
 });

@@ -2,10 +2,8 @@
 @section('content-header')
 @section('content')
 <section class="py-3">
-<div class="container">
     <form action="" method="POST" class="mt-4">
         @csrf
-        <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -15,13 +13,15 @@
                                 <table id="productTable" class="display">
                                     <thead>
                                         <tr>
-                                            <th>Description</th>
-                                            <th>Expéditeur</th>
-                                            <th>Quantité</th>
-                                            <th>Dimensions</th>
-                                            <th>Prix</th>
-                                            <th>Status</th>
-                                            <th> Destinataire</th>
+                                            <th>Reference colis</th>
+                                            <th>Nom Expéditeur</th>
+                                            <th>Email Expéditeur</th>
+                                            <th>Agence Expéditeur</th>
+                                            <th>Nom Destinataire</th>
+                                            <th>Email Destinataire</th>
+                                            <th>Agence Destinataire</th>
+                                            {{-- <th> Status</th> --}}
+                                            <th> Etat</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -36,9 +36,7 @@
                     </div>
                 </div>
             </div>
-        </div>
     </form>
-    </div>
 </div>
 <!-- Script JavaScript -->
 <script>
@@ -46,8 +44,33 @@
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-            url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
-        }
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
+        ajax: {
+            url: '{{ route("customer_colis.get.colis.suivi") }}',
+
+        },
+        columns: [
+            { data: 'reference_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
+                }
+            },
+            { data: 'expediteur_email' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                }
+            },
+            { data: 'destinataire_email' },
+            { data: 'destinataire_agence' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
+        ],
     });
     $(".add-product").on("click", function() {
         var description = $("#description").val();
