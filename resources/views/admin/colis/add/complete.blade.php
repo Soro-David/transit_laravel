@@ -6,23 +6,47 @@
 @section('content')
     @csrf
     <section>
-        <div class="container">
+        <div class="container text-center">
             <h1>QR Code</h1>
-            <img src="{{ asset($filePath) }}" alt="QR Code" style="max-width: 300px;">
+            <img src="{{ asset($filePath) }}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;">
+            <button class="btn btn-primary mt-4" onclick="window.print()">Imprimer</button>
         </div>
     </section>
+
     <style>
         section {
             background-color: #fff !important;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        table.dataTable {
-            width: 100% !important;
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        table.dataTable th,
-        table.dataTable td {
-            white-space: nowrap;
+        img {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media print {
+            button {
+                display: none; /* Masquer le bouton lors de l'impression */
+            }
+
+            section {
+                box-shadow: none; /* Supprimer les ombres lors de l'impression */
+            }
         }
     </style>
 @endsection
