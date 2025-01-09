@@ -39,13 +39,13 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
     Route::get('/managers/agence', [AdminController::class, 'gestion_agence'])->name('managers.agence');
-    Route::post('/managers',[adminController::class, 'store'])->name('managers.store');
+    Route::post('/managers',[AdminController::class, 'store'])->name('managers.store');
     Route::resource('products', ProductController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
 
-    Route::get('/managers/agent',[adminController::class, 'add_agent'])->name('managers.agent'); //DataTable route
-    Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
+    Route::get('/managers/agent',[AdminController::class, 'add_agent'])->name('managers.agent'); //DataTable route
+    Route::get('/managers/data',[AdminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
     Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
 
 
@@ -145,6 +145,11 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
 
+    Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
+    Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
+    Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
+    Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+
 });
 
 Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () {
@@ -229,9 +234,3 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
     });
    
 });
-Route::get('/programme', function () {
-    return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
-})->name('programme.index');
-Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
-Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
-Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
