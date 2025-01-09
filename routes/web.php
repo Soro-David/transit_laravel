@@ -17,6 +17,7 @@ use App\Http\Controllers\ScanController;
 use App\Http\Controllers\AgentScanController;
 use App\Http\Controllers\QrcodeController;
 use App\Http\Controllers\ProgrammeController;
+use App\Http\Controllers\ChauffeurController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -127,11 +128,15 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
 
         Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/store-chauffeur', [TransportController::class,'store_chauffeur'])->name('store.chauffeur'); 
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
 
     });
+    Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
+    });
+    
 
     // Scan
     Route::prefix('scan')->name('scan.')->group(function(){

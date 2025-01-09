@@ -51,4 +51,6 @@ class ProgrammeController extends Controller
             return redirect()->back()->with('error', 'Erreur lors de la création du programme : '.$e->getMessage());
         }
     }
+
+    
 }
