@@ -4,26 +4,45 @@
 @endsection
 
 @section('content')
-    <div class="container" style="padding-top: 60px">
+    <div class="container">
         @if(session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
         @endif
-        @if(session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
+         @if(session('error'))
+             <div class="alert alert-danger">
+                 {{ session('error') }}
             </div>
         @endif
 
         <h1 class="mb-4">Gestion des Programmes</h1>
 
-        <div class="mb-3">
+        <div class="mb-3 d-flex justify-content-between align-items-center">
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
                 Ajouter Programme
             </button>
+
+            <div class="form-inline">
+                <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
+            </div>
         </div>
-         <div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
+       <div class="mb-3 d-flex justify-content-start align-items-center">
+            <div class="mr-2">Afficher par page:</div>
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span id="pageSizeDisplay">10</span>
+              </button>
+               <div class="dropdown-menu" aria-labelledby="pageSizeDropdown">
+                    <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
+                    <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
+                   <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal d'ajout de programme (inchangé) -->
+        <div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                      <div class="modal-header bg-primary text-white">
@@ -72,6 +91,7 @@
                  </div>
             </div>
         </div>
+
         <div class="card">
             <div class="card-header bg-secondary text-white">
                   <h2 class="card-title mb-0">Liste des Programmes</h2>
@@ -91,9 +111,17 @@
                          </tr>
                          </thead>
                          <tbody id="programmes-table">
+                           <!-- Programmes générés par js -->
                          </tbody>
                     </table>
                  </div>
+                <div class="mt-3 d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul id="pagination" class="pagination">
+                           <!-- Pagination générée par js -->
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -101,11 +129,121 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
  <script>
     $(document).ready(function() {
-        axios.get("{{ route('programme.data') }}")
+
+         let programmesData = [];
+         let currentPage = 1;
+         let itemsPerPage = 10;
+
+        // Fonction pour générer le tableau HTML
+        function generateTable(programmes) {
+            const tableBody = $('#programmes-table');
+            tableBody.empty(); // Vider le tableau avant de le remplir
+
+            if (programmes.length === 0) {
+                tableBody.append('<tr><td colspan="7" class="text-center">Aucun programme trouvé.</td></tr>');
+                return;
+            }
+             programmes.forEach(programme => {
+                    tableBody.append(`
+                        <tr>
+                            <td>${programme.date_programme}</td>
+                            <td>${programme.chauffeur.nom}</td>
+                            <td>${programme.reference_colis || 'N/A'}</td>
+                            <td>${programme.nom_expediteur || 'N/A'}</td>
+                            <td>${programme.nom_destinataire || 'N/A'}</td>
+                            <td>${programme.lieu_destinataire || 'N/A'}</td>
+                             <td>
+                                 <button class="btn btn-sm btn-info">Modifier</button>
+                                 <button class="btn btn-sm btn-danger">Supprimer</button>
+                             </td>
+                         </tr>
+                    `);
+                 });
+        }
+        // Fonction pour générer la pagination
+          function generatePagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationContainer = $('#pagination');
+            paginationContainer.empty();
+             if (totalPages <= 1) {
+                return;
+            }
+
+             // Bouton "Précédent"
+            const prevButton = $(`<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" aria-label="Précédent">
+                        <span aria-hidden="true">«</span>
+                    </a>
+                </li>`);
+            prevButton.on('click', function(e) {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        updateTable();
+                    }
+            });
+             paginationContainer.append(prevButton);
+
+
+            // Afficher les numéros de page
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = $(`<li class="page-item ${currentPage === i ? 'active' : ''}">
+                    <a class="page-link" href="#">${i}</a>
+                    </li>`);
+                pageButton.on('click', function(e) {
+                    e.preventDefault();
+                    currentPage = i;
+                    updateTable();
+                });
+                paginationContainer.append(pageButton);
+             }
+
+
+            // Bouton "Suivant"
+            const nextButton = $(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" aria-label="Suivant">
+                        <span aria-hidden="true">»</span>
+                    </a>
+                </li>`);
+                nextButton.on('click', function(e) {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        updateTable();
+                    }
+                });
+                paginationContainer.append(nextButton);
+         }
+
+          // Fonction pour mettre à jour le tableau en fonction de la page actuelle et du terme de recherche
+          function updateTable() {
+            const searchTerm = $('#search').val().toLowerCase();
+            let filteredProgrammes = programmesData;
+
+            if (searchTerm) {
+                filteredProgrammes = programmesData.filter(programme =>
+                   programme.date_programme.toLowerCase().includes(searchTerm) ||
+                   programme.chauffeur.nom.toLowerCase().includes(searchTerm) ||
+                   (programme.reference_colis && programme.reference_colis.toLowerCase().includes(searchTerm)) ||
+                   (programme.nom_expediteur && programme.nom_expediteur.toLowerCase().includes(searchTerm)) ||
+                   (programme.nom_destinataire && programme.nom_destinataire.toLowerCase().includes(searchTerm)) ||
+                   (programme.lieu_destinataire && programme.lieu_destinataire.toLowerCase().includes(searchTerm))
+                );
+           }
+           const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+             const programmesToDisplay = filteredProgrammes.slice(startIndex, endIndex);
+            generateTable(programmesToDisplay);
+            generatePagination(filteredProgrammes.length);
+        }
+
+        // Chargement initial des données
+         axios.get("{{ route('programme.data') }}")
             .then(function(response) {
-                 console.log(response.data);
+                console.log(response.data);
                 var chauffeurs = response.data.chauffeurs;
                 var selectChauffeur = $('#chauffeur_id');
                 selectChauffeur.empty().append(`<option value="">-- Sélectionner un Chauffeur --</option>`);
@@ -128,29 +266,8 @@
                 } else {
                     console.error('Erreur: colisValides n\'est pas un tableau:', colisValides);
                 }
-                var programmes = response.data.programmes;
-                var tableBody = $('#programmes-table');
-                tableBody.empty(); // Vider le tableau avant de le remplir
-                if(Array.isArray(programmes)) {
-                    programmes.forEach(programme => {
-                        tableBody.append(`
-                            <tr>
-                                <td>${programme.date_programme}</td>
-                                <td>${programme.chauffeur.nom}</td>
-                                <td>${programme.reference_colis || 'N/A'}</td>
-                                <td>${programme.nom_expediteur || 'N/A'}</td>
-                                <td>${programme.nom_destinataire || 'N/A'}</td>
-                                <td>${programme.lieu_destinataire || 'N/A'}</td>
-                                <td>
-                                <button class="btn btn-sm btn-info">Modifier</button>
-                                 <button class="btn btn-sm btn-danger">Supprimer</button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                } else {
-                    console.error('Erreur: programmes n\'est pas un tableau:', programmes);
-                }
+                 programmesData = response.data.programmes; // Stockez toutes les données
+                 updateTable();
 
                  // Gestion de l'événement "input" sur le champ référence colis
                  $('#reference_colis').on('input', function () {
@@ -172,7 +289,22 @@
             .catch(function(error){
                 console.error('Erreur de requete:',error);
             });
+
+        // Recherche en temps réel
+        $('#search').on('input', function() {
+            currentPage = 1;
+            updateTable();
+        });
+
+
+        // Gestion du dropdown de la taille de la page
+        $('.page-size-btn').on('click', function(e) {
+             e.preventDefault();
+            itemsPerPage = parseInt($(this).data('size'));
+            currentPage = 1;
+            $('#pageSizeDisplay').text(itemsPerPage);
+            updateTable();
+          });
     });
 </script>
-
 @endsection
