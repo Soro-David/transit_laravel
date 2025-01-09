@@ -1,6 +1,5 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-    {{-- <h2>Création de Paiement</h2> --}}
 @endsection
 @section('content')
 <section class="p-4 mx-auto">
@@ -62,15 +61,15 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="tel" class="form-label">Numéro de téléphone</label>
-                                <input type="tel" name="tel" id="tel" 
+                                <label for="numero_tel" class="form-label">Numéro de téléphone</label>
+                                <input type="tel" name="numero_tel" id="numero_tel" 
                                        class="form-control" placeholder="Entrez votre numéro de téléphone">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="operateur" class="form-label">Opérateur</label>
-                                <select name="operateur" id="operateur" class="form-control">
+                                <label for="operateur_mobile" class="form-label">Opérateur</label>
+                                <select name="operateur_mobile" id="operateur_mobile" class="form-control">
                                     <option value="mtn">MTN</option>
                                     <option value="orange">Orange</option>
                                     <option value="airtel">Airtel</option>

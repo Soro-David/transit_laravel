@@ -56,7 +56,7 @@
       $("#reference_colis").autocomplete({
          source: function(request, response) {
                $.ajax({
-                url: '{{ route('transport.reference.auto', ['query' => 'PLACEHOLDER']) }}'.replace('PLACEHOLDER', request.term),
+                url: '{{ route('agent_transport.reference.auto', ['query' => 'PLACEHOLDER']) }}'.replace('PLACEHOLDER', request.term),
                 type: 'GET',
                 dataType: 'json',
                   success: function(data) {
@@ -112,11 +112,7 @@
 
 @section('styles')
 <style>
-    body {
-        background-color: #f7f7f7;
-    }
-
-    .form-container {
+   .form-container {
         max-width: 95%;
         margin: auto;
         background-color: #fff;
@@ -134,22 +130,6 @@
 
     section {
         margin-top: 0px;
-    }
-
-    .table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-    }
-
-    .table th, .table td {
-        padding: 10px;
-        text-align: left;
-        border: 1px solid #ddd;
-    }
-
-    .table th {
-        background-color: #f4f4f4;
     }
 </style>
 @endsection

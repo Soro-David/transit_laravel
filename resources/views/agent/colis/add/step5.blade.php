@@ -1,6 +1,6 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-@section('content')
+@endsection
         @csrf
 <section>
   

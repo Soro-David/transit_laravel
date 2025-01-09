@@ -1,12 +1,9 @@
 @extends('admin.layouts.admin')
 @section('content-header')
 @section('content')
-   <div class="container">
-    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-12">
                         <h2>Liste des chauffeur</h2>
-                        <div class="container">
                             <div class="text-right">
                                 <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_chauffeur">
                                     Ajouter un chauffeur
@@ -23,10 +20,8 @@
                                     </tr>
                                 </thead>
                             </table>
-                        </div>
             </div>
         </div>
-    </div>
     {{--  --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <form action="#" method="post">

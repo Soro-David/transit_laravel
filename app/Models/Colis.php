@@ -28,6 +28,7 @@ class Colis extends Model
         'destinataire_id',
         'paiement_id',
         'qr_code_path',
+        'prix_transit_colis',
         'chauffeur_id'
     ];
 

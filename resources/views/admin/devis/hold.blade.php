@@ -49,11 +49,6 @@
                                             <input type="text" name="reference_contenaire" id="reference_contenaire"  placeholder="Référence du contenaire" class="form-control" readonly>
                                         </div>
                                     </div>
-                                    <div class="container text-right">
-                                        <button type="submit" class="btn btn-danger mt-3">
-                                            <i class="fas fa-times"></i> Fermer contenaire
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +85,20 @@
                     { data: 'destinataire_agence' },
                     { data: 'destinataire_tel' },
                     { data: 'etat' },
-                    { data: 'created_at' },
+                    { data: 'created_at',
+                        render: function(data, type, row) {
+                            // Vérifiez si la date existe et la formater
+                            if (data) {
+                                var date = new Date(data);
+                                // Retourne la date au format aa/mm/jj
+                                var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                                var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                                var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                                return day + '/' + month + '/' + year;
+                            }
+                            return data;  // Si la date est vide, on retourne la donnée brute
+                        }
+                    },
                     { data: 'action', orderable: false, searchable: false }
                 ],
                 dom: 'Bfrtip', // Active les boutons et positionne les contrôles

@@ -1,6 +1,7 @@
-@extends('admin.layouts.admin')
+@extends('agent.layouts.agent')
 @section('content-header')
 @endsection
+
 
 @section('content')
 <section class="py-3">
@@ -9,7 +10,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Liste des colis en attente</h4><br>
+                            <h4 class="text-left mt-4">Colis dechargé</h4><br>
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
@@ -35,7 +36,7 @@
                 </div>
         </form>
 
-    {{-- <!-- Modal for editing -->
+    <!-- Modal for editing -->
     <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -47,24 +48,46 @@
                     <form id="editForm" action="/users/{id}/edit" method="GET">
                         <div class="modal-body">
                             <div class="container">
+
                                 <div class="row">
-                                    <h4>Information destinateur & expéditeur</h4><hr>
+                                    <h4>Information Expediteur</h4><hr>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Agence expéditeur</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled required>
+                                            <label class="form-label">Nom Expéditeur</label>
+                                            <input type="text" name="nom " id="nom" value="" class="form-control" disabled required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Contact expéditeur</label>
-                                            <input type="text" name="destinataire_tel" id="destinataire_tel" value="" class="form-control" disabled required>
+                                            <label class="form-label">Contact Expéditeur</label>
+                                            <input type="text" name="telephone_expediteur" id="telephone_expediteur" value="" class="form-control" disabled required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="destinataire_agence" class="form-label">Agence destinataire</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled>
+                                            <label for="expediteur_email" class="form-label">Agence Expéditeur</label>
+                                            <input type="text" name="agence_expediteur" id="agence_expediteur" value="" class="form-control" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <h4>Information Destinateur</h4><hr>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nom Destinataire</label>
+                                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="" class="form-control" disabled required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Contact Destinataire</label>
+                                            <input type="text" name="telephone_destinataire" id="telephone_destinataire" value="" class="form-control" disabled required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="agence_destinataire" class="form-label">Agence Destinataire</label>
+                                            <input type="text" name="agence_destinataire" id="agence_destinataire" value="" class="form-control" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -90,16 +113,22 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Poids du Colis</label>
                                             <input type="text" name="poids_colis" id="poids_colis" value="" class="form-control" disabled required>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Prix du Colis</label>
-                                            <input type="text" name="prix_colis" id="prix_colis" value="" class="form-control" placeholder="Sommes en CFA" required>
+                                            <input type="text" name="prix_colis" id="prix_colis" value="" class="form-control"  required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="agence_destinateur" class="form-label">Agence Destinataire</label>
+                                            <input type="text" name="agence_destinateur" id="agence_destinateur" value="" class="form-control" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -114,37 +143,37 @@
                 </div>
             </div>
         </div>
-    </div> --}}
+    </div>
 
     <!-- JavaScript for DataTable and Export -->
     <script>
 $(document).ready(function () {
+    // Initialisation de la table DataTable
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("colis.get.colis.hold") }}', // Récupération des données via AJAX
+        ajax: '{{ route("agent_scan.get.colis.decharge") }}', // Récupération des données via AJAX
         columns: [
+            { data: 'reference_colis' },
             {
                 data: null,
                 render: function (data, type, row) {
-                    console.log(data);
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
                 }
             },
-            { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            { data: 'tel_expediteur' },
+            { data: 'agence_expedition' },
             {
                 data: null,
                 render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
                 }
             },
-            { data: 'destinataire_agence' },
-            { data: 'destinataire_tel' },
-            { data: 'etat' },
-            {data: 'created_at',
+            { data: 'tel_destinataire' },
+            { data: 'agence_destination' },
+            { data: 'created_at',
                 render: function(data, type, row) {
                     // Vérifiez si la date existe et la formater
                     if (data) {
