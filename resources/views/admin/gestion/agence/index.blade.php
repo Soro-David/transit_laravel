@@ -37,7 +37,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header d-flex justify-content-between align-items-center">
-                            <h5 class="text-center flex-grow-1 m-0">Information de l'Expéditeur</h5>
+                            <h5 class="text-center flex-grow-1 m-0">Information de l'Agence</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -62,18 +62,7 @@
                                             </div>
                                             @enderror
                                         </div>
-                                        <div class="form-group">
-                                            <label for="email">Pays:</label>
-                                            <select name="pays_agence" class="form-control" value="{{ old('pays_agence') }}" id="pays_agence">
-                                                <option value="">Selectionnez un pays</option>
-                                                <option value="Côte d'Ivoire">CI</option>
-                                            </select>
-                                            @error('email')
-                                            <div class="text-danger">
-                                                <p>{{$message}}</p>
-                                            </div>
-                                            @enderror
-                                        </div>
+                                        
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -83,6 +72,22 @@
                                         <div class="form-group">
                                             <label >Prix au KG:</label>
                                             <input type="text" name="prix_au_kg" class="form-control" id="prix_au_kg" value="{{ old('prix_au_kg') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                                <label for="email">Pays:</label>
+                                                <select name="pays_agence" class="form-control" value="{{ old('pays_agence') }}" id="pays_agence">
+                                                    <option value="">Selectionnez un pays</option>
+                                                    <option value="Côte d'Ivoire">CI</option>
+                                                </select>
+                                                @error('email')
+                                                <div class="text-danger">
+                                                    <p>{{$message}}</p>
+                                                </div>
+                                                @enderror
                                         </div>
                                     </div>
                                 </div>

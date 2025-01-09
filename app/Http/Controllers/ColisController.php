@@ -694,7 +694,7 @@ public function get_colis_hold(Request $request)
 // dd($editUrl);
                 return '
                     <div class="btn-group">
-                        <a href="{{ $editUrl }}" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
+                        <a href="' . $editUrl . '"  class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                         </a>
                     </div>
@@ -714,36 +714,48 @@ public function edit_hold($id)
 
     // Fonction update pour les colis en attente
     public function update_hold(Request $request, $id)
-    {
-        // Validation des données
-        $request->validate([
-            // 'destinataire_agence' => 'required|string|max:255',
-            // 'destinataire_tel' => 'required|string|max:255',
-            // 'quantite_colis' => 'required|numeric',
-            // 'valeur_colis' => 'required|numeric',
-            // 'mode_transit' => 'required|string|max:255',
-            // 'poids_colis' => 'required|numeric',
-            // 'prix_transit_colis' => 'required|numeric',
-        ]);
-    
-        // Récupération du colis
-        $colis = Colis::findOrFail($id);
-    
-        // Mise à jour des champs
-        $colis->update([
-            'destinataire_agence' => $request->input('destinataire_agence'),
-            'destinataire_tel' => $request->input('destinataire_tel'),
-            'quantite_colis' => $request->input('quantite_colis'),
-            'valeur_colis' => $request->input('valeur_colis'),
-            'mode_transit' => $request->input('mode_transit'),
-            'poids_colis' => $request->input('poids_colis'),
-            'prix_transit_colis' => $request->input('prix_transit_colis'),
-            'status' => 'payé', // Ajout du statut
-            'etat' => 'Validé', // Ajout du statut
-        ]);
-        // Redirection avec un message de succès
-        return redirect()->route('colis.hold')->with('success', 'Colis mis à jour avec succès !');
+{
+    // Validation des données
+    $request->validate([
+        'destinataire_agence' => 'nullable|string|max:255',
+        'destinataire_tel' => 'nullable|string|max:255',
+        'quantite_colis' => 'nullable|numeric',
+        'valeur_colis' => 'nullable|numeric',
+        'mode_transit' => 'nullable|string|max:255',
+        'poids_colis' => 'nullable|numeric',
+        'prix_transit_colis' => 'required|numeric', // Le prix est requis
+    ]);
+    // dd($request->input('prix_transit_colis'));
+
+    // Vérification du prix_transit_colis
+    if (empty($request->input('prix_transit_colis'))) {
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'Veuillez spécifier un prix valide pour le transit du colis.');
     }
+    
+
+    // Récupération du colis
+    $colis = Colis::findOrFail($id);
+// dd($colis);
+    // Mise à jour des champs
+    $colis->update([
+        'destinataire_agence' => $request->input('destinataire_agence'),
+        'destinataire_tel' => $request->input('destinataire_tel'),
+        'quantite_colis' => $request->input('quantite_colis'),
+        'valeur_colis' => $request->input('valeur_colis'),
+        'mode_transit' => $request->input('mode_transit'),
+        'poids_colis' => $request->input('poids_colis'),
+        'prix_transit_colis' => $request->input('prix_transit_colis'),
+        'status' => 'payé', // Ajout du statut
+        'etat' => 'Validé', // Ajout du statut
+    ]);
+
+    // Redirection avec un message de succès
+    return redirect()->route('colis.hold')->with('success', 'Colis mis à jour avec succès !');
+}
+
     
 
 

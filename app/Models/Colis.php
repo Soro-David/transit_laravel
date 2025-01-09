@@ -10,12 +10,12 @@ class Colis extends Model
     use HasFactory;
 
     protected $fillable = [
-       'reference_colis',
+        'reference_colis',
         'reference_contenaire',
-        'quantite',
+        'quantite_colis',
         'type_embalage',
-        'valeur',
-        'poids',
+        'valeur_colis',
+        'poids_colis',
         'dimension',
         'expediteur_id',
         'destinataire_id',
@@ -23,13 +23,9 @@ class Colis extends Model
         'chauffeur_id',
         'mode_transit',
         'qr_code_path',
-<<<<<<< HEAD
         'prix_transit_colis',
-        'chauffeur_id'
-=======
         'etat',
         'status',
->>>>>>> af719916904095b472ed80170afbedf75aa7a03c
     ];
 
     public function client()
@@ -41,6 +37,7 @@ class Colis extends Model
     {
         return $this->hasMany(Produit::class);
     }
+
     // Relation avec Expediteur
     public function expediteur()
     {
