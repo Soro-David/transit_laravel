@@ -123,8 +123,8 @@
                             </div>
                         </div>
                     </div>
-                    
-                    
+                    <input type="hidden" name="agence_id" value="{{ $agence->id }}">
+                    {{-- @dd($agence->id) --}}
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                         <button type="submit" class="btn btn-primary">Ajouter</button>

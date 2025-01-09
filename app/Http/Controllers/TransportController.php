@@ -139,28 +139,29 @@ public function reference_auto($query)
 }
 
 
-public function store_chauffeur(Request $request)
+    public function store_chauffeur(Request $request)
     {
         // Valider les données du formulaire
         $request->validate([
             'nom_chauffeur' => 'required|string|max:255',
+            'prenom_chauffeur' => 'required|string|max:255',
             'email_chauffeur' => 'required|email|max:255',
             'tel_chauffeur' => 'required|string|max:255',
             // 'agence_expedition' => 'required|exists:agences,id', // Assurez-vous que l'agence existe
             'agence_id' => 'required' // Assurez-vous que l'agence existe
         ]);
-    // dd($request->all());
-        // Créer un nouveau chauffeur
-        Chauffeur::create([
-            'nom' => $request->nom_chauffeur,
-            'email' => $request->email_chauffeur,
-            'tel' => $request->tel_chauffeur,
-            'agence_id' => $request->agence_id,
-        ]);
-    
-        // Rediriger avec un message de succès
-        return redirect()->route('chauffeur.index')->with('success', 'Chauffeur ajouté avec succès!');
+        try {
+            Chauffeur::create([
+                'nom' => $request->nom_chauffeur,
+                'prenom' => $request->prenom_chauffeur,
+                'email' => $request->email_chauffeur,
+                'tel' => $request->tel_chauffeur,
+                'agence_id' => $request->agence_id,
+            ]);
+            return redirect()->back()->with('success', 'Chauffeur ajouté avec succès!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'ajout du chauffeur.');
+        }
     }
-
     
 }
