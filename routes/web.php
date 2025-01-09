@@ -15,7 +15,7 @@ use App\Http\Controllers\TransportController;
 use App\Http\Controllers\GestionAgentController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\QrcodeController;
-
+use App\Http\Controllers\ProgrammeController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -227,4 +227,11 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
 
 
     });
+   
 });
+Route::get('/programme', function () {
+    return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
+})->name('programme.index');
+Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
+Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
+Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');

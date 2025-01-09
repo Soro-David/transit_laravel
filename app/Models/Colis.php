@@ -10,25 +10,21 @@ class Colis extends Model
     use HasFactory;
 
     protected $fillable = [
-        'date_entree', 
-        'date_sortie', 
-        'etat', 
-        'client_id',
-        'reference_colis',
-        'quantite_colis',
-        'valeur_colis',
-        'poids_colis',
-        'dimension_colis',
-        'mode_transit',
-        'description_colis',
-        'status',
-        'type_embalage',
+       'reference_colis',
         'reference_contenaire',
+        'quantite',
+        'type_embalage',
+        'valeur',
+        'poids',
+        'dimension',
         'expediteur_id',
         'destinataire_id',
         'paiement_id',
+        'chauffeur_id',
+        'mode_transit',
         'qr_code_path',
-        'chauffeur_id'
+        'etat',
+        'status',
     ];
 
     public function client()
