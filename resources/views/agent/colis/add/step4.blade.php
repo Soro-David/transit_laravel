@@ -1,6 +1,5 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-    {{-- <h2>Création de Colis</h2> --}}
 @endsection
 
 @section('content')

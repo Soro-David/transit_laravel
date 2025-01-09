@@ -117,7 +117,20 @@ $(document).ready(function () {
             { data: 'first_name', name: 'first_name' },
             { data: 'email', name: 'email' },
             { data: 'role', name: 'role' },
-            { data: 'created_at', name: 'created_at' },
+            { data: 'created_at',
+                render: function(data, type, row) {
+                    // Vérifiez si la date existe et la formater
+                    if (data) {
+                        var date = new Date(data);
+                        // Retourne la date au format aa/mm/jj
+                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                        return day + '/' + month + '/' + year;
+                    }
+                    return data;  // Si la date est vide, on retourne la donnée brute
+                }
+            },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ]
     });

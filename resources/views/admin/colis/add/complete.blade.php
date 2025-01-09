@@ -8,8 +8,8 @@
     <section>
         <div class="container text-center">
             <h1>QR Code</h1>
-            <img src="{{ asset($filePath) }}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;">
-            <button class="btn btn-primary mt-4" onclick="window.print()">Imprimer</button>
+            <img class="imageqr" src="{{ asset($filePath) }}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;">
+            <button class="btn btn-primary mt-4" onclick="printImage()">Imprimer</button>
         </div>
     </section>
 
@@ -28,7 +28,7 @@
             justify-content: center;
         }
 
-        img {
+        .imageqr {
             border: 1px solid #ddd;
             border-radius: 8px;
         }
@@ -40,13 +40,25 @@
         }
 
         @media print {
-            button {
-                display: none; /* Masquer le bouton lors de l'impression */
+            body * {
+                visibility: hidden; /* Masquer tout le contenu */
             }
 
-            section {
-                box-shadow: none; /* Supprimer les ombres lors de l'impression */
+            .imageqr {
+                visibility: visible; /* Montrer uniquement l'image */
+                display: block;
+                margin: 0 auto;
+            }
+
+            .imageqr::after {
+                content: ''; /* Empêche les éléments adjacents d'être affichés */
             }
         }
     </style>
+
+    <script>
+        function printImage() {
+            window.print(); // Lancer l'impression de la page
+        }
+    </script>
 @endsection

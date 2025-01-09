@@ -1,5 +1,6 @@
 @extends('agent.layouts.agent')
-@section('content-header')  
+@section('content-header')
+@section('content')
     <div class=" container">
         <nav class="flex space-x-4 justify-center">
             <!-- Bouton Voir Chauffeur -->

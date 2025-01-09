@@ -1,6 +1,6 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-@section('content')
+@endsection
         @csrf
 <section>
     <form action="" method="post">
@@ -231,7 +231,7 @@
 
  {{--  --}}
 <div class="modal fade" id="info_destinataire" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <form action="{{route('agent_colis.store.destinataire')}}" method="post">
+    <form action="{{route('colis.store.destinataire')}}" method="post">
         @csrf
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -306,7 +306,7 @@
 
 {{--  --}}
 <div class="modal fade" id="info_expediteur" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <form action="{{route('agent_colis.store.expediteur')}}" method="POST">
+    <form action="{{route('colis.store.expediteur')}}" method="POST">
         @csrf
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -389,7 +389,20 @@
                     { data: 'role', name: 'role' },
                     { data: 'role', name: 'role' },
                     { data: 'role', name: 'role' },
-                    { data: 'created_at', name: 'created_at' },
+                    { data: 'created_at',
+                        render: function(data, type, row) {
+                            // Vérifiez si la date existe et la formater
+                            if (data) {
+                                var date = new Date(data);
+                                // Retourne la date au format aa/mm/jj
+                                var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                                var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                                var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                                return day + '/' + month + '/' + year;
+                            }
+                            return data;  // Si la date est vide, on retourne la donnée brute
+                        }
+                    },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                         ]
     });
@@ -469,7 +482,7 @@ $(document).ready(function () {
         allowClear: true, 
         width: '100%', 
         ajax: {
-            url: "{{ route('agent_colis.search.expediteurs') }}",
+            url: "{{ route('colis.search.expediteurs') }}",
             type: "GET",
             dataType: "json",
             delay: 250,

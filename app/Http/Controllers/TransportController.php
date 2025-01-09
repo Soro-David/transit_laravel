@@ -10,6 +10,8 @@ use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Agence;
+use App\Models\Chauffeur;
+
 
 class TransportController extends Controller
 {
@@ -137,5 +139,29 @@ public function reference_auto($query)
 }
 
 
+    public function store_chauffeur(Request $request)
+    {
+        // Valider les données du formulaire
+        $request->validate([
+            'nom_chauffeur' => 'required|string|max:255',
+            'prenom_chauffeur' => 'required|string|max:255',
+            'email_chauffeur' => 'required|email|max:255',
+            'tel_chauffeur' => 'required|string|max:255',
+            // 'agence_expedition' => 'required|exists:agences,id', // Assurez-vous que l'agence existe
+            'agence_id' => 'required' // Assurez-vous que l'agence existe
+        ]);
+        try {
+            Chauffeur::create([
+                'nom' => $request->nom_chauffeur,
+                'prenom' => $request->prenom_chauffeur,
+                'email' => $request->email_chauffeur,
+                'tel' => $request->tel_chauffeur,
+                'agence_id' => $request->agence_id,
+            ]);
+            return redirect()->back()->with('success', 'Chauffeur ajouté avec succès!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'ajout du chauffeur.');
+        }
+    }
     
 }

@@ -1,12 +1,10 @@
 @extends('agent.layouts.agent')
 @section('content-header')
 @section('content')
-   <div class="container">
-    <div class="container">
+  
         <div class="row justify-content-center">
             <div class="col-md-12">
                         <h2>Liste des chauffeur</h2>
-                        <div class="container">
                             <div class="text-right">
                                 <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_chauffeur">
                                     Ajouter un chauffeur
@@ -23,9 +21,7 @@
                                     </tr>
                                 </thead>
                             </table>
-                        </div>
             </div>
-        </div>
     </div>
     {{--  --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -88,12 +84,11 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="nom_agence">Agence:</label>
-                                        <select name="nom_agence" 
-                                                class="form-control" 
-                                                value="{{ old('nom_agence') }}" 
-                                                id="nom_agence">
-                                            <option value="" disabled selected>Selectionnez une Agence</option>
-                                            <option value="Côte d'Ivoire">CI</option>
+                                        <select name="agence_expedition" id="agence_expedition" class="form-control">
+                                            <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                            @foreach ($agences as $agence)
+                                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -119,7 +114,7 @@
                         language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
                 },
-                ajax: '{{ route('transport.get.chauffeur.list') }}',
+                ajax: '{{ route('agent_transport.get.chauffeur.list') }}',
                 columns: [
                     { data: 'nom_agence', name: 'nom_agence' },
                     { data: 'adresse_agence', name: 'email_chauffeur' },

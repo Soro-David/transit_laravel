@@ -4,10 +4,8 @@
 
 @section('content')
 <section class="py-3">
-    <div class="container">
         <form action="" method="POST" class="mt-4">
             @csrf
-            <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -35,11 +33,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </form>
-    </div>
 
-    <!-- Modal for editing -->
+    {{-- <!-- Modal for editing -->
     <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -118,7 +114,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- JavaScript for DataTable and Export -->
     <script>
@@ -148,7 +144,20 @@ $(document).ready(function () {
             { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
             { data: 'etat' },
-            { data: 'created_at' },
+            {data: 'created_at',
+                render: function(data, type, row) {
+                    // Vérifiez si la date existe et la formater
+                    if (data) {
+                        var date = new Date(data);
+                        // Retourne la date au format aa/mm/jj
+                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                        return day + '/' + month + '/' + year;
+                    }
+                    return data;  // Si la date est vide, on retourne la donnée brute
+                }
+            },
             { data: 'action', orderable: false, searchable: false }
         ],
         dom: 'Bfrtip', // Placement des boutons

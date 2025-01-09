@@ -13,6 +13,11 @@ use App\Models\Product;
 use App\Models\Agence;
 use App\Models\Client;
 use App\Models\Les_colis;
+use App\Models\Colis;
+use App\Models\Expediteur;
+use App\Models\Destinataire;
+use App\Models\Paiement;
+use App\Models\Article;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
@@ -58,12 +63,12 @@ class AgentColisController extends Controller
     public function createStep1()
     {
         // Chargement des données
-        $step = 1;
+        // $step = 1;
         $agences = Agence::select('nom_agence', 'id')->get();
-        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
-        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
-
-        return view('agent.colis.add.step1',['stepProgress' => 20], compact('agences', 'client_expediteurs', 'client_destinataires'));
+        // $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+        // $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+// dd($client_destinataires);
+        return view('agent.colis.add.step1',['stepProgress' => 20], compact('agences'));
     }
 
     /**
@@ -71,6 +76,7 @@ class AgentColisController extends Controller
      */
     public function storeStep1(Request $request)
     {
+        // dd($request->all());
         $request->session()->put('step1', $request->all());
         // Validation des données
         $request->validate([
@@ -79,12 +85,21 @@ class AgentColisController extends Controller
 
         // Stockage des données en session
         session(['step1' => $request->only([
-            'nom_expediteur', 'prenom_expediteur', 'email_expediteur', 'tel_expediteur',
-            'agence_expedition', 'lieu_expedition', 'nom_destinataire', 'prenom_destinataire',
-            'email_destinataire', 'tel_destinataire', 'agence_destination', 'lieu_destination'
+            'nom_expediteur',
+            'prenom_expediteur', 
+            'email_expediteur', 
+            'tel_expediteur',
+            'agence_expedition',
+            'adresse_expediteur', 
+            'nom_destinataire', 
+            'prenom_destinataire',
+            'email_destinataire', 
+            'tel_destinataire',
+            'agence_destination',
+            'adresse_destinataire'
         ])]);
 
-        return redirect()->route('colis.create.step2');
+        return redirect()->route('agent_colis.create.step2');
     }
 
     /**
@@ -97,21 +112,29 @@ class AgentColisController extends Controller
     }
 
     public function storeStep2(Request $request)
+    
     {
-        $request->session()->put('step2', $request->all());
+
+        $request->session()->put('step3', $request->all());
         $request->validate([
-            'description' => 'required',
-            'quantite' => 'required',
-            'dimension' => 'required',
-            'poids' => 'required',
-            
+            // 'quantite' => 'required',
+            // 'type_emballage' => 'required',
+            // 'dimension' => 'required',
+            // 'description_colis' => 'required',
+            // 'poids_colis' => 'required',
+            // 'valeur_colis' => 'required',
         ]);
 
-        session(['step2' => $request->only([
-            'description', 'quantite', 'dimension', 'dimension', 'poids',
+        session(['step3' => $request->only([
+           'quantite_colis',
+            'type_embalage', 
+            'dimension_colis', 
+            'description_colis', 
+            'poids_colis', 
+            'valeur_colis',
         ])]);
 
-        return redirect()->route('colis.create.step3');
+        return redirect()->route('agent_colis.create.step3');
     }
 
     public function createStep3()
@@ -131,24 +154,30 @@ class AgentColisController extends Controller
         // Exemple : "COLIS-12202423-XXXXXX"
         return 'COLIS-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
     }
+    private function generateReferenceContenaire()
+{
+    // Exemple : "CNT-24201-XXX" (année 2024, mois janvier)
+    return 'CNT-' . now()->format('y-M');
+}
+
+
 
     public function storeStep3(Request $request)
     {
-        $request->session()->put('step3', $request->all());
+        
+        $request->session()->put('step2', $request->all());
         $request->validate([
-            'quantite' => 'required',
-            'type_emballage' => 'required',
-            'dimension' => 'required',
-            'description_colis' => 'required',
-            'poids_colis' => 'required',
-            'valeur_colis' => 'required',
+            'articles.*.description' => 'required|string|max:255',
+            'articles.*.quantite' => 'required|integer|min:1',
+            'articles.*.dimension' => 'required|string|max:255',
+            'articles.*.poids' => 'required|numeric|min:0',
+            
         ]);
 
-        session(['step3' => $request->only([
-            'quantite', 'type_emballage', 'dimension', 'description_colis', 'poids_colis', 'valeur_colis',
+        session(['step2' => $request->only([
+            'description', 'quantite', 'dimension', 'poids'
         ])]);
-
-        return redirect()->route('colis.create.step4',['stepProgress' => 80]);
+        return redirect()->route('agent_colis.create.step4',['stepProgress' => 80]);
     }
     /**
      * Étape 3 : Informations de transit.
@@ -172,7 +201,7 @@ class AgentColisController extends Controller
             'mode_transit', 'reference_colis'
         ])]);
 
-        return redirect()->route('colis.create.payement');
+        return redirect()->route('agent_colis.create.payement');
     }
     /**
      * Enregistre les informations de paiement.
@@ -204,12 +233,12 @@ class AgentColisController extends Controller
 
         session(['step5' => $request->only([
             'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-            'tel', 'operateur', 'numero_cheque', 'montant_reçu',
+            'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
         ])]);
 
         return response()->json([
             'success' => true,
-            'redirect' => route('colis.create.qrcode'),
+            'redirect' => route('agent_colis.create.qrcode'),
         ]);
         
     }
@@ -225,54 +254,150 @@ class AgentColisController extends Controller
             session('step5', [])
         );
     
-        // Ajouter le statut au tableau de données
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
-    
-        // Créer un colis dans la base de données
-        $colis = Les_colis::create($data);
-    
-        // Format lisible pour le QR code
-        $qrData = [
-            'Référence colis' => $data['reference_colis'],
-            'Statut' => $colis->status,
-            'Nom Expéditeur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
-            'Nom Destinataire' => $data['nom_destinataire'] . ' ' . $data['prenom_destinataire'],
-            'Téléphone Destinataire' => $data['tel_destinataire'],
-            'Agence Destination' => $data['agence_destination'],
-            'Lieu de Destination' => $data['lieu_destination'],
-                ];
-    
-        // Construire le contenu du QR code
-        $qrCodeContent = '';
-        foreach ($qrData as $key => $value) {
-            $qrCodeContent .= "{$key}: {$value}\n";
-        }
-    
-        // Utiliser la méthode avec QrCode
-        $qrCode = new QrCode($qrCodeContent);  
-        $writer = new PngWriter();             
-        $result = $writer->write($qrCode);     
-         $pngData = $result->getString();  
-    
-        // Définir le chemin du fichier QR code
-        $filePath = 'qrcodes/colis_' . $colis->id . '.png';
-        $fullPath = storage_path('app/public/' . $filePath);
-    
-        // Vérifier et créer le répertoire cible si nécessaire
-        $directory = dirname($fullPath);
-        if (!File::exists($directory)) {
-            File::makeDirectory($directory, 0755, true);
-        }
-    
-        // Sauvegarder le fichier QR code dans le storage
-        file_put_contents($fullPath, $pngData); // Sauvegarder le QR code PNG
-    
-        // Mettre à jour le chemin du QR code dans la base de données
-        $colis->update(['qr_code_path' => $filePath]);
-    
-        // Oublier les données de session après l'enregistrement
-        session()->forget(['step1', 'step2', 'step3', 'step4', 'step5']);
-    
+         // Ajouter le statut au tableau de données
+         $data['status'] = $data['mode_payement'] ?? 'non payé';
+         $data['etat'] = $data['etat'] ?? 'Validé';
+ 
+ 
+         // Vérifiez que les données sont bien réparties pour chaque table
+         $expediteurData = [
+             'nom' => $data['nom_expediteur'] ,
+             'prenom' => $data['prenom_expediteur'] ,
+             'email' => $data['email_expediteur'] ,
+             'tel' => $data['tel_expediteur'] ,
+             'agence' => $data['agence_expedition'] ,
+             'adresse' => $data['adresse_expediteur'] ,
+         ];
+ 
+ 
+         $destinataireData = [
+             'nom' => $data['nom_destinataire'] ,
+             'prenom' => $data['prenom_destinataire'] ,
+             'email' => $data['email_destinataire'] ,
+             'tel' => $data['tel_destinataire'] ,
+             'agence' => $data['agence_destination'] ,
+             'adresse' => $data['adresse_destinataire'] ,
+         ];
+ 
+         // Vérification que les tableaux nécessaires existent et sont synchronisés
+     if (
+         isset($data['description'], $data['quantite'], $data['dimension'], $data['poids']) &&
+         is_array($data['description']) &&
+         is_array($data['quantite']) &&
+         is_array($data['dimension']) &&
+         is_array($data['poids']) &&
+         count($data['description']) === count($data['quantite']) &&
+         count($data['quantite']) === count($data['dimension']) &&
+         count($data['dimension']) === count($data['poids'])
+     ) {
+         // Construction du tableau d'articles
+         $articleData = [];
+         foreach ($data['description'] as $index => $description) {
+             $articleData[] = [
+                 'description' => $description,
+                 'quantite' => $data['quantite'][$index],
+                 'dimension' => $data['dimension'][$index],
+                 'poids' => $data['poids'][$index],
+             ];
+         }
+     
+ 
+         // Afficher ou traiter $articleData
+         // dd($articleData); // Affiche les données sous forme de tableau structuré
+     } else {
+         // Gestion d'erreur
+         throw new \Exception('Les données des articles sont manquantes ou incohérentes.');
+     }
+ 
+         $colisData = [
+             'reference_colis' => $data['reference_colis'] ,
+             'reference_contenaire' => $data['reference_contenaire'] ?? null,
+             'quantite_colis' => $data['quantite_colis'] ,
+             'type_embalage' => $data['type_embalage'] ,
+             'valeur_colis' => $data['valeur_colis'],
+             'poids_colis' => $data['poids_colis'] ,
+             'dimension_colis' => $data['dimension_colis'] ,
+             'mode_transit' => $data['mode_transit'] ,
+             'status' => $data['status'],
+             'etat' => $data['etat'],
+         ];
+         $payementData = [
+             'mode_de_payement' => $data['mode_payement'] ,
+             'montant_reçu' => $data['montant_reçu'] ,
+             'operateur_mobile' => $data['operateur_mobile'] ,
+             'numero_compte' => $data['numero_compte'],
+             'nom_banque' => $data['nom_banque'] ,
+             'id_transaction' => $data['transaction_id'],
+             'numero_tel' => $data['numero_tel'],
+             'numero_cheque' => $data['numero_cheque'] ,
+         ];
+ 
+         // dd($expediteurData, $destinataireData, $articleData, $colisData, $payementData);
+ 
+ 
+         // Insérer les données dans chaque table
+         $expediteur = Expediteur::create($expediteurData);
+         $destinataire = Destinataire::create($destinataireData);
+         // $article = Article::create($articleData);
+         $payement = Paiement::create($payementData);
+         $colis = Colis::create(array_merge($colisData, [
+             'expediteur_id' => $expediteur->id,
+             'destinataire_id' => $destinataire->id,
+             'paement_id' => $payement->id,
+         ]));
+         foreach ($articleData as $article) {
+             $article['colis_id'] = $colis->id;
+             Article::create($article);
+         }
+         
+         // dd($article);
+ 
+         
+ 
+     // dd($colis );
+ 
+         // Format lisible pour le QR code
+         $qrData = [
+             'Référence colis' => $data['reference_colis'],
+             'Statut' => $colis->status,
+             'Nom Expéditeur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
+             'Nom Destinataire' => $data['nom_destinataire'] . ' ' . $data['prenom_destinataire'],
+             'Téléphone Destinataire' => $data['tel_destinataire'],
+             'Agence Destination' => $data['agence_destination'] ?? '',
+             'Lieu de Destination' => $data['lieu_destination'] ?? '',
+         ];
+ 
+ 
+         // Construire le contenu du QR code
+         $qrCodeContent = '';
+         foreach ($qrData as $key => $value) {
+             $qrCodeContent .= "{$key}: {$value}\n";
+         }
+ 
+         // Générer le QR code
+         $qrCode = new QrCode($qrCodeContent);
+         $writer = new PngWriter();
+         $result = $writer->write($qrCode);
+         $pngData = $result->getString();
+ 
+         // Définir le chemin du fichier QR code
+         $filePath = 'qrcodes/colis_' . $colis->id . '.png';
+         $fullPath = public_path($filePath);
+ 
+         // Vérifier et créer le répertoire cible si nécessaire
+         $directory = dirname($fullPath);
+         if (!File::exists($directory)) {
+             File::makeDirectory($directory, 0755, true);
+         }
+ 
+         // Sauvegarder le fichier QR code dans le storage
+         file_put_contents($fullPath, $pngData);
+ 
+         // Mettre à jour le chemin du QR code dans la base de données
+         $colis->update(['qr_code_path' => $filePath]);
+ 
+         // Réinitialiser les sessions après traitement
+         session()->forget(['step1', 'step2', 'step3', 'step4', 'step5']);
         // Retourner la vue avec les informations nécessaires
         return view('agent.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
     }
@@ -374,7 +499,12 @@ class AgentColisController extends Controller
 
     public function hold()
     {
-        return view('admin.colis.hold');
+        return view('agent.colis.hold');
+    }
+
+    public function dump()
+    {
+        return view('agent.colis.dump');
     }
 
     public function history()
@@ -444,48 +574,199 @@ class AgentColisController extends Controller
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-        $colis = Les_colis::select(
-            'nom_expediteur',
-            'prenom_expediteur',
-            'tel_expediteur',
-            'agence_expedition', 
-            'nom_destinataire', 
-            'prenom_destinataire',
-            'agence_destination', 
-            'tel_destinataire',
-            'etat',
-            'created_at'
+        $colis = Colis::select(
+            'colis.*',  // Sélectionne toutes les colonnes de colis
+            'expediteurs.nom as expediteur_nom', 
+            'expediteurs.prenom as expediteur_prenom', 
+            'expediteurs.tel as expediteur_tel', 
+            'expediteurs.agence as expediteur_agence', 
+            'destinataires.nom as destinataire_nom', 
+            'destinataires.prenom as destinataire_prenom', 
+            'destinataires.agence as destinataire_agence', 
+            'destinataires.tel as destinataire_tel',
+            'colis.etat as etat',
+            'colis.created_at as created_at'
         )
-        ->whereIn('etat', ['En attente', 'En transit', 'Validé' , 'En entrepot'])
-        ->get();
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+        ->where('etat', 'En attente','Validé')  // Filtre l'état des colis
+        ->get(); // Exécute la requête une seule fois
+
         return DataTables::of($colis)
             ->addColumn('action', function ($row) {
-                $editUrl = '/users/' . $row->id . '/edit';
+                $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
 
                 return '
                     <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                            <i class="fas fa-edit"></i>
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fas fa-credit-card"></i>
                         </a>
                     </div>
-                   
                 ';
             })
-            ->rawColumns(['action']) // Permet de rendre le HTML
+            ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
             ->make(true);
     }
 }
-public function devis_hold()
+    // Ajax pour les colis arrivés
+    public function get_colis_dump(Request $request)
     {
-        return view('admin.devis.hold');
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('etat', 'Dechargé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
     }
 
-public function liste_contenaire()
+    public function get_devis_colis(Request $request)
     {
-        return view('admin.devis.liste_contenaire');
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('etat', 'Validé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
     }
+
+    public function get_colis_contenaire(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('etat', 'Validé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
+    }
+
+public function contenaire_fermer(Request $request)
+{
+
+try {
+    // Compter les enregistrements avant la mise à jour
+    $count = Colis::where('etat', 'Validé')->count();
+    if ($count === 0) {
+        return redirect()->back()->with('warning', 'Aucun colis avec l’état "validé" trouvé.');
+    }
+     // Générer une référence unique pour le conteneur
+     $referenceContenaire = 'CNT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(3));
+    // Mise à jour des enregistrements
+    $colisData = Colis::where('etat', 'Validé')
+        ->update(['etat' => 'En entrepôt', 'reference_contenaire' => $referenceContenaire]);
+
+    return redirect()->back()->with('success', "$colisData colis mis à jour avec succès.");
+} catch (\Exception $e) {
+    return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+}
+}
+
+
+
+public function devis_hold(Request $request)
+{
+    return view('agent.devis.hold');
+}
+
+public function liste_contenaire(Request $request)
+{
+    $referenceContenaire = $request->input('reference_contenaire', $this->generateReferenceContenaire());
+    return view('agent.devis.liste_contenaire',compact('referenceContenaire'));
+}
 
 }

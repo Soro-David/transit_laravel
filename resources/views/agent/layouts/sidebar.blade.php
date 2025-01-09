@@ -33,13 +33,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('trans.on_old') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{route('agent_colis.dump')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Arrivé') }}</p>
                             </a>
@@ -56,13 +56,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{route('agent_colis.devis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{route('agent_colis.liste.contenaire')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Contenaire') }}</p>
                             </a>
@@ -78,19 +78,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('agent_scan.entrepot')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('agent_scan.chargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chargement') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{route('agent_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
                             </a>
@@ -135,15 +135,15 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{ route('agent_transport.show.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chauffeurs') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="" class="nav-link">
+                            <a href="{{ route('agent_transport.planing.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Planification') }}</p>
+                                <p>{{ __('Planifier') }}</p>
                             </a>
                         </li>
                     </ul>

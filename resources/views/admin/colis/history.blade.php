@@ -6,11 +6,8 @@
 
 @section('content')
 <section class="py-3">
-
-    <div class="container">
         <form action="" method="POST" class="mt-4">
             @csrf
-            <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -39,9 +36,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </form>
-    </div>
 </div>
 
 <!-- Script JavaScript -->
