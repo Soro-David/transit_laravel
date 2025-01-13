@@ -18,6 +18,7 @@ use App\Http\Controllers\AgentScanController;
 use App\Http\Controllers\QrcodeController;
 use App\Http\Controllers\ProgrammeController;
 use App\Http\Controllers\ChauffeurController;
+use App\Http\Controllers\ClientController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -137,7 +138,14 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
     });
     
+// Client rouute
+Route::prefix('client')->name('client.')->group(function(){
+    Route::get('/', [ClientController::class,'index'])->name('index');
+    Route::get('/get-client',[ClientController::class, 'get_client'])->name('get.client');
 
+   
+
+});
     // Scan
     Route::prefix('scan')->name('scan.')->group(function(){
         Route::get('/en-entrepot', [ScanController::class,'entrepot'])->name('entrepot'); 
