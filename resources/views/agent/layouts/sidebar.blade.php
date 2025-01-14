@@ -154,9 +154,21 @@
 </aside>
 
 <style>
+    .main-sidebar {
+        top: 0;
+        left: 0;
+        /* z-index: 1030; Assurez-vous qu'il soit au-dessus d'autres éléments */
+        height: 100vh; /* Assurez que la sidebar occupe toute la hauteur de la fenêtre */
+        position: fixed; /* Fixée pour qu'elle ne bouge pas avec le contenu principal */
+    }
     .custom-logo {
-    max-height: 10px;
-    padding: 1px; /* Ajout d'un léger padding interne si nécessaire */
-    margin: 10 auto; /* Centrer l'image */
+        max-height: 90px;
+        padding: 1px;
+        margin: 0 auto;
+    }
+
+.sidebar {
+    max-height: calc(100vh - 160px); /* Ajustez cette valeur en fonction de l'en-tête ou d'autres marges */
+    overflow-y: auto; /* Assurez-vous que le scroll est bien activé */
 }
 </style>

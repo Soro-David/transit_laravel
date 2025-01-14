@@ -19,6 +19,7 @@ use App\Http\Controllers\QrcodeController;
 use App\Http\Controllers\ProgrammeController;
 use App\Http\Controllers\ChauffeurController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\NavAdminController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -138,15 +139,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
     });
     
-// Client rouute
-Route::prefix('client')->name('client.')->group(function(){
-    Route::get('/', [ClientController::class,'index'])->name('index');
-    Route::get('/get-client',[ClientController::class, 'get_client'])->name('get.client');
+        // Client rouute
+        Route::prefix('client')->name('client.')->group(function(){
+            Route::get('/', [ClientController::class,'index'])->name('index');
+            Route::get('/get-client',[ClientController::class, 'get_client'])->name('get.client');
 
-   
+        });
 
-});
-    // Scan
+        Route::prefix('notification')->name('notification.')->group(function(){
+            Route::get('/', [NavAdminController::class,'index'])->name('index');
+            Route::get('/get-notifications',[NavAdminController::class, 'get_notifications'])->name('get.notifications');
+            Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
+
+        });
+            // Scan
     Route::prefix('scan')->name('scan.')->group(function(){
         Route::get('/en-entrepot', [ScanController::class,'entrepot'])->name('entrepot'); 
         Route::get('/en-chargement', [ScanController::class,'chargement'])->name('chargement'); 
@@ -206,6 +212,12 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/complete', [CustomerColisController::class, 'complete'])->name('complete');
 
     });
+    Route::prefix('customer_notification')->name('customer_notification.')->group(function(){
+        Route::get('/', [NavAdminController::class,'index'])->name('index');
+        Route::get('/get-notifications',[NavAdminController::class, 'get_notifications'])->name('get.notifications');
+        Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
+
+    });
         
 });
 
@@ -231,8 +243,12 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::get('/devis-hold',[AgentColisController::class, 'devis_hold'])->name('devis.hold');
         // route contenaire fermer
         Route::post('/contenaire-fermer',[AgentColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        
+        Route::get('/on-hold/{id}/edit', [AgentColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::put('/on-hold/{id}', [AgentColisController::class, 'update_hold'])->name('hold.update');
 
         Route::get('/list-contenaire',[AgentColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        // Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
 
         Route::post('/store', [AgentAgentColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [AgentColisController::class,'show'])->name('show'); 
@@ -282,6 +298,12 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
 
         Route::get('/store',[AgentTransportController::class, 'store'])->name('store');
         Route::post('/store', [AgentTransportController::class,'store'])->name('store'); 
+
+    });
+    Route::prefix('agent_notification')->name('agent_notification.')->group(function(){
+        Route::get('/', [NavAdminController::class,'index'])->name('index');
+        Route::get('/get-notifications',[NavAdminController::class, 'get_notifications'])->name('get.notifications');
+        Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
 
     });
    

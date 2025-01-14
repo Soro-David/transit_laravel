@@ -72,4 +72,12 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
         ]);
     }
+
+    public function edit($id)
+    {
+        $id = Auth::user()->id;
+        $user = User::findOrFail($id);
+        
+        return view('auth.edit_register', compact('user'));
+    }
 }

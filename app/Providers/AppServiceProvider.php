@@ -6,6 +6,8 @@ use App\Models\Setting;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -44,5 +46,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Paginator::useBootstrap();
+        Carbon::setLocale('fr');
     }
 }

@@ -534,6 +534,47 @@ class AgentColisController extends Controller
     {
         //
     }
+    public function edit_hold($id)
+    {
+        // dd($id);
+        $colis = Colis::findOrFail($id);
+        // dd($colis);
+        return view('agent.colis.edit_hold', compact('colis'));
+    }
+
+    // Fonction update pour les colis en attente
+    public function update_hold(Request $request, $id)
+    {
+    // dd($request->all());
+
+        // Validation des données
+        $request->validate([
+            // 'destinataire_agence' => 'required|string|max:255',
+            // 'destinataire_tel' => 'required|string|max:255',
+            // 'quantite_colis' => 'required|numeric',
+            // 'valeur_colis' => 'required|numeric',
+            // 'mode_transit' => 'required|string|max:255',
+            // 'poids_colis' => 'required|numeric',
+            // 'prix_transit_colis' => 'required|numeric',
+        ]);
+    
+        // Récupération du colis
+        $colis = Colis::findOrFail($id);
+        // Mise à jour des champs
+        $colis->update([
+            'destinataire_agence' => $request->input('destinataire_agence'),
+            'destinataire_tel' => $request->input('destinataire_tel'),
+            'quantite_colis' => $request->input('quantite_colis'),
+            'valeur_colis' => $request->input('valeur_colis'),
+            'mode_transit' => $request->input('mode_transit'),
+            'poids_colis' => $request->input('poids_colis'),
+            'prix_transit_colis' => $request->input('prix_transit_colis'),
+            'status' => 'payé', // Ajout du statut
+            'etat' => 'Validé', // Ajout du statut
+        ]);
+        // Redirection avec un message de succès
+        return redirect()->route('agent_colis.hold')->with('success', 'Colis mis à jour avec succès !');
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -589,20 +630,17 @@ public function get_colis_hold(Request $request)
         )
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-        ->where('etat', 'En attente','Validé')  // Filtre l'état des colis
+        ->where('etat', 'En attente')  // Filtre l'état des colis
         ->get(); // Exécute la requête une seule fois
 
         return DataTables::of($colis)
             ->addColumn('action', function ($row) {
-                $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+                $editUrl = route('agent_colis.hold.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
 
                 return '
                     <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-credit-card"></i>
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
+                            <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                         </a>
                     </div>
                 ';

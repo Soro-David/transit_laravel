@@ -694,7 +694,7 @@ public function get_colis_hold(Request $request)
 // dd($editUrl);
                 return '
                     <div class="btn-group">
-                        <a href="{{ $editUrl }}" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                         </a>
                     </div>

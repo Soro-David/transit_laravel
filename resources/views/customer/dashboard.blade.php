@@ -26,76 +26,158 @@
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
 
-        .content-wrapper {
-            padding: 20px;
-        }
+.content-wrapper {
+    padding: 20px;
+}
 
-        .card-box {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin: 20px 0;
-        }
+.card-box {
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 10px !important;
+    margin: 10px 0 !important;
+}
 
-        .small-box {
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            color: white;
-            margin: 15px 0;
-        }
+.card-box img {
+    max-width: 100%;
+    border-radius: 10px;
+}
 
-        .small-box a {
-            display: block;
-            margin-top: 10px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-        }
+.card-box h4 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
 
-        .bg-red { background-color: #d9534f; }
-        .bg-primary { background-color: #007bff; }
-        .bg-green { background-color: #5cb85c; }
-        .bg-teal { background-color: #20c997; }
+.card-box p {
+    font-size: 0.95rem;
+    color: #666;
+}
 
-        .dashboard-bar {
-            border: 1px solid rgba(255, 243, 243, 0.1);
-            border-radius: 15px;
-            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
-            /* background-color: #4a4c4e; */
-            /* padding: 20px; */
-            margin-bottom: 20px;
-        }
+.small-box {
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    margin: 15px 0;
+    padding: 15px;
+}
 
-        .scrolling-container {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
+.small-box .inner h3 {
+    font-size: 1.5rem;
+}
 
-        .scrolling-agency {
-            white-space: nowrap;
-            display: inline-block;
-            font-size: 25px;
-            animation: scroll-left 30s linear infinite;
-        }
+.small-box a {
+    display: block;
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+}
 
-        @keyframes scroll-left {
-            0% { transform: translateX(100%); color: green; }
-            50% { color: rgb(255, 128, 10); }
-            100% { transform: translateX(-100%); color: green; }
-        }
+/* Couleurs de fond centralisées */
+.bg-red { background-color: #d9534f; }
+.bg-primary { background-color: #007bff; }
+.bg-green { background-color: #5cb85c; }
+.bg-teal { background-color: #20c997; }
 
-        @media (max-width: 768px) {
-            .card-box .row { flex-direction: column; text-align: center; }
-            .small-box { font-size: 14px; }
-        }
+/* Dashboard bar */
+.dashboard-bar h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    color: #007bff;
+}
+
+.scrolling-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.scrolling-agency {
+    white-space: nowrap;
+    display: inline-block;
+    font-size: 40px;
+    animation: scroll-left 20s linear infinite;
+}
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(100%);
+        color: green;
+    }
+    50% {
+        color: rgb(255, 128, 10);
+    }
+    100% {
+        transform: translateX(-100%);
+        color: green;
+    }
+}
+
+/* Media Queries */
+@media (max-width: 1200px) {
+    .small-box {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .dashboard-bar h2 {
+        font-size: 1.5rem;
+    }
+
+    .scrolling-agency {
+        font-size: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-bar h2 {
+        font-size: 1.2rem;
+    }
+
+    .scrolling-agency {
+        font-size: 25px;
+    }
+
+    .small-box .inner h3 {
+        font-size: 1.5rem;
+    }
+
+    .small-box .inner {
+        padding: 10px;
+    }
+
+    .card-box img {
+        max-width: 80%;
+    }
+
+    .row > [class^="col-"] {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .scrolling-agency {
+        font-size: 20px;
+    }
+
+    .dashboard-bar h2 {
+        font-size: 1rem;
+    }
+
+    .small-box .inner h3 {
+        font-size: 1.2rem;
+    }
+
+    .small-box {
+        padding: 15px;
+    }
+}
     </style>
 </head>
 <body>

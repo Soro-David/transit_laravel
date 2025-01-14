@@ -58,6 +58,7 @@ class CustomerColisController extends Controller
     public function createStep1()
     {
         $id = auth()->user()->getIdUSer();
+        // dd($id);
         $user = User::findOrfail($id);
         // Chargement des données
         $agences = Agence::select('nom_agence', 'id')->get();
@@ -84,6 +85,7 @@ class CustomerColisController extends Controller
 
     public function storeStep1(Request $request)
     {
+        
         // Validation des données
         $request->validate([
             // Ajouter les règles de validation si nécessaires
@@ -259,6 +261,8 @@ class CustomerColisController extends Controller
             'mode_transit' => $data['mode_transit'] ,
             'status' => $data['status'],
             'etat' => $data['etat'],
+            'client_id' => $data['etat'],
+            'client_id' => auth()->user()->getIdUSer(),
         ];
         // $payementData = [
         //     'mode_de_payement' => $data['mode_payement'] ,
@@ -273,7 +277,7 @@ class CustomerColisController extends Controller
 
         // dd($expediteurData, $destinataireData, $articleData, $colisData, $payementData);
 
-
+// dd(auth()->user()->getIdUSer());
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
@@ -282,8 +286,11 @@ class CustomerColisController extends Controller
         $colis = Colis::create(array_merge($colisData, [
             'expediteur_id' => $expediteur->id,
             'destinataire_id' => $destinataire->id,
+            'client_id' => auth()->user()->getIdUSer(),
+
             // 'paement_id' => $payement->id,
         ]));
+        dd($colis);
         foreach ($articleData as $article) {
             $article['colis_id'] = $colis->id;
             Article::create($article);
