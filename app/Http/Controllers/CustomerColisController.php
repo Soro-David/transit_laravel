@@ -261,8 +261,8 @@ class CustomerColisController extends Controller
             'mode_transit' => $data['mode_transit'] ,
             'status' => $data['status'],
             'etat' => $data['etat'],
-            'client_id' => $data['etat'],
-            'client_id' => auth()->user()->getIdUSer(),
+            // 'client_id' => $data['etat'],
+            // 'client_id' => auth()->user()->getIdUSer(),
         ];
         // $payementData = [
         //     'mode_de_payement' => $data['mode_payement'] ,
@@ -286,11 +286,11 @@ class CustomerColisController extends Controller
         $colis = Colis::create(array_merge($colisData, [
             'expediteur_id' => $expediteur->id,
             'destinataire_id' => $destinataire->id,
-            'client_id' => auth()->user()->getIdUSer(),
+            // 'client_id' => auth()->user()->getIdUSer(),
 
             // 'paement_id' => $payement->id,
         ]));
-        dd($colis);
+        // dd($colis);
         foreach ($articleData as $article) {
             $article['colis_id'] = $colis->id;
             Article::create($article);
