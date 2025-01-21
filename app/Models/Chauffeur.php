@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chauffeur extends Model
 {
-    protected $fillable = ['nom', 'prenom', 'email','tel','agence_id'];
+    protected $fillable = ['nom', 'prenom', 'email','tel','agence'];
 
     // Relation avec Colis
     public function colis()
@@ -17,5 +17,10 @@ class Chauffeur extends Model
     public function agence()
     {
         return $this->belongsTo(Agence::class);
+    }
+
+    public function programmes()
+    {
+        return $this->hasMany(Programme::class);
     }
 }

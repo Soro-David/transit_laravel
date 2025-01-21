@@ -9,10 +9,19 @@
             <h1>QR Code</h1>
             <img class="imageqr" src="{{ asset($filePath) }}" alt="QR Code" style="max-width: 300px; margin: 0 auto; display: block;">
             <button class="btn btn-primary mt-4" onclick="printImage()">Imprimer</button>
+         <!-- Nouvelle div pour le bouton de retour -->
+            <div class="mt-4">
+                <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+            </div>
         </div>
     </section>
 
     <style>
+        .btn {
+        width: 15%;
+        height: 40px;
+        font-size: 18px;
+    }
         section {
             background-color: #fff !important;
             padding: 20px;

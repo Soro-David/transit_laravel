@@ -11,18 +11,20 @@ class Programme extends Model
     use HasFactory;
 
     protected $fillable = [
-        'date_programme',
         'chauffeur_id',
-        'reference_colis',
-        'nom_expediteur',
-        'nom_destinataire',
-        'lieu_destinataire',
+        'colis_id',
+        'date_programme',
+        'status',
+        
     ];
 
-    public function chauffeur(): BelongsTo
+    public function chauffeur()
     {
         return $this->belongsTo(Chauffeur::class);
     }
 
-     //Pas de relation direct pour la table les_colis avec la table programmes.
+    public function colis()
+    {
+        return $this->belongsTo(Colis::class);
+    }
 }

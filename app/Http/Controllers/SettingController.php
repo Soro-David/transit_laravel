@@ -9,7 +9,17 @@ class SettingController extends Controller
 {
     public function index()
     {
-        return view('settings.edit');
+        return view('admin.settings.index');
+    }
+
+    public function agenceIndex()
+    {
+        return view('admin.settings.agence.index');
+    }
+
+    public function chauffeurIndex()
+    {
+        return view('admin.settings.chauffeur.index');
     }
 
     public function store(Request $request)

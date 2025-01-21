@@ -714,22 +714,64 @@ public function get_colis_hold(Request $request)
 
             return DataTables::of($colis)
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+                    $editUrl = route('agent_colis.qrcode.edit', ['id' => $row->id]);; // Si vous avez une route d'édition pour chaque colis
 
                     return '
                         <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View">
+                                <i class="fas fa-print"></i>
                             </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
+                            
                         </div>
                     ';
                 })
                 ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
                 ->make(true);
         }
+    }
+    public function edit_qrcode($id)
+    {
+        $colis = Colis::findOrFail($id);
+
+        $qrData = [
+            'Référence colis' => $colis->reference_colis,
+            'Statut' => $colis->status,
+            'Nom Expéditeur' => $colis->expediteur->nom. ' ' . $colis->expediteur->prenom,
+            'Nom Destinataire' =>  $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
+            'Téléphone Destinataire' => $colis->destinataire->tel,
+            'Agence Destination' => $colis->destinataire->agence ?? '',
+            'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
+        ];
+        // dd($qrData);
+         // Construire le contenu du QR code
+         $qrCodeContent = '';
+         foreach ($qrData as $key => $value) {
+             $qrCodeContent .= "{$key}: {$value}\n";
+         }
+ 
+         // Générer le QR code
+         $qrCode = new QrCode($qrCodeContent);
+         $writer = new PngWriter();
+         $result = $writer->write($qrCode);
+         $pngData = $result->getString();
+ 
+         // Définir le chemin du fichier QR code
+         $filePath = 'qrcodes/colis_' . $colis->id . '.png';
+         $fullPath = public_path($filePath);
+ 
+         // Vérifier et créer le répertoire cible si nécessaire
+         $directory = dirname($fullPath);
+         if (!File::exists($directory)) {
+             File::makeDirectory($directory, 0755, true);
+         }
+ 
+         // Sauvegarder le fichier QR code dans le storage
+         file_put_contents($fullPath, $pngData);
+ 
+         // Mettre à jour le chemin du QR code dans la base de données
+         $colis->update(['qr_code_path' => $filePath]);
+        
+        return view('agent.devis.edit_qrcode', compact('colis','filePath'));
     }
 
     public function get_colis_contenaire(Request $request)

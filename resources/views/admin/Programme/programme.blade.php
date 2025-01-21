@@ -200,8 +200,6 @@
                 });
                 paginationContainer.append(pageButton);
              }
-
-
             // Bouton "Suivant"
             const nextButton = $(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                     <a class="page-link" href="#" aria-label="Suivant">
@@ -217,12 +215,10 @@
                 });
                 paginationContainer.append(nextButton);
          }
-
           // Fonction pour mettre à jour le tableau en fonction de la page actuelle et du terme de recherche
           function updateTable() {
             const searchTerm = $('#search').val().toLowerCase();
             let filteredProgrammes = programmesData;
-
             if (searchTerm) {
                 filteredProgrammes = programmesData.filter(programme =>
                    programme.date_programme.toLowerCase().includes(searchTerm) ||
@@ -239,7 +235,6 @@
             generateTable(programmesToDisplay);
             generatePagination(filteredProgrammes.length);
         }
-
         // Chargement initial des données
          axios.get("{{ route('programme.data') }}")
             .then(function(response) {
@@ -254,7 +249,6 @@
                 } else {
                     console.error('Erreur: chauffeurs n\'est pas un tableau:', chauffeurs);
                 }
-
                 // mise à jour de la liste des colis
                 var colisValides = response.data.colisValides;
                 var colisList = $('#colis-list');
@@ -268,12 +262,10 @@
                 }
                  programmesData = response.data.programmes; // Stockez toutes les données
                  updateTable();
-
                  // Gestion de l'événement "input" sur le champ référence colis
                  $('#reference_colis').on('input', function () {
                      var selectedReference = $(this).val();
                     var selectedColis = colisValides.find(colis => colis.reference_colis === selectedReference);
-
                      if (selectedColis) {
                          $('#nom_expediteur').val(selectedColis.expediteur.nom);
                          $('#nom_destinataire').val(selectedColis.destinataire.nom);
@@ -284,19 +276,15 @@
                          $('#lieu_destinataire').val('');
                      }
                   });
-
             })
             .catch(function(error){
                 console.error('Erreur de requete:',error);
             });
-
         // Recherche en temps réel
         $('#search').on('input', function() {
             currentPage = 1;
             updateTable();
         });
-
-
         // Gestion du dropdown de la taille de la page
         $('.page-size-btn').on('click', function(e) {
              e.preventDefault();

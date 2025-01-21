@@ -200,12 +200,18 @@
                                 <p>{{ __('Planifier') }}</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('transport.programme.chauffeur') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Programme') }}</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
+                    <a href="{{ route('setting.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>
-                        <p>{{ __('trans.settings') }}</p>
+                        <p>{{ __('Paramètre') }}</p>
                     </a>
                 </li>
             </ul>

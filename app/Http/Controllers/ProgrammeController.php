@@ -8,12 +8,16 @@ class ProgrammeController extends Controller
 {
     public function index()
     {
-         return view('admin.programme.programme');
+        // $chauffeurs = Chauffeur::select('nom', 'prenom')->get();
+        // dd($chauffeurs);
+
+         return view('admin.Programme.programme');
     }
 
     public function data()
     {
          $chauffeurs = Chauffeur::all();
+        //  dd($chauffeurs);
         $programmes = Programme::with('chauffeur')->get();
         $colisValides = colis::where('etat', 'Validé')->with('expediteur', 'destinataire')->get();
         return response()->json(['chauffeurs' => $chauffeurs, 'programmes' => $programmes, 'colisValides' => $colisValides]);

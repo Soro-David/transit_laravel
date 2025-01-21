@@ -1,7 +1,6 @@
 @extends('agent.layouts.agent')
 @section('content-header')
 @section('content')
-  
         <div class="row justify-content-center">
             <div class="col-md-12">
                         <h2>Liste des chauffeur</h2>
@@ -14,7 +13,8 @@
                                 <thead>
                                     <tr>
                                         <th>Nom </th>
-                                        <th>Contact </th>
+                                        <th>Prénom</th>
+                                        <th>Contact</th>
                                         <th>Email</th>
                                         <th>Agence</th>
                                         <th>ACTIONS</th>
@@ -22,12 +22,11 @@
                                 </thead>
                             </table>
             </div>
-    </div>
+        </div>
     {{--  --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <form action="#" method="post">
+        <form action="{{ route('agent_transport.store.chauffeur') }}" method="post">
             @csrf
-            @method('POST')
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header d-flex justify-content-between align-items-center">
@@ -37,6 +36,7 @@
                     <div class="modal-body">
                         <div class="container">
                             <div class="row">
+                                <!-- Nom du chauffeur -->
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="nom_chauffeur">Nom du chauffeur:</label>
@@ -51,6 +51,25 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <!-- Prénom du chauffeur -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="prenom_chauffeur">Prénom du chauffeur:</label>
+                                        <input type="text" name="prenom_chauffeur" 
+                                               value="{{ old('prenom_chauffeur') }}" 
+                                               class="form-control" 
+                                               id="prenom_chauffeur">
+                                        @error('prenom_chauffeur')
+                                        <div class="text-danger">
+                                            <p>{{ $message }}</p>
+                                        </div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <div class="row">
+                                <!-- Email du chauffeur -->
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="email_chauffeur">Email Chauffeur:</label>
@@ -65,8 +84,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
+                                <!-- Contact du chauffeur -->
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="tel_chauffeur">Contact du chauffeur:</label>
@@ -81,22 +99,33 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                            </div>
+                    
+                            <div class="row">
+                                <!-- Agence -->
+                                <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="nom_agence">Agence:</label>
+                                        <label for="agence_expedition">Agence:</label>
                                         <select name="agence_expedition" id="agence_expedition" class="form-control">
                                             <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
                                             @foreach ($agences as $agence)
-                                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                                <option value="{{ $agence->nom_agence }}" {{ old('agence_expedition') == $agence->id ? 'selected' : '' }}>
+                                                    {{ $agence->nom_agence }}
+                                                </option>
                                             @endforeach
                                         </select>
+                                        @error('agence_expedition')
+                                        <div class="text-danger">
+                                            <p>{{ $message }}</p>
+                                        </div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
-                            
                         </div>
                     </div>
-                    
+                    {{-- <input type="hidden" name="agence_id" value="{{ $agence->id }}"> --}}
+                    {{-- @dd($agence->id) --}}
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                         <button type="submit" class="btn btn-primary">Ajouter</button>
@@ -104,22 +133,24 @@
                 </div>
             </div>
         </form>
-    </div>        
+    </div>
+            
 </section>
 <script>
         $(document).ready(function () {
             $('#chauffeur-table').DataTable({                
                 processing: true,
                 serverSide: true,
-                        language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+                language: {
+                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
                 ajax: '{{ route('agent_transport.get.chauffeur.list') }}',
                 columns: [
-                    { data: 'nom_agence', name: 'nom_agence' },
-                    { data: 'adresse_agence', name: 'email_chauffeur' },
-                    { data: 'pays_agence', name: 'tel_chauffeur' },
-                    { data: 'prix_au_kg', name: 'nom_agence' },
+                    { data: 'nom', name: 'nom' },
+                    { data: 'prenom', name: 'prenom' },
+                    { data: 'tel', name: 'tel' },
+                    { data: 'email', name: 'email' },
+                    { data: 'agence', name: 'agence' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                 ]
             });

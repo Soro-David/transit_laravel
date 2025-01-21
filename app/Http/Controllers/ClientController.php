@@ -2,36 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use Illuminate\Http\Request;
-
-use App\Models\User;
-use App\Models\Colis;
+use Yajra\DataTables\Facades\DataTables;
 
 class ClientController extends Controller
 {
-    //
     public function index()
     {
-
+        // Retourne la vue d'index des clients
         return view('admin.client.index');
     }
 
-
-     // AJAX pour la liste des clients
-     public function get_client(Request $request)
-     {
-         if ($request->ajax()) {
-             $client = User::select(
-                'first_name',
-                'last_name',
-                'role',
-                'email',
+    public function getClientsData(Request $request)
+    {
+        if ($request->ajax()) {
+            // Sélectionne uniquement les champs nécessaires
+            $data = Client::select([
+                'id',            // Ajoutez l'id si vous prévoyez d'utiliser une action sur chaque ligne
+                'nom', 
+                'prenom', 
+                'telephone', 
+                'email', 
+                'adresse', 
+                'type_client', 
+                'agence', 
                 'created_at'
-             )
-             ->where('role', 'user')
-             ->get(); 
-             return DataTables::of($client)
-                 ->make(true);
-         }
-     }
+            ]);
+
+            // Renvoie les données sous format DataTables
+            return DataTables::of($data)
+                ->make(true);
+        }
+
+        // Retourne une erreur si la requête n'est pas de type AJAX
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
 }

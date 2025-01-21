@@ -3,7 +3,7 @@
 @section('content')
         <div class="row justify-content-center">
             <div class="col-md-12">
-                        <h2>Liste des chauffeur</h2>
+                        <h4 class="text-center">Liste des chauffeur</h4>
                             <div class="text-right">
                                 <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_chauffeur">
                                     Ajouter un chauffeur
@@ -13,7 +13,8 @@
                                 <thead>
                                     <tr>
                                         <th>Nom </th>
-                                        <th>Contact </th>
+                                        <th>Prénom</th>
+                                        <th>Contact</th>
                                         <th>Email</th>
                                         <th>Agence</th>
                                         <th>ACTIONS</th>
@@ -108,7 +109,7 @@
                                         <select name="agence_expedition" id="agence_expedition" class="form-control">
                                             <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
                                             @foreach ($agences as $agence)
-                                                <option value="{{ $agence->id }}" {{ old('agence_expedition') == $agence->id ? 'selected' : '' }}>
+                                                <option value="{{ $agence->nom_agence }}" {{ old('agence_expedition') == $agence->id ? 'selected' : '' }}>
                                                     {{ $agence->nom_agence }}
                                                 </option>
                                             @endforeach
@@ -123,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="agence_id" value="{{ $agence->id }}">
+                    {{-- <input type="hidden" name="agence_id" value="{{ $agence->id }}"> --}}
                     {{-- @dd($agence->id) --}}
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
@@ -140,15 +141,16 @@
             $('#chauffeur-table').DataTable({                
                 processing: true,
                 serverSide: true,
-                        language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+                language: {
+                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
                 ajax: '{{ route('transport.get.chauffeur.list') }}',
                 columns: [
-                    { data: 'nom_agence', name: 'nom_agence' },
-                    { data: 'adresse_agence', name: 'email_chauffeur' },
-                    { data: 'pays_agence', name: 'tel_chauffeur' },
-                    { data: 'prix_au_kg', name: 'nom_agence' },
+                    { data: 'nom', name: 'nom' },
+                    { data: 'prenom', name: 'prenom' },
+                    { data: 'tel', name: 'tel' },
+                    { data: 'email', name: 'email' },
+                    { data: 'agence', name: 'agence' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                 ]
             });

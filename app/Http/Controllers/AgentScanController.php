@@ -168,6 +168,153 @@ class AgentScanController extends Controller
         }
     }
 
+    public function getColisEntrepot(Request $request)
+    {
+        // Vérifier si colisId est bien présent
+        if (!$request->has('colisId')) {
+            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
+        }
+    
+        // Recherche du colis en fonction de la référence
+        $colis = Colis::where('reference_colis', $request->colisId)->first();
+    
+        // Vérifier si le colis existe
+        if (!$colis) {
+            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
+        }
+    
+        // Vérifier si l'état est déjà "Chargé"
+        if ($colis->etat === 'Chargé') {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà  Chargé"], 400);
+        }
+    
+        // Vérifier si l'état est "En entrepôt" avant de le marquer comme "Chargé"
+        if ($colis->etat !== 'En entrepôt') {
+            return response()->json([
+                'success' => false,
+                'message' => "Le colis n'est pas en entrepôt. Impossible de le Chargé.",
+            ], 400);
+        }
+    
+        // Modifier l'état du colis en "Chargé"
+        $colis->etat = 'Chargé';
+    
+        // Sauvegarder les modifications dans la base de données
+        $colis->save();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Le colis a été Chargé avec succès.',
+            'colis' => [
+                'reference' => $colis->reference_colis,
+                'etat' => $colis->etat,
+                'description' => $colis->description,
+            ],
+        ]);
+    }
+    
+    // Fonction Ajax pour le Scan chargement
+    // {{ route("scan.get.colis.charge") }}
+    public function getColisCharge(Request $request)
+    {
+        // Vérifier si colisId est bien présent
+        if (!$request->has('colisId')) {
+            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
+        }
+    
+        // Recherche du colis en fonction de la référence
+        $colis = Colis::where('reference_colis', $request->colisId)->first();
+    
+        // Vérifier si le colis existe
+        if (!$colis) {
+            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
+        }
+    
+        // Vérifier si l'état est déjà "Déchargé"
+        if ($colis->etat === 'Déchargé') {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà Déchargé."], 400);
+        }
+    
+        // Vérifier si l'état est déjà "Arrivé"
+        if ($colis->etat === 'Arrivé') {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà Arrivé."], 400);
+        }
+    
+        // Vérifier si l'état est "Chargé" avant de le marquer comme "Déchargé"
+        if ($colis->etat !== 'Chargé') {
+            return response()->json([
+                'success' => false,
+                'message' => "Le colis n'est pas chargé. Impossible de le décharger.",
+            ], 400);
+        }
+    
+        // Modifier l'état du colis en "Déchargé"
+        $colis->etat = 'Déchargé';
+    
+        // Sauvegarder les modifications dans la base de données
+        $colis->save();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Le colis a été Déchargé avec succès.',
+            'colis' => [
+                'reference' => $colis->reference_colis,
+                'etat' => $colis->etat,
+                'description' => $colis->description,
+            ],
+        ]);
+    }
+    
+    
+    // Fonction Ajax pour le Scan dechargement
+    public function getColisDecharge(Request $request)
+    {
+        // Vérifier si colisId est bien présent
+        if (!$request->has('colisId')) {
+            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
+        }
+    
+        // Recherche du colis en fonction de la référence
+        $colis = Colis::where('reference_colis', $request->colisId)->first();
+    
+        // Vérifier si le colis existe
+        if (!$colis) {
+            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
+        }
+    
+        // Vérifier si l'état est déjà "Arrivé"
+        if ($colis->etat === 'Arrivé') {
+            return response()->json(['success' => false, 'message' => "Le colis est Arrivé"], 400);
+        }
+    
+        // Vérifier si l'état est "Déchargé" avant de marquer comme "Arrivé"
+        if ($colis->etat !== 'Déchargé') {
+            return response()->json([
+                'success' => false,
+                'message' => "Le colis n'est encore Arrivé.",
+            ], 400);
+        }
+    
+        // Modifier l'état du colis en "Arrivé"
+        $colis->etat = 'Arrivé';
+    
+        // Sauvegarder les modifications dans la base de données
+        $colis->save();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Le colis a été Arrivé avec succès.',
+            'colis' => [
+                'reference' => $colis->reference_colis,
+                'etat' => $colis->etat,
+                'description' => $colis->description,
+            ],
+        ]);
+    }
+    
+    
+
+
 
     /**
      * Show the form for creating a new resource.

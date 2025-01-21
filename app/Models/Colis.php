@@ -73,4 +73,9 @@ class Colis extends Model
     {
         return $this->belongsToMany(Article::class);
     }
+
+    public function programmes()
+    {
+        return $this->hasMany(Programme::class);
+    }
 }

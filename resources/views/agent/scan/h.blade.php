@@ -1,7 +1,6 @@
-@extends('agent.layouts.agent')
+@extends('admin.layouts.admin')
 @section('content-header')
 @endsection
-
 
 @section('content')
 <section class="py-3">

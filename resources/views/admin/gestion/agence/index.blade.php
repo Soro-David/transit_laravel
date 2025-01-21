@@ -147,9 +147,9 @@
             $('#agence-table').DataTable({                
                 processing: true,
                 serverSide: true,
-                        language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
-                },
+                language: {
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
                 ajax: '{{ route('agence.getAgence') }}',
                 columns: [
                     { data: 'nom_agence', name: 'nom_agence' },

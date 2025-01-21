@@ -62,6 +62,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
         Route::get('/get-colis-dump',[ColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-devis-colis',[ColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/devis/{id}/edit', [ColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+
         Route::get('/get-contenaire-colis',[ColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/get-colis-hold',[ColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
@@ -125,12 +127,19 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('transport')->name('transport.')->group(function(){
         Route::get('/', [TransportController::class,'index'])->name('index'); 
         Route::get('/create', [TransportController::class,'create'])->name('create');
+        Route::get('/programme-chauffeur', [TransportController::class,'programme_chauffeur'])->name('programme.chauffeur');
         Route::get('/show-chauffeur', [TransportController::class,'show_chauffeur'])->name('show.chauffeur');
         Route::get('/planing-chauffeur', [TransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
         Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
 
         Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::get('/programme/data',[TransportController::class, 'get_programme_list'])->name('get.programme.list');
         Route::post('/store-chauffeur', [TransportController::class,'store_chauffeur'])->name('store.chauffeur'); 
+        Route::post('/store-planification', [TransportController::class,'store_plannification'])->name('store.plannification'); 
+        // route edit programme et update programme
+        Route::get('/programme/{id}/edit', [TransportController::class, 'edit_programme'])->name('programme.edit');
+        Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
+        Route::delete('/programme/{id}', [TransportController::class, 'delete_chauffeur'])->name('programme.delete');
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
@@ -143,8 +152,11 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::prefix('client')->name('client.')->group(function(){
             Route::get('/', [ClientController::class,'index'])->name('index');
             Route::get('/get-client',[ClientController::class, 'get_client'])->name('get.client');
-
+            Route::get('/clients/data', [ClientController::class, 'getClientsData'])->name('clients.data');
         });
+
+
+
 
         Route::prefix('notification')->name('notification.')->group(function(){
             Route::get('/', [NavAdminController::class,'index'])->name('index');
@@ -160,12 +172,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-colis-entrepot',[ScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
         Route::get('/get-colis-dechargement',[ScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
         Route::get('/get-colis-chargement',[ScanController::class, 'get_colis_charge'])->name('get.colis.charge');
-
         Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/update-colis-status/entrepot', [ScanController::class, 'getColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge', [ScanController::class, 'getColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge', [ScanController::class, 'getColisDecharge'])->name('update.colis.decharge');
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
 
+    });
+    Route::prefix('setting')->name('setting.')->group(function(){
+        Route::get('/', [SettingController::class,'index'])->name('index');
+        Route::get('/agence-info',[SettingController::class, 'agenceIndex'])->name('agence.index');
+        Route::get('/chauffeur-info',[SettingController::class, 'chauffeurIndex'])->name('chauffeur.index');
+        Route::get('/clients/data', [SettingController::class, 'getClientsData'])->name('clients.data');
     });
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
@@ -238,6 +258,9 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::get('/get-colis-hold',[AgentColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[AgentColisController::class, 'devis_hold'])->name('devis.hold');
         Route::get('/get-devis-colis',[AgentColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/devis/{id}/edit', [AgentColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+
+
         Route::get('/get-contenaire-colis',[AgentColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/get-colis-hold',[AgentColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[AgentColisController::class, 'devis_hold'])->name('devis.hold');
@@ -280,7 +303,10 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::get('/get-colis-entrepot',[AgentScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
         Route::get('/get-colis-dechargement',[AgentScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
         Route::get('/get-colis-chargement',[AgentScanController::class, 'get_colis_charge'])->name('get.colis.charge');
-
+        Route::post('/update-colis-status/entrepot', [ScanController::class, 'getColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge', [ScanController::class, 'getColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge', [ScanController::class, 'getColisDecharge'])->name('update.colis.decharge');
+        
         Route::get('/chauffeur/data',[AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
 
         Route::get('/store',[AgentTransportController::class, 'store'])->name('store');
@@ -293,9 +319,9 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::get('/show-chauffeur', [AgentTransportController::class,'show_chauffeur'])->name('show.chauffeur');
         Route::get('/planing-chauffeur', [AgentTransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
         Route::get('/reference.auto/{query}', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-
         Route::get('/chauffeur/data',[AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-
+        Route::post('/store-chauffeur', [AgentTransportController::class,'store_chauffeur'])->name('store.chauffeur'); 
+        Route::post('/store-planification', [AgentTransportController::class,'store_plannification'])->name('store.plannification'); 
         Route::get('/store',[AgentTransportController::class, 'store'])->name('store');
         Route::post('/store', [AgentTransportController::class,'store'])->name('store'); 
 

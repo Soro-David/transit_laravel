@@ -78,6 +78,8 @@
     <!-- Scripts principaux -->
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="'resources/js/app.js'"></script>
+    <script src="'public/js/Html5-qrcode.js'"></script>
+    <script src="'public/bootstrap/js/bootstrap.min.js'"></script>
     <script src="{{ asset('bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('jquery-ui-1.14.1.custom/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('select2-4.1.0-beta.1/dist/js/select2.min.js') }}"></script>
@@ -96,6 +98,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
 
 
     @yield('js')
