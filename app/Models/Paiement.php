@@ -12,7 +12,9 @@ class Paiement extends Model
                             operateur_mobile',
                             'numero_tel',
                             'nom_banque',
+                            'numero_compte',
                             'id_transaction',
+                            'colis_id',
                             'numero_cheque'];
 
     // Relation avec Colis

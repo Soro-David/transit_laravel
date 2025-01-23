@@ -20,8 +20,8 @@
                                             <th>Nom Destinataire</th>
                                             <th>Email Destinataire</th>
                                             <th>Agence Destinataire</th>
-                                            {{-- <th> Status</th> --}}
-                                            <th> Etat</th>
+                                            <th> Status</th>
+                                            <th> Date</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -55,7 +55,7 @@
             {
                 data: null,
                 render: function (data, type, row) {
-                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
                 }
             },
             { data: 'expediteur_email' },
@@ -63,12 +63,30 @@
             {
                 data: null,
                 render: function (data, type, row) {
-                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
             { data: 'destinataire_email' },
             { data: 'destinataire_agence' },
-            { data: 'created_at' },
+            { data: 'etat' },
+            { 
+                data: 'updated_at',
+                render: function(data, type, row) {
+                    // Vérifiez si la date existe et la formater
+                    if (data) {
+                        var date = new Date(data);
+                        // Retourne la date au format jj/mm/aa hh:mm
+                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                        var year = date.getFullYear();  // On garde l'année complète
+                        var hours = ('0' + date.getHours()).slice(-2);  // Ajoute un zéro si heure < 10
+                        var minutes = ('0' + date.getMinutes()).slice(-2);  // Ajoute un zéro si minute < 10
+                        
+                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;  // Format final
+                    }
+                    return data;  // Si la date est vide, on retourne la donnée brute
+                }
+            },
             { data: 'action', orderable: false, searchable: false }
         ],
     });

@@ -211,6 +211,9 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');
         Route::get('/facture/pdf', [CustomerColisController::class, 'telechargerPdf'])->name('facture.pdf');
 
+// route edit de paiement
+        Route::get('/payment/{id}/edit', [CustomerColisController::class, 'edit_payement'])->name('payement.edit');
+        Route::post('/store-payement{id}', [CustomerColisController::class, 'step_payement'])->name('store.payement');
 
 
         // Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
@@ -226,16 +229,16 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
         Route::get('/create/step4', [CustomerColisController::class, 'createStep4'])->name('create.step4');
         Route::post('/store/step4', [CustomerColisController::class, 'storeStep4'])->name('store.step4');
 
-        Route::get('/create/payement', [CustomerColisController::class, 'stepPayement'])->name('create.payement');
-        Route::post('/store/payement', [CustomerColisController::class, 'storePayement'])->name('store.payement');
+        // Route::get('/create/payement', [CustomerColisController::class, 'stepPayement'])->name('create.payement');
+        // Route::post('/store/payement', [CustomerColisController::class, 'storePayement'])->name('store.payement');
         Route::get('/create/qrcode', [CustomerColisController::class, 'qrcode'])->name('create.qrcode');
         Route::get('/complete', [CustomerColisController::class, 'complete'])->name('complete');
 
     });
     Route::prefix('customer_notification')->name('customer_notification.')->group(function(){
-        Route::get('/', [NavAdminController::class,'index'])->name('index');
-        Route::get('/get-notifications',[NavAdminController::class, 'get_notifications'])->name('get.notifications');
-        Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
+        Route::get('/', [NavCustomerController::class,'index'])->name('index');
+        Route::get('/get-notifications',[NavCustomerController::class, 'get_notifications'])->name('get.notifications');
+        Route::post('/notification-markAsRead', [NavCustomerController::class, 'markAsRead'])->name('markAsRead');
 
     });
         

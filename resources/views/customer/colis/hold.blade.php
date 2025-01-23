@@ -20,7 +20,7 @@
                                             <th>Nom Destinataire</th>
                                             <th>Email Destinataire</th>
                                             <th>Agence Destinataire</th>
-                                            {{-- <th> Status</th> --}}
+                                            <th> Status</th>
                                             <th> Etat</th>
                                             <th>Action</th>
                                         </tr>
@@ -38,216 +38,6 @@
             </div>
     </form>
 </div>
-
-{{-- les Modals --}}
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Modifier les informations</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm" action="/users/{id}/edit" method="GET">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="nom_expediteur" class="form-label">Nom destinataire</label>
-                                <input type="text" name="nom_expediteur" id="nom_expediteur" 
-                                        value="{{ old('nom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="prenom_expediteur" class="form-label">Prénom destinataire</label>
-                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="prenom_expediteur" class="form-label">E-mail destinataire</label>
-                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="nom_expediteur" class="form-label">Agence destination</label>
-                                <input type="text" name="nom_expediteur" id="nom_expediteur" 
-                                        value="{{ old('nom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="prenom_expediteur" class="form-label">Agence expédition</label>
-                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="prenom_expediteur" class="form-label">Status</label>
-                                <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                        value="{{ old('prenom_expediteur') }}" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header d-flex justify-content-center">
-                <h5 class="modal-title" id="paymentModalLabel">Effectuer un paiement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="paymentForm" action="#" method="POST">
-                    @csrf
-                    <div class="form-section">
-                        <div class="mb-3">
-                            <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
-                            <select name="mode_payement" id="mode_payement" class="form-control" required>
-                                <option value="" disabled selected>-- Sélectionnez le mode de paiement --</option>
-                                <option value="bank">Paiement bancaire</option>
-                                <option value="mobile_money">Mobile Money</option>
-                                <option value="cheque">Chèque</option>
-                            </select>
-                        </div>
-                        <div id="bank_payment" class="payment-section" style="display: none;">
-                            <h5 class="mb-3">Détails bancaires</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="numero_compte" class="form-label">Numéro de compte</label>
-                                        <input type="text" name="numero_compte" id="numero_compte" class="form-control" placeholder="Entrez le numéro de compte">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="nom_banque" class="form-label">Nom de la banque</label>
-                                        <input type="text" name="nom_banque" id="nom_banque" class="form-control" placeholder="Entrez le nom de la banque">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="transaction_id" class="form-label">ID de transaction</label>
-                                <input type="text" name="transaction_id" id="transaction_id" class="form-control" placeholder="Entrez l'ID de transaction">
-                            </div>
-                        </div>
-                        <div id="mobile_money_payment" class="payment-section" style="display: none;">
-                            <h5 class="mb-3">Détails Mobile Money</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="tel" class="form-label">Numéro de téléphone</label>
-                                        <input type="tel" name="tel" id="tel" class="form-control" placeholder="Entrez votre numéro de téléphone">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="operateur" class="form-label">Opérateur</label>
-                                        <select name="operateur" id="operateur" class="form-control">
-                                            <option value="mtn">MTN</option>
-                                            <option value="orange">Orange</option>
-                                            <option value="airtel">Moov</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="transaction_id" class="form-label">ID de transaction</label>
-                                <input type="text" name="transaction_id" id="transaction_id" class="form-control">
-                            </div>
-                        </div>
-                        <div id="cheque_payment" class="payment-section" style="display: none;">
-                            <h5 class="mb-3">Détails du Chèque</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="numero_cheque" class="form-label">Numéro du chèque</label>
-                                        <input type="text" name="numero_cheque" id="numero_cheque" class="form-control" placeholder="Entrez le numéro du chèque">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="nom_banque" class="form-label">Nom de la banque</label>
-                                        <input type="text" name="nom_banque" id="nom_banque" class="form-control" placeholder="Entrez le nom de la banque">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- <div id="cash_payment" class="payment-section" style="display: none;">
-                            <h5 class="mb-3">Détails Espèces</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="montant_reçu" class="form-label">Montant reçu</label>
-                                        <input type="number" name="montant_reçu" id="montant_reçu" class="form-control" placeholder="Entrez le montant reçu">
-                                    </div>
-                                </div>
-                            </div>
-                        </div> --}}
-                    </div>
-                    <div class="text-end mt-4">
-                        <button type="submit" class="btn btn-primary">Confirmer le paiement</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-{{-- Scripts JS --}}
-<script>
-    $(document).ready(function () {
-        const sections = $('.payment-section');
-        // Cacher toutes les sections
-        function hideSections() {
-            sections.hide();
-        }
-        // Changement de mode de paiement
-        $('#mode_payement').on('change', function () {
-            hideSections();
-            const selectedMode = $(this).val();
-            $(`#${selectedMode}_payment`).show();
-        });
-        $('#paymentForm').on('submit', function () {
-            const formData = $(this).serializeArray();
-            const formDataJson = {};
-            formData.forEach(item => {
-                formDataJson[item.name] = item.value;
-            });
-            console.log(JSON.stringify(formDataJson, null, 2));
-            $.ajax({
-                url: '{{route('colis.store.payement')}}',
-                method: 'POST',
-                data: formData,
-                success: function (response) {
-                    alert('Paiement enregistré avec succès !');
-                    $('#paymentForm')[0].reset();
-                    hideSections();
-                },
-                error: function (xhr) {
-                    alert('Une erreur s\'est produite lors de l\'enregistrement du paiement.');
-                    console.error(xhr.responseText);
-                }
-            });
-        });
-        hideSections();
-    });
-</script>
 {{-- CSS Personnalisé --}}
 <style>
     .form-container {
@@ -288,7 +78,7 @@
             {
                 data: null,
                 render: function (data, type, row) {
-                    return row.nom_expediteur + ' ' + row.prenom_expediteur;
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
                 }
             },
             { data: 'expediteur_email' },
@@ -296,45 +86,33 @@
             {
                 data: null,
                 render: function (data, type, row) {
-                    return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
             { data: 'destinataire_email' },
             { data: 'destinataire_agence' },
-            { data: 'created_at' },
+            { data: 'etat' },
+            { 
+                data: 'updated_at',
+                render: function(data, type, row) {
+                    // Vérifiez si la date existe et la formater
+                    if (data) {
+                        var date = new Date(data);
+                        // Retourne la date au format jj/mm/aa hh:mm
+                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                        var year = date.getFullYear();  // On garde l'année complète
+                        var hours = ('0' + date.getHours()).slice(-2);  // Ajoute un zéro si heure < 10
+                        var minutes = ('0' + date.getMinutes()).slice(-2);  // Ajoute un zéro si minute < 10
+                        
+                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;  // Format final
+                    }
+                    return data;  // Si la date est vide, on retourne la donnée brute
+                }
+            },
             { data: 'action', orderable: false, searchable: false }
         ],
     });
-
-    // $(".add-product").on("click", function() {
-    //     var description = $("#description").val();
-    //     var quantite = $("#quantite").val();
-    //     var dimension = $("#dimension").val();
-    //     var prix = $("#prix").val();
-    //     if (description && quantite && dimension && prix) {
-    //         $.ajax({
-    //             url: '{{ route("customer_colis.get.colis") }}',
-    //             method: "POST",
-    //             data: {
-    //                 description: description,
-    //                 quantite: quantite,
-    //                 dimension: dimension,
-    //                 prix: prix,
-    //                 _token: "{{ csrf_token() }}"
-    //             },
-    //             success: function(response) {
-    //                 table.row
-    //                     .add([
-    //                         response.description,
-    //                         response.quantite,
-    //                         response.dimension,
-    //                         response.prix
-    //                     ])
-    //                     .draw(false);
-    //             }
-    //         });
-    //     }
-    // });
 });
 </script>
 @endsection

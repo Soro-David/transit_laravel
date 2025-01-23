@@ -302,49 +302,49 @@ class CustomerColisController extends Controller
     /**
      * Enregistre les informations de paiement.
      */
-    public function stepPayement()
-    {
-        return view('customer.colis.add.payement');
-    }
-    public function storePayement(Request $request)
-    {
-        $request->validate([
-            'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            // Validation pour le paiement bancaire
-            'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            'nom_banque' => 'required_if:mode_payement,bank|max:255',
-            'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-            // Validation pour Mobile Money
-            'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            // Validation pour le paiement par chèque
-            'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            'nom_banque' => 'required_if:mode_payement,cheque|max:255',
-            // Validation pour le paiement en espèces
-            'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-        ]);
-        session(['step4' => $request->only([
-            'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-            'tel', 'operateur', 'numero_cheque', 'montant_reçu',
-        ])]);
-        return redirect()->route('customer_colis.create.qrcode');
-    }
-    public function qrcode(Request $request)
-    {
-        $data = array_merge(
-            session('step1', []),
-            session('step2', []),
-            session('step3', []),
-            session('step4', []) 
-        );
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
-        $colis = Les_colis::create($data);
-        // Générer le contenu du QR code (par exemple : ID du colis + statut)
-        // Nettoyer les sessions
-        session()->forget(['step1', 'step2', 'step3', 'step4']);
-        // return redirect()->route('colis.complete');
-        return view('customer.colis.add.complete',compact('colis','data'));
-    }
+    // public function stepPayement()
+    // {
+    //     return view('customer.colis.add.payement');
+    // }
+    // public function storePayement(Request $request)
+    // {
+    //     $request->validate([
+    //         'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+    //         // Validation pour le paiement bancaire
+    //         'numero_compte' => 'required_if:mode_payement,bank|max:255',
+    //         'nom_banque' => 'required_if:mode_payement,bank|max:255',
+    //         'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+    //         // Validation pour Mobile Money
+    //         'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+    //         'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+    //         // Validation pour le paiement par chèque
+    //         'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+    //         'nom_banque' => 'required_if:mode_payement,cheque|max:255',
+    //         // Validation pour le paiement en espèces
+    //         'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+    //     ]);
+    //     session(['step4' => $request->only([
+    //         'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+    //         'tel', 'operateur', 'numero_cheque', 'montant_reçu',
+    //     ])]);
+    //     return redirect()->route('customer_colis.create.qrcode');
+    // }
+    // public function qrcode(Request $request)
+    // {
+    //     $data = array_merge(
+    //         session('step1', []),
+    //         session('step2', []),
+    //         session('step3', []),
+    //         session('step4', []) 
+    //     );
+    //     $data['status'] = $data['mode_payement'] ?? 'non payé';
+    //     $colis = Les_colis::create($data);
+    //     // Générer le contenu du QR code (par exemple : ID du colis + statut)
+    //     // Nettoyer les sessions
+    //     session()->forget(['step1', 'step2', 'step3', 'step4']);
+    //     // return redirect()->route('colis.complete');
+    //     return view('customer.colis.add.complete',compact('colis','data'));
+    // }
     
     /**
      * Étape finale : Confirmation.
@@ -423,6 +423,53 @@ class CustomerColisController extends Controller
         //
     }
 
+    // function pour le payement
+    public function step_payement(Request $request, $id)
+    {
+        // Vérifiez que la requête est AJAX
+        if (!$request->ajax()) {
+            return response()->json(['message' => 'Requête non valide'], 400);
+        }
+
+        // Validez les données du formulaire
+        $validatedData = $request->validate([
+            'mode_de_paiement' => 'required|string',
+            'numero_compte' => 'nullable|string',
+            'nom_banque' => 'nullable|string',
+            'transaction_id' => 'nullable|string',
+            'numero_tel' => 'nullable|string',
+            'operateur_mobile' => 'nullable|string',
+            'numero_cheque' => 'nullable|string',
+            'colis_id' => 'required|exists:colis,id', // Assurez-vous que colis_id existe dans la table colis
+        ]);
+
+        // Vérifiez si un paiement a déjà été effectué pour ce colis
+        $existingPayment = Paiement::where('colis_id', $validatedData['colis_id'])->first();
+        if ($existingPayment) {
+            return response()->json(['message' => 'Le paiement a déjà été effectué pour ce colis.'], 400);
+        }
+
+        // Enregistrez le paiement dans la base de données
+        Paiement::create($validatedData);
+
+        // Mettez à jour le champ 'etat' du colis à 'Validé'
+        $colis = Colis::findOrFail($validatedData['colis_id']); // Récupérez le colis par son ID
+        $colis->etat = 'Validé'; // Modifiez le champ 'etat'
+        $colis->save(); // Enregistrez les modifications
+
+        return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
+    }
+
+
+    public function edit_payement($id)
+    {
+        // dd($id);
+        // Récupérer tous les programmes pour le chauffeur avec l'ID spécifié
+        $colis = Colis::findOrfail($id);
+// dd($colis);
+        return view('customer.colis.add.edit_payement', compact('colis'));
+    }
+// AJAX pour récupérer la liste des colis en attente
     public function get_colis(Request $request)
     {
         // Vérifie que la requête est AJAX
@@ -454,15 +501,13 @@ class CustomerColisController extends Controller
         // Construire et retourner la DataTable
         return DataTables::of($colis)
             ->addColumn('action', function ($row) {
+                $editUrl = route('customer_colis.payement.edit', ['id' => $row->id]);
                 return '
-                <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal" data-id="' . $row->id . '">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="' . $row->id . '">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </button>
-                </div>';
+                    <div class="btn-group">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-success" title="View">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </a>
+                    </div>';
             })
             ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
             ->make(true);
@@ -526,7 +571,7 @@ class CustomerColisController extends Controller
         $email = auth()->user()->email;
         // Récupérer les colis associés à l'email et à l'état "en attente"
         $colis = Colis::select(
-            'colis.*', // Toutes les colonnes de la table colis
+            'colis.*',
             'expediteurs.nom as expediteur_nom',
             'expediteurs.prenom as expediteur_prenom',
             'expediteurs.email as expediteur_email',
@@ -542,7 +587,7 @@ class CustomerColisController extends Controller
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
         ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
-        ->whereIn('etat', ['En transit', 'Déchargé', 'Chargé'])  
+        ->whereIn('etat', ['En transit','En entrepot', 'Déchargé', 'Chargé'])  
         ->get();
         // Construire et retourner la DataTable    
         return DataTables::of($colis)
@@ -559,7 +604,7 @@ class CustomerColisController extends Controller
             })
             ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
             ->make(true);
-        // Retourner une réponse d'erreur si la requête n'est pas AJAX
+        // Retourner une réponse d'erreur si la requête n'est pas AJAX 
         return response()->json(['message' => 'Requête non valide'], 400);
     }
 
