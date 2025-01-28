@@ -64,7 +64,7 @@ class AgentScanController extends Controller
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'En entrepot')  // Filtre l'état des colis
+            ->where('etat', 'Chargé')  // Filtre l'état des colis
             ->get(); 
             return DataTables::of($colis)
                 ->addColumn('action', function ($row) {
@@ -183,28 +183,28 @@ class AgentScanController extends Controller
             return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
         }
     
-        // Vérifier si l'état est déjà "Chargé"
-        if ($colis->etat === 'Chargé') {
-            return response()->json(['success' => false, 'message' => "Le colis est déjà  Chargé"], 400);
+       // Vérifier si l'état est déjà "Chargé", "Déchargé", "En entrepôt" ou "Fermé"
+        if (in_array($colis->etat, ['Chargé', 'Déchargé', 'En entrepot', 'Fermé'])) {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà mis en entrepôt."], 400);
         }
     
         // Vérifier si l'état est "En entrepôt" avant de le marquer comme "Chargé"
-        if ($colis->etat !== 'En entrepôt') {
+        if ($colis->etat !== 'Validé') {
             return response()->json([
                 'success' => false,
-                'message' => "Le colis n'est pas en entrepôt. Impossible de le Chargé.",
+                'message' => "Le colis n'est pas encore validé. Impossible de le mettre en entrepôt.",
             ], 400);
         }
     
         // Modifier l'état du colis en "Chargé"
-        $colis->etat = 'Chargé';
+        $colis->etat = 'En entrepot';
     
         // Sauvegarder les modifications dans la base de données
         $colis->save();
     
         return response()->json([
             'success' => true,
-            'message' => 'Le colis a été Chargé avec succès.',
+            'message' => 'Le colis a été mis en entrepôt avec succès.',
             'colis' => [
                 'reference' => $colis->reference_colis,
                 'etat' => $colis->etat,
@@ -231,8 +231,8 @@ class AgentScanController extends Controller
         }
     
         // Vérifier si l'état est déjà "Déchargé"
-        if ($colis->etat === 'Déchargé') {
-            return response()->json(['success' => false, 'message' => "Le colis est déjà Déchargé."], 400);
+        if ($colis->etat === 'Chargé') {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà Chargé."], 400);
         }
     
         // Vérifier si l'état est déjà "Arrivé"
@@ -241,22 +241,22 @@ class AgentScanController extends Controller
         }
     
         // Vérifier si l'état est "Chargé" avant de le marquer comme "Déchargé"
-        if ($colis->etat !== 'Chargé') {
+        if ($colis->etat !== 'En entrepot') {
             return response()->json([
                 'success' => false,
-                'message' => "Le colis n'est pas chargé. Impossible de le décharger.",
+                'message' => "Le colis n'est pas encore mis en entrepot. Impossible de le charger.",
             ], 400);
         }
     
         // Modifier l'état du colis en "Déchargé"
-        $colis->etat = 'Déchargé';
+        $colis->etat = 'Chargé';
     
         // Sauvegarder les modifications dans la base de données
         $colis->save();
     
         return response()->json([
             'success' => true,
-            'message' => 'Le colis a été Déchargé avec succès.',
+            'message' => 'Le colis a été chargé avec succès.',
             'colis' => [
                 'reference' => $colis->reference_colis,
                 'etat' => $colis->etat,
@@ -283,12 +283,12 @@ class AgentScanController extends Controller
         }
     
         // Vérifier si l'état est déjà "Arrivé"
-        if ($colis->etat === 'Arrivé') {
-            return response()->json(['success' => false, 'message' => "Le colis est Arrivé"], 400);
+        if ($colis->etat === 'Déchargé') {
+            return response()->json(['success' => false, 'message' => "Le colis a déjà été déchargé."], 400);
         }
     
         // Vérifier si l'état est "Déchargé" avant de marquer comme "Arrivé"
-        if ($colis->etat !== 'Déchargé') {
+        if ($colis->etat !== 'Fermé') {
             return response()->json([
                 'success' => false,
                 'message' => "Le colis n'est encore Arrivé.",
@@ -296,14 +296,14 @@ class AgentScanController extends Controller
         }
     
         // Modifier l'état du colis en "Arrivé"
-        $colis->etat = 'Arrivé';
+        $colis->save();
     
         // Sauvegarder les modifications dans la base de données
         $colis->save();
     
         return response()->json([
             'success' => true,
-            'message' => 'Le colis a été Arrivé avec succès.',
+            'message' => 'Le colis a été déchargé avec succès.',
             'colis' => [
                 'reference' => $colis->reference_colis,
                 'etat' => $colis->etat,

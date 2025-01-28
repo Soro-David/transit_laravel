@@ -1,15 +1,16 @@
-@extends('agent.layouts.agent')
+@extends('admin.layouts.admin')
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
 <section class="py-3">
-        <form action="" method="POST" class="mt-4">
+        <form  class="mt-4">
             @csrf
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Liste des colis en attente</h4><br>
+                            <h4 class="text-left mt-4">Liste des colis Validés</h4><br>
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
@@ -36,87 +37,6 @@
                 </div>
         </form>
 
-    <!-- Modal for editing -->
-    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Valider le colis</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm" action="/users/{id}/edit" method="GET">
-                        <div class="modal-body">
-                            <div class="container">
-                                <div class="row">
-                                    <h4>Information destinateur & expéditeur</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Agence expéditeur</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Contact expéditeur</label>
-                                            <input type="text" name="destinataire_tel" id="destinataire_tel" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="destinataire_agence" class="form-label">Agence destinataire</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <h4>Information colis</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Quantité de colis</label>
-                                            <input type="text" name="quantite_colis" id="quantite_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Valeur du Colis</label>
-                                            <input type="text" name="valeur_colis" id="valeur_colis" value="" class="form-control" disabled  required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="mode_transit" class="form-label">Mode de transit</label>
-                                            <input type="text" name="mode_transit" id="mode_transit" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Poids du Colis</label>
-                                            <input type="text" name="poids_colis" id="poids_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Prix du Colis</label>
-                                            <input type="text" name="prix_colis" id="prix_colis" value="" class="form-control" placeholder="Sommes en CFA" required>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                            <button type="submit" class="btn btn-primary">Valider</button>
-                        </div>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- JavaScript for DataTable and Export -->
     <script>
 $(document).ready(function () {
@@ -125,7 +45,7 @@ $(document).ready(function () {
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("agent_colis.get.colis.hold") }}', // Récupération des données via AJAX
+        ajax: '{{ route("colis.get.colis.valide") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
             {
@@ -146,7 +66,7 @@ $(document).ready(function () {
             { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
             { data: 'etat' },
-            { data: 'created_at',
+            {data: 'created_at',
                 render: function(data, type, row) {
                     // Vérifiez si la date existe et la formater
                     if (data) {
@@ -233,6 +153,38 @@ $(document).ready(function () {
     }
 });
 
+$(document).on('click', '.delete-btn', function (event) {
+    event.preventDefault(); // Empêche le comportement par défaut du bouton
+    const url = $(this).data('url'); // Récupère l'URL de suppression
+    Swal.fire({
+        title: 'Confirmer la suppression',
+        text: "Êtes-vous sûr de vouloir supprimer ce colis ?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                type: 'DELETE', // Assurez-vous que la méthode est DELETE
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                },
+                success: function(response) {
+                    Swal.fire('Supprimé!', response.success, 'success').then(() => {
+                        location.reload(); // Recharger la page après la suppression
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire('Erreur!', xhr.responseJSON.error, 'error');
+                }
+            });
+        }
+    });
+});
     </script>
     
     
@@ -240,9 +192,47 @@ $(document).ready(function () {
 
 <style>
     .btn {
-        width: 15%;
+        width: auto; /* Ajuste la largeur au contenu */
         height: 40px;
-        font-size: 18px;
+        font-size: 16px; /* Ajuste la taille de la police */
+        padding: 0 15px; /* Ajoute du rembourrage */
+        border-radius: 5px; /* Coins arrondis */
+        transition: background-color 0.3s, transform 0.2s; /* Transition pour les effets */
+    }
+
+    .btn-warning {
+        background-color: #ffc107; /* Couleur de fond pour le bouton modifier */
+        color: white; /* Couleur du texte */
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800; /* Couleur de fond au survol */
+        transform: scale(1.05); /* Légère augmentation de la taille au survol */
+    }
+
+    .btn-info {
+        background-color: #17a2b8; /* Couleur de fond pour le bouton imprimer */
+        color: white; /* Couleur du texte */
+    }
+
+    .btn-info:hover {
+        background-color: #138496; /* Couleur de fond au survol */
+        transform: scale(1.05); /* Légère augmentation de la taille au survol */
+    }
+
+    .btn-danger {
+        background-color: #dc3545; /* Couleur de fond pour le bouton supprimer */
+        color: white; /* Couleur du texte */
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333; /* Couleur de fond au survol */
+        transform: scale(1.05); /* Légère augmentation de la taille au survol */
+    }
+
+    .btn-group {
+        display: flex; /* Aligne les boutons horizontalement */
+        gap: 5px; /* Espace entre les boutons */
     }
 
     .dataTable-wrapper {

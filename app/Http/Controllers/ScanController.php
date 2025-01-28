@@ -184,28 +184,28 @@ public function getColisEntrepot(Request $request)
         return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
     }
 
-    // Vérifier si l'état est déjà "Chargé"
-    if ($colis->etat === 'Chargé') {
-        return response()->json(['success' => false, 'message' => "Le colis est déjà  Chargé"], 400);
+    // Vérifier si l'état est déjà "Chargé", "Déchargé", "En entrepôt" ou "Fermé"
+    if (in_array($colis->etat, ['Chargé', 'Déchargé', 'En entrepot', 'Fermé'])) {
+        return response()->json(['success' => false, 'message' => "Le colis est déjà mis en entrepôt."], 400);
     }
 
-    // Vérifier si l'état est "En entrepôt" avant de le marquer comme "Chargé"
-    if ($colis->etat !== 'En entrepôt') {
+    // Vérifier si l'état est "Validé" avant de le marquer comme "En entrepôt"
+    if (!in_array($colis->etat, ['Validé'])) {
         return response()->json([
             'success' => false,
-            'message' => "Le colis n'est pas en entrepôt. Impossible de le Chargé.",
+            'message' => "Le colis n'est pas encore validé. Impossible de le mettre en entrepôt.",
         ], 400);
     }
 
-    // Modifier l'état du colis en "Chargé"
-    $colis->etat = 'Chargé';
+    // Modifier l'état du colis en "En entrepôt"
+    $colis->etat = 'En entrepot';
 
     // Sauvegarder les modifications dans la base de données
     $colis->save();
 
     return response()->json([
         'success' => true,
-        'message' => 'Le colis a été Chargé avec succès.',
+        'message' => 'Le colis a été mis en entrepôt avec succès.',
         'colis' => [
             'reference' => $colis->reference_colis,
             'etat' => $colis->etat,
@@ -232,8 +232,8 @@ public function getColisCharge(Request $request)
     }
 
     // Vérifier si l'état est déjà "Déchargé"
-    if ($colis->etat === 'Déchargé') {
-        return response()->json(['success' => false, 'message' => "Le colis est déjà Déchargé."], 400);
+    if ($colis->etat === 'Chargé') {
+        return response()->json(['success' => false, 'message' => "Le colis est déjà Chargé."], 400);
     }
 
     // Vérifier si l'état est déjà "Arrivé"
@@ -241,23 +241,23 @@ public function getColisCharge(Request $request)
         return response()->json(['success' => false, 'message' => "Le colis est déjà Arrivé."], 400);
     }
 
-    // Vérifier si l'état est "Chargé" avant de le marquer comme "Déchargé"
-    if ($colis->etat !== 'Chargé') {
+    // Vérifier si l'état est "En entrepot" avant de le marquer comme "Charge"
+    if ($colis->etat !== 'En entrepot') {
         return response()->json([
             'success' => false,
-            'message' => "Le colis n'est pas chargé. Impossible de le décharger.",
+            'message' => "Le colis n'est pas encore mis en entrepot. Impossible de le charger.",
         ], 400);
     }
 
     // Modifier l'état du colis en "Déchargé"
-    $colis->etat = 'Déchargé';
+    $colis->etat = 'Chargé';
 
     // Sauvegarder les modifications dans la base de données
     $colis->save();
 
     return response()->json([
         'success' => true,
-        'message' => 'Le colis a été Déchargé avec succès.',
+        'message' => 'Le colis a été chargé avec succès.',
         'colis' => [
             'reference' => $colis->reference_colis,
             'etat' => $colis->etat,
@@ -283,28 +283,28 @@ public function getColisDecharge(Request $request)
         return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
     }
 
-    // Vérifier si l'état est déjà "Arrivé"
-    if ($colis->etat === 'Arrivé') {
-        return response()->json(['success' => false, 'message' => "Le colis est Arrivé"], 400);
+    // Vérifier si l'état est déjà "Déchargé"
+    if ($colis->etat === 'Déchargé') {
+        return response()->json(['success' => false, 'message' => "Le colis a déjà été déchargé."], 400);
     }
 
-    // Vérifier si l'état est "Déchargé" avant de marquer comme "Arrivé"
-    if ($colis->etat !== 'Déchargé') {
+    // Vérifier si l'état est "Fermé" avant de le marquer comme "Déchargé"
+    if ($colis->etat === 'Fermé') {
+        // Modifier l'état du colis en "Déchargé"
+        $colis->etat = 'Déchargé';
+    } else {
         return response()->json([
             'success' => false,
-            'message' => "Le colis n'est encore Arrivé.",
+            'message' => "Le colis ne peut pas être déchargé car son état actuel est : " . $colis->etat,
         ], 400);
     }
-
-    // Modifier l'état du colis en "Arrivé"
-    $colis->etat = 'Arrivé';
 
     // Sauvegarder les modifications dans la base de données
     $colis->save();
 
     return response()->json([
         'success' => true,
-        'message' => 'Le colis a été Arrivé avec succès.',
+        'message' => 'Le colis a été déchargé avec succès.',
         'colis' => [
             'reference' => $colis->reference_colis,
             'etat' => $colis->etat,

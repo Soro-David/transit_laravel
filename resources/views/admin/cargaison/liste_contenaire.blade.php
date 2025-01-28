@@ -1,10 +1,9 @@
-@extends('agent.layouts.agent')
+@extends('admin.layouts.admin')
 @section('content-header')
-@endsection
 @section('content')
 <section class="py-3">
     <h2 class="">Colis en attente</h2>
-    <form action="{{route('agent_colis.contenaire.fermer')}}" method="POST" class="mt-4">
+    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -14,7 +13,7 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
+                                                <th>référence colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
@@ -183,9 +182,10 @@
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route('agent_colis.get.colis.contenaire') }}',
+        ajax: '{{ route('colis.get.colis.contenaire') }}',
         columns: [
             { data: 'reference_colis' },
+
             {
                 data: null,
                 render: function (data, type, row) {

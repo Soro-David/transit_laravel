@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Customer;
 use App\Models\User;
@@ -146,21 +148,91 @@ class ColisController extends Controller
      *
      * @return string
      */
-    private function generateReferenceColis()
-    {
-        // Exemple : "COLIS-12202423-XXXXXX"
-        return 'COLIS-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+
+private function generateReferenceColis()
+{
+    // Récupérer l'utilisateur connecté
+    $user = Auth::user();
+    // dd($user);
+    // Vérifier si l'utilisateur est connecté
+    if (!$user) {
+        throw new \Exception("Utilisateur non connecté.");
     }
+
+    // Récupérer la première lettre du nom et du prénom
+    $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
+    $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
+// dd($firstLetterNom, $firstLetterPrenom);
+    // Récupérer la première lettre du mois actuel
+    $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
+
+    // Initialiser le chiffre à 1
+    $increment = 1;
+
+    // Construire la référence de base
+    $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+
+    // Vérifier si la référence existe déjà dans la table colis
+    while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
+        // Incrémenter le chiffre
+        $increment++;
+        // Mettre à jour la référence avec le nouvel incrément
+        $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+    }
+
+    return $baseReference; // Retourner la référence finale
+}
 /**
  * Génère une référence de Contenaire unique
  *
  * @return string
  */
-private function generateReferenceContenaire()
-{
-    // Exemple : "CNT-24201-XXX" (année 2024, mois janvier)
-    return 'CNT-' . now()->format('y-M');
-}
+    private function generateReferenceContenaire()
+    {
+        // Récupérer l'année et le mois actuel
+        $year = now()->format('y'); // Année sur 2 chiffres
+        $monthLetter = now()->format('F')[0]; // Première lettre du mois (ex: 'J' pour Janvier)
+
+        // Initialiser le chiffre à 1
+        $increment = 1;
+
+        // Construire la référence de base
+        $baseReference = "CNT-{$monthLetter}-{$increment}";
+
+        // Vérifier si la référence existe déjà dans la table colis
+        while (DB::table('colis')->where('reference_contenaire', $baseReference)->exists()) {
+            // Incrémenter le chiffre
+            $increment++;
+            // Mettre à jour la référence avec le nouvel incrément
+            $baseReference = "CNT-{$monthLetter}-{$increment}";
+        }
+
+        return $baseReference; // Retourner la référence finale
+    }
+
+    private function generateReferenceVol()
+    {
+        // Récupérer l'année et le mois actuel
+        $year = now()->format('y'); // Année sur 2 chiffres
+        $monthLetter = now()->format('F')[0]; // Première lettre du mois (ex: 'J' pour Janvier)
+
+        // Initialiser le chiffre à 1
+        $increment = 1;
+
+        // Construire la référence de base
+        $baseReference = "Vol-{$monthLetter}-{$increment}";
+
+        // Vérifier si la référence existe déjà dans la table conteneurs
+        while (DB::table('colis')->where('reference_vol', $baseReference)->exists()) {
+            // Incrémenter le chiffre
+            $increment++;
+            // Mettre à jour la référence avec le nouvel incrément
+            $baseReference = "Vol-{$monthLetter}-{$increment}";
+        }
+
+        return $baseReference; // Retourner la référence finale
+    }
+
 
 
     public function storeStep3(Request $request)
@@ -494,6 +566,7 @@ private function generateReferenceContenaire()
     {
         $colis = Colis::select(
             'colis.*',  // Sélectionne toutes les colonnes de colis
+            'colis.reference_colis as reference_colis',
             'expediteurs.nom as expediteur_nom', 
             'expediteurs.prenom as expediteur_prenom', 
             'expediteurs.tel as expediteur_tel', 
@@ -562,6 +635,7 @@ private function generateReferenceContenaire()
         if ($request->ajax()) {
             $colis = Colis::select(
                 'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -598,12 +672,89 @@ private function generateReferenceContenaire()
         }
     }
 
+
+    public function get_colis_valide(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('etat', 'Validé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('etat', function ($row) {
+                    if ($row->etat === 'Validé') {
+                        return 'Colis validé'; // Si l'état est "Validé", afficher "Colis validé"
+                    } 
+                    return $row->etat; // Sinon, retourner l'état original
+                })
+                ->addColumn('action', function ($row) {
+                    $editUrl = route('colis.valide.edit', ['id' => $row->id]);
+                    $deleteUrl = route('colis.destroy.colis.valide', ['id' => $row->id]);
+                    $printUrl = route('colis.facture.colis.print', ['id' => $row->id]);
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+                            </a>
+                                <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="Imprimer" target="_blank">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </div> 
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
+    }
+
+    public function print_facture($id)
+    {
+        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        
+        // Retournez une vue pour l'impression
+        return view('admin.colis.colis_facture', compact('colis'));
+    }
+    
+
+    // function de suppression des colis validés
+    public function destroy_colis_valide($id)
+    {
+        // dd($id);
+        try {
+            $colis = Colis::findOrFail($id);
+            
+            $colis->delete();
+            return redirect()->route('colis.hold')->with('success', 'Colis supprimé avec succès !');
+        } catch (\Exception $e) {
+            return redirect()->route('colis.hold')->with('error', 'Une erreur est survenue lors de la suppression du colis : ' . $e->getMessage());
+        }
+    }
+
     // AJAX pour les colis arrivés
     public function get_colis_dump(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
                 'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -629,6 +780,7 @@ private function generateReferenceContenaire()
         if ($request->ajax()) {
             $colis = Colis::select(
                 'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -642,17 +794,33 @@ private function generateReferenceContenaire()
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Validé')  // Filtre l'état des colis
+            ->where('etat', ['Devis'])  // Filtre l'état des colis
             ->get(); // Exécute la requête une seule fois
 
             return DataTables::of($colis)
+                ->addColumn('etat', function ($row) {
+                    if ($row->etat === 'Devis') {
+                        return 'Dévis validé'; // Si l'état est "Devis", afficher "Dévis validé"
+                    } elseif ($row->etat === 'Validé') {
+                        return 'Colis validé'; // Si l'état est "Validé", afficher "Colis validé"
+                    }
+                    return $row->etat; // Sinon, retourner l'état original
+                })
                 ->addColumn('action', function ($row) {
+                   $printUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
                    $editUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
+                   $cancelUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
 
                     return '
                         <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View">
+                            <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="View">
                                 <i class="fas fa-print"></i>
+                            </a>
+                             <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                             <a href="' . $cancelUrl . '" class="btn btn-sm btn-info" title="View">
+                                <i class="fas fa-times"></i>
                             </a>
                             
                         </div>
@@ -714,6 +882,7 @@ public function get_colis_hold(Request $request)
     if ($request->ajax()) {
         $colis = Colis::select(
             'colis.*',  // Sélectionne toutes les colonnes de colis
+            'colis.reference_colis as reference_colis',
             'expediteurs.nom as expediteur_nom', 
             'expediteurs.prenom as expediteur_prenom', 
             'expediteurs.tel as expediteur_tel', 
@@ -748,11 +917,18 @@ public function get_colis_hold(Request $request)
     }
 }
 // Fonction edit pour les colis en attente
-public function edit_hold($id)
+    public function edit_hold($id)
     {
         $colis = Colis::findOrFail($id);
         // dd($colis);
         return view('admin.colis.edit_hold', compact('colis'));
+    }
+
+    public function edit_colis_valide($id)
+    {
+        $colis = Colis::findOrFail($id);
+        // dd($colis);
+        return view('admin.colis.edit_colis_valide', compact('colis'));
     }
 
     // Fonction update pour les colis en attente
@@ -781,7 +957,7 @@ public function edit_hold($id)
             'Agence Destination' => $colis->destinataire->agence ?? '',
             'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
         ];
-        dd($qrData);
+        // dd($qrData);
         $colis->update([
             'destinataire_agence' => $request->input('destinataire_agence'),
             'destinataire_tel' => $request->input('destinataire_tel'),
@@ -791,13 +967,63 @@ public function edit_hold($id)
             'poids_colis' => $request->input('poids_colis'),
             'prix_transit_colis' => $request->input('prix_transit_colis'),
             'status' => 'payé', // Ajout du statut
-            'etat' => 'Validé', // Ajout du statut
+            'etat' => 'Devis', // Ajout du statut
         ]);
         // Redirection avec un message de succès
-        return redirect()->route('colis.hold')->with('success', 'Colis mis à jour avec succès !');
+        return redirect()->route('colis.hold')->with('success', 'Dévis fait avec succès !');
     }
     
-
+    public function update_colis_valide(Request $request, $id)
+    {
+        // Validation des données
+        $request->validate([
+            // 'destinataire_agence' => 'required|string|max:255',
+            // 'destinataire_tel' => 'required|string|max:255',
+            // 'quantite_colis' => 'required|numeric',
+            // 'valeur_colis' => 'required|numeric',
+            // 'mode_transit' => 'required|string|max:255',
+            // 'poids_colis' => 'required|numeric',
+            // 'prix_transit_colis' => 'required|numeric',
+        ]);
+    
+        // Récupération du colis
+        $colis = Colis::findOrFail($id);
+        $request->validate([
+            'nom_expediteur' => 'required|string|max:255',
+            'prenom_expediteur' => 'required|string|max:255',
+            'destinataire_tel' => 'required|string|max:15', // Ajustez la validation selon vos besoins
+            'agence_expediteur' => 'required|string|max:255',
+            'nom_destinataire' => 'required|string|max:255',
+            'prenom_destinataire' => 'required|string|max:255',
+            'destinataire_tel' => 'required|string|max:15',
+            'agence_destinataire' => 'required|string|max:255',
+            'quantite_colis' => 'required|integer|min:1',
+            'valeur_colis' => 'required|numeric|min:0',
+            'mode_transit' => 'nullable|string|max:255',
+            'poids_colis' => 'required|numeric|min:0',
+            'prix_transit_colis' => 'required|numeric|min:0',
+        ]);
+    
+        // Mise à jour des informations du colis
+        $colis->update([
+            'nom_expediteur' => $request->nom_expediteur,
+            'prenom_expediteur' => $request->prenom_expediteur,
+            'tel_expediteur' => $request->destinataire_tel,
+            'agence_expediteur' => $request->agence_expediteur,
+            'nom_destinataire' => $request->nom_destinataire,
+            'prenom_destinataire' => $request->prenom_destinataire,
+            'tel_destinataire' => $request->destinataire_tel,
+            'agence_destinataire' => $request->agence_destinataire,
+            'quantite_colis' => $request->quantite_colis,
+            'valeur_colis' => $request->valeur_colis,
+            'mode_transit' => $request->mode_transit,
+            'poids_colis' => $request->poids_colis,
+            'prix_transit_colis' => $request->prix_transit_colis,
+        ]);
+    // dd($colis);
+        // Redirection avec un message de succès
+        return redirect()->route('colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
+    }
 
 // AJX pour les contenaire 
 public function get_colis_contenaire(Request $request)
@@ -805,6 +1031,7 @@ public function get_colis_contenaire(Request $request)
         if ($request->ajax()) {
             $colis = Colis::select(
                 'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -816,10 +1043,11 @@ public function get_colis_contenaire(Request $request)
                 'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Validé')  // Filtre l'état des colis
-            ->get(); // Exécute la requête une seule fois
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
+            ->where('colis.mode_transit', 'maritime')  // Filtre pour le mode de transit
+            ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête 
 
             return DataTables::of($colis)
                 ->addColumn('action', function ($row) {
@@ -841,22 +1069,67 @@ public function get_colis_contenaire(Request $request)
         }
     }
 
+    public function get_colis_vol(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
+            ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
+            ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête 
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
+    }
+
+
+
 public function contenaire_fermer(Request $request)
 {
 
 try {
     // Compter les enregistrements avant la mise à jour
-    $count = Colis::where('etat', 'Validé')->count();
+    $count = Colis::where('etat', 'Chargé')->count();
     if ($count === 0) {
-        return redirect()->back()->with('warning', 'Aucun colis avec l’état "validé" trouvé.');
+        return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
     }
      // Générer une référence unique pour le conteneur
-     $referenceContenaire = 'CNT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(3));
+     $referenceContenaire = 'CNT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(1));
     // Mise à jour des enregistrements
-    $colisData = Colis::where('etat', 'Validé')
-        ->update(['etat' => 'En entrepôt', 'reference_contenaire' => $referenceContenaire]);
+    $colisData = Colis::where('etat', 'Chargé')
+        ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
 
-    return redirect()->back()->with('success', "$colisData colis mis à jour avec succès.");
+    return redirect()->back()->with('success', "$colisData colis sont enregistrer dans le conteneur avec succès.");
 } catch (\Exception $e) {
     return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
 }
@@ -866,11 +1139,76 @@ public function devis_hold(Request $request)
 {
     return view('admin.devis.hold');
 }
+public function colis_valide(Request $request)
+{
+    return view('admin.colis.valide');
+}
+
+public function cargaison_ferme(Request $request)
+{
+    return view('admin.cargaison.cargaison_ferme');
+}
+
+public function get_cargaison_ferme(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis', 
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('etat', 'Fermé')  // Filtre l'état des colis
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('etat', function ($row) {
+                    if ($row->etat === 'Fermé') {
+                        return 'Cargaison Fermée'; // Si l'état est "Validé", afficher "Colis validé"
+                    } 
+                    return $row->etat; // Sinon, retourner l'état original
+                })
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
+    }
 
 public function liste_contenaire(Request $request)
 {
     $referenceContenaire = $request->input('reference_contenaire', $this->generateReferenceContenaire());
-    return view('admin.devis.liste_contenaire',compact('referenceContenaire'));
+    return view('admin.cargaison.liste_contenaire',compact('referenceContenaire'));
 }
+
+public function liste_vol(Request $request)
+{
+    $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
+    return view('admin.cargaison.liste_vol',compact('referenceVol'));
+}
+
+
 
 }

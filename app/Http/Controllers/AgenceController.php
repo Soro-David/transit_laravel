@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;

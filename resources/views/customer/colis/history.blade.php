@@ -24,7 +24,7 @@
                                         <th>Nom Destinataire</th>
                                         <th>Email Destinataire</th>
                                         <th>Agence Destinataire</th>
-                                        <th>État</th>
+                                        <th>État du colis</th>
                                         <th>Date de mise à jour</th>
                                         <th>Action</th>
                                     </tr>

@@ -15,7 +15,6 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
@@ -49,11 +48,6 @@
                                             <input type="text" name="reference_contenaire" id="reference_contenaire"  placeholder="Référence du contenaire" class="form-control" readonly>
                                         </div>
                                     </div>
-                                    <div class="container text-right">
-                                        <button type="submit" class="btn btn-danger mt-3">
-                                            <i class="fas fa-times"></i> Fermer contenaire
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -70,9 +64,8 @@
                 language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-                ajax: '{{ route("agent_colis.get.devis.colis") }}', // URL pour récupérer les données
+                ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
-                    { data: 'reference_colis' },
                     {
                         data: null,
                         render: function (data, type, row) {

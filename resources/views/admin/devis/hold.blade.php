@@ -16,6 +16,7 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
+                                                <th>Référence du colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
@@ -67,6 +68,7 @@
                 },
                 ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
+                    { data: 'reference_colis' },
                     {
                         data: null,
                         render: function (data, type, row) {

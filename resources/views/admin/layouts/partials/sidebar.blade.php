@@ -41,81 +41,92 @@
                         </li>
                     </ul>
                 </li>
-                {{--  --}}
-
+                {{-- GEstion des devis --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-list-alt"></i>
+                        <p>
+                            {{ __('Gestion des dévis') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                          <li class="nav-item">
+                            <a href="{{ route('colis.hold') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Colis en attente') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.devis.hold') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Suivi des dévis ') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+{{-- GEstion des colis --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-concierge-bell"></i>
-                        <p>{{ __('trans.view_packages') }}</p>
+                        <p>{{ __('Gestion des colis') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="{{ route('colis.create.step1') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add') }}</p>
+                                <p>{{ __('Ajouter un colis') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('colis.hold') }}" class="nav-link">
+                            <a href="{{ route('colis.colis.valide') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.on_old') }}</p>
+                                <p>{{ __('Voir les colis validés') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('colis.dump') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Arrivé') }}</p>
+                                <p>{{ __('Voir les colis arrivé') }}</p>
                             </a>
                         </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{ route('colis.history') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.package_tracking') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('colis.history') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.history') }}</p>
-                            </a>
-                        </li> --}}
                     </ul>
                 </li>
+                {{-- Gestion des Cargaison --}}
                 <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
-                        <i class="fas fa-list-alt"></i>
-                        <p>
-                            {{ __('trans.quote_management') }}
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-shipping-fast"></i>
+                        <p>{{ __('Gestion des cargaisons') }}</p>
+                        <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
-                        {{-- <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add_quote') }}</p>
-                            </a>
-                        </li> --}}
-                        <li class="nav-item">
-                            <a href="{{ route('colis.devis.hold') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Suivi') }}</p>
-                            </a>
-                        </li>
                         <li class="nav-item">
                             <a href="{{ route('colis.liste.contenaire') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Contenaire') }}</p>
+                                <p>{{ __('Colis en conteneur') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.liste.vol') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Vol de cargaison') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('colis.cargaison.ferme') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Cargaisons fermées') }}</p>
                             </a>
                         </li>
                     </ul>
                 </li>
+                
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-qrcode"></i>
-                        <p>{{ __('Scan') }}</p>
+                        <p>{{ __('Vérification au scanner') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
@@ -168,18 +179,6 @@
                         <p>Clients</p>
                     </a>
                 </li>
-                {{-- <li class="nav-item has-treeview">
-                    <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
-                        <i class="nav-icon fas fa-cash-register"></i>
-                        <p>{{ __('trans.pos_system') }}</p>
-                    </a>
-                </li> --}}
-                {{-- <li class="nav-item has-treeview">
-                    <a href="{{ route('orders.index') }}" class="nav-link {{ activeSegment('orders') }}">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <p>{{ __('trans.orders') }}</p>
-                    </a>
-                </li> --}}                
                 {{-- progammz de transport --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

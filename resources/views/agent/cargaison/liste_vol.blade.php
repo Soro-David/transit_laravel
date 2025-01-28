@@ -1,10 +1,9 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-@endsection
 @section('content')
 <section class="py-3">
     <h2 class="">Colis en attente</h2>
-    <form action="{{route('agent_colis.contenaire.fermer')}}" method="POST" class="mt-4">
+    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -14,7 +13,7 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
+                                                <th>Référence colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
@@ -44,14 +43,14 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="col-8">
-                                            <label for="reference_contenaire" class="form-label">Référence Contenaire</label>
-                                            <input type="text" name="reference_contenaire" id="reference_contenaire" value="{{ $referenceContenaire}}" placeholder="Référence du contenaire" class="form-control" readonly>
+                                            <label for="reference_contenaire" class="form-label">Référence vol</label>
+                                            <input type="text" name="reference_contenaire" id="reference_contenaire" value="{{ $referenceVol}}" placeholder="Référence du contenaire" class="form-control" readonly>
                                         </div>
                                     </div>
                                     <input type="hidden" name="colis_data" id="colis_data">
                                     <div class="container text-right">
                                         <button type="submit" class="btn btn-danger mt-3">
-                                            <i class="fas fa-times mr-2"></i> Fermer le conteneur
+                                            <i class="fas fa-times mr-2"></i> Terminer le Vol
                                         </button>
                                     </div>
                                 </div>
@@ -183,9 +182,10 @@
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route('agent_colis.get.colis.contenaire') }}',
+        ajax: '{{ route('agent_colis.get.colis.vol') }}',
         columns: [
             { data: 'reference_colis' },
+
             {
                 data: null,
                 render: function (data, type, row) {

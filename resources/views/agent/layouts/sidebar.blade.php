@@ -20,22 +20,81 @@
                     </a>
                 </li>
                 <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
+                        <i class="fas fa-list-alt"></i>
+                        <p>
+                            {{ __('Gestion des dévis') }}
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Colis en attente') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('agent_colis.devis.hold')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Suivi des dévis') }}</p>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </li>
+                <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-concierge-bell"></i>
-                        <p>{{ __('trans.view_packages') }}</p>
+                        <p>{{ __('Gestion des colis') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('agent_colis.create.step1') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Ajouter un colis') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('agent_colis.colis.valide')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Voir les colis validés') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('agent_colis.dump')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Voir les colis arrivé') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                
+                {{-- <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-concierge-bell"></i>
+                        <p>{{ __('Gestion des colis') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="{{route('agent_colis.create.step1')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add') }}</p>
+                                <p>{{ __('Ajouter') }}</p>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="{{route('agent_colis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('trans.on_old') }}</p>
+                            </a>
+                        </li> --}}
+                        {{-- <li class="nav-item">
+                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Validés') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -44,27 +103,33 @@
                                 <p>{{ __('Arrivé') }}</p>
                             </a>
                         </li>
-                    </ul>
-                </li>
+                    </ul> --}}
+                {{-- </li> --}} 
+             
+                {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('gestion') }}">
-                        <i class="fas fa-list-alt"></i>
-                        <p>
-                            {{ __('trans.quote_management') }}
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-shipping-fast"></i>
+                        <p>{{ __('Gestion des cargaisons') }}</p>
+                        <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.devis.hold')}}" class="nav-link">
+                            <a href="{{ route('agent_colis.liste.contenaire') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Suivi') }}</p>
+                                <p>{{ __('Colis en conteneur') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.liste.contenaire')}}" class="nav-link">
+                            <a href="{{ route('agent_colis.liste.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Contenaire') }}</p>
+                                <p>{{ __('Vol de cargaison') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('agent_colis.cargaison.ferme') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Cargaisons fermées') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -73,7 +138,7 @@
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-qrcode"></i>
-                        <p>{{ __('Scan') }}</p>
+                        <p>{{ __('Vérification au scanner') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
@@ -89,6 +154,12 @@
                                 <p>{{ __('Chargement') }}</p>
                             </a>
                         </li>
+                        {{-- <li class="nav-item">
+                            <a href="{{route('agent_colis.liste.contenaire')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Contenaire') }}</p>
+                            </a>
+                        </li> --}}
                         <li class="nav-item">
                             <a href="{{route('agent_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>

@@ -16,14 +16,14 @@
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
-                                        Scanner
+                                        Scanner pour charger
                                     </button>
                                 </div><br>
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Reference colis</th>
+                                                <th>Référence colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
@@ -98,10 +98,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (response.success) {
             // Succès : le colis a été mis à jour
-            resultElement.innerText = `Colis ${reference_colis[1]} à été déchargé avec succès`;
+            resultElement.innerText = `Colis ${reference_colis[1]} à été chargé avec succès`;
         } else {
             // Affichage du message d'erreur retourné par le serveur
-            if (response.message === "Le colis est déjà déchargé") {
+            if (response.message === "Le colis est déjà Chargé") {
                 resultElement.innerText = `Erreur : ${response.message}`;
             } else {
                 resultElement.innerText = `Erreur : ${response.message}`;
@@ -185,6 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
             ajax: '{{ route("agent_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
+                { data: 'reference_colis' },
                 { data: 'reference_colis' },
                 {
                     data: null,
@@ -288,8 +289,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .btn {
         width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 150px; /* Largeur maximale sur les grands écrans */
+        max-width: 200px; /* Largeur maximale sur les grands écrans */
         font-size: 16px;
+        height: 40px;
+
     }
 
     .dataTable-wrapper {
@@ -324,9 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         .btn {
-            font-size: 14px;
-            padding: 10px;
-        }
+        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
+        max-width: 200px; /* Largeur maximale sur les grands écrans */
+        font-size: 16px;
+        height: 40px;
+
+    }
 
         .table-responsive {
             overflow-x: auto; /* Assurer un défilement horizontal sur les petits écrans */

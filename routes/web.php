@@ -62,21 +62,35 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-colis',[ColisController::class, 'get_colis'])->name('getColis');
         Route::get('/get-colis-dump',[ColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-devis-colis',[ColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/get-colis-valide',[ColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::get('/devis/{id}/edit', [ColisController::class, 'edit_qrcode'])->name('qrcode.edit');
 
         Route::get('/get-contenaire-colis',[ColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
+        Route::get('/get-vol-colis',[ColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/get-colis-hold',[ColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
+        Route::get('/colis-valide',[ColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/cargaison-ferme',[ColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme',[ColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
 
         // route edit
         Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}', [ColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print', [ColisController::class, 'print_facture'])->name('facture.colis.print');
 
+        // route suppression edit
+        Route::delete('/colis/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        // Route::delete('/colis-valide/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        // Route::delete('/colis-valide/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
         // route contenaire fermer
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
 
         Route::get('/list-contenaire',[ColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        Route::get('/list-vol',[ColisController::class, 'liste_vol'])->name('liste.vol');
+
 
         Route::post('/store', [ColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [ColisController::class,'show'])->name('show'); 
@@ -262,6 +276,25 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::get('/devis-hold',[AgentColisController::class, 'devis_hold'])->name('devis.hold');
         Route::get('/get-devis-colis',[AgentColisController::class, 'get_devis_colis'])->name('get.devis.colis');
         Route::get('/devis/{id}/edit', [AgentColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+        Route::get('/colis-valide',[AgentColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-valide',[AgentColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+        // Route::get('/get-colis-valide',[ColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+
+
+
+        // rouute pour les cargaison
+        Route::get('/get-vol-colis',[AgentColisController::class, 'get_colis_vol'])->name('get.colis.vol');
+        Route::get('/cargaison-ferme',[AgentColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme',[AgentColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
+        Route::get('/list-vol',[AgentColisController::class, 'liste_vol'])->name('liste.vol');
+        // Route::get('/list-vol',[ColisController::class, 'liste_vol'])->name('liste.vol');
+        // route edit
+        Route::get('/on-hold/{id}/edit', [AgentColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit', [AgentColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/on-hold/{id}', [AgentColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}', [AgentColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print', [AgentColisController::class, 'print_facture'])->name('facture.colis.print');
+
 
 
         Route::get('/get-contenaire-colis',[AgentColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
@@ -274,7 +307,12 @@ Route::prefix('agent')->middleware(['auth', 'role:agent'])->group(function () {
         Route::put('/on-hold/{id}', [AgentColisController::class, 'update_hold'])->name('hold.update');
 
         Route::get('/list-contenaire',[AgentColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        Route::get('/list-vol',[AgentColisController::class, 'liste_vol'])->name('liste.vol');
         // Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
+
+        // route suppression edit
+        Route::delete('/colis/{id}', [AgentColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+
 
         Route::post('/store', [AgentAgentColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [AgentColisController::class,'show'])->name('show'); 

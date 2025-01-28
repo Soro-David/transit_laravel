@@ -21,7 +21,7 @@
                                             <th>Email Destinataire</th>
                                             <th>Agence Destinataire</th>
                                             <th> Status</th>
-                                            <th> Etat</th>
+                                            <th> Etat du colis</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>

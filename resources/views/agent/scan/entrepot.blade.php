@@ -16,7 +16,7 @@
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
-                                        Scanner
+                                        Scanner pour la mise en entrepot
                                     </button>
                                 </div><br>
                                 <div class="table-responsive">
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
             resultElement.innerText = `Colis ${reference_colis[1]} Chargé avec succès`;
         } else {
             // Affichage du message d'erreur retourné par le serveur
-            if (response.message === "Le colis est déjà Chargé") {
+            if (response.message === "Le colis est déjà déja en entrepot") {
                 resultElement.innerText = `Erreur : ${response.message}`;
             } else {
                 resultElement.innerText = `Erreur : ${response.message}`;
@@ -287,8 +287,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .btn {
         width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 150px; /* Largeur maximale sur les grands écrans */
+        max-width: 280px; /* Largeur maximale sur les grands écrans */
         font-size: 16px;
+        height: 40px;
+
     }
 
     .dataTable-wrapper {

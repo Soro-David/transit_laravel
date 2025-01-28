@@ -1,7 +1,9 @@
 @extends('agent.layouts.agent')
 @section('content-header')
-
+{{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
+
 @section('content')
 <section class="py-3">
         <form action="" method="POST" class="mt-4">
@@ -9,26 +11,33 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Colis dechargé</h4><br>
+                            <h4 class="text-left mt-4">Colis déchargés</h4><br>
                             <div id="products-container">
-                                <div class="table-responsive">
-                                    <table id="productTable" class="table table-bordered table-striped display">
-                                        <thead>
-                                            <tr>
-                                                <th>Reference colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Date de Création</th>
-                                                <th>Action</th>
-
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
+                                <div class="text-right">
+                                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
+                                        Scanner pour décharger
+                                    </button>
+                                </div><br>
+                                 <div class="table-responsive">
+                                            <table id="productTable" class="table table-bordered table-striped display">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Reference colis</th>
+                                                        <th>Nom Expéditeur</th>
+                                                        <th>Contact Expéditeur</th>
+                                                        <th>Agence Expéditeur</th>
+                                                        <th>Nom Destinataire</th>
+                                                        <th>Contact Destinataire</th>
+                                                        <th>Agence Destinataire</th>
+                                                        <th>Date de Création</th>
+                                                        <th>Action</th>
+        
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                   
                                 </div>
                             </div>
                         </div>
@@ -37,125 +46,146 @@
         </form>
 
     <!-- Modal for editing -->
-    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 600px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Valider le colis</h5>
+                    <h5 class="modal-title">Scanner les colis pour le déchargement</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editForm" action="/users/{id}/edit" method="GET">
-                        <div class="modal-body">
-                            <div class="container">
-
-                                <div class="row">
-                                    <h4>Information Expediteur</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Nom Expéditeur</label>
-                                            <input type="text" name="nom " id="nom" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Contact Expéditeur</label>
-                                            <input type="text" name="telephone_expediteur" id="telephone_expediteur" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="expediteur_email" class="form-label">Agence Expéditeur</label>
-                                            <input type="text" name="agence_expediteur" id="agence_expediteur" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <h4>Information Destinateur</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Nom Destinataire</label>
-                                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Contact Destinataire</label>
-                                            <input type="text" name="telephone_destinataire" id="telephone_destinataire" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="agence_destinataire" class="form-label">Agence Destinataire</label>
-                                            <input type="text" name="agence_destinataire" id="agence_destinataire" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <h4>Information colis</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Quantité de colis</label>
-                                            <input type="text" name="quantite_colis" id="quantite_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Valeur du Colis</label>
-                                            <input type="text" name="valeur_colis" id="valeur_colis" value="" class="form-control" disabled  required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="mode_transit" class="form-label">Mode de transit</label>
-                                            <input type="text" name="mode_transit" id="mode_transit" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Poids du Colis</label>
-                                            <input type="text" name="poids_colis" id="poids_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Prix du Colis</label>
-                                            <input type="text" name="prix_colis" id="prix_colis" value="" class="form-control"  required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="agence_destinateur" class="form-label">Agence Destinataire</label>
-                                            <input type="text" name="agence_destinateur" id="agence_destinateur" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                            <button type="submit" class="btn btn-primary">Valider</button>
-                        </div>
+                    <div id="reader" ></div>
+                    <p id="result">Résultat : Aucun</p>
+                    <div class="d-flex justify-content-center">
+                        <button id="restartScan" class="btn btn-primary mt-3" style="display: none;">Relancer le scan</button>
                     </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
+    
 
     <!-- JavaScript for DataTable and Export -->
-    <script>
-$(document).ready(function () {
-    // Initialisation de la table DataTable
-    var table = $("#productTable").DataTable({
-        responsive: true,
-        language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-            },
-        ajax: '{{ route("agent_scan.get.colis.decharge") }}', // Récupération des données via AJAX
-        columns: [
+        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const html5QrCode = new Html5Qrcode("reader");
+    const resultElement = document.getElementById("result");
+    const restartButton = document.getElementById("restartScan");
+    const readerElement = document.getElementById("reader");
+    const modal = document.getElementById("scanner_entrepot");
+
+    const onScanSuccess = (decodedText) => {
+    const reference_colis = decodedText.match(/Référence colis:\s*(\S+)/);  // Expression régulière pour extraire la référence
+    console.log(`Code détecté : ${decodedText}`);
+    console.log(`Référence : ${reference_colis[1]}`);  // Affiche la référence extraite
+
+    resultElement.innerText = `Résultat : ${decodedText}`;
+
+    // Requête AJAX pour mettre à jour l'état du colis
+    $.ajax({
+    url: "{{ route("agent_scan.update.colis.decharge") }}",
+    type: "POST",
+    headers: {
+        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+    },
+    data: {
+        colisId: reference_colis[1], // Envoie la référence extraite
+    },
+    success: function (response) {
+        console.log("Réponse du serveur :", response);
+
+        if (response.success) {
+            // Succès : le colis a été mis à jour
+            resultElement.innerText = `Colis ${reference_colis[1]} à été déchargé avec succès`;
+        } else {
+            // Affichage du message d'erreur retourné par le serveur
+            if (response.message === "Le colis est déjà déchargé") {
+                resultElement.innerText = `Erreur : ${response.message}`;
+            } else {
+                resultElement.innerText = `Erreur : ${response.message}`;
+            }
+        }
+    },
+    error: function (error) {
+        console.error("Erreur lors du dechargement :", error);
+
+        // Vérification si l'erreur contient une réponse JSON
+        if (error.responseJSON && error.responseJSON.message) {
+            resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
+        } else {
+            resultElement.innerText = "Erreur de dechargement du colis.";
+        }
+    },
+});
+
+
+    // Arrête le scanner et masque l'élément caméra
+    html5QrCode
+        .stop()
+        .then(() => {
+            readerElement.style.display = "none";
+            restartButton.style.display = "block";
+        })
+        .catch((err) => {
+            console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+        });
+};
+
+    const startScanner = () => {
+        readerElement.style.display = "block";
+
+        if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
+            console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
+            return;
+        }
+
+        html5QrCode
+            .start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess
+            )
+            .then(() => {
+                resultElement.innerText = "Résultat : En attente...";
+                restartButton.style.display = "none";
+            })
+            .catch((err) => {
+                console.error(`Impossible de démarrer le scanner : ${err}`);
+            });
+    };
+
+    modal.addEventListener("shown.bs.modal", function () {
+        setTimeout(startScanner, 500);
+    });
+
+    modal.addEventListener("hidden.bs.modal", function () {
+        html5QrCode
+            .stop()
+            .then(() => {
+                console.log("Scanner arrêté avec succès.");
+            })
+            .catch((err) => {
+                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+            });
+    });
+
+    restartButton.addEventListener("click", startScanner);
+});
+
+
+
+    $(document).ready(function () {
+        // Initialisation de la table DataTable
+        var table = $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                },
+            ajax: '{{ route("agent_scan.get.colis.decharge") }}', // Récupération des données via AJAX
+            columns: [
                 { data: 'reference_colis' },
                 {
                     data: null,
@@ -242,37 +272,100 @@ $(document).ready(function () {
 
     });
 
-    </script>
+</script>
     
+    {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
     
 </section>
 
 <style>
+    
+     #reader {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #c2bdbd; 
+    }
+
+
     .btn {
-        width: 15%;
+        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
+        max-width: 200px; /* Largeur maximale sur les grands écrans */
+        font-size: 16px;
         height: 40px;
-        font-size: 18px;
+
     }
 
     .dataTable-wrapper {
-        width: 80% !important;
-        margin: 20px auto;
+        width: 100%; /* Prend toute la largeur disponible */
+        max-width: 1000px; /* Largeur maximale pour les grands écrans */
+        margin: 0 auto; /* Centrer le tableau */
         padding: 15px;
         border: 1px solid #ccc;
         border-radius: 8px;
         background: #f9f9f9;
     }
 
-    .dt-button {
-        padding: 10px 20px;
-        margin: 5px;
-        border: 1px solid transparent;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
+    #camera, #snapshot {
+        max-width: 100%; /* Rendre la caméra et l'image capturée responsive */
+        height: auto;
+        margin: 10px auto;
     }
+
+    .modal-dialog {
+        max-width: 90%; /* Rendre les modals adaptatifs */
+        margin: auto;
+    }
+
+    .dt-button {
+        padding: 10px 10px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        h4 {
+            font-size: 18px; /* Réduction de la taille des titres */
+        }
+
+        .btn {
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto; /* Assurer un défilement horizontal sur les petits écrans */
+        }
+    }
+    #camera {
+            width: 100%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .image-preview {
+            margin-top: 15px;
+            width: 100%;
+            max-height: 300px;
+            border: 2px dashed #ffa500;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+
+        .image-preview canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .image-placeholder {
+            color: #ccc;
+            font-size: 18px;
+            position: absolute;
+            text-align: center;
+        }
+
 </style>
 @endsection

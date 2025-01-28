@@ -261,24 +261,9 @@ class CustomerColisController extends Controller
             'mode_transit' => $data['mode_transit'] ,
             'status' => $data['status'],
             'etat' => $data['etat'],
-            // 'client_id' => $data['etat'],
-            // 'client_id' => auth()->user()->getIdUSer(),
+           
         ];
-        // $payementData = [
-        //     'mode_de_payement' => $data['mode_payement'] ,
-        //     'montant_reçu' => $data['montant_reçu'] ,
-        //     'operateur_mobile' => $data['operateur_mobile'] ,
-        //     'numero_compte' => $data['numero_compte'],
-        //     'nom_banque' => $data['nom_banque'] ,
-        //     'id_transaction' => $data['transaction_id'],
-        //     'numero_tel' => $data['numero_tel'],
-        //     'numero_cheque' => $data['numero_cheque'] ,
-        // ];
 
-        // dd($expediteurData, $destinataireData, $articleData, $colisData, $payementData);
-
-// dd(auth()->user()->getIdUSer());
-        // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
         // $article = Article::create($articleData);
@@ -299,62 +284,7 @@ class CustomerColisController extends Controller
         session()->forget(['step1', 'step2', 'step3', 'step4']);
         return view('customer.colis.add.complete',compact('colis','data'));
     }
-    /**
-     * Enregistre les informations de paiement.
-     */
-    // public function stepPayement()
-    // {
-    //     return view('customer.colis.add.payement');
-    // }
-    // public function storePayement(Request $request)
-    // {
-    //     $request->validate([
-    //         'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-    //         // Validation pour le paiement bancaire
-    //         'numero_compte' => 'required_if:mode_payement,bank|max:255',
-    //         'nom_banque' => 'required_if:mode_payement,bank|max:255',
-    //         'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-    //         // Validation pour Mobile Money
-    //         'tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-    //         'operateur' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-    //         // Validation pour le paiement par chèque
-    //         'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-    //         'nom_banque' => 'required_if:mode_payement,cheque|max:255',
-    //         // Validation pour le paiement en espèces
-    //         'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-    //     ]);
-    //     session(['step4' => $request->only([
-    //         'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-    //         'tel', 'operateur', 'numero_cheque', 'montant_reçu',
-    //     ])]);
-    //     return redirect()->route('customer_colis.create.qrcode');
-    // }
-    // public function qrcode(Request $request)
-    // {
-    //     $data = array_merge(
-    //         session('step1', []),
-    //         session('step2', []),
-    //         session('step3', []),
-    //         session('step4', []) 
-    //     );
-    //     $data['status'] = $data['mode_payement'] ?? 'non payé';
-    //     $colis = Les_colis::create($data);
-    //     // Générer le contenu du QR code (par exemple : ID du colis + statut)
-    //     // Nettoyer les sessions
-    //     session()->forget(['step1', 'step2', 'step3', 'step4']);
-    //     // return redirect()->route('colis.complete');
-    //     return view('customer.colis.add.complete',compact('colis','data'));
-    // }
-    
-    /**
-     * Étape finale : Confirmation.
-     */
-    // public function complete()
-    // {
-
-    //     return view('customer.colis.add.complete');
-    // }
-
+   
     /**
      * Display the specified resource.
      *
@@ -496,7 +426,7 @@ class CustomerColisController extends Controller
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
         ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
-        ->where('etat', 'en attente') 
+        ->where('etat', 'En attente') 
         ->get();
         // Construire et retourner la DataTable
         return DataTables::of($colis)
@@ -540,20 +470,21 @@ class CustomerColisController extends Controller
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
         ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
-        ->where('etat', 'Validé') 
+        ->where('etat', 'Devis') 
         ->get();
         // Construire et retourner la DataTable
         return DataTables::of($colis)
+            ->addColumn('etat', function ($row) {
+                return $row->etat === 'Devis' ? 'Dévis validé' : $row->etat; // Changer l'affichage de l'état
+            })
             ->addColumn('action', function ($row) {
+                $editUrl = route('customer_colis.payement.edit', ['id' => $row->id]);
                 return '
-                <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#editModal" data-id="' . $row->id . '">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="' . $row->id . '">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </button>
-                </div>';
+                    <div class="btn-group">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-success" title="View">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </a>
+                    </div>';
             })
             ->rawColumns(['action']) // Permet le rendu des colonnes contenant du HTML
             ->make(true);
