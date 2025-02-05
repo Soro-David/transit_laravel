@@ -38,14 +38,25 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        // Redirection en fonction du rôle de l'utilisateur
         if ($user->role === 'admin') {
             return redirect()->route('home');
         } elseif ($user->role === 'user') {
             return redirect()->route('customer.dashboard');
         } elseif ($user->role === 'agent') {
-            return redirect()->route('agent.dashboard');
-        }elseif ($user->role === 'agent') {
+            // Vérifier si l'agent appartient à l'agence "AFT Agence Louis Bleriot"
+            if (isset($user->agence) && $user->agence->nom_agence === 'AFT Agence Louis Bleriot') {
+                return redirect()->route('AFT_LOUIS_BLERIOT.dashboard');
+            }
+            if (isset($user->agence) && $user->agence->nom_agence === 'IPMS-SIMEX-CI') {
+                return redirect()->route('IPMS_SIMEXCI.dashboard');
+            }
+            if (isset($user->agence) && $user->agence->nom_agence === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                return redirect()->route('IPMS_SIMEXCI_ANGRE.dashboard');
+            }
+            if (isset($user->agence) && $user->agence->nom_agence === 'Agence de Chine') {
+                return redirect()->route('AGENCE_CHINE.dashboard');
+            }
+            // Sinon, rediriger vers la route générale de l'agent
             return redirect()->route('agent.dashboard');
         }
 

@@ -16,15 +16,15 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Statut</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -63,8 +63,8 @@ $(document).ready(function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
             { data: 'etat' },
             {data: 'created_at',
                 render: function(data, type, row) {

@@ -54,7 +54,7 @@
                           <li class="nav-item">
                             <a href="{{ route('colis.hold') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Colis en attente') }}</p>
+                                <p>{{ __('Dévis en attente') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -74,7 +74,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('colis.create.step1') }}" class="nav-link">
+                            <a href="{{ route('colis.create.colis') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
@@ -88,7 +88,7 @@
                         <li class="nav-item">
                             <a href="{{ route('colis.dump') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Voir les colis arrivé') }}</p>
+                                <p>{{ __('Voir les colis arrivés') }}</p>
                             </a>
                         </li>
                     </ul>
@@ -104,13 +104,13 @@
                         <li class="nav-item">
                             <a href="{{ route('colis.liste.contenaire') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Colis en conteneur') }}</p>
+                                <p>{{ __('Colis en conteneurs') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('colis.liste.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Vol de cargaison') }}</p>
+                                <p>{{ __('Vol de cargaisons') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

@@ -64,10 +64,8 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="role">Rôle:</label>
-                                            <select name="role" value="{{ old('role') }}" class="form-control" id="role">
-                                                <option value="admin">Admin</option>
-                                                <option value="user">Utilisateur</option>
-                                                <option value="provider">Fournisseur</option>
+                                            <select name="role" value="{{ old('role') }}" class="form-control" id="role" readonly>
+                                                <option value="agent">Agent</option>
                                             </select>
                                         </div>
                                     </div>

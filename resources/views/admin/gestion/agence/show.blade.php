@@ -18,34 +18,34 @@
                             value="{{ $agence->nom_agence }}" class="form-control" readonly>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="mb-3">
                     <label for="prenom_expediteur" class="form-label">Adresse de l'agence</label>
                     <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
                             value="{{ $agence->adresse_agence }}" class="form-control" readonly>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="mb-3">
                     <label for="pays_agence" class="form-label">Pays de l'agence</label>
                     <input type="text" name="pays_agence" id="pays_agence" 
                             value="{{ $agence->pays_agence }}" class="form-control" readonly>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="mb-3">
                     <label for="devise_agence" class="form-label">Dévise</label>
                     <input type="text" name="devise_agence" id="devise_agence" 
                             value="{{ $agence->devise_agence }}" class="form-control" readonly>
                 </div>
             </div>
-            <div class="col-md-6">
+            {{-- <div class="col-md-6">
                 <div class="mb-3">
                     <label for="prix_kg" class="form-label">Prix en kg</label>
                     <input type="text" name="prix_kg" id="prix_kg" 
                             value="{{ $agence->prix_au_kg }}" class="form-control" readonly>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
    {{-- Bouton valider --}}

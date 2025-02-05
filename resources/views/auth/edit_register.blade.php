@@ -41,14 +41,44 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="email">Adresse email</label>
+                                    <label for="email">E-mail</label>
                                     <input id="email" type="email" 
                                            class="form-control form-control-lg @error('email') is-invalid @enderror"
                                            name="email" value="{{$email}}" 
                                            required autocomplete="email">
                                     @error('email')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tel">Téléphone</label>
+                                    <input id="tel" type="tel" 
+                                           class="form-control form-control-lg @error('tel') is-invalid @enderror"
+                                           name="tel" value="{{$tel}}" 
+                                           required autocomplete="tel" autofocus>
+                                    @error('tel')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="adresse">Adresse</label>
+                                    <input id="adresse" type="text" 
+                                           class="form-control form-control-lg @error('adresse') is-invalid @enderror"
+                                           name="adresse" value="{{$adresse}}" 
+                                           required autocomplete="adresse" autofocus>
+                                    @error('adresse')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>

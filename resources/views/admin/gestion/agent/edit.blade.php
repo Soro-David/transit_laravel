@@ -39,13 +39,13 @@
                             value="" class="form-control">
                 </div>
             </div>
-            <div class="col-md-6">
+            {{-- <div class="col-md-6">
                 <div class="mb-3">
                     <label for="prix_au_kg" class="form-label">Prix en kg</label>
                     <input type="text" name="prix_kg" id="prix_au_kg" 
                             value="" class="form-control" required>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
     {{-- Boutons "Retour" et "Mise à jour" --}}

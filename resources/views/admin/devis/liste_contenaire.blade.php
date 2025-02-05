@@ -13,14 +13,14 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>

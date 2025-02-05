@@ -30,15 +30,14 @@
     
     <!-- Row 1: Products, Orders, Income -->
     <div class="row">
-       
         <!-- Total Products -->
         <div class="col-lg-6 col-4">
             <div class="small-box bg-red">
                 <div class="inner">
                     <h3>{{$products_count}}</h3>
-                    <h3>{{ __('Contenaire fermer') }}</h3>
+                    <h3>{{ __('Conteneur fermer') }}</h3>
                 </div>
-                <div class="icon">
+                <div class="icon">p
                     <i class="fas fa-dolly-flatbed"></i>
                 </div>
                 <a href="{{route('products.index')}}" class="small-box-footer">

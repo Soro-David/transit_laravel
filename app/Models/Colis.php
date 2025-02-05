@@ -13,6 +13,7 @@ class Colis extends Model
         'reference_colis',
         'reference_contenaire',
         'quantite_colis',
+        'description_colis',
         'type_embalage',
         'valeur_colis',
         'poids_colis',
@@ -27,6 +28,8 @@ class Colis extends Model
         'etat',
         'status',
         'client_id',
+        'dimension_result',
+        'type_colis'
         
     ];
 

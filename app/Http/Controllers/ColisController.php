@@ -233,6 +233,270 @@ private function generateReferenceColis()
         return $baseReference; // Retourner la référence finale
     }
 
+    public function add_colis(Request $request)
+    {
+        
+        $agences = Agence::select('nom_agence', 'id')->get();
+        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        return view('admin.colis.add_colis', compact('agences','referenceColis'));
+    }
+
+    public function store_colis(Request $request)
+    {
+        try {
+            // Sauvegarde des données de la première étape dans la session
+            $request->session()->put('step1', $request->all());
+
+            session(['step1' => $request->only([
+                'nom_expediteur',
+                'prenom_expediteur', 
+                'email_expediteur', 
+                'tel_expediteur',
+                'adresse_expediteur',
+                'agence_expedition', 
+                'nom_destinataire', 
+                'prenom_destinataire',
+                'email_destinataire', 
+                'tel_destinataire',
+                'adresse_destinataire',
+                'agence_destination',
+                'mode_transit',
+                'reference_colis',
+                'quantite_colis',
+                'type_embalage',
+                'hauteur',
+                'largeur',
+                'longueur',
+                'dimension_result',
+                'type_colis',
+                'poids',
+                'description_colis',
+            ])]);
+
+            return redirect()->route('colis.create.payement');
+
+        } catch (\Exception $e) {
+            // Enregistre l'erreur dans les logs
+            \Log::error('Erreur lors de l\'enregistrement du colis : ' . $e->getMessage());
+
+            // Retourne une réponse avec un message d'erreur
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'enregistrement du colis. Veuillez réessayer.');
+        }
+    }
+
+
+    public function stepPayment()
+    {
+       
+        return view('admin.colis.add.payement');
+    }
+
+    public function storePayment(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
+            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
+            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+            //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+            // ], [
+            //     'required' => 'Le champ :attribute est obligatoire.',
+            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
+            //     'numeric' => 'Le champ :attribute doit être un nombre.',
+            //     'min' => 'Le champ :attribute doit être au moins :min.',
+    
+            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
+            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+    
+            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
+            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
+            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
+            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
+            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
+            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
+            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
+            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
+            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
+            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
+            ]);
+    
+            // Stocker les données en session
+
+
+            session(['step2' => $request->only([
+                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
+            ])]);
+            return response()->json([
+                'success' => true,
+                'redirect' => route('colis.generer.qrcode'),
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
+            ], 500);
+        }
+    }
+    
+
+    public function generer_qrcode(Request $request)
+    {
+        // Fusionner toutes les données de session dans un tableau
+        $data = array_merge(
+            session('step1', []),
+            session('step2', [])
+        );
+    // dd($data);
+        // Ajouter le statut au tableau de données
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
+        $data['etat'] = $data['etat'] ?? 'Validé';
+    
+        // Vérifiez que les données sont bien réparties pour chaque table
+        $expediteurData = [
+            'nom' => $data['nom_expediteur'],
+            'prenom' => $data['prenom_expediteur'],
+            'email' => $data['email_expediteur'],
+            'tel' => $data['tel_expediteur'],
+            'agence' => $data['agence_expedition'],
+            'adresse' => $data['adresse_expediteur'],
+        ];
+    
+        $destinataireData = [
+            'nom' => $data['nom_destinataire'],
+            'prenom' => $data['prenom_destinataire'],
+            'email' => $data['email_destinataire'],
+            'tel' => $data['tel_destinataire'],
+            'agence' => $data['agence_destination'],
+            'adresse' => $data['adresse_destinataire'],
+        ];
+    // dd($destinataireData);
+        // Initialisation du tableau pour stocker les données des colis
+        $colisData = [];
+    
+        // Parcourir les tableaux pour construire $colisData
+        foreach ($data['quantite_colis'] as $index => $quantite) {
+            $hauteur = $data['hauteur'][$index] ?? null;
+            $largeur = $data['largeur'][$index] ?? null;
+            $longueur = $data['longueur'][$index] ?? null;
+            
+            if (isset($hauteur, $largeur, $longueur)) {
+                $dimension_result = "{$hauteur}x{$largeur}x{$longueur}";
+            } else {
+                $dimension_result = null;
+            }
+            
+            // dd($dimension_result);
+            
+            $colisData[] = [
+                'reference_colis' => $data['reference_colis'],
+                'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                'quantite_colis' => $quantite,
+                'type_embalage' => $data['type_embalage'][$index] ?? null,
+                'poids_colis' => $data['poids_colis'][$index] ?? null,
+                // 'dimension_result' => $data['dimension_result'][$index] ?? null,
+                'mode_transit' => $data['mode_transit'] ?? null,
+                'status' => $data['status'] ?? null,
+                'etat' => $data['etat'] ?? null,
+                'type_colis' => $data['type_colis'][$index] ?? null,
+                'dimension_result' => $dimension_result,
+                'description_colis' => $data['description_colis'][$index] ?? null,
+            ];
+        }
+        
+    // dd($colisData);
+        $nombreQuantiteColis = count($data['quantite_colis']);
+    
+        $payementData = [
+            'mode_de_payement' => $data['mode_payement'],
+            'montant_reçu' => $data['montant_reçu'],
+            'operateur_mobile' => $data['operateur_mobile'],
+            'numero_compte' => $data['numero_compte'],
+            'nom_banque' => $data['nom_banque'],
+            'id_transaction' => $data['transaction_id'],
+            'numero_tel' => $data['numero_tel'],
+            'numero_cheque' => $data['numero_cheque'],
+        ];
+    // dd($payementData);
+        // Insérer les données dans chaque table
+        $expediteur = Expediteur::create($expediteurData);
+        $destinataire = Destinataire::create($destinataireData);
+        $payement = Paiement::create($payementData);
+    
+        // Créer les colis
+        $colis = [];
+        foreach ($colisData as $colisItem) {
+            $colis[] = Colis::create(array_merge($colisItem, [
+                'expediteur_id' => $expediteur->id,
+                'destinataire_id' => $destinataire->id,
+                'paiement_id' => $payement->id,
+            ]));
+        }
+    // dd($colis);
+        // Générer les QR codes pour chaque colis
+        foreach ($colis as $colisItem) {
+            // Données à encoder dans le QR code
+            $qrData = [
+                'Référence colis' => $colisItem->reference_colis,
+                'Statut' => $colisItem->etat,
+                'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
+                'Nom Destinataire' => $destinataire->nom . ' ' . $destinataire->prenom,
+                'Téléphone Destinataire' => $destinataire->tel,
+                'Agence Destination' => $destinataire->agence ?? '',
+                'Lieu de Destination' => $destinataire->adresse ?? '',
+            ];
+    
+            // Construire le contenu du QR code
+            $qrCodeContent = '';
+            foreach ($qrData as $key => $value) {
+                $qrCodeContent .= "{$key}: {$value}\n";
+            }
+    
+            // Générer le QR code
+            $qrCode = new QrCode($qrCodeContent);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $pngData = $result->getString();
+    
+            // Définir le chemin du fichier QR code
+            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+            $fullPath = public_path($filePath);
+    
+            // Vérifier et créer le répertoire cible si nécessaire
+            $directory = dirname($fullPath);
+            if (!File::exists($directory)) {
+                File::makeDirectory($directory, 0755, true);
+            }
+    
+            // Sauvegarder le fichier QR code dans le storage
+            file_put_contents($fullPath, $pngData);
+    
+            // Mettre à jour le chemin du QR code dans la base de données
+            $colisItem->update(['qr_code_path' => $filePath]);
+        }
+    
+        // Réinitialiser les sessions après traitement
+        session()->forget(['step1', 'step2']);
+    
+        // Retourner la vue avec les informations nécessaires
+        return view('admin.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
+    }
+
+
+
+
+
+
 
 
     public function storeStep3(Request $request)
@@ -725,6 +989,7 @@ private function generateReferenceColis()
         }
     }
 
+
     public function print_facture($id)
     {
         $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
@@ -794,7 +1059,7 @@ private function generateReferenceColis()
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', ['Devis'])  // Filtre l'état des colis
+            ->whereIn('etat', ['Devis','Validé'])  // Filtre l'état des colis
             ->get(); // Exécute la requête une seule fois
 
             return DataTables::of($colis)
@@ -808,21 +1073,11 @@ private function generateReferenceColis()
                 })
                 ->addColumn('action', function ($row) {
                    $printUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
-                   $editUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
-                   $cancelUrl = route('colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
-
                     return '
                         <div class="btn-group">
                             <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="View">
                                 <i class="fas fa-print"></i>
                             </a>
-                             <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                             <a href="' . $cancelUrl . '" class="btn btn-sm btn-info" title="View">
-                                <i class="fas fa-times"></i>
-                            </a>
-                            
                         </div>
                     ';
                 })
@@ -833,47 +1088,55 @@ private function generateReferenceColis()
 
     public function edit_qrcode($id)
     {
-        $colis = Colis::findOrFail($id);
+        // Récupérer tous les colis qui appartiennent au lot (par exemple, colonne "hold_id")
+        $colis = Colis::where('id', $id)->get();
 
-        $qrData = [
-            'Référence colis' => $colis->reference_colis,
-            'Statut' => $colis->status,
-            'Nom Expéditeur' => $colis->expediteur->nom. ' ' . $colis->expediteur->prenom,
-            'Nom Destinataire' =>  $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-            'Téléphone Destinataire' => $colis->destinataire->tel,
-            'Agence Destination' => $colis->destinataire->agence ?? '',
-            'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-        ];
-        // dd($qrData);
-         // Construire le contenu du QR code
-         $qrCodeContent = '';
-         foreach ($qrData as $key => $value) {
-             $qrCodeContent .= "{$key}: {$value}\n";
-         }
- 
-         // Générer le QR code
-         $qrCode = new QrCode($qrCodeContent);
-         $writer = new PngWriter();
-         $result = $writer->write($qrCode);
-         $pngData = $result->getString();
- 
-         // Définir le chemin du fichier QR code
-         $filePath = 'qrcodes/colis_' . $colis->id . '.png';
-         $fullPath = public_path($filePath);
- 
-         // Vérifier et créer le répertoire cible si nécessaire
-         $directory = dirname($fullPath);
-         if (!File::exists($directory)) {
-             File::makeDirectory($directory, 0755, true);
-         }
- 
-         // Sauvegarder le fichier QR code dans le storage
-         file_put_contents($fullPath, $pngData);
- 
-         // Mettre à jour le chemin du QR code dans la base de données
-         $colis->update(['qr_code_path' => $filePath]);
-        
-        return view('admin.devis.edit_qrcode', compact('colis','filePath'));
+        if ($colis->isEmpty()) {
+            abort(404, "Aucun colis trouvé pour cet identifiant.");
+        }
+
+        // Pour chaque colis, générer le QR code
+        foreach ($colis as $colisItem) {
+            $qrData = [
+                'Référence colis'       => $colisItem->reference_colis,
+                'Statut'                => $colisItem->status,
+                'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
+                'Nom Destinataire'      => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
+                'Téléphone Destinataire'=> $colisItem->destinataire->tel,
+                'Agence Destination'    => $colisItem->destinataire->agence ?? '',
+                'Lieu de Destination'   => $colisItem->destinataire->lieu_destination ?? '',
+            ];
+
+            // Construire le contenu du QR code
+            $qrCodeContent = '';
+            foreach ($qrData as $key => $value) {
+                $qrCodeContent .= "{$key}: {$value}\n";
+            }
+
+            // Générer le QR code
+            $qrCode = new QrCode($qrCodeContent);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $pngData = $result->getString();
+
+            // Définir le chemin du fichier QR code pour ce colis
+            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+            $fullPath = public_path($filePath);
+
+            // Créer le répertoire si nécessaire
+            $directory = dirname($fullPath);
+            if (!File::exists($directory)) {
+                File::makeDirectory($directory, 0755, true);
+            }
+
+            // Sauvegarder le QR code
+            file_put_contents($fullPath, $pngData);
+
+            // Mettre à jour le chemin du QR code dans la base de données
+            $colisItem->update(['qr_code_path' => $filePath]);
+        }
+
+        return view('admin.devis.edit_qrcode', compact('colis'));
     }
 
 

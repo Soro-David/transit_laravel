@@ -15,15 +15,15 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence d'expédition</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence de destination</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -35,87 +35,6 @@
                     </div>
                 </div>
         </form>
-
-    {{-- <!-- Modal for editing -->
-    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Valider le colis</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm" action="/users/{id}/edit" method="GET">
-                        <div class="modal-body">
-                            <div class="container">
-                                <div class="row">
-                                    <h4>Information destinateur & expéditeur</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Agence expéditeur</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Contact expéditeur</label>
-                                            <input type="text" name="destinataire_tel" id="destinataire_tel" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="destinataire_agence" class="form-label">Agence destinataire</label>
-                                            <input type="text" name="destinataire_agence" id="destinataire_agence" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <h4>Information colis</h4><hr>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Quantité de colis</label>
-                                            <input type="text" name="quantite_colis" id="quantite_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Valeur du Colis</label>
-                                            <input type="text" name="valeur_colis" id="valeur_colis" value="" class="form-control" disabled  required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="mode_transit" class="form-label">Mode de transit</label>
-                                            <input type="text" name="mode_transit" id="mode_transit" value="" class="form-control" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Poids du Colis</label>
-                                            <input type="text" name="poids_colis" id="poids_colis" value="" class="form-control" disabled required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Prix du Colis</label>
-                                            <input type="text" name="prix_colis" id="prix_colis" value="" class="form-control" placeholder="Sommes en CFA" required>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                            <button type="submit" class="btn btn-primary">Valider</button>
-                        </div>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div> --}}
 
     <!-- JavaScript for DataTable and Export -->
     <script>

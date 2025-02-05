@@ -1,17 +1,20 @@
 @extends('admin.layouts.admin')
 @section('content-header')
-    {{-- <h2>Création de Paiement</h2> --}}
 @endsection
 @section('content')
 <section class="p-4 mx-auto">
     <form id="paymentForm" action="#" method="POST" class="form-container">
         @csrf
-        <div class="progress-card">
-            <h3>Progression de la soumission</h3>
-            <div class="progress-container">
-                <div class="progress-bar" style="width: 100%;">Étape 5 / 5</div>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-        </div>
+        @endif
+
         <div class="form-section">
             <div class="row">
                 <div class="col-md-6">
@@ -19,7 +22,7 @@
                         <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
                         <select name="mode_payement" id="mode_payement" class="form-control" required>
                             <option value="" disabled selected>-- Sélectionnez le mode de paiement --</option>
-                            <option value="bank">Paiement bancaire</option>
+                            <option value="bank">Virement Banquaire</option>
                             <option value="mobile_money">Mobile Money</option>
                             <option value="cheque">Chèque</option>
                             <option value="cash">Espèces</option>
@@ -142,7 +145,7 @@
             });
             console.log(JSON.stringify(formDataJson, null, 2));
             $.ajax({
-                url: '{{route('colis.store.payement')}}',
+                url: '{{route('colis.store.payment')}}',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formDataJson),

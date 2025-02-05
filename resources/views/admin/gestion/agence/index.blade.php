@@ -20,7 +20,6 @@
                                             <th>ADRESSE</th>
                                             <th>PAYS</th>
                                             <th>DEVIS</th>
-                                            <th>PRIX AU KG</th>
                                             <th>ACTIONS</th>
                                         </tr>
                                     </thead>
@@ -53,6 +52,8 @@
                                             </div>
                                             @enderror
                                         </div>
+                                    </div>
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="email">Adresse:</label>
                                             <input type="email" name="adresse_agence" class="form-control" value="{{ old('adresse_agence') }}" id="adresse_agence">
@@ -62,21 +63,21 @@
                                             </div>
                                             @enderror
                                         </div>
-                                        
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="prenom">Dévise:</label>
                                             <input type="text" name="devise_agence" value="{{ old('devise_agence') }}" class="form-control" id="devise_agence">
                                         </div>
-                                        <div class="form-group">
+                                        
+                                        {{-- <div class="form-group">
                                             <label >Prix au KG:</label>
                                             <input type="text" name="prix_au_kg" class="form-control" id="prix_au_kg" value="{{ old('prix_au_kg') }}">
-                                        </div>
+                                        </div> --}}
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                                 <label for="email">Pays:</label>
                                                 <select name="pays_agence" class="form-control" value="{{ old('pays_agence') }}" id="pays_agence">
@@ -156,7 +157,6 @@
                     { data: 'adresse_agence', name: 'adresse_agence' },
                     { data: 'pays_agence', name: 'pays_agence' },
                     { data: 'devise_agence', name: 'devise_agence' },
-                    { data: 'prix_au_kg', name: 'prix_au_kg' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                     ]
             });

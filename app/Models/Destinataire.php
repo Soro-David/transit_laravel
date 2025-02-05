@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Destinataire extends Model
 {
-    protected $fillable = ['nom', 'prenom', 'email','tel','lieu_destination'];
+    protected $fillable = ['nom', 'prenom', 'email','tel','lieu_destination','agence','adresse'];
 
     // Relation avec Colis
     public function colis()

@@ -16,40 +16,21 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                         </tbody>
                                     </table>
-                                </div>
-                                <div class="container">
-                                    <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="border p-4 rounded shadow-sm">
-                                            <div class="mb-3">
-                                                <label for="commentaire1" class="form-label">Commentaire</label>
-                                                <textarea name="commentaire1" id="commentaire1" rows="5" class="form-control"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="col-6">
-                                            <label for="reference_contenaire" class="form-label">Référence Contenaire</label>
-                                            <input type="text" name="reference_contenaire" id="reference_contenaire"  placeholder="Référence du contenaire" class="form-control" readonly>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

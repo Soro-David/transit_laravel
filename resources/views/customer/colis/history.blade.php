@@ -17,15 +17,16 @@
                             <table id="productTable" class="display">
                                 <thead>
                                     <tr>
-                                        <th>Référence colis</th>
-                                        <th>Nom Expéditeur</th>
-                                        <th>Email Expéditeur</th>
+                                        <th>Référence</th>
+                                        <th>Expéditeur</th>
+                                        <th>Email</th>
                                         <th>Agence Expéditeur</th>
-                                        <th>Nom Destinataire</th>
-                                        <th>Email Destinataire</th>
+                                        <th>Destinataire</th>
+                                        <th>Email</th>
                                         <th>Agence Destinataire</th>
-                                        <th>État du colis</th>
-                                        <th>Date de mise à jour</th>
+                                        <th>Prix</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -33,7 +34,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
                     </div>
                 </div>
             </div>
@@ -95,6 +95,7 @@ $(document).ready(function() {
             },
             { data: 'destinataire_email' },
             { data: 'destinataire_agence' },
+            { data: 'prix_transit_colis' },
             { data: 'etat' }, // Assurez-vous que ce champ existe dans votre réponse
             { 
                 data: 'updated_at',

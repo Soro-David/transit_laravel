@@ -18,7 +18,7 @@
                     </a>
                 </li>
                 <li class="nav-item has-treeview mb-3">
-                    <a href="{{ route('customer_colis.create.step1') }}" class="nav-link">
+                    <a href="{{ route('customer_colis.create.colis') }}" class="nav-link">
                         <i class="fas fa-plus"></i>
                         <p>{{ __('Demander un dévis') }}</p>
                     </a>
@@ -33,7 +33,7 @@
                     <a href="{{ route('customer_colis.history') }}" class="nav-link" >
                         <i class="fas fa-box"></i> 
                         <i class="fas fa-check text-success"></i>
-                        <p>{{ __('Colis validé') }}</p>
+                        <p>{{ __('Dévis validé') }}</p>
                     </a>
                 </li>
                 <li class="nav-item has-treeview">

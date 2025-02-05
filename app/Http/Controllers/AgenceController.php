@@ -50,7 +50,7 @@ class AgenceController extends Controller
             'adresse_agence' => $request->adresse_agence,
             'pays_agence' => $request->pays_agence,
             'devise_agence' => $request->devise_agence,
-            'prix_au_kg' => $request->prix_au_kg,
+            // 'prix_au_kg' => $request->prix_au_kg,
         ]);
         return redirect()->back()->with('success', 'Agence ajouté avec succès !');
     }

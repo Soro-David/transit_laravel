@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -78,9 +80,204 @@ class CustomerColisController extends Controller
      */
     private function generateReferenceColis()
     {
-        // Exemple : "COLIS-12202423-XXXXXX"
-        return 'COLIS-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        // Récupérer l'utilisateur connecté
+        $user = Auth::user();
+        // dd($user);
+        // Vérifier si l'utilisateur est connecté
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
+    
+        // Récupérer la première lettre du nom et du prénom
+        $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
+        $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
+    // dd($firstLetterNom, $firstLetterPrenom);
+        // Récupérer la première lettre du mois actuel
+        $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
+    
+        // Initialiser le chiffre à 1
+        $increment = 1;
+    
+        // Construire la référence de base
+        $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+    
+        // Vérifier si la référence existe déjà dans la table colis
+        while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
+            // Incrémenter le chiffre
+            $increment++;
+            // Mettre à jour la référence avec le nouvel incrément
+            $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+        }
+    
+        return $baseReference; // Retourner la référence finale
     }
+
+
+    public function add_colis(Request $request)
+    {
+        $id = auth()->user()->getIdUSer();
+        // dd($id);
+        $user = User::findOrfail($id);
+        // Chargement des données
+        // dd($user);
+        $agences = Agence::select('nom_agence', 'id')->get();
+        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        return view('customer.colis.add_colis', compact('agences','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
+    }
+
+
+    public function end_colis(Request $request)
+    {
+        $id = auth()->user()->getIdUSer();
+        // dd($id);
+        $user = User::findOrfail($id);
+        // Chargement des données
+        // dd($user);
+        $agences = Agence::select('nom_agence', 'id')->get();
+        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        return view('customer.colis.fin_colis', compact('agences','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
+    }
+
+    public function store_colis(Request $request)
+    {
+        // dd($request->all());
+        try {
+            // Sauvegarde des données de la première étape dans la session
+            $request->session()->put('step1', $request->all());
+
+            session(['step1' => $request->only([
+                'nom_expediteur',
+                'prenom_expediteur', 
+                'email_expediteur', 
+                'tel_expediteur',
+                'adresse_expediteur',
+                'agence_expedition', 
+                'nom_destinataire', 
+                'prenom_destinataire',
+                'email_destinataire', 
+                'tel_destinataire',
+                'adresse_destinataire',
+                'agence_destination',
+                'mode_transit',
+                'reference_colis',
+                'quantite_colis',
+                'type_embalage',
+                'hauteur',
+                'largeur',
+                'longueur',
+                'dimension_result',
+                'type_colis',
+                'poids',
+                'description_colis',
+            ])]);
+            $data = array_merge(session('step1', []));
+
+            $data['status'] = $data['mode_payement'] ?? 'non payé';
+            $data['etat'] = $data['etat'] ?? 'En attente';
+
+            $expediteurData = [
+                'nom' => $data['nom_expediteur'],
+                'prenom' => $data['prenom_expediteur'],
+                'email' => $data['email_expediteur'],
+                'tel' => $data['tel_expediteur'],
+                'agence' => $data['agence_expedition'],
+                'adresse' => $data['adresse_expediteur'],
+            ];
+            $destinataireData = [
+                'nom' => $data['nom_destinataire'],
+                'prenom' => $data['prenom_destinataire'],
+                'email' => $data['email_destinataire'],
+                'tel' => $data['tel_destinataire'],
+                'agence' => $data['agence_destination'],
+                'adresse' => $data['adresse_destinataire'],
+            ];
+            $colisData = [];
+    
+            // Parcourir les tableaux pour construire $colisData
+            foreach ($data['quantite_colis'] as $index => $quantite) {
+                $hauteur = $data['hauteur'][$index] ?? null;
+                $largeur = $data['largeur'][$index] ?? null;
+                $longueur = $data['longueur'][$index] ?? null;
+                
+                if (isset($hauteur, $largeur, $longueur)) {
+                    $dimension_result = "{$hauteur}x{$largeur}x{$longueur}";
+                } else {
+                    $dimension_result = null;
+                }
+                
+                // dd($dimension_result);
+                
+                $colisData[] = [
+                    'reference_colis' => $data['reference_colis'],
+                    'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                    'quantite_colis' => $quantite,
+                    'type_embalage' => $data['type_embalage'][$index] ?? null,
+                    'poids_colis' => $data['poids_colis'][$index] ?? null,
+                    // 'dimension_result' => $data['dimension_result'][$index] ?? null,
+                    'mode_transit' => $data['mode_transit'] ?? null,
+                    'status' => $data['status'] ?? null,
+                    'etat' => $data['etat'] ?? null,
+                    'type_colis' => $data['type_colis'][$index] ?? null,
+                    'dimension_result' => $dimension_result,
+                    'description_colis' => $data['description_colis'][$index] ?? null,
+                ];
+            }
+            // dd($colisData);
+
+            $nombreQuantiteColis = count($data['quantite_colis']);
+    
+            // $payementData = [
+            //     'mode_de_payement' => $data['mode_payement'],
+            //     'montant_reçu' => $data['montant_reçu'],
+            //     'operateur_mobile' => $data['operateur_mobile'],
+            //     'numero_compte' => $data['numero_compte'],
+            //     'nom_banque' => $data['nom_banque'],
+            //     'id_transaction' => $data['transaction_id'],
+            //     'numero_tel' => $data['numero_tel'],
+            //     'numero_cheque' => $data['numero_cheque'],
+            // ];
+        // dd($payementData);
+            // Insérer les données dans chaque table
+            $expediteur = Expediteur::create($expediteurData);
+            $destinataire = Destinataire::create($destinataireData);
+            // $payement = Paiement::create($payementData);
+    
+            $colis = [];
+        foreach ($colisData as $colisItem) {
+            $colis[] = Colis::create(array_merge($colisItem, [
+                'expediteur_id' => $expediteur->id,
+                'destinataire_id' => $destinataire->id,
+            ]));
+        }
+
+        // dd($colis);
+            session()->forget(['step1']);
+            return redirect()->route('customer_colis.create.end');
+
+        } catch (\Exception $e) {
+            // Enregistre l'erreur dans les logs
+            \Log::error('Erreur lors de l\'enregistrement du colis : ' . $e->getMessage());
+
+            // Retourne une réponse avec un message d'erreur
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'enregistrement du colis. Veuillez réessayer.');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public function storeStep1(Request $request)
@@ -356,49 +553,54 @@ class CustomerColisController extends Controller
     // function pour le payement
     public function step_payement(Request $request, $id)
     {
-        // Vérifiez que la requête est AJAX
+        // Vérifier que la requête est bien une requête AJAX
         if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-
-        // Validez les données du formulaire
+    
+        // Valider les données du formulaire
         $validatedData = $request->validate([
-            'mode_de_paiement' => 'required|string',
-            'numero_compte' => 'nullable|string',
-            'nom_banque' => 'nullable|string',
-            'transaction_id' => 'nullable|string',
-            'numero_tel' => 'nullable|string',
-            'operateur_mobile' => 'nullable|string',
-            'numero_cheque' => 'nullable|string',
-            'colis_id' => 'required|exists:colis,id', // Assurez-vous que colis_id existe dans la table colis
+            'mode_de_paiement'  => 'required|string',
+            'numero_compte'     => 'nullable|string',
+            'nom_banque'        => 'nullable|string',
+            'transaction_id'    => 'nullable|string',
+            'numero_tel'        => 'nullable|string',
+            'operateur_mobile'  => 'nullable|string',
+            'numero_cheque'     => 'nullable|string',
         ]);
-
-        // Vérifiez si un paiement a déjà été effectué pour ce colis
-        $existingPayment = Paiement::where('colis_id', $validatedData['colis_id'])->first();
+    
+        // Récupérer le colis en utilisant le paramètre $id
+        $colis = Colis::findOrFail($id);
+        
+        // Associer le paiement au colis
+        $validatedData['colis_id'] = $id;
+    
+        // Vérifier si un paiement a déjà été effectué pour ce colis
+        $existingPayment = Paiement::where('colis_id', $id)->first();
         if ($existingPayment) {
             return response()->json(['message' => 'Le paiement a déjà été effectué pour ce colis.'], 400);
         }
-
-        // Enregistrez le paiement dans la base de données
+    
+        // Créer le paiement
         Paiement::create($validatedData);
-
-        // Mettez à jour le champ 'etat' du colis à 'Validé'
-        $colis = Colis::findOrFail($validatedData['colis_id']); // Récupérez le colis par son ID
-        $colis->etat = 'Validé'; // Modifiez le champ 'etat'
-        $colis->save(); // Enregistrez les modifications
-
+    
+        // Mettre à jour le champ 'etat' du colis en le marquant comme "Validé"
+        $colis->etat = 'Validé';
+        $colis->save();
+    
         return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
+        return redirect()->route('customer_colis.index');    
     }
-
-
+    
+    
     public function edit_payement($id)
     {
-        // dd($id);
-        // Récupérer tous les programmes pour le chauffeur avec l'ID spécifié
-        $colis = Colis::findOrfail($id);
-// dd($colis);
-        return view('customer.colis.add.edit_payement', compact('colis'));
+        // Récupérer le colis par son ID
+        $colis = Colis::findOrFail($id);
+    
+        return view('customer.colis.edit_payement', compact('colis'));
     }
+    
 // AJAX pour récupérer la liste des colis en attente
     public function get_colis(Request $request)
     {
@@ -462,6 +664,7 @@ class CustomerColisController extends Controller
             'destinataires.nom as destinataire_nom',
             'destinataires.prenom as destinataire_prenom',
             'destinataires.agence as destinataire_agence',
+            'colis.prix_transit_colis as prix_transit_colis',
             'destinataires.email as destinataire_email',
             'colis.reference_colis as reference_colis',
             'colis.etat as etat',
@@ -518,7 +721,7 @@ class CustomerColisController extends Controller
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
         ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
-        ->whereIn('etat', ['En transit','En entrepot', 'Déchargé', 'Chargé'])  
+        ->whereIn('etat', ['En transit','Validé','En entrepot', 'Déchargé', 'Chargé'])  
         ->get();
         // Construire et retourner la DataTable    
         return DataTables::of($colis)
