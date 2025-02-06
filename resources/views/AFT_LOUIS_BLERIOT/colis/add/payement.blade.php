@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 @endsection
 @section('content')
@@ -145,7 +145,7 @@
             });
             console.log(JSON.stringify(formDataJson, null, 2));
             $.ajax({
-                url: '{{route('agent_colis.store.payment')}}',
+                url: '{{route('aftlb_colis.store.payment')}}',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formDataJson),

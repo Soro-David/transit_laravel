@@ -1,11 +1,11 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
     {{-- <h2>Création de Colis</h2> --}}
 @endsection
 
 @section('content')
 <section class="p-4 mx-auto">
-    <form id="update-form" action="{{ route('agent_colis.hold.update', ['id' => $colis->id]) }}" method="POST" class="form-container">
+    <form id="update-form" action="{{ route('chine_colis.hold.update', ['id' => $colis->id]) }}" method="POST" class="form-container">
         @csrf
         @method('PUT')
         <div class="form-section">

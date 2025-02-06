@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -15,14 +15,15 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -64,7 +65,7 @@
                 language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-                ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
+                ajax: '{{ route("chine_colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
                     {
                         data: null,
@@ -74,15 +75,15 @@
                         }
                     },
                     { data: 'expediteur_tel' },
-                    { data: 'expediteur_agence' },
+                    // { data: 'expediteur_agence' },
                     {
                         data: null,
                         render: function (data, type, row) {
                             return row.destinataire_nom + ' ' + row.destinataire_prenom;
                         }
                     },
-                    { data: 'destinataire_agence' },
                     { data: 'destinataire_tel' },
+                    { data: 'destinataire_agence' },
                     { data: 'etat' },
                     { data: 'created_at',
                         render: function(data, type, row) {

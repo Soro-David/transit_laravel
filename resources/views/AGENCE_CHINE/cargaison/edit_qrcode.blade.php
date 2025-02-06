@@ -1,4 +1,4 @@
-@extends('agent.layouts.agentprint')
+@extends('AGENCE_CHINE.layouts.agentprint')
 
 @section('content-header')
 @endsection

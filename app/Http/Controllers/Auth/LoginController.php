@@ -13,24 +13,42 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
+     * Où rediriger les utilisateurs après la connexion.
      * 
      * @var string
      */
     protected $redirectTo = RouteServiceProvider::HOME;
 
     /**
-     * Create a new controller instance.
+     * Crée une nouvelle instance du contrôleur.
      * 
      * @return void
      */
     public function __construct()
     {
+        // On autorise l'accès à la page de login même pour un utilisateur déjà connecté
+        // afin de permettre la déconnexion automatique.
         $this->middleware('guest')->except('logout');
     }
 
     /**
-     * Redirect users based on their roles after login.
+     * Affiche le formulaire de connexion.
+     * 
+     * Si un utilisateur est déjà connecté, on le déconnecte afin de lui permettre de se reconnecter avec le bon compte.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\View\View
+     */
+    public function showLoginForm(Request $request)
+    {
+        if (Auth::check()) {
+            Auth::logout();
+        }
+        return view('auth.login');
+    }
+
+    /**
+     * Redirige les utilisateurs après leur authentification selon leur rôle.
      *
      * @param \Illuminate\Http\Request $request
      * @param mixed $user
@@ -43,24 +61,23 @@ class LoginController extends Controller
         } elseif ($user->role === 'user') {
             return redirect()->route('customer.dashboard');
         } elseif ($user->role === 'agent') {
-            // Vérifier si l'agent appartient à l'agence "AFT Agence Louis Bleriot"
-            if (isset($user->agence) && $user->agence->nom_agence === 'AFT Agence Louis Bleriot') {
-                return redirect()->route('AFT_LOUIS_BLERIOT.dashboard');
+            if (isset($user->agence)) {
+                switch ($user->agence->nom_agence) {
+                    case 'AFT Agence Louis Bleriot':
+                        return redirect()->route('AFT_LOUIS_BLERIOT.dashboard');
+                    case 'IPMS-SIMEX-CI':
+                        return redirect()->route('IPMS_SIMEXCI.dashboard');
+                    case 'IPMS-SIMEX-CI Angre 8ème Tranche':
+                        return redirect()->route('IPMS_SIMEXCI_ANGRE.dashboard');
+                    case 'Agence de Chine':
+                        return redirect()->route('AGENCE_CHINE.dashboard');
+                    default:
+                        return redirect()->route('agent.dashboard');
+                }
             }
-            if (isset($user->agence) && $user->agence->nom_agence === 'IPMS-SIMEX-CI') {
-                return redirect()->route('IPMS_SIMEXCI.dashboard');
-            }
-            if (isset($user->agence) && $user->agence->nom_agence === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                return redirect()->route('IPMS_SIMEXCI_ANGRE.dashboard');
-            }
-            if (isset($user->agence) && $user->agence->nom_agence === 'Agence de Chine') {
-                return redirect()->route('AGENCE_CHINE.dashboard');
-            }
-            // Sinon, rediriger vers la route générale de l'agent
             return redirect()->route('agent.dashboard');
         }
 
-        // Redirection par défaut
         return redirect('/home');
     }
 }

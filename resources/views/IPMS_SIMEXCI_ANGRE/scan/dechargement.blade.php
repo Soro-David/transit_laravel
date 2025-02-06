@@ -22,14 +22,14 @@
                                             <table id="productTable" class="table table-bordered table-striped display">
                                                 <thead>
                                                     <tr>
-                                                        <th>Reference colis</th>
-                                                        <th>Nom Expéditeur</th>
-                                                        <th>Contact Expéditeur</th>
+                                                        <th>Référence</th>
+                                                        <th>Expéditeur</th>
+                                                        <th>Contact</th>
                                                         <th>Agence Expéditeur</th>
-                                                        <th>Nom Destinataire</th>
-                                                        <th>Contact Destinataire</th>
-                                                        <th>Agence Destinataire</th>
-                                                        <th>Date de Création</th>
+                                                        <th>Destinataire</th>
+                                                        <th>Contact</th>
+                                                        {{-- <th>Agence Destinataire</th> --}}
+                                                        <th>Date</th>
                                                         <th>Action</th>
         
                                                     </tr>
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 },
                 { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
+                // { data: 'agence_destination' },
                 { data: 'created_at',
                     render: function(data, type, row) {
                         // Vérifiez si la date existe et la formater

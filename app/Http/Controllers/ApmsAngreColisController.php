@@ -500,6 +500,11 @@ class ApmsAngreColisController extends Controller
         return view('IPMS_SIMEXCI_ANGRE.colis.dump');
     }
 
+    public function suivi()
+    {
+        return view('IPMS_SIMEXCI_ANGRE.colis.suivi');
+    }
+
     public function history()
     {
         return view('admin.colis.history');
@@ -688,6 +693,48 @@ public function get_colis_hold(Request $request)
         }
     }
 
+    public function get_colis_suivi(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis', 
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
+    }
+
     public function get_devis_colis(Request $request)
     {
         if ($request->ajax()) {
@@ -738,54 +785,54 @@ public function get_colis_hold(Request $request)
     }
 
     public function get_colis_valide(Request $request) 
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-                'colis.*',  
-                'colis.reference_colis as reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->where('colis.etat', 'Validé')
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-            ->get();
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                    'colis.*',  
+                    'colis.reference_colis as reference_colis',
+                    'expediteurs.nom as expediteur_nom', 
+                    'expediteurs.prenom as expediteur_prenom', 
+                    'expediteurs.tel as expediteur_tel', 
+                    'expediteurs.agence as expediteur_agence', 
+                    'destinataires.nom as destinataire_nom', 
+                    'destinataires.prenom as destinataire_prenom', 
+                    'destinataires.agence as destinataire_agence', 
+                    'destinataires.tel as destinataire_tel',
+                    'colis.etat as etat',
+                    'colis.created_at as created_at'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('colis.etat', 'Validé')
+                ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                ->get();
 
-        return DataTables::of($colis)
-            ->addColumn('etat', function ($row) {
-                return ($row->etat === 'Validé') ? 'Colis validé' : $row->etat;
-            })
-            ->addColumn('action', function ($row) {
-                $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $row->id]);
-                $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['id' => $row->id]);
-                $printUrl = route('ipms_angre_colis.facture.colis.print', ['id' => $row->id]);
-                return '
-                    <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
-                            <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                        </a>
-                        <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="Imprimer" target="_blank">
-                            <i class="fas fa-print"></i>
-                        </a>
-                    </div>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                ';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+            return DataTables::of($colis)
+                ->addColumn('etat', function ($row) {
+                    return ($row->etat === 'Validé') ? 'Colis validé' : $row->etat;
+                })
+                ->addColumn('action', function ($row) {
+                    $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $row->id]);
+                    $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['id' => $row->id]);
+                    $printUrl = route('ipms_angre_colis.facture.colis.print', ['id' => $row->id]);
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+                            </a>
+                            <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="Imprimer" target="_blank">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </div>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
-}
 
 
     // Fonction edit pour les colis en attente

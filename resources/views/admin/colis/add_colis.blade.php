@@ -221,35 +221,35 @@
                         <label class="form-label">Poids (kg)</label>
                         <input type="number" name="poids[]" class="form-control" placeholder="Poids">
                     </div>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="mb-3">
-                                <label for="type_colis" class="form-label">Type de colis</label>
-                                <select name="type_colis[]" class="form-control">
-                                    <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                                    <option value="standard">Standard</option>
-                                    <option value="fragile">Fragile</option>
-                                </select>
-                            </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="type_colis" class="form-label">Type de colis</label>
+                            <select name="type_colis[]" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                                <option value="standard">Standard</option>
+                                <option value="fragile">Fragile</option>
+                            </select>
                         </div>
-                        <div class="col-12 col-md-10 col-lg-8">
-                            <div class="mb-3">
-                              <label for="description_colis" class="form-label">Description colis</label>
-                              <textarea 
-                                name="description_colis[]" 
-                                id="description_colis" 
-                                class="form-control" 
-                                rows="4"
-                                placeholder="Saisissez la description du colis"></textarea>
-                            </div>
-                          </div>
                     </div>
+                    <div class="col-8 col-md-8 col-lg-8">
+                        <div class="mb-3">
+                            <label for="description_colis" class="form-label">Description colis</label>
+                            <textarea 
+                            name="description_colis[]" 
+                            id="description_colis" 
+                            class="form-control" 
+                            rows="4"
+                            placeholder="Saisissez la description du colis"></textarea>
+                        </div>
+                        </div>
                 </div>
             </div>
             <div class="text-end mt-2">
                 {{-- <a href="#" class="btn btn-link add-colis">Ajouter un autre colis</a> --}}
                 <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
+                <button type="button" class="btn btn-danger remove-colis" style="display: none">Retirer ce colis</button>
             </div>
             <div id="colisContainer"></div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -320,7 +320,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <div class="mb-3">
                             <label for="type_colis" class="form-label">Type de colis</label>
                             <select name="type_colis[]" class="form-control">
@@ -330,7 +330,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-12 col-md-10 col-lg-8">
+                    <div class="col-8 col-md-8 col-lg-8">
                             <div class="mb-3">
                               <label for="description_colis" class="form-label">Description colis</label>
                               <textarea 

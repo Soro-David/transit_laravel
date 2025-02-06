@@ -9,7 +9,12 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ColisController;
 use App\Http\Controllers\AgenceController;
 use App\Http\Controllers\CustomerColisController;
-use App\Http\Controllers\AgentColisController;
+use App\Http\Controllers\AgentColisController; 
+use App\Http\Controllers\AftlbColisController; 
+use App\Http\Controllers\AftlbScanController; 
+use App\Http\Controllers\ChineColisController; 
+use App\Http\Controllers\ChineScanController; 
+
 // use App\Http\Controllers\ApmsAngreColisController; 
 use App\Http\Controllers\ApmsAngreColisController;
 use App\Http\Controllers\ApmsAngreScanController;
@@ -417,97 +422,97 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
     Route::get('/', [AgentController::class, 'AFT_LOUIS_BLERIOT_INDEX'])->name('AFT_LOUIS_BLERIOT.dashboard');
 
     // Groupe de routes pour les opérations sur les colis
-    Route::prefix('agent_colis')->name('agent_colis.')->group(function(){
-        Route::get('/', [AgentColisController::class, 'index'])->name('index'); 
-        Route::get('/on-hold', [AgentColisController::class, 'hold'])->name('hold'); 
-        Route::get('/history', [AgentColisController::class, 'history'])->name('history'); 
-        Route::get('/on-dump', [AgentColisController::class, 'dump'])->name('dump'); 
-        Route::get('/create', [AgentColisController::class, 'create'])->name('create'); 
-        Route::get('/get-colis', [AgentColisController::class, 'get_colis'])->name('getColis');
-        Route::get('/get-colis-hold', [AgentColisController::class, 'get_colis_hold'])->name('get.colis.hold');
-        Route::get('/get-colis-dump', [AgentColisController::class, 'get_colis_dump'])->name('get.colis.dump');
-        Route::get('/get-colis-contenaire', [AgentColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
-        Route::get('/devis-hold', [AgentColisController::class, 'devis_hold'])->name('devis.hold');
-        Route::get('/get-devis-colis', [AgentColisController::class, 'get_devis_colis'])->name('get.devis.colis');
-        Route::get('/devis/{id}/edit', [AgentColisController::class, 'edit_qrcode'])->name('qrcode.edit');
-        Route::get('/colis-valide', [AgentColisController::class, 'colis_valide'])->name('colis.valide');
-        Route::get('/get-colis-valide', [AgentColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+    Route::prefix('aftlb_colis')->name('aftlb_colis.')->group(function(){
+        Route::get('/', [AftlbColisController::class, 'index'])->name('index'); 
+        Route::get('/on-hold-aft-louis-b', [AftlbColisController::class, 'hold'])->name('hold'); 
+        Route::get('/history-aft-louis-b', [AftlbColisController::class, 'history'])->name('history'); 
+        Route::get('/on-dump-aft-louis-b', [AftlbColisController::class, 'dump'])->name('dump'); 
+        Route::get('/create-aft-louis-b', [AftlbColisController::class, 'create'])->name('create'); 
+        Route::get('/get-colis-aft-louis-b', [AftlbColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-hold-aft-louis-b', [AftlbColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        Route::get('/get-colis-dump-aft-louis-b', [AftlbColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-colis-contenaire-aft-louis-b', [AftlbColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
+        Route::get('/devis-hold-aft-louis-b', [AftlbColisController::class, 'devis_hold'])->name('devis.hold');
+        Route::get('/get-devis-colis-aft-louis-b', [AftlbColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/devis/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+        Route::get('/colis-valide-aft-louis-b', [AftlbColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-valide-aft-louis-b', [AftlbColisController::class, 'get_colis_valide'])->name('get.colis.valide');
 
         // Routes pour les cargaisons
-        Route::get('/get-vol-colis', [AgentColisController::class, 'get_colis_vol'])->name('get.colis.vol');
-        Route::get('/cargaison-ferme', [AgentColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
-        Route::get('/get-cargaison-ferme', [AgentColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
-        Route::get('/list-vol', [AgentColisController::class, 'liste_vol'])->name('liste.vol');
+        Route::get('/get-vol-colis-aft-louis-b', [AftlbColisController::class, 'get_colis_vol'])->name('get.colis.vol');
+        Route::get('/cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
+        Route::get('/list-vol-aft-louis-b', [AftlbColisController::class, 'liste_vol'])->name('liste.vol');
 
         // Routes d'édition et mise à jour
-        Route::get('/on-hold/{id}/edit', [AgentColisController::class, 'edit_hold'])->name('hold.edit');
-        Route::get('/on-valide/{id}/edit', [AgentColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}', [AgentColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}', [AgentColisController::class, 'update_colis_valide'])->name('valide.update');
-        Route::get('/colis-facture/{id}/print', [AgentColisController::class, 'print_facture'])->name('facture.colis.print');
+        Route::get('/on-hold/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/on-hold/{id}-aft-louis-b', [AftlbColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}-aft-louis-b', [AftlbColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print-aft-louis-b', [AftlbColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // Route pour fermer un contenaire
-        Route::post('/contenaire-fermer', [AgentColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/contenaire-fermer-aft-louis-b', [AftlbColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
         
         // Liste des conteneurs
-        Route::get('/list-contenaire', [AgentColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        Route::get('/list-contenaire-aft-louis-b', [AftlbColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}', [AgentColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::delete('/colis/{id}-aft-louis-b', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
         // CRUD classique sur colis
-        Route::post('/store', [AgentColisController::class, 'store'])->name('store'); 
-        Route::get('/{coli}', [AgentColisController::class, 'show'])->name('show'); 
-        Route::get('/{coli}/edit', [AgentColisController::class, 'edit'])->name('edit'); 
-        Route::put('/{coli}', [AgentColisController::class, 'update'])->name('update'); 
-        Route::delete('/{coli}', [AgentColisController::class, 'destroy'])->name('destroy');
+        Route::post('/store-aft-louis-b', [AftlbColisController::class, 'store'])->name('store'); 
+        Route::get('/{coli}-aft-louis-b', [AftlbColisController::class, 'show'])->name('show'); 
+        Route::get('/{coli}/edit-aft-louis-b', [AftlbColisController::class, 'edit'])->name('edit'); 
+        Route::put('/{coli}-aft-louis-b', [AftlbColisController::class, 'update'])->name('update'); 
+        Route::delete('/{coli}-aft-louis-b', [AftlbColisController::class, 'destroy'])->name('destroy');
 
         // Enregistrement des expéditeurs et destinataires
-        Route::post('/store-expediteur', [AgentColisController::class, 'store_expediteur'])->name('store.expediteur'); 
-        Route::post('/store-destinataire', [AgentColisController::class, 'store_destinataire'])->name('store.destinataire'); 
-        Route::get('/search-expediteurs', [AgentColisController::class, 'search'])->name('search.expediteurs');
+        Route::post('/store-expediteur-aft-louis-b', [AftlbColisController::class, 'store_expediteur'])->name('store.expediteur'); 
+        Route::post('/store-destinataire-aft-louis-b', [AftlbColisController::class, 'store_destinataire'])->name('store.destinataire'); 
+        Route::get('/search-expediteurs-aft-louis-b', [AftlbColisController::class, 'search'])->name('search.expediteurs');
 
         // Création et stockage d'un colis
-        Route::get('/create/colis', [AgentColisController::class, 'add_colis'])->name('create.colis');
-        Route::post('/store/colis', [AgentColisController::class, 'store_colis'])->name('store.colis');
+        Route::get('/create/colis-aft-louis-b', [AftlbColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis-aft-louis-b', [AftlbColisController::class, 'store_colis'])->name('store.colis');
 
         // Gestion du paiement et génération de QR code
-        Route::get('/create/payement', [AgentColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment', [AgentColisController::class, 'storePayment'])->name('store.payment');
-        Route::get('/generer/qrcode', [AgentColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        Route::get('/create/payement-aft-louis-b', [AftlbColisController::class, 'stepPayment'])->name('create.payement');
+        Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payment');
+        Route::get('/generer/qrcode-aft-louis-b', [AftlbColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
     // Groupe de routes pour la gestion du scan
-    Route::prefix('agent_scan')->name('agent_scan.')->group(function(){
-        Route::get('/en-entrepot', [AgentScanController::class, 'entrepot'])->name('entrepot'); 
-        Route::get('/en-chargement', [AgentScanController::class, 'chargement'])->name('chargement'); 
-        Route::get('/en-dechargement', [AgentScanController::class, 'dechargement'])->name('dechargement'); 
-        Route::get('/get-colis-entrepot', [AgentScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
-        Route::get('/get-colis-dechargement', [AgentScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
-        Route::get('/get-colis-chargement', [AgentScanController::class, 'get_colis_charge'])->name('get.colis.charge');
-        Route::post('/update-colis-status/entrepot', [AgentScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
-        Route::post('/update-colis-status/charge', [AgentScanController::class, 'updateColisCharge'])->name('update.colis.charge');
-        Route::post('/update-colis-status/decharge', [AgentScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
+    Route::prefix('aftlb_scan')->name('aftlb_scan.')->group(function(){
+        Route::get('/en-entrepot-aft-louis-b', [AftlbScanController::class, 'entrepot'])->name('entrepot'); 
+        Route::get('/en-chargement-aft-louis-b', [AftlbScanController::class, 'chargement'])->name('chargement'); 
+        Route::get('/en-dechargement-aft-louis-b', [AftlbScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/get-colis-entrepot-aft-louis-b', [AftlbScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
+        Route::get('/get-colis-dechargement-aft-louis-b', [AftlbScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
+        Route::get('/get-colis-chargement-aft-louis-b', [AftlbScanController::class, 'get_colis_charge'])->name('get.colis.charge');
+        Route::post('/update-colis-status/entrepot-aft-louis-b', [AftlbScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge-aft-louis-b', [AftlbScanController::class, 'updateColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge-aft-louis-b', [AftlbScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
-        Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
+        Route::get('/chauffeur/data-aft-louis-b', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::match(['get', 'post-aft-louis-b'], '/store', [AgentTransportController::class, 'store'])->name('store');
     });
 
     // Groupe de routes pour la gestion du transport
-    Route::prefix('agent_transport')->name('agent_transport.')->group(function(){
+    Route::prefix('aftlb_transport')->name('aftlb_transport.')->group(function(){
         Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
-        Route::get('/create', [AgentTransportController::class, 'create'])->name('create');
-        Route::get('/show-chauffeur', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/store-chauffeur', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
+        Route::get('/create-aft-louis-b', [AgentTransportController::class, 'create'])->name('create');
+        Route::get('/show-chauffeur-aft-louis-b', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/planing-chauffeur-aft-louis-b', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
+        Route::get('/reference.auto/{query}-aft-louis-b', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/chauffeur/data-aft-louis-b', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/store-chauffeur-aft-louis-b', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
+        Route::post('/store-planification-aft-louis-b', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store'); 
     });
 
     // Groupe de routes pour les notifications de l'agent
-    Route::prefix('agent_notification')->name('agent_notification.')->group(function(){
+    Route::prefix('aftlb_notification')->name('aftlb_notification.')->group(function(){
         Route::get('/', [NavAdminController::class, 'index'])->name('index');
         Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
         Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
@@ -522,39 +527,22 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
         Route::get('/', [ApmsColisController::class, 'index'])->name('index'); 
-        Route::get('/on-hold-simexci', [ApmsColisController::class, 'hold'])->name('hold'); 
-        Route::get('/history-simexci', [ApmsColisController::class, 'history'])->name('history'); 
         Route::get('/on-dump-simexci', [ApmsColisController::class, 'dump'])->name('dump'); 
-        Route::get('/create-simexci', [ApmsColisController::class, 'create'])->name('create'); 
-        Route::get('/get-colis-simexci', [ApmsColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/on-suivi-simexci', [ApmsColisController::class, 'suivi'])->name('suivi'); 
         Route::get('/get-colis-hold-simexci', [ApmsColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/get-colis-dump-simexci', [ApmsColisController::class, 'get_colis_dump'])->name('get.colis.dump');
-        Route::get('/get-colis-contenaire-simexci', [ApmsColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
-        Route::get('/devis-hold-simexci', [ApmsColisController::class, 'devis_hold'])->name('devis.hold');
-        Route::get('/get-devis-colis-simexci', [ApmsColisController::class, 'get_devis_colis'])->name('get.devis.colis');
-        Route::get('/devis/{id}/edit-simexci', [ApmsColisController::class, 'edit_qrcode'])->name('qrcode.edit');
-        Route::get('/colis-valide-simexci', [ApmsColisController::class, 'colis_valide'])->name('colis.valide');
-        Route::get('/get-colis-valide-simexci', [ApmsColisController::class, 'get_colis_valide'])->name('get.colis.valide');
-
-        // Routes pour les cargaisons
-        Route::get('/get-vol-colis-simexci', [ApmsColisController::class, 'get_colis_vol'])->name('get.colis.vol');
-        Route::get('/cargaison-ferme-simexci', [ApmsColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
-        Route::get('/get-cargaison-ferme-simexci', [ApmsColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
-        Route::get('/list-vo-simexcil', [ApmsColisController::class, 'liste_vol'])->name('liste.vol');
-
+        Route::get('/get-colis-suivi-simexci', [ApmsColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
+       
+        Route::get('/create/colis-simexci', [ApmsColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis-simexci', [ApmsColisController::class, 'store_colis'])->name('store.colis');
+     
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit', [ApmsColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit', [ApmsColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/on-hold/{id}', [ApmsColisController::class, 'update_hold'])->name('hold.update');
         Route::put('/on-valide/{id}', [ApmsColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print', [ApmsColisController::class, 'print_facture'])->name('facture.colis.print');
-
-        // Route pour fermer un contenaire
-        Route::post('/contenaire-fermer', [ApmsColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
-        
-        // Liste des conteneurs
-        Route::get('/list-contenaire', [ApmsColisController::class, 'liste_contenaire'])->name('liste.contenaire');
-        
+  
         // Suppression d'un colis validé
         Route::delete('/colis/{id}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
@@ -565,19 +553,6 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::put('/{coli}', [ApmsColisController::class, 'update'])->name('update'); 
         Route::delete('/{coli}', [ApmsColisController::class, 'destroy'])->name('destroy');
 
-        // Enregistrement des expéditeurs et destinataires
-        Route::post('/store-expediteur', [ApmsColisController::class, 'store_expediteur'])->name('store.expediteur'); 
-        Route::post('/store-destinataire', [ApmsColisController::class, 'store_destinataire'])->name('store.destinataire'); 
-        Route::get('/search-expediteurs', [ApmsColisController::class, 'search'])->name('search.expediteurs');
-
-        // Création et stockage d'un colis
-        Route::get('/create/colis', [ApmsColisController::class, 'add_colis'])->name('create.colis');
-        Route::post('/store/colis', [ApmsColisController::class, 'store_colis'])->name('store.colis');
-
-        // Gestion du paiement et génération de QR code
-        Route::get('/create/payement', [ApmsColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment', [ApmsColisController::class, 'storePayment'])->name('store.payment');
-        Route::get('/generer/qrcode', [ApmsColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
         // Groupe de routes pour la gestion du scan
@@ -627,7 +602,9 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/', [ApmsAngreColisController::class, 'index'])->name('index'); 
         Route::get('/history-IPMS', [ApmsAngreColisController::class, 'history'])->name('history'); 
         Route::get('/on-dump-IPMS', [ApmsAngreColisController::class, 'dump'])->name('dump'); 
+        Route::get('/on-suivi-IPMS', [ApmsAngreColisController::class, 'suivi'])->name('suivi'); 
         Route::get('/get-colis-dump-IPMS', [ApmsAngreColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-colis-suivi-IPMS', [ApmsAngreColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
        
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_hold'])->name('hold.edit');
@@ -693,84 +670,84 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
     Route::get('/', [AgentController::class, 'AGENCE_CHINE_INDEX'])->name('AGENCE_CHINE.dashboard');
 
     // Groupe de routes pour les opérations sur les colis
-    Route::prefix('agent_colis')->name('agent_colis.')->group(function(){
-        Route::get('/', [AgentColisController::class, 'index'])->name('index'); 
-        Route::get('/on-hold', [AgentColisController::class, 'hold'])->name('hold'); 
-        Route::get('/history', [AgentColisController::class, 'history'])->name('history'); 
-        Route::get('/on-dump', [AgentColisController::class, 'dump'])->name('dump'); 
-        Route::get('/create', [AgentColisController::class, 'create'])->name('create'); 
-        Route::get('/get-colis', [AgentColisController::class, 'get_colis'])->name('getColis');
-        Route::get('/get-colis-hold', [AgentColisController::class, 'get_colis_hold'])->name('get.colis.hold');
-        Route::get('/get-colis-dump', [AgentColisController::class, 'get_colis_dump'])->name('get.colis.dump');
-        Route::get('/get-colis-contenaire', [AgentColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
-        Route::get('/devis-hold', [AgentColisController::class, 'devis_hold'])->name('devis.hold');
-        Route::get('/get-devis-colis', [AgentColisController::class, 'get_devis_colis'])->name('get.devis.colis');
-        Route::get('/devis/{id}/edit', [AgentColisController::class, 'edit_qrcode'])->name('qrcode.edit');
-        Route::get('/colis-valide', [AgentColisController::class, 'colis_valide'])->name('colis.valide');
-        Route::get('/get-colis-valide', [AgentColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+    Route::prefix('chine_colis')->name('chine_colis.')->group(function(){
+        Route::get('/', [ChineColisController::class, 'index'])->name('index'); 
+        Route::get('/on-hold', [ChineColisController::class, 'hold'])->name('hold'); 
+        Route::get('/history', [ChineColisController::class, 'history'])->name('history'); 
+        Route::get('/on-dump', [ChineColisController::class, 'dump'])->name('dump'); 
+        Route::get('/create', [ChineColisController::class, 'create'])->name('create'); 
+        Route::get('/get-colis', [ChineColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-hold', [ChineColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        Route::get('/get-colis-dump', [ChineColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-colis-contenaire', [ChineColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
+        Route::get('/devis-hold', [ChineColisController::class, 'devis_hold'])->name('devis.hold');
+        Route::get('/get-devis-colis', [ChineColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/devis/{id}/edit', [ChineColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+        Route::get('/colis-valide', [ChineColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-valide', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
 
         // Routes pour les cargaisons
-        Route::get('/get-vol-colis', [AgentColisController::class, 'get_colis_vol'])->name('get.colis.vol');
-        Route::get('/cargaison-ferme', [AgentColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
-        Route::get('/get-cargaison-ferme', [AgentColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
-        Route::get('/list-vol', [AgentColisController::class, 'liste_vol'])->name('liste.vol');
+        Route::get('/get-vol-colis', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
+        Route::get('/cargaison-ferme', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme', [ChineColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
+        Route::get('/list-vol', [ChineColisController::class, 'liste_vol'])->name('liste.vol');
 
         // Routes d'édition et mise à jour
-        Route::get('/on-hold/{id}/edit', [AgentColisController::class, 'edit_hold'])->name('hold.edit');
-        Route::get('/on-valide/{id}/edit', [AgentColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}', [AgentColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}', [AgentColisController::class, 'update_colis_valide'])->name('valide.update');
-        Route::get('/colis-facture/{id}/print', [AgentColisController::class, 'print_facture'])->name('facture.colis.print');
+        Route::get('/on-hold/{id}/edit', [ChineColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit', [ChineColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/on-hold/{id}', [ChineColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}', [ChineColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print', [ChineColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // Route pour fermer un contenaire
-        Route::post('/contenaire-fermer', [AgentColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/contenaire-fermer', [ChineColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
         
         // Liste des conteneurs
-        Route::get('/list-contenaire', [AgentColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        Route::get('/list-contenaire', [ChineColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}', [AgentColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::delete('/colis/{id}', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
         // CRUD classique sur colis
-        Route::post('/store', [AgentColisController::class, 'store'])->name('store'); 
-        Route::get('/{coli}', [AgentColisController::class, 'show'])->name('show'); 
-        Route::get('/{coli}/edit', [AgentColisController::class, 'edit'])->name('edit'); 
-        Route::put('/{coli}', [AgentColisController::class, 'update'])->name('update'); 
-        Route::delete('/{coli}', [AgentColisController::class, 'destroy'])->name('destroy');
+        Route::post('/store', [ChineColisController::class, 'store'])->name('store'); 
+        Route::get('/{coli}', [ChineColisController::class, 'show'])->name('show'); 
+        Route::get('/{coli}/edit', [ChineColisController::class, 'edit'])->name('edit'); 
+        Route::put('/{coli}', [ChineColisController::class, 'update'])->name('update'); 
+        Route::delete('/{coli}', [ChineColisController::class, 'destroy'])->name('destroy');
 
         // Enregistrement des expéditeurs et destinataires
-        Route::post('/store-expediteur', [AgentColisController::class, 'store_expediteur'])->name('store.expediteur'); 
-        Route::post('/store-destinataire', [AgentColisController::class, 'store_destinataire'])->name('store.destinataire'); 
-        Route::get('/search-expediteurs', [AgentColisController::class, 'search'])->name('search.expediteurs');
+        Route::post('/store-expediteur', [ChineColisController::class, 'store_expediteur'])->name('store.expediteur'); 
+        Route::post('/store-destinataire', [ChineColisController::class, 'store_destinataire'])->name('store.destinataire'); 
+        Route::get('/search-expediteurs', [ChineColisController::class, 'search'])->name('search.expediteurs');
 
         // Création et stockage d'un colis
-        Route::get('/create/colis', [AgentColisController::class, 'add_colis'])->name('create.colis');
-        Route::post('/store/colis', [AgentColisController::class, 'store_colis'])->name('store.colis');
+        Route::get('/create/colis', [ChineColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis', [ChineColisController::class, 'store_colis'])->name('store.colis');
 
         // Gestion du paiement et génération de QR code
-        Route::get('/create/payement', [AgentColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment', [AgentColisController::class, 'storePayment'])->name('store.payment');
-        Route::get('/generer/qrcode', [AgentColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        Route::get('/create/payement', [ChineColisController::class, 'stepPayment'])->name('create.payement');
+        Route::post('/store/payment', [ChineColisController::class, 'storePayment'])->name('store.payment');
+        Route::get('/generer/qrcode', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
     // Groupe de routes pour la gestion du scan
-    Route::prefix('agent_scan')->name('agent_scan.')->group(function(){
-        Route::get('/en-entrepot', [AgentScanController::class, 'entrepot'])->name('entrepot'); 
-        Route::get('/en-chargement', [AgentScanController::class, 'chargement'])->name('chargement'); 
-        Route::get('/en-dechargement', [AgentScanController::class, 'dechargement'])->name('dechargement'); 
-        Route::get('/get-colis-entrepot', [AgentScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
-        Route::get('/get-colis-dechargement', [AgentScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
-        Route::get('/get-colis-chargement', [AgentScanController::class, 'get_colis_charge'])->name('get.colis.charge');
-        Route::post('/update-colis-status/entrepot', [AgentScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
-        Route::post('/update-colis-status/charge', [AgentScanController::class, 'updateColisCharge'])->name('update.colis.charge');
-        Route::post('/update-colis-status/decharge', [AgentScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
+    Route::prefix('chine_scan')->name('chine_scan.')->group(function(){
+        Route::get('/en-entrepot', [ChineScanController::class, 'entrepot'])->name('entrepot'); 
+        Route::get('/en-chargement', [ChineScanController::class, 'chargement'])->name('chargement'); 
+        Route::get('/en-dechargement', [ChineScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/get-colis-entrepot', [ChineScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
+        Route::get('/get-colis-dechargement', [ChineScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
+        Route::get('/get-colis-chargement', [ChineScanController::class, 'get_colis_charge'])->name('get.colis.charge');
+        Route::post('/update-colis-status/entrepot', [ChineScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge', [ChineScanController::class, 'updateColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge', [ChineScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
         Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
     });
 
     // Groupe de routes pour la gestion du transport
-    Route::prefix('agent_transport')->name('agent_transport.')->group(function(){
+    Route::prefix('chine_transport')->name('agent_transport.')->group(function(){
         Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
         Route::get('/create', [AgentTransportController::class, 'create'])->name('create');
         Route::get('/show-chauffeur', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
@@ -783,7 +760,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
     });
 
     // Groupe de routes pour les notifications de l'agent
-    Route::prefix('agent_notification')->name('agent_notification.')->group(function(){
+    Route::prefix('chine_notification')->name('agent_notification.')->group(function(){
         Route::get('/', [NavAdminController::class, 'index'])->name('index');
         Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
         Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');

@@ -1,5 +1,5 @@
 
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header', '')
 
 @section('content')
@@ -27,7 +27,7 @@
             <h2 class="text-center text-primary m-0">Tableau de bord</h2>
             <div class="scrolling-container">
                 {{-- <h4 class="scrolling-agency">Agence: {{$agence->nom_agence}}</h4> --}}
-                <h4 class="scrolling-agency">AFT Votre Intermediaire Credible</h4>
+                <h4 class="scrolling-agency">Agence de Chine</h4>
             </div>
         </div>
         <div class="row">

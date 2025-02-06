@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Requête AJAX pour mettre à jour l'état du colis
     $.ajax({
-    url: "{{ route('agent_scan.update.colis.entrepot') }}",
+    url: "{{ route('ipms_scan.update.colis.entrepot') }}",
     type: "POST",
     headers: {
         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),

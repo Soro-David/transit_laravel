@@ -1,8 +1,8 @@
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
+<aside class="main-sidebar sidebar-dark-primary elevation-4 position-fixed vh-100">
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
-            <a href="{{ route('agent.dashboard') }}" class="logo logo-light d-flex align-items-center">
+            <a href="{{ route('AFT_LOUIS_BLERIOT.dashboard') }}" class="logo logo-light d-flex align-items-center">
                 <span class="logo-sm">
                     <img src="{{ asset('images/LOGOAFT.png')}}" alt="Logo" class="img-fluid custom-logo" style="max-height: 90px;">
                 </span>
@@ -14,7 +14,7 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item has-treeview">
-                    <a href="" class="nav-link {{ activeSegment('') }}">
+                    <a href="{{ route('AFT_LOUIS_BLERIOT.dashboard') }}" class="nav-link {{ activeSegment('') }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>{{ __('trans.Dashboard') }}</p>
                     </a>
@@ -29,13 +29,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
+                            <a href="{{route('aftlb_colis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dévis en attente') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.devis.hold')}}" class="nav-link">
+                            <a href="{{route('aftlb_colis.devis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi des dévis') }}</p>
                             </a>
@@ -51,61 +51,25 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('agent_colis.create.colis') }}" class="nav-link">
+                            <a href="{{ route('aftlb_colis.create.colis') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.colis.valide')}}" class="nav-link">
+                            <a href="{{route('aftlb_colis.colis.valide')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Voir les colis validés') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.dump')}}" class="nav-link">
+                            <a href="{{route('aftlb_colis.dump')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Voir les colis arrivé') }}</p>
                             </a>
                         </li>
                     </ul>
                 </li>
-
-                
-                {{-- <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('products') }}">
-                        <i class="fas fa-concierge-bell"></i>
-                        <p>{{ __('Gestion des colis') }}</p>
-                        <i class="right fas fa-angle-left"></i>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{route('agent_colis.create.step1')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Ajouter') }}</p>
-                            </a>
-                        </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.on_old') }}</p>
-                            </a>
-                        </li> --}}
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Validés') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{route('agent_colis.dump')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Arrivé') }}</p>
-                            </a>
-                        </li>
-                    </ul> --}}
-                {{-- </li> --}} 
-             
                 {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
@@ -115,19 +79,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('agent_colis.liste.contenaire') }}" class="nav-link">
+                            <a href="{{ route('aftlb_colis.liste.contenaire') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Colis en conteneur') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('agent_colis.liste.vol') }}" class="nav-link">
+                            <a href="{{ route('aftlb_colis.liste.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Vol de cargaison') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('agent_colis.cargaison.ferme') }}" class="nav-link">
+                            <a href="{{ route('aftlb_colis.cargaison.ferme') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Cargaisons fermées') }}</p>
                             </a>
@@ -143,13 +107,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('agent_scan.entrepot')}}" class="nav-link">
+                            <a href="{{route('aftlb_scan.entrepot')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_scan.chargement')}}" class="nav-link">
+                            <a href="{{route('aftlb_scan.chargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chargement') }}</p>
                             </a>
@@ -161,7 +125,7 @@
                             </a>
                         </li> --}}
                         <li class="nav-item">
-                            <a href="{{route('agent_scan.dechargement')}}" class="nav-link">
+                            <a href="{{route('aftlb_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
                             </a>
@@ -225,6 +189,10 @@
 </aside>
 
 <style>
+    .main-sidebar {
+        background-color: #0055A4; /* Remplacez #007bff par le code hexadécimal de la couleur bleue souhaitée */
+    }
+
     .main-sidebar {
         top: 0;
         left: 0;

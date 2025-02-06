@@ -22,7 +22,7 @@
                                                 <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
+                                                {{-- <th>Agence Destinataire</th> --}}
                                                 <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
@@ -45,7 +45,7 @@ $(document).ready(function () {
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("agent_colis.get.colis.valide") }}', // Récupération des données via AJAX
+        ajax: '{{ route("ipms_angre_colis.get.colis.suivi")}}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
             {
@@ -64,7 +64,7 @@ $(document).ready(function () {
                 }
             },
             { data: 'destinataire_tel' },
-            { data: 'destinataire_agence' },
+            // { data: 'destinataire_agence' },
             { data: 'etat' },
             {data: 'created_at',
                 render: function(data, type, row) {

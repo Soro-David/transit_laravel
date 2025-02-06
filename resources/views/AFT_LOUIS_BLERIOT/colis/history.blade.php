@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -93,7 +93,7 @@
         if (description && quantite && dimension && prix) {
             // Effectuer la requête AJAX pour ajouter le produit
             $.ajax({
-                url: '{{ route("agent_colis.store") }}',
+                url: '{{ route("aftlb_colis.store") }}',
                 method: "POST",
                 data: {
                     description: description,

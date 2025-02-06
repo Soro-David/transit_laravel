@@ -500,6 +500,11 @@ class ApmsColisController extends Controller
         return view('IPMS_SIMEXCI.colis.dump');
     }
 
+    public function suivi()
+    {
+        return view('IPMS_SIMEXCI.colis.suivi');
+    }
+
     public function history()
     {
         return view('IPMS_SIMEXCI.colis.history');
@@ -580,70 +585,53 @@ class ApmsColisController extends Controller
         //
     }
 
-    public function get_colis(Request $request)
-{
-    if ($request->ajax()) {
-        $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
-        return DataTables::of($users)
-            ->addColumn('action', function ($row) {
-                $editUrl = '/users/' . $row->id . '/edit';
 
-                return '
-                    <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#viewModal">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-credit-card"></i>
-                        </a>
-                    </div>
-                   
-                ';
-            })
-            ->rawColumns(['action']) // Permet de rendre le HTML
-            ->make(true);
+
+
+
+    public function get_colis_suivi(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.reference_colis as reference_colis', 
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat as etat',
+                'colis.created_at as created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+            // ->where('etat', 'Dechargé')  // Filtre l'état des colis
+            ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+            ->get(); // Exécute la requête une seule fois
+
+            return DataTables::of($colis)
+                ->addColumn('action', function ($row) {
+                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+                    return '
+                        <div class="btn-group">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-credit-card"></i>
+                            </a>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->make(true);
+        }
     }
-}
 
-public function get_colis_hold(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-            'colis.*',  // Sélectionne toutes les colonnes de colis
-            'colis.reference_colis as reference_colis', 
-            'expediteurs.nom as expediteur_nom', 
-            'expediteurs.prenom as expediteur_prenom', 
-            'expediteurs.tel as expediteur_tel', 
-            'expediteurs.agence as expediteur_agence', 
-            'destinataires.nom as destinataire_nom', 
-            'destinataires.prenom as destinataire_prenom', 
-            'destinataires.agence as destinataire_agence', 
-            'destinataires.tel as destinataire_tel',
-            'colis.etat as etat',
-            'colis.created_at as created_at'
-        )
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-        ->where('etat', 'En attente')  // Filtre l'état des colis
-        ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-        ->get(); // Exécute la requête une seule fois
-
-        return DataTables::of($colis)
-            ->addColumn('action', function ($row) {
-                $editUrl = route('ipms_angre_colis.hold.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
-
-                return '
-                    <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
-                            <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                        </a>
-                    </div>
-                ';
-            })
-            ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-            ->make(true);
-    }
-}
     // Ajax pour les colis arrivés
     public function get_colis_dump(Request $request)
     {

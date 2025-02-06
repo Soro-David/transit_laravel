@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -93,7 +93,7 @@
         if (description && quantite && dimension && prix) {
             // Effectuer la requête AJAX pour ajouter le produit
             $.ajax({
-                url: '{{ route("agent_colis.store") }}',
+                url: '{{ route("chine_colis.store") }}',
                 method: "POST",
                 data: {
                     description: description,

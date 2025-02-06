@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
@@ -23,14 +23,14 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Date de Création</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
 
                                             </tr>
@@ -77,61 +77,63 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("scanner_entrepot");
 
     const onScanSuccess = (decodedText) => {
-    const reference_colis = decodedText.match(/Référence colis:\s*(\S+)/);  // Expression régulière pour extraire la référence
-    console.log(`Code détecté : ${decodedText}`);
-    console.log(`Référence : ${reference_colis[1]}`);  // Affiche la référence extraite
+        // Expression régulière pour extraire la référence et l'identifiant
+        const referenceMatch = decodedText.match(/Référence colis:\s*(\S+)/);
+        const idMatch = decodedText.match(/Identifiant:\s*(\S+)/);
 
-    resultElement.innerText = `Résultat : ${decodedText}`;
-
-    // Requête AJAX pour mettre à jour l'état du colis
-    $.ajax({
-    url: "{{ route('agent_scan.update.colis.charge') }}",
-    type: "POST",
-    headers: {
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-    },
-    data: {
-        colisId: reference_colis[1], // Envoie la référence extraite
-    },
-    success: function (response) {
-        console.log("Réponse du serveur :", response);
-
-        if (response.success) {
-            // Succès : le colis a été mis à jour
-            resultElement.innerText = `Colis ${reference_colis[1]} à été chargé avec succès`;
-        } else {
-            // Affichage du message d'erreur retourné par le serveur
-            if (response.message === "Le colis est déjà Chargé") {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            } else {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            }
+        // Vérifier que les deux valeurs ont bien été extraites
+        if (!referenceMatch || !idMatch) {
+            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            resultElement.innerText = "Erreur : données QR code invalides.";
+            return;
         }
-    },
-    error: function (error) {
-        console.error("Erreur lors du dechargement :", error);
 
-        // Vérification si l'erreur contient une réponse JSON
-        if (error.responseJSON && error.responseJSON.message) {
-            resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
-        } else {
-            resultElement.innerText = "Erreur de dechargement du colis.";
-        }
-    },
-});
+        console.log(`Code détecté : ${decodedText}`);
+        console.log(`Référence : ${referenceMatch[1]}`);
+        console.log(`Identifiant : ${idMatch[1]}`);
+        resultElement.innerText = `Résultat : ${decodedText}`;
 
+        // Requête AJAX pour mettre à jour l'état du colis
+        $.ajax({
+            url: "{{ route('aftlb_scan.update.colis.entrepot') }}",
+            type: "POST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            },
+            data: {
+                colisId: referenceMatch[1], // Envoie la référence extraite
+                id: idMatch[1],             // Envoie l'identifiant extrait
+            },
+            success: function (response) {
+                console.log("Réponse du serveur :", response);
 
-    // Arrête le scanner et masque l'élément caméra
-    html5QrCode
-        .stop()
-        .then(() => {
-            readerElement.style.display = "none";
-            restartButton.style.display = "block";
-        })
-        .catch((err) => {
-            console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+                if (response.success) {
+                    resultElement.innerText = `Colis ${referenceMatch[1]} mis en entrepôt avec succès.`;
+                } else {
+                    resultElement.innerText = `Erreur : ${response.message}`;
+                }
+            },
+            error: function (error) {
+                console.error("Erreur lors du chargement :", error);
+                if (error.responseJSON && error.responseJSON.message) {
+                    resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
+                } else {
+                    resultElement.innerText = "Erreur de chargement du colis.";
+                }
+            },
         });
-};
+
+        // Arrête le scanner et masque l'élément caméra
+        html5QrCode
+            .stop()
+            .then(() => {
+                readerElement.style.display = "none";
+                restartButton.style.display = "block";
+            })
+            .catch((err) => {
+                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+            });
+    };
 
     const startScanner = () => {
         readerElement.style.display = "block";
@@ -174,8 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
     restartButton.addEventListener("click", startScanner);
 });
 
-
-
     $(document).ready(function () {
         // Initialisation de la table DataTable
         var table = $("#productTable").DataTable({
@@ -183,9 +183,9 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.charge") }}', // Récupération des données via AJAX
+            ajax: '{{ route("aftlb_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
-                { data: 'reference_colis' },
+                // { data: 'reference_colis' },
                 { data: 'reference_colis' },
                 {
                     data: null,
@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 },
                 { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
+                // { data: 'agence_expedition' },
                 {
                     data: null,
                     render: function (data, type, row) {

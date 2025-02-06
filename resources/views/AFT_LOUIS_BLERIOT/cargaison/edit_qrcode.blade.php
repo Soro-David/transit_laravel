@@ -1,4 +1,4 @@
-@extends('agent.layouts.agentprint')
+@extends('AFT_LOUIS_BLERIOT.layouts.agentprint')
 
 @section('content-header')
 @endsection

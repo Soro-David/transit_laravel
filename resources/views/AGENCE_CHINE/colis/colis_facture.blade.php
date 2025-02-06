@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
     {{-- <h2>Création de Colis</h2> --}}
 @endsection

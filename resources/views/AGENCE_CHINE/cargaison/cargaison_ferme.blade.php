@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -15,15 +15,15 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -43,7 +43,7 @@ $(document).ready(function () {
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
+        ajax: '{{ route("chine_colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
 
@@ -55,7 +55,7 @@ $(document).ready(function () {
                 }
             },
             { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            // { data: 'expediteur_agence' },
             {
                 data: null,
                 render: function (data, type, row) {

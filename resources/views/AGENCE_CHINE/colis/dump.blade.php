@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -18,7 +18,7 @@
                                                 <th>Référence</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Expéditeur</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
@@ -154,8 +154,9 @@ $(document).ready(function () {
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("agent_colis.get.colis.dump") }}', // Récupération des données via AJAX
+        ajax: '{{ route("chine_colis.get.colis.dump") }}', // Récupération des données via AJAX
         columns: [
+            { data: 'reference_colis' },
             {
                 data: null,
                 render: function (data, type, row) {
@@ -164,15 +165,15 @@ $(document).ready(function () {
                 }
             },
             { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            // { data: 'expediteur_agence' },
             {
                 data: null,
                 render: function (data, type, row) {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
             { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {

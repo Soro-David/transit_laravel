@@ -1,4 +1,4 @@
-@extends('IPMS_SIMEXCI .layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.decharge") }}', // Récupération des données via AJAX
+            ajax: '{{ route("ipms_scan.get.colis.decharge") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
                 {

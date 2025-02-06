@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -22,14 +22,14 @@
                                             <table id="productTable" class="table table-bordered table-striped display">
                                                 <thead>
                                                     <tr>
-                                                        <th>Reference colis</th>
-                                                        <th>Nom Expéditeur</th>
-                                                        <th>Contact Expéditeur</th>
-                                                        <th>Agence Expéditeur</th>
-                                                        <th>Nom Destinataire</th>
-                                                        <th>Contact Destinataire</th>
+                                                        <th>Reference</th>
+                                                        <th>Expéditeur</th>
+                                                        <th>Téléphone</th>
+                                                        {{-- <th>Agence Expéditeur</th> --}}
+                                                        <th>Destinataire</th>
+                                                        <th>Téléphone</th>
                                                         <th>Agence Destinataire</th>
-                                                        <th>Date de Création</th>
+                                                        <th>Date</th>
                                                         <th>Action</th>
         
                                                     </tr>
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Requête AJAX pour mettre à jour l'état du colis
     $.ajax({
-    url: "{{ route("agent_scan.update.colis.decharge") }}",
+    url: "{{ route("aftlb_scan.update.colis.decharge") }}",
     type: "POST",
     headers: {
         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.decharge") }}', // Récupération des données via AJAX
+            ajax: '{{ route("aftlb_scan.get.colis.decharge") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
                 {

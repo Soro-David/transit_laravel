@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Requête AJAX pour mettre à jour l'état du colis
     $.ajax({
-    url: "{{ route('agent_scan.update.colis.charge') }}",
+    url: "{{ route('ipms_scan.update.colis.charge') }}",
     type: "POST",
     headers: {
         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.charge") }}', // Récupération des données via AJAX
+            ajax: '{{ route("ipms_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
                 { data: 'reference_colis' },

@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 @endsection
         {{-- @csrf --}}
@@ -231,7 +231,7 @@
 
  {{--  --}}
 <div class="modal fade" id="info_destinataire" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <form action="{{route('colis.store.destinataire')}}" method="post">
+    <form action="{{route('chine_colis.store.destinataire')}}" method="post">
         @csrf
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -306,7 +306,7 @@
 
 {{--  --}}
 <div class="modal fade" id="info_expediteur" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <form action="{{route('colis.store.expediteur')}}" method="POST">
+    <form action="{{route('chine_colis.store.expediteur')}}" method="POST">
         @csrf
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -381,7 +381,7 @@
         language: {
             url: "//cdn.datatables.net/plug-ins/2.1.8/i18n/fr-FR.json"
         },
-        ajax: '{{ route('colis.getColis') }}',
+        ajax: '{{ route('chine_colis.getColis') }}',
                 columns: [
                     { data: 'id', name: 'id' },
                     { data: 'first_name', name: 'first_name' },
@@ -482,7 +482,7 @@ $(document).ready(function () {
         allowClear: true, 
         width: '100%', 
         ajax: {
-            url: "{{ route('colis.search.expediteurs') }}",
+            url: "{{ route('chine_colis.search.expediteurs') }}",
             type: "GET",
             dataType: "json",
             delay: 250,

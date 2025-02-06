@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 @endsection
         {{-- @csrf --}}

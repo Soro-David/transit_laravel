@@ -1,9 +1,9 @@
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 @section('content')
 <section class="py-3">
     <h2 class="">Colis en attente</h2>
-    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
+    <form action="{{route('aftlb_colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -13,15 +13,15 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Référence colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -182,7 +182,7 @@
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route('agent_colis.get.colis.vol') }}',
+        ajax: '{{ route('aftlb_colis.get.colis.vol') }}',
         columns: [
             { data: 'reference_colis' },
 
@@ -194,7 +194,7 @@
                 }
             },
             { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            // { data: 'expediteur_agence' },
             {
                 data: null,
                 render: function (data, type, row) {
@@ -230,7 +230,7 @@
 
                 if (description && quantite && dimension && prix) {
                     $.ajax({
-                        url: '{{ route("colis.store") }}',
+                        url: '{{ route("aftlb_colis.store") }}',
                         method: "POST",
                         data: {
                             description: description,

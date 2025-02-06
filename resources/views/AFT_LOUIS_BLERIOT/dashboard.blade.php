@@ -1,33 +1,15 @@
 
-@extends('agent.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header', '')
 
 @section('content')
 <section>
     <div class="container-fluid">
-
-        {{-- <div class="card-box pd-20 height-100-p mb-30">
-            <div class="row align-items-center">
-                <!-- Image à gauche -->
-                <div class="col-12 col-md-4" style="text-align: center;">
-                    <img src="{{ asset('images/font_login2.jpg') }}" alt="Welcome Image" class="img-fluid custom-img">
-                </div>
-                <!-- Texte à droite -->
-                <div class="col-12 col-md-8">
-                    <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                        Welcome back <span class="weight-600 font-30 text-blue">Johnny Brown!</span>
-                    </h4>
-                    <p class="font-18 max-width-600">
-                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Unde hic non repellendus debitis iure, doloremque assumenda. Autem modi, corrupti, nobis ea iure fugiat, veniam non quaerat mollitia animi error corporis.
-                    </p>
-                </div>
-            </div>
-        </div> --}}
         <div class="dashboard-bar  p-3 mb-4 bg-white rounded">
             <h2 class="text-center text-primary m-0">Tableau de bord</h2>
             <div class="scrolling-container">
                 {{-- <h4 class="scrolling-agency">Agence: {{$agence->nom_agence}}</h4> --}}
-                <h4 class="scrolling-agency">AFT Votre Intermediaire Credible</h4>
+                <h4 class="scrolling-agency">AFT Agence Louis Bleriot</h4>
             </div>
         </div>
         <div class="row">

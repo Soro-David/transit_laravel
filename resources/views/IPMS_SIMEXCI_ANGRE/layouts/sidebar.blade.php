@@ -2,7 +2,7 @@
 <aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
-            <a href="{{ route('agent.dashboard') }}" class="logo logo-light d-flex align-items-center">
+            <a href="{{ route('IPMS_SIMEXCI_ANGRE.dashboard') }}" class="logo logo-light d-flex align-items-center">
                 <span class="logo-sm">
                     <img src="{{ asset('images/LOGOAFT.png')}}" alt="Logo" class="img-fluid custom-logo" style="max-height: 90px;">
                 </span>
@@ -56,12 +56,12 @@
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
                         </li> --}}
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.colis.valide')}}" class="nav-link">
+                        <li class="nav-item">
+                            <a href="{{route('ipms_angre_colis.suivi')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Voir les colis validés') }}</p>
+                                <p>{{ __('Suivi des colis') }}</p>
                             </a>
-                        </li> --}}
+                        </li>
                         <li class="nav-item">
                             <a href="{{route('ipms_angre_colis.dump')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -148,12 +148,7 @@
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
                         </li> --}}
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_scan.chargement')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Chargement') }}</p>
-                            </a>
-                        </li> --}}
+                       
                         {{-- <li class="nav-item">
                             <a href="{{route('agent_colis.liste.contenaire')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -164,6 +159,12 @@
                             <a href="{{route('ipms_angre_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
+                            </a>
+                        </li>
+                         <li class="nav-item">
+                            <a href="{{route('ipms_angre_scan.chargement')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Livré') }}</p>
                             </a>
                         </li>
                     </ul>
