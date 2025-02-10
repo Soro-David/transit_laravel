@@ -75,7 +75,7 @@
 
     <!-- Boutons pour retourner et imprimer -->
     <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
-        <a href="{{ route('chine_colis.create.step1') }}" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
+        <a href="{{ route('chine_colis.create.colis') }}" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
         <button class="btn btn-primary" onclick="printAffiche()" style="width: 15%; height: 50px; font-size: 24px;">Imprimer</button>
     </div>
 

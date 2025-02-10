@@ -29,13 +29,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
+                            <a href="{{route('ipms_angre_colis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dévis en attente') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('agent_colis.devis.hold')}}" class="nav-link">
+                            <a href="{{route('ipms_angre_colis.devis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi des dévis') }}</p>
                             </a>
@@ -162,7 +162,7 @@
                             </a>
                         </li>
                          <li class="nav-item">
-                            <a href="{{route('ipms_angre_scan.chargement')}}" class="nav-link">
+                            <a href="{{route('ipms_angre_scan.livre')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Livré') }}</p>
                             </a>

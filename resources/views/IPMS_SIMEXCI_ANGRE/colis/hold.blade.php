@@ -18,10 +18,10 @@
                                                 <th>Référence</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Expéditeur</th>
+                                                <th>Agence Expédition</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
+                                                <th>Agence Destination</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
@@ -143,8 +143,8 @@ $(document).ready(function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
             { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {

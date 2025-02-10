@@ -1,6 +1,5 @@
-@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
-
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -12,31 +11,33 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Colis en entrepot</h4><br>
+                            <h4 class="text-left mt-4">Colis Livré</h4><br>
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
-                                        Scanner pour la mise en entrepot
+                                        Scanner pour livré
                                     </button>
                                 </div><br>
-                                <div class="table-responsive">
-                                    <table id="productTable" class="table table-bordered table-striped display">
-                                        <thead>
-                                            <tr>
-                                                <th>Référence</th>
-                                                <th>Expéditeur</th>
-                                                <th>Téléphone</th>
-                                                <th>Agence d'expédition</th>
-                                                <th>Destinataire</th>
-                                                <th>Téléphone</th>
-                                                <th>Agence destination</th>
-                                                <th>Date</th>
-                                                <th>Action</th>
-
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
+                                 <div class="table-responsive">
+                                            <table id="productTable" class="table table-bordered table-striped display">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Référence</th>
+                                                        <th>Expéditeur</th>
+                                                        <th>Contact</th>
+                                                        <th>Agence Expéditeur</th>
+                                                        <th>Destinataire</th>
+                                                        <th>Contact</th>
+                                                        {{-- <th>Agence Destinataire</th> --}}
+                                                        <th>Date</th>
+                                                        <th>Action</th>
+        
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                   
                                 </div>
                             </div>
                         </div>
@@ -49,7 +50,7 @@
         <div class="modal-dialog" style="max-width: 600px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Scanner les colis pour le chargement</h5>
+                    <h5 class="modal-title">Scanner les colis pour le déchargement</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -68,6 +69,7 @@
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+
 document.addEventListener("DOMContentLoaded", function () {
     const html5QrCode = new Html5Qrcode("reader");
     const resultElement = document.getElementById("result");
@@ -98,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
         $.ajax({
-            url: "{{ route('ipms_angre_scan.update.colis.entrepot') }}",
+            url: "{{ route('ipms_scan.update.colis.livre') }}",
             type: "POST",
             headers: {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
@@ -117,11 +119,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             },
             error: function (error) {
-                console.error("Erreur lors du chargement :", error);
+                console.error("Erreur lors du dechargement :", error);
                 if (error.responseJSON && error.responseJSON.messages) {
                     resultElement.innerText = error.responseJSON.messages.join("\n");
                 } else {
-                    resultElement.innerText = "Erreur de chargement du colis.";
+                    resultElement.innerText = "Ce colis n'est indisponible dans cette agence ou a déjà été déchargé.";
                 }
             },
         });
@@ -185,6 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
     restartButton.addEventListener("click", startScanner);
 });
 
+
     $(document).ready(function () {
         // Initialisation de la table DataTable
         var table = $("#productTable").DataTable({
@@ -192,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("ipms_angre_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
+            ajax: '{{ route("ipms_scan.get.colis.livre") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
                 {
@@ -210,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 },
                 { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
+                // { data: 'agence_destination' },
                 { data: 'created_at',
                     render: function(data, type, row) {
                         // Vérifiez si la date existe et la formater
@@ -278,6 +281,11 @@ document.addEventListener("DOMContentLoaded", function () {
             ]
         });
 
+         // Rafraîchissement de la table toutes les 4 secondes
+    setInterval(function() {
+        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
+    }, 4000);
+
     });
 
 </script>
@@ -297,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .btn {
         width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 280px; /* Largeur maximale sur les grands écrans */
+        max-width: 200px; /* Largeur maximale sur les grands écrans */
         font-size: 16px;
         height: 40px;
 

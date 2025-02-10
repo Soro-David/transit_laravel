@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -43,7 +43,7 @@ $(document).ready(function () {
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route("colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
+        ajax: '{{ route("ipm_angre_colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
 

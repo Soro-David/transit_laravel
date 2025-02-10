@@ -9,20 +9,19 @@
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
     <li class="nav-item dropdown">
-      <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
-          <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
-          <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
-      </a>
+      <a class="nav-link notification-icon" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
+        <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
+      </a>    
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="notification-menu">
           <span class="dropdown-item dropdown-header" id="notification-header">0 Notifications</span>
           <div class="dropdown-divider"></div>
           <div id="notification-items"></div>
           <div class="dropdown-divider"></div>
-          <a href="{{ route('notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
+          <a href="{{ route('aftlb_notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
       </div>
-    </li>
-
-    <!-- User Profile -->
+  </li>
+      <!-- User Profile -->
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
         <img src="{{ Auth::user()->profile_photo_url ?? asset('images/poslg.png') }}" class="img-circle"  style="width: 30px; height: 30px;">
@@ -75,7 +74,48 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Fonction pour récupérer les notifications
+      async function fetchNotifications() {
+          try {
+              const response = await fetch('/get_notifications');
+              const data = await response.json();
 
+              if (data.success) {
+                  // Mettre à jour le compteur de notifications
+                  document.getElementById('notification-count').textContent = data.count;
+                  document.getElementById('notification-header').textContent = `${data.count} Notifications`;
+
+                  // Mettre à jour la liste des notifications
+                  const notificationItems = document.getElementById('notification-items');
+                  notificationItems.innerHTML = ''; // Vider les anciennes notifications
+
+                  data.notifications.forEach(notification => {
+                      const item = document.createElement('a');
+                      item.href = '#';
+                      item.classList.add('dropdown-item');
+                      item.innerHTML = `
+                          <i class="fas fa-envelope mr-2"></i> ${notification.message}
+                          <span class="float-right text-muted text-sm">${notification.time}</span>
+                      `;
+                      notificationItems.appendChild(item);
+                  });
+              } else {
+                  console.error('Erreur lors de la récupération des notifications:', data.message);
+              }
+          } catch (error) {
+              console.error('Erreur lors de la récupération des notifications:', error);
+          }
+      }
+
+      // Récupérer les notifications initiales
+      fetchNotifications();
+
+      // Mettre à jour les notifications toutes les 30 secondes
+      setInterval(fetchNotifications, 30000);
+  });
+</script>
 {{-- stylee  --}}
 <style>
    body{

@@ -18,12 +18,12 @@
                                 <thead>
                                     <tr>
                                         <th>Référence</th>
-                                        <th>Expéditeur</th>
-                                        <th>Email</th>
-                                        <th>Agence Expéditeur</th>
+                                        {{-- <th>Expéditeur</th> --}}
+                                        {{-- <th>Email</th> --}}
+                                        <th>Agence d'expédition</th>
                                         <th>Destinataire</th>
-                                        <th>Email</th>
-                                        <th>Agence Destinataire</th>
+                                        <th>Téléphone</th>
+                                        <th>Agence Destination</th>
                                         <th>Prix</th>
                                         <th>Status</th>
                                         <th>Date</th>
@@ -42,7 +42,7 @@
 </section>
 
 {{-- Les Modals --}}
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+{{-- <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -64,7 +64,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 <!-- Script JavaScript -->
 <script>
@@ -72,20 +72,20 @@ $(document).ready(function() {
     var table = $("#productTable").DataTable({
         responsive: true, // Rend la table responsive
         language: {
-            url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/fr-FR.json"
-        },
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier de traduction
+            },
         ajax: {
             url: '{{ route("customer_colis.get.colis.valide") }}',
         },
         columns: [
             { data: 'reference_colis' },
-            {
-                data: null,
-                render: function(data, type, row) {
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
-            },
-            { data: 'expediteur_email' },
+            // {
+            //     data: null,
+            //     render: function(data, type, row) {
+            //         return row.expediteur_nom + ' ' + row.expediteur_prenom;
+            //     }
+            // },
+            // { data: 'expediteur_email' },
             { data: 'expediteur_agence' },
             {
                 data: null,

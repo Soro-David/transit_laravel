@@ -21,6 +21,8 @@ use App\Http\Controllers\ApmsAngreScanController;
 use App\Http\Controllers\ApmsColisController;
 use App\Http\Controllers\ApmsScanController;
 
+use App\Models\Colis;
+
 use App\Http\Controllers\TransportController;
 use App\Http\Controllers\AgentTransportController;
 use App\Http\Controllers\GestionAgentController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\ProgrammeController;
 use App\Http\Controllers\ChauffeurController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\NavAdminController;
+use App\Http\Controllers\NavAftlbController;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -40,11 +43,13 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AgentController;
 use App\Http\Middleware\RoleMiddleware;
-
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 
 Route::get('/', function () { return redirect('/login'); });
+// Route::get('/agent', function () { return redirect('/login_admin'); });
 
 Auth::routes();
 
@@ -247,7 +252,10 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
     // route edit de paiement
             Route::get('/payment/{id}/edit', [CustomerColisController::class, 'edit_payement'])->name('payement.edit');
             Route::post('/store-payement{id}', [CustomerColisController::class, 'step_payement'])->name('store.payement');
-
+           
+            Route::get('/create/colis-aft-louis-b', [CustomerColisController::class, 'add_colis'])->name('create.colis');
+            Route::post('/store/colis-aft-louis-b', [CustomerColisController::class, 'store_colis'])->name('store.colis');
+    
 
 
 
@@ -421,6 +429,68 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
     // Route principale pour l'interface de l'agence AFT Agence Louis Bleriot
     Route::get('/', [AgentController::class, 'AFT_LOUIS_BLERIOT_INDEX'])->name('AFT_LOUIS_BLERIOT.dashboard');
 
+
+    Route::get('/colis/count', function () {
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->whereHas('expediteur', function ($query) {
+                                $query->where('agence', 'AFT Agence Louis Bleriot');
+                            })
+                            ->count();
+        return response()->json(['colisCount' => $colisCount]);
+    })->name('colis.count');
+
+    Route::get('/colis/prix-total', function () {
+        $totalPrixTransit = Colis::where('etat', 'Validé')
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'AFT Agence Louis Bleriot');
+            })
+            ->sum('prix_transit_colis');
+
+        return response()->json(['totalPrixTransit' => $totalPrixTransit]);
+    })->name('colis.prix-total');
+
+
+    Route::get('/colis/vol-cargaison-count', function () {
+        $count = Colis::where('mode_transit', 'aérien')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('colis.vol-cargaison-count');
+
+    Route::get('/colis/conteneur-count', function () {
+        $count = Colis::where('mode_transit', 'maritime')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('colis.conteneur-count');
+
+    Route::get('/colis/valides-par-mois', function () {
+        $currentYear = now()->year;
+
+        $colisParMois = Colis::select(
+                DB::raw('MONTH(created_at) as mois'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereYear('created_at', $currentYear)
+            ->where('etat', 'Validé')
+            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->orderBy(DB::raw('MONTH(created_at)'))
+            ->get()
+            ->pluck('total', 'mois');
+
+        // Initialiser un tableau avec 12 zéros pour chaque mois
+        $data = array_fill(1, 12, 0);
+
+        // Remplir le tableau avec les données récupérées
+        foreach ($colisParMois as $mois => $total) {
+            $data[$mois] = $total;
+        }
+
+        return response()->json(array_values($data));
+    })->name('colis.valides-par-mois');;
+
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('aftlb_colis')->name('aftlb_colis.')->group(function(){
         Route::get('/', [AftlbColisController::class, 'index'])->name('index'); 
@@ -513,9 +583,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
     // Groupe de routes pour les notifications de l'agent
     Route::prefix('aftlb_notification')->name('aftlb_notification.')->group(function(){
-        Route::get('/', [NavAdminController::class, 'index'])->name('index');
-        Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
-        Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
+        Route::get('/', [NavAftlbController::class, 'index'])->name('index');
+        Route::get('/get-notifications', [NavAftlbController::class, 'get_notifications'])->name('get.notifications');
+        Route::post('/notification-markAsRead', [NavAftlbController::class, 'markAsRead'])->name('markAsRead');
     });
 });
 
@@ -566,7 +636,9 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
             Route::post('/update-colis-status/entrepot-simexci', [ApmsScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
             Route::post('/update-colis-status/charge-simexci', [ApmsScanController::class, 'updateColisCharge'])->name('update.colis.charge');
             Route::post('/update-colis-status/decharge-simexci', [ApmsScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
-
+            Route::post('/update-colis-status/livre-simexci', [ApmsScanController::class, 'updateColisLivre'])->name('update.colis.livre');
+            Route::get('/en-livre-simexci', [ApmsScanController::class, 'livre'])->name('livre');
+            Route::get('/get-colis-livre-simexci', [ApmsScanController::class, 'get_colis_livre'])->name('get.colis.livre');
             Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
             Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
         });
@@ -596,16 +668,79 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
 Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(function () {
     // Route principale pour l'interface de l'agence AFT Agence Louis Bleriot
     Route::get('/', [AgentController::class, 'IPMS_SIMEXCI_ANGRE_INDEX'])->name('IPMS_SIMEXCI_ANGRE.dashboard');
-
+    Route::get('/colis-angre/count', function () {
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->whereHas('destinataire', function ($query) {
+                                $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+                            })
+                            ->count();
+        return response()->json(['colisCount' => $colisCount]);
+    })->name('ipms_angre_colis.count');
+    
+    Route::get('/colis/prix-total', function () {
+        $totalPrixTransit = Colis::where('etat', 'Validé')
+                ->whereHas('destinataire', function ($query) {
+                    $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+                })
+            ->sum('prix_transit_colis');
+        return response()->json(['totalPrixTransit' => $totalPrixTransit]);
+    })->name('ipms_angre_colis.prix-total');
+    
+    
+    Route::get('/colis-angre/vol-cargaison-count', function () {
+        $count = Colis::where('mode_transit', 'aérien')
+        ->whereHas('destinataire', function ($query) {
+            $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+        })
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+    
+        return response()->json(['count' => $count]);
+    })->name('ipms_angre_colis.vol-cargaison-count');
+    
+    Route::get('/colis-angre/conteneur-count', function () {
+        $count = Colis::where('mode_transit', 'maritime')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+    
+        return response()->json(['count' => $count]);
+    })->name('ipms_angre_colis.conteneur-count');
+    
+    Route::get('/colis-angre/valides-par-mois', function () {
+        $currentYear = now()->year;
+    
+        $colisParMois = Colis::select(
+                DB::raw('MONTH(created_at) as mois'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereYear('created_at', $currentYear)
+            ->where('etat', 'Dechargé')
+            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->orderBy(DB::raw('MONTH(created_at)'))
+            ->get()
+            ->pluck('total', 'mois');
+    
+        // Initialiser un tableau avec 12 zéros pour chaque mois
+        $data = array_fill(1, 12, 0);
+    
+        // Remplir le tableau avec les données récupérées
+        foreach ($colisParMois as $mois => $total) {
+            $data[$mois] = $total;
+        }
+    
+        return response()->json(array_values($data));
+    })->name('ipms_angre_colis.valides-par-mois');;
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_angre_colis')->name('ipms_angre_colis.')->group(function(){
         Route::get('/', [ApmsAngreColisController::class, 'index'])->name('index'); 
         Route::get('/history-IPMS', [ApmsAngreColisController::class, 'history'])->name('history'); 
+        Route::get('/on-hold-IPMS', [ApmsAngreColisController::class, 'hold'])->name('hold');
         Route::get('/on-dump-IPMS', [ApmsAngreColisController::class, 'dump'])->name('dump'); 
         Route::get('/on-suivi-IPMS', [ApmsAngreColisController::class, 'suivi'])->name('suivi'); 
+        Route::get('/devis-hold-IPMS', [ApmsAngreColisController::class, 'devis_hold'])->name('devis.hold');
         Route::get('/get-colis-dump-IPMS', [ApmsAngreColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-colis-suivi-IPMS', [ApmsAngreColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
-       
+        Route::get('/get-devis-colis-IPMS', [ApmsAngreColisController::class, 'get_devis_colis'])->name('get.devis.colis');
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_colis_valide'])->name('valide.edit');
@@ -619,7 +754,7 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/{coli}/edit', [ApmsAngreColisController::class, 'edit'])->name('edit'); 
         Route::put('/{coli}', [ApmsAngreColisController::class, 'update'])->name('update'); 
         Route::delete('/{coli}', [ApmsAngreColisController::class, 'destroy'])->name('destroy');
-
+        Route::get('/devis/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_qrcode'])->name('qrcode.edit');
         // Enregistrement des expéditeurs et destinataires
         Route::post('/store-expediteur', [ApmsAngreColisController::class, 'store_expediteur'])->name('store.expediteur'); 
         Route::post('/store-destinataire', [ApmsAngreColisController::class, 'store_destinataire'])->name('store.destinataire'); 
@@ -632,12 +767,15 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/en-entrepot-IPMS', [ApmsAngreScanController::class, 'entrepot'])->name('entrepot'); 
         Route::get('/en-chargement-IPMS', [ApmsAngreScanController::class, 'chargement'])->name('chargement'); 
         Route::get('/en-dechargement-IPMS', [ApmsAngreScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/en-livre-IPMS', [ApmsAngreScanController::class, 'livre'])->name('livre'); 
         Route::get('/get-colis-entrepot-IPMS', [ApmsAngreScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
         Route::get('/get-colis-dechargement-IPMS', [ApmsAngreScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
+        Route::get('/get-colis-livre-IPMS', [ApmsAngreScanController::class, 'get_colis_livre'])->name('get.colis.livre');
         Route::get('/get-colis-chargement-IPMS', [ApmsAngreScanController::class, 'get_colis_charge'])->name('get.colis.charge');
         Route::post('/update-colis-status/entrepot-IPMS', [ApmsAngreScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
         Route::post('/update-colis-status/charge-IPMS', [ApmsAngreScanController::class, 'updateColisCharge'])->name('update.colis.charge');
         Route::post('/update-colis-status/decharge-IPMS', [ApmsAngreScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
+        Route::post('/update-colis-status/livre-IPMS', [ApmsAngreScanController::class, 'updateColisLivre'])->name('update.colis.livre');
 
         Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
@@ -669,78 +807,137 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
     // Route principale pour l'interface de l'agence AFT Agence Louis Bleriot
     Route::get('/', [AgentController::class, 'AGENCE_CHINE_INDEX'])->name('AGENCE_CHINE.dashboard');
 
+    Route::get('/colis/count', function () {
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->whereHas('expediteur', function ($query) {
+                                $query->where('agence', 'Agence de Chine');
+                            })
+                            ->count();
+        return response()->json(['colisCount' => $colisCount]);
+    })->name('chine_colis.count');
+    
+    Route::get('/colis/prix-total', function () {
+        $totalPrixTransit = Colis::where('etat', 'Validé')
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'Agence de Chine');
+            })
+            ->sum('prix_transit_colis');
+    
+        return response()->json(['totalPrixTransit' => $totalPrixTransit]);
+    })->name('chine_colis.prix-total');
+    
+    
+    Route::get('/colis/vol-cargaison-count', function () {
+        $count = Colis::where('mode_transit', 'aérien')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'Agence de Chine');
+            })
+            ->count();
+    
+        return response()->json(['count' => $count]);
+    })->name('chine_colis.vol-cargaison-count');
+    
+    Route::get('/colis/conteneur-count', function () {
+        $count = Colis::where('mode_transit', 'maritime')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'AFT Agence Louis Bleriot');
+            })
+            ->count();
+    
+        return response()->json(['count' => $count]);
+    })->name('chine_colis.conteneur-count');
+    
+    Route::get('/colis/valides-par-mois', function () {
+        $currentYear = now()->year;
+    
+        $colisParMois = Colis::select(
+                    DB::raw('MONTH(created_at) as mois'),
+                    DB::raw('COUNT(*) as total')
+                )
+                ->whereYear('created_at', $currentYear)
+                ->where('etat', 'Validé')
+                ->whereHas('expediteur', function ($query) {
+                    $query->where('nom', 'Agence de Chine');
+                })
+                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->orderBy(DB::raw('MONTH(created_at)'))
+                ->get()
+                ->pluck('total', 'mois');    
+        })->name('chine_colis.valides-par-mois');
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('chine_colis')->name('chine_colis.')->group(function(){
         Route::get('/', [ChineColisController::class, 'index'])->name('index'); 
-        Route::get('/on-hold', [ChineColisController::class, 'hold'])->name('hold'); 
-        Route::get('/history', [ChineColisController::class, 'history'])->name('history'); 
-        Route::get('/on-dump', [ChineColisController::class, 'dump'])->name('dump'); 
-        Route::get('/create', [ChineColisController::class, 'create'])->name('create'); 
-        Route::get('/get-colis', [ChineColisController::class, 'get_colis'])->name('getColis');
-        Route::get('/get-colis-hold', [ChineColisController::class, 'get_colis_hold'])->name('get.colis.hold');
-        Route::get('/get-colis-dump', [ChineColisController::class, 'get_colis_dump'])->name('get.colis.dump');
-        Route::get('/get-colis-contenaire', [ChineColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
-        Route::get('/devis-hold', [ChineColisController::class, 'devis_hold'])->name('devis.hold');
-        Route::get('/get-devis-colis', [ChineColisController::class, 'get_devis_colis'])->name('get.devis.colis');
-        Route::get('/devis/{id}/edit', [ChineColisController::class, 'edit_qrcode'])->name('qrcode.edit');
-        Route::get('/colis-valide', [ChineColisController::class, 'colis_valide'])->name('colis.valide');
-        Route::get('/get-colis-valide', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+        Route::get('/on-hold-aft_chine', [ChineColisController::class, 'hold'])->name('hold'); 
+        Route::get('/history-aft_chine', [ChineColisController::class, 'history'])->name('history'); 
+        Route::get('/on-dump-aft_chine', [ChineColisController::class, 'dump'])->name('dump'); 
+        Route::get('/create-aft_chine', [ChineColisController::class, 'create'])->name('create'); 
+        Route::get('/get-colis-aft_chine', [ChineColisController::class, 'get_colis'])->name('getColis');
+        Route::get('/get-colis-hold-aft_chine', [ChineColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        Route::get('/get-colis-dump-aft_chine', [ChineColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-colis-contenaire-aft_chine', [ChineColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
+        Route::get('/devis-hold-aft_chine', [ChineColisController::class, 'devis_hold'])->name('devis.hold');
+        Route::get('/get-devis-colis-aft_chine', [ChineColisController::class, 'get_devis_colis'])->name('get.devis.colis');
+        Route::get('/devis/{id}/edit-aft_chine', [ChineColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+        Route::get('/colis-valide-aft_chine', [ChineColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-valide-aft_chine', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
 
         // Routes pour les cargaisons
-        Route::get('/get-vol-colis', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
-        Route::get('/cargaison-ferme', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
-        Route::get('/get-cargaison-ferme', [ChineColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
-        Route::get('/list-vol', [ChineColisController::class, 'liste_vol'])->name('liste.vol');
+        Route::get('/get-vol-colis-aft_chine', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
+        Route::get('/cargaison-ferme-aft_chine', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme-aft_chine', [ChineColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
+        Route::get('/list-vol-aft_chine', [ChineColisController::class, 'liste_vol'])->name('liste.vol');
 
         // Routes d'édition et mise à jour
-        Route::get('/on-hold/{id}/edit', [ChineColisController::class, 'edit_hold'])->name('hold.edit');
-        Route::get('/on-valide/{id}/edit', [ChineColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}', [ChineColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}', [ChineColisController::class, 'update_colis_valide'])->name('valide.update');
-        Route::get('/colis-facture/{id}/print', [ChineColisController::class, 'print_facture'])->name('facture.colis.print');
+        Route::get('/on-hold/{id}/edit-aft_chine', [ChineColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit-aft_chine', [ChineColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/on-hold/{id}-aft_chine', [ChineColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}-aft_chine', [ChineColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print-aft_chine', [ChineColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // Route pour fermer un contenaire
-        Route::post('/contenaire-fermer', [ChineColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/contenaire-fermer-aft_chine', [ChineColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
         
         // Liste des conteneurs
-        Route::get('/list-contenaire', [ChineColisController::class, 'liste_contenaire'])->name('liste.contenaire');
+        Route::get('/list-contenaire-aft_chine', [ChineColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::delete('/colis/{id}-aft_chine', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
         // CRUD classique sur colis
-        Route::post('/store', [ChineColisController::class, 'store'])->name('store'); 
-        Route::get('/{coli}', [ChineColisController::class, 'show'])->name('show'); 
-        Route::get('/{coli}/edit', [ChineColisController::class, 'edit'])->name('edit'); 
-        Route::put('/{coli}', [ChineColisController::class, 'update'])->name('update'); 
-        Route::delete('/{coli}', [ChineColisController::class, 'destroy'])->name('destroy');
+        Route::post('/store-aft_chine', [ChineColisController::class, 'store'])->name('store'); 
+        Route::get('/{coli}-aft_chine', [ChineColisController::class, 'show'])->name('show'); 
+        Route::get('/{coli}/edit-aft_chine', [ChineColisController::class, 'edit'])->name('edit'); 
+        Route::put('/{coli}-aft_chine', [ChineColisController::class, 'update'])->name('update'); 
+        Route::delete('/{coli}-aft_chine', [ChineColisController::class, 'destroy'])->name('destroy');
 
         // Enregistrement des expéditeurs et destinataires
-        Route::post('/store-expediteur', [ChineColisController::class, 'store_expediteur'])->name('store.expediteur'); 
-        Route::post('/store-destinataire', [ChineColisController::class, 'store_destinataire'])->name('store.destinataire'); 
-        Route::get('/search-expediteurs', [ChineColisController::class, 'search'])->name('search.expediteurs');
+        Route::post('/store-expediteur-aft_chine', [ChineColisController::class, 'store_expediteur'])->name('store.expediteur'); 
+        Route::post('/store-destinataire-aft_chine', [ChineColisController::class, 'store_destinataire'])->name('store.destinataire'); 
+        Route::get('/search-expediteurs-aft_chine', [ChineColisController::class, 'search'])->name('search.expediteurs');
 
         // Création et stockage d'un colis
-        Route::get('/create/colis', [ChineColisController::class, 'add_colis'])->name('create.colis');
-        Route::post('/store/colis', [ChineColisController::class, 'store_colis'])->name('store.colis');
+        Route::get('/create/colis-aft_chine', [ChineColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis-aft_chine', [ChineColisController::class, 'store_colis'])->name('store.colis');
 
         // Gestion du paiement et génération de QR code
-        Route::get('/create/payement', [ChineColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment', [ChineColisController::class, 'storePayment'])->name('store.payment');
-        Route::get('/generer/qrcode', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        Route::get('/create/payement-aft_chine', [ChineColisController::class, 'stepPayment'])->name('create.payement');
+        Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payment');
+        Route::get('/generer/qrcode-aft_chine', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
     // Groupe de routes pour la gestion du scan
     Route::prefix('chine_scan')->name('chine_scan.')->group(function(){
-        Route::get('/en-entrepot', [ChineScanController::class, 'entrepot'])->name('entrepot'); 
-        Route::get('/en-chargement', [ChineScanController::class, 'chargement'])->name('chargement'); 
-        Route::get('/en-dechargement', [ChineScanController::class, 'dechargement'])->name('dechargement'); 
-        Route::get('/get-colis-entrepot', [ChineScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
-        Route::get('/get-colis-dechargement', [ChineScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
-        Route::get('/get-colis-chargement', [ChineScanController::class, 'get_colis_charge'])->name('get.colis.charge');
-        Route::post('/update-colis-status/entrepot', [ChineScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
-        Route::post('/update-colis-status/charge', [ChineScanController::class, 'updateColisCharge'])->name('update.colis.charge');
-        Route::post('/update-colis-status/decharge', [ChineScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
+        Route::get('/en-entrepot-aft_chine', [ChineScanController::class, 'entrepot'])->name('entrepot'); 
+        Route::get('/en-chargement-aft_chine', [ChineScanController::class, 'chargement'])->name('chargement'); 
+        Route::get('/en-dechargement-aft_chine', [ChineScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/get-colis-entrepot-aft_chine', [ChineScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
+        Route::get('/get-colis-dechargement-aft_chine', [ChineScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
+        Route::get('/get-colis-chargement-aft_chine', [ChineScanController::class, 'get_colis_charge'])->name('get.colis.charge');
+        Route::post('/update-colis-status/entrepot-aft_chine', [ChineScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge-aft_chine', [ChineScanController::class, 'updateColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge-aft_chine', [ChineScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
         Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
@@ -749,13 +946,13 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
     // Groupe de routes pour la gestion du transport
     Route::prefix('chine_transport')->name('agent_transport.')->group(function(){
         Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
-        Route::get('/create', [AgentTransportController::class, 'create'])->name('create');
-        Route::get('/show-chauffeur', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/store-chauffeur', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
+        Route::get('/create-aft_chine', [AgentTransportController::class, 'create'])->name('create');
+        Route::get('/show-chauffeur-aft_chine', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/planing-chauffeur-aft_chine', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
+        Route::get('/reference.auto/{query}-aft_chine', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/chauffeur/data-aft_chine', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/store-chauffeur-aft_chine', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
+        Route::post('/store-planification-aft_chine', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store'); 
     });
 

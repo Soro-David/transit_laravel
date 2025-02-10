@@ -84,7 +84,7 @@
 
   }
   .main-header{
-    background-color: #ff9a03e8;
+    background-color: #b7bfdb;
     color: #f09c1f;
   }
   .navbar .img-circle {

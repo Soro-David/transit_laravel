@@ -1,5 +1,5 @@
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
+<aside class="main-sidebar elevation-4 position-fixed vh-100">
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
             <a href="{{ route('AGENCE_CHINE.dashboard') }}" class="logo logo-light d-flex align-items-center">
@@ -226,20 +226,20 @@
 
 <style>
     .main-sidebar {
+        background-color: #b7bfdb; /* Fond blanc */
+        color: #000000;           /* Texte noir */
         top: 0;
         left: 0;
-        /* z-index: 1030; Assurez-vous qu'il soit au-dessus d'autres éléments */
-        height: 100vh; /* Assurez que la sidebar occupe toute la hauteur de la fenêtre */
-        position: fixed; /* Fixée pour qu'elle ne bouge pas avec le contenu principal */
+        height: 100vh;
+        position: fixed;
     }
-    .custom-logo {
-        max-height: 90px;
-        padding: 1px;
-        margin: 0 auto;
+    /* Appliquer la couleur sur les liens de la sidebar */
+    .main-sidebar a.nav-link {
+        color: #000000; /* Texte noir */
+        transition: transform 0.2s ease, color 0.2s ease;
     }
-
-.sidebar {
-    max-height: calc(100vh - 160px); /* Ajustez cette valeur en fonction de l'en-tête ou d'autres marges */
-    overflow-y: auto; /* Assurez-vous que le scroll est bien activé */
-}
+    /* Effet de survol : décalage vers la droite pour simuler un enfoncement */
+    .main-sidebar a.nav-link:hover {
+        transform: translateX(5px);
+    }
 </style>

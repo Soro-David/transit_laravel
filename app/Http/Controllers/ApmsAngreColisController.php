@@ -675,7 +675,7 @@ public function get_colis_hold(Request $request)
 
             return DataTables::of($colis)
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+                    $editUrl = route('ipms_angre_colis.hold.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
 
                     return '
                         <div class="btn-group">
@@ -684,6 +684,9 @@ public function get_colis_hold(Request $request)
                             </a>
                             <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                 <i class="fas fa-credit-card"></i>
+                            </a>
+                             <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="fas fa-file-invoice"></i>
                             </a>
                         </div>
                     ';
@@ -727,6 +730,7 @@ public function get_colis_hold(Request $request)
                             <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                 <i class="fas fa-credit-card"></i>
                             </a>
+                           
                         </div>
                     ';
                 })
@@ -1090,6 +1094,8 @@ try {
     return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
 }
 }
+
+
 
 
 

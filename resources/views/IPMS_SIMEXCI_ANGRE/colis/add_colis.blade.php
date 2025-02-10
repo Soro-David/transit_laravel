@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 
 @section('content-header')
 @endsection
@@ -6,7 +6,7 @@
 @section('content')
 <section class="p-4 mx-auto">
     
-    <form action="{{ route('agent_colis.store.colis') }}" method="post" class="form-container">
+    <form action="{{ route('ipms_angre_colis.store.colis') }}" method="post" class="form-container">
         @csrf
 
         @if ($errors->any())

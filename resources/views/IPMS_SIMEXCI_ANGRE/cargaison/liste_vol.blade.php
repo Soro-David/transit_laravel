@@ -1,9 +1,9 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 @section('content')
 <section class="py-3">
     <h2 class="">Colis en attente</h2>
-    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
+    <form action="{{route('ipms_angre_colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -182,7 +182,7 @@
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route('agent_colis.get.colis.vol') }}',
+        ajax: '{{ route('ipms_angre_colis.get.colis.vol') }}',
         columns: [
             { data: 'reference_colis' },
 
@@ -230,7 +230,7 @@
 
                 if (description && quantite && dimension && prix) {
                     $.ajax({
-                        url: '{{ route("colis.store") }}',
+                        url: '{{ route("ipms_angre_colis.store") }}',
                         method: "POST",
                         data: {
                             description: description,

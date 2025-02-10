@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("scanner_entrepot");
 
     const onScanSuccess = (decodedText) => {
-        // Expression régulière pour extraire la référence et l'identifiant
+        // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
         const referenceMatch = decodedText.match(/Référence colis:\s*(\S+)/);
         const idMatch = decodedText.match(/Identifiant:\s*(\S+)/);
 
@@ -88,42 +88,46 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Extraction des valeurs capturées
+        const referenceColis = referenceMatch[1];
+        const identifiant = idMatch[1];
+
         console.log(`Code détecté : ${decodedText}`);
-        console.log(`Référence : ${referenceMatch[1]}`);
-        console.log(`Identifiant : ${idMatch[1]}`);
+        console.log(`Référence : ${referenceColis}`);
+        console.log(`Identifiant : ${identifiant}`);
         resultElement.innerText = `Résultat : ${decodedText}`;
 
-        // Requête AJAX pour mettre à jour l'état du colis
+        // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
         $.ajax({
-            url: "{{ route('aftlb_scan.update.colis.entrepot') }}",
+            url: "{{ route('aftlb_scan.update.colis.charge') }}",
             type: "POST",
             headers: {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
             },
             data: {
-                colisId: referenceMatch[1], // Envoie la référence extraite
-                id: idMatch[1],             // Envoie l'identifiant extrait
+                colisId: referenceColis, // Envoie la référence extraite
+                id: identifiant,          // Envoie l'identifiant extrait
             },
             success: function (response) {
                 console.log("Réponse du serveur :", response);
-
-                if (response.success) {
-                    resultElement.innerText = `Colis ${referenceMatch[1]} mis en entrepôt avec succès.`;
+                // Affichage des messages retournés par le serveur
+                if (response.messages && Array.isArray(response.messages)) {
+                    resultElement.innerText = response.messages.join("\n");
                 } else {
-                    resultElement.innerText = `Erreur : ${response.message}`;
+                    resultElement.innerText = "Réponse inconnue du serveur.";
                 }
             },
             error: function (error) {
                 console.error("Erreur lors du chargement :", error);
-                if (error.responseJSON && error.responseJSON.message) {
-                    resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
+                if (error.responseJSON && error.responseJSON.messages) {
+                    resultElement.innerText = error.responseJSON.messages.join("\n");
                 } else {
                     resultElement.innerText = "Erreur de chargement du colis.";
                 }
             },
         });
 
-        // Arrête le scanner et masque l'élément caméra
+        // Arrêt du scanner et mise à jour de l'affichage
         html5QrCode
             .stop()
             .then(() => {
@@ -136,13 +140,16 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     const startScanner = () => {
+        // Affiche l'élément du lecteur
         readerElement.style.display = "block";
 
+        // Vérifie que l'élément #reader a des dimensions valides
         if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
             console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
             return;
         }
 
+        // Démarrage du scanner avec les options définies
         html5QrCode
             .start(
                 { facingMode: "environment" },
@@ -158,10 +165,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     };
 
+    // Démarrer le scanner dès que la modale est affichée
     modal.addEventListener("shown.bs.modal", function () {
         setTimeout(startScanner, 500);
     });
 
+    // Arrêter le scanner lorsque la modale est fermée
     modal.addEventListener("hidden.bs.modal", function () {
         html5QrCode
             .stop()
@@ -173,6 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
+    // Bouton de redémarrage du scanner
     restartButton.addEventListener("click", startScanner);
 });
 

@@ -2,7 +2,7 @@
 @section('content-header')
 @section('content')
 <section class="py-3">
-    <h2 class="">Colis en attente</h2>
+    <h2 class="">Les colis en conteneur</h2>
     <form action="{{route('chine_colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
@@ -13,14 +13,14 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>référence</th>
+                                                <th>Référence</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Agence d'expédition</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
+                                                <th>Agence de destination</th>
+                                                <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
@@ -29,9 +29,9 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="container">
+                                {{-- <div class="container">
                                     <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
-                                </div>
+                                </div> --}}
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="border p-4 rounded shadow-sm">

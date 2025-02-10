@@ -55,7 +55,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('ipms_scan.dechargement')}}" class="nav-link">
+                            <a href="{{route('ipms_scan.livre')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Livré') }}</p>
                             </a>

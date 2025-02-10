@@ -109,16 +109,17 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             success: function (response) {
                 console.log("Réponse du serveur :", response);
-                if (response.success) {
-                    resultElement.innerText = `Colis ${referenceColis} mis en entrepôt avec succès.`;
+                // Affichage des messages retournés par le serveur
+                if (response.messages && Array.isArray(response.messages)) {
+                    resultElement.innerText = response.messages.join("\n");
                 } else {
-                    resultElement.innerText = `Erreur : ${response.message}`;
+                    resultElement.innerText = "Réponse inconnue du serveur.";
                 }
             },
             error: function (error) {
                 console.error("Erreur lors du chargement :", error);
-                if (error.responseJSON && error.responseJSON.message) {
-                    resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
+                if (error.responseJSON && error.responseJSON.messages) {
+                    resultElement.innerText = error.responseJSON.messages.join("\n");
                 } else {
                     resultElement.innerText = "Erreur de chargement du colis.";
                 }
@@ -183,6 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Bouton de redémarrage du scanner
     restartButton.addEventListener("click", startScanner);
 });
+
     $(document).ready(function () {
         // Initialisation de la table DataTable
         var table = $("#productTable").DataTable({
@@ -190,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
+            ajax: '{{ route("aftlb_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
                 {

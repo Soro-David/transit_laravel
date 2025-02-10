@@ -13,15 +13,16 @@
                                 <table id="productTable" class="display">
                                     <thead>
                                         <tr>
-                                            <th>Reference colis</th>
-                                            <th>Nom Expéditeur</th>
-                                            <th>Email Expéditeur</th>
-                                            <th>Agence Expéditeur</th>
-                                            <th>Nom Destinataire</th>
-                                            <th>Email Destinataire</th>
-                                            <th>Agence Destinataire</th>
+                                            <th>Référence</th>
+                                            {{-- <th>Nom Expéditeur</th>
+                                            <th>Email Expéditeur</th> --}}
+                                            <th>Agence Expédition</th>
+                                            <th>Destinataire</th>
+                                            {{-- <th>Email Destinataire</th> --}}
+                                            <th>Téléphone</th>
+                                            <th>Agence Destination</th>
                                             <th> Status</th>
-                                            <th> Etat du colis</th>
+                                            {{-- <th> Etat du colis</th> --}}
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -29,9 +30,9 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="container">
+                            {{-- <div class="container">
                                 <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -40,6 +41,18 @@
 </div>
 {{-- CSS Personnalisé --}}
 <style>
+      .btn-delete {
+    background-color: #f44336; /* Couleur rouge */
+    color: white; /* Texte blanc */
+    border: none; /* Pas de bordure */
+    padding: 5px 20px; /* Espacement */
+    border-radius: 5px; /* Coins arrondis */
+    text-decoration: none; /* Pas de soulignement */
+}
+
+.btn-delete:hover {
+    background-color: #ec0909; /* Couleur rouge plus foncé au survol */
+}
     .form-container {
         max-width: 850px;
         margin: auto;
@@ -67,7 +80,7 @@
     var table = $("#productTable").DataTable({
         responsive: true, // Rend la table responsive
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier de traduction
             },
         ajax: {
             url: '{{ route("customer_colis.get.colis") }}',
@@ -75,13 +88,13 @@
         },
         columns: [
             { data: 'reference_colis' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
-            },
-            { data: 'expediteur_email' },
+            // {
+            //     data: null,
+            //     render: function (data, type, row) {
+            //         return row.expediteur_nom + ' ' + row.expediteur_prenom;
+            //     }
+            // },
+            // { data: 'expediteur_email' },
             { data: 'expediteur_agence' },
             {
                 data: null,
@@ -89,9 +102,9 @@
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_email' },
+            { data: 'destinataire_tel' },
             { data: 'destinataire_agence' },
-            { data: 'etat' },
+            // { data: 'etat' },
             { 
                 data: 'updated_at',
                 render: function(data, type, row) {

@@ -365,6 +365,7 @@ class ChineColisController extends Controller
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colisItem->reference_colis,
                 'Statut' => $colisItem->etat,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,

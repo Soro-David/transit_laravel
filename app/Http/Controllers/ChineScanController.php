@@ -64,7 +64,7 @@ class ChineScanController extends Controller
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Chargé')  // Filtre l'état des colis
+            ->where('etat', 'En entrepot')  // Filtre l'état des colis
             ->where('expediteurs.agence', 'Agence de Chine')
             ->get(); 
             return DataTables::of($colis)
@@ -216,172 +216,189 @@ class ChineScanController extends Controller
         ]);
     }
     
+    public function updateColisEntrepot(Request $request)
+    {
+        
+        if (!$request->has('colisId') || !$request->has('id')) {
+            $missingParams = [];
+            if (!$request->has('colisId')) {
+                $missingParams[] = 'colisId';
+            }
+            if (!$request->has('id')) {
+                $missingParams[] = 'id';
+            }
+            return response()->json([
+                'success'  => false,
+                'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+            ], 400);
+        }
+    
+    
+        // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+        $colisList = Colis::where('reference_colis', $request->colisId)
+                          ->where('id', $request->id)
+                        //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                          ->get();
+    
+        // Vérifier si des colis ont été trouvés
+        if ($colisList->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+            ], 404);
+        }
+    
+        $messages = [];
+        $updatedColis = [];
+    
+        // Parcourir chaque colis trouvé
+        foreach ($colisList as $colis) {
+            if ($colis->etat === 'En entrepot') {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+            } elseif ($colis->etat === 'Validé') {
+                // Modifier l'état du colis en "En entrepot"
+                $colis->etat = 'En entrepot';
+                $colis->save();
+                $updatedColis[] = [
+                    'etat'        => $colis->etat,
+                ];
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
+            } else {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore validé. Impossible de le mettre en entrepôt.";
+            }
+        }
+    
+        return response()->json([
+            'success'  => !empty($updatedColis),
+            'messages' => $messages,
+            'colis'    => $updatedColis,
+        ]);
+        dd( $updatedColis);
+
+    }
+    
     // Fonction Ajax pour le Scan chargement
     // {{ route("scan.get.colis.charge") }}
-    public function getColisCharge(Request $request)
+    public function updateColisCharge(Request $request)
     {
-        // Vérifier si colisId est bien présent
-        if (!$request->has('colisId')) {
-            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
-        }
-    
-        // Recherche du colis en fonction de la référence
-        $colis = Colis::where('reference_colis', $request->colisId)->first();
-    
-        // Vérifier si le colis existe
-        if (!$colis) {
-            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
-        }
-    
-        // Vérifier si l'état est déjà "Déchargé"
-        if ($colis->etat === 'Chargé') {
-            return response()->json(['success' => false, 'message' => "Le colis est déjà Chargé."], 400);
-        }
-    
-        // Vérifier si l'état est déjà "Arrivé"
-        if ($colis->etat === 'Arrivé') {
-            return response()->json(['success' => false, 'message' => "Le colis est déjà Arrivé."], 400);
-        }
-    
-        // Vérifier si l'état est "Chargé" avant de le marquer comme "Déchargé"
-        if ($colis->etat !== 'En entrepot') {
+        
+        if (!$request->has('colisId') || !$request->has('id')) {
+            $missingParams = [];
+            if (!$request->has('colisId')) {
+                $missingParams[] = 'colisId';
+            }
+            if (!$request->has('id')) {
+                $missingParams[] = 'id';
+            }
             return response()->json([
-                'success' => false,
-                'message' => "Le colis n'est pas encore mis en entrepot. Impossible de le charger.",
+                'success'  => false,
+                'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
             ], 400);
         }
     
-        // Modifier l'état du colis en "Déchargé"
-        $colis->etat = 'Chargé';
     
-        // Sauvegarder les modifications dans la base de données
-        $colis->save();
+        // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+        $colisList = Colis::where('reference_colis', $request->colisId)
+                          ->where('id', $request->id)
+                        //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                          ->get();
     
-        return response()->json([
-            'success' => true,
-            'message' => 'Le colis a été chargé avec succès.',
-            'colis' => [
-                'reference' => $colis->reference_colis,
-                'etat' => $colis->etat,
-                'description' => $colis->description,
-            ],
-        ]);
-    }
-    
-    
-    // Fonction Ajax pour le Scan dechargement
-    public function getColisDecharge(Request $request)
-    {
-        // Vérifier si colisId est bien présent
-        if (!$request->has('colisId')) {
-            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
-        }
-    
-        // Recherche du colis en fonction de la référence
-        $colis = Colis::where('reference_colis', $request->colisId)->first();
-    
-        // Vérifier si le colis existe
-        if (!$colis) {
-            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
-        }
-    
-        // Vérifier si l'état est déjà "Arrivé"
-        if ($colis->etat === 'Déchargé') {
-            return response()->json(['success' => false, 'message' => "Le colis a déjà été déchargé."], 400);
-        }
-    
-        // Vérifier si l'état est "Déchargé" avant de marquer comme "Arrivé"
-        if ($colis->etat !== 'Fermé') {
+        // Vérifier si des colis ont été trouvés
+        if ($colisList->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => "Le colis n'est encore Arrivé.",
-            ], 400);
+                'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+            ], 404);
         }
     
-        // Modifier l'état du colis en "Arrivé"
-        $colis->save();
+        $messages = [];
+        $updatedColis = [];
     
-        // Sauvegarder les modifications dans la base de données
-        $colis->save();
+        // Parcourir chaque colis trouvé
+        foreach ($colisList as $colis) {
+            if ($colis->etat === 'Chargé') {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+            } elseif ($colis->etat === 'En entrepot') {
+                // Modifier l'état du colis en "En entrepot"
+                $colis->etat = 'Chargé';
+                $colis->save();
+                $updatedColis[] = [
+                    'etat'        => $colis->etat,
+                ];
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès.";
+            } else {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore mis en Entrepot. Impossible de le mettre chargé.";
+            }
+        }
     
         return response()->json([
-            'success' => true,
-            'message' => 'Le colis a été déchargé avec succès.',
-            'colis' => [
-                'reference' => $colis->reference_colis,
-                'etat' => $colis->etat,
-                'description' => $colis->description,
-            ],
+            'success'  => !empty($updatedColis),
+            'messages' => $messages,
+            'colis'    => $updatedColis,
         ]);
+        dd( $updatedColis);
+
     }
     
     
-
-
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+public function updateColisDecharge(Request $request)
+{
+        
+    if (!$request->has('colisId') || !$request->has('id')) {
+        $missingParams = [];
+        if (!$request->has('colisId')) {
+            $missingParams[] = 'colisId';
+        }
+        if (!$request->has('id')) {
+            $missingParams[] = 'id';
+        }
+        return response()->json([
+            'success'  => false,
+            'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+        ], 400);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+
+    // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+    $colisList = Colis::where('reference_colis', $request->colisId)
+                      ->where('id', $request->id)
+                    //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                      ->get();
+
+    // Vérifier si des colis ont été trouvés
+    if ($colisList->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+        ], 404);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+    $messages = [];
+    $updatedColis = [];
+
+    // Parcourir chaque colis trouvé
+    foreach ($colisList as $colis) {
+        if ($colis->etat === 'Dechargé') {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Déchargé.";
+        } elseif ($colis->etat === 'Fermé') {
+            // Modifier l'état du colis en "En entrepot"
+            $colis->etat = 'Déchargé';
+            $colis->save();
+            $updatedColis[] = [
+                'etat'        => $colis->etat,
+            ];
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
+        } else {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Arrivé. Impossible de le mettre déchargé.";
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+    return response()->json([
+        'success'  => !empty($updatedColis),
+        'messages' => $messages,
+        'colis'    => $updatedColis,
+    ]);
+    dd( $updatedColis);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
+}
 }

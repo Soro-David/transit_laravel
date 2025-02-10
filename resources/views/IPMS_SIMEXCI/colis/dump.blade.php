@@ -240,6 +240,10 @@ $(document).ready(function () {
                 }
             }
         ]
+         // Rafraîchissement de la table toutes les 4 secondes
+    setInterval(function() {
+        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
+    }, 4000);
     });
 
     /**

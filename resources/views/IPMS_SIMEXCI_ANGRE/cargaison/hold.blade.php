@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -64,7 +64,7 @@
                 language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-                ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
+                ajax: '{{ route("ipms_angre_colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
                     {
                         data: null,

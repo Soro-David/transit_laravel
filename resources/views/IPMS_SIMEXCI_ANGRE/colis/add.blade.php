@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 @endsection
         {{-- @csrf --}}

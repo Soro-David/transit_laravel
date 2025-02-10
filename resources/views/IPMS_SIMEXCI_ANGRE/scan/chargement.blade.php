@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
@@ -23,14 +23,14 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Date de Création</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence d'expédition</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence de destination</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
 
                                             </tr>
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Requête AJAX pour mettre à jour l'état du colis
     $.ajax({
-    url: "{{ route('agent_scan.update.colis.charge') }}",
+    url: "{{ route('ipms_angre_scan.update.colis.charge') }}",
     type: "POST",
     headers: {
         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),

@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection

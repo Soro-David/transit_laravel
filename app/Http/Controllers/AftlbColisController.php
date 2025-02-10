@@ -1038,35 +1038,30 @@ public function get_colis_hold(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis', 
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Fermé')  // Filtre l'état des colis
-            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-            ->get(); // Exécute la requête une seule fois
-
+                    'colis.*',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'expediteurs.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('colis.etat', 'Fermé')
+                ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                ->get();
+    
             return DataTables::of($colis)
-                ->addColumn('etat', function ($row) {
-                    if ($row->etat === 'Fermé') {
-                        return 'Cargaison Fermée'; // Si l'état est "Validé", afficher "Colis validé"
-                    } 
-                    return $row->etat; // Sinon, retourner l'état original
+                ->editColumn('etat', function ($row) {
+                    // Afficher un libellé personnalisé si l'état est Fermé
+                    return $row->etat === 'Fermé' ? 'Cargaison Fermée' : $row->etat;
                 })
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
+                    // Construire l'URL d'édition (à adapter si vous utilisez des routes nommées)
+                    $editUrl = '/users/' . $row->id . '/edit';
                     return '
                         <div class="btn-group">
                             <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
@@ -1078,10 +1073,11 @@ public function get_colis_hold(Request $request)
                         </div>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
+    
 
 public function cargaison_ferme(Request $request)
 {

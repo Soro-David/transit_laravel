@@ -1,5 +1,5 @@
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-purple elevation-4 position-fixed vh-100">
+<aside class="main-sidebar elevation-4 position-fixed vh-100">
     <div class="d-flex align-items-center justify-content-center">
         <div class="navbar-brand-box mx-2 py-4">
             <a href="{{ route('home') }}" class="logo logo-light d-flex align-items-center">
@@ -14,7 +14,7 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item has-treeview">
-                    <a href="{{route('home')}}" class="nav-link {{ activeSegment('') }}">
+                    <a href="{{ route('home') }}" class="nav-link {{ activeSegment('') }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>{{ __('trans.Dashboard') }}</p>
                     </a>
@@ -28,20 +28,20 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('managers.agent')}}" class="nav-link">
+                            <a href="{{ route('managers.agent') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Agents') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('managers.agence')}}" class="nav-link">
+                            <a href="{{ route('managers.agence') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Agences') }}</p>
                             </a>
                         </li>
                     </ul>
                 </li>
-                {{-- GEstion des devis --}}
+                {{-- Gestion des devis --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('gestion') }}">
                         <i class="fas fa-list-alt"></i>
@@ -51,7 +51,7 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                          <li class="nav-item">
+                        <li class="nav-item">
                             <a href="{{ route('colis.hold') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dévis en attente') }}</p>
@@ -65,7 +65,7 @@
                         </li>
                     </ul>
                 </li>
-{{-- GEstion des colis --}}
+                {{-- Gestion des colis --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-concierge-bell"></i>
@@ -131,19 +131,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{route('scan.entrepot')}}" class="nav-link">
+                            <a href="{{ route('scan.entrepot') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('scan.chargement')}}" class="nav-link">
+                            <a href="{{ route('scan.chargement') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chargement') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('scan.dechargement')}}" class="nav-link">
+                            <a href="{{ route('scan.dechargement') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
                             </a>
@@ -179,7 +179,7 @@
                         <p>Clients</p>
                     </a>
                 </li>
-                {{-- progammz de transport --}}
+                {{-- Transport --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-car"></i>
@@ -219,21 +219,21 @@
 </aside>
 
 <style>
-.main-sidebar {
+    .main-sidebar {
+        background-color: #ffffff; /* fond blanc */
+        color: #000000; /* texte noir */
         top: 0;
         left: 0;
-        /* z-index: 1030; Assurez-vous qu'il soit au-dessus d'autres éléments */
-        height: 100vh; Assurez que la sidebar occupe toute la hauteur de la fenêtre
-        position: fixed; Fixée pour qu'elle ne bouge pas avec le contenu principal
+        height: 100vh;
+        position: fixed;
     }
-    .custom-logo {
-        max-height: 90px;
-        padding: 1px;
-        margin: 0 auto;
+    /* Appliquer la couleur sur les liens de la sidebar */
+    .main-sidebar a.nav-link {
+        color: #000000; /* texte noir */
+        transition: transform 0.2s ease, color 0.2s ease;
     }
-
-.sidebar {
-    max-height: calc(100vh - 160px); /* Ajustez cette valeur en fonction de l'en-tête ou d'autres marges */
-    overflow-y: auto; /* Assurez-vous que le scroll est bien activé */
-}
+    /* Effet de survol : décalage vers la droite pour simuler un enfoncement */
+    .main-sidebar a.nav-link:hover {
+        transform: translateX(5px);
+    }
 </style>

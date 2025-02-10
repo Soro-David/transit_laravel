@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 @endsection
 
@@ -15,15 +15,15 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence d'expédition</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence Destination</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -46,7 +46,7 @@
                 language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-                ajax: '{{ route("agent_colis.get.devis.colis") }}', // URL pour récupérer les données
+                ajax: '{{ route("ipms_angre_colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
                     { data: 'reference_colis' },
                     {
@@ -64,8 +64,8 @@
                             return row.destinataire_nom + ' ' + row.destinataire_prenom;
                         }
                     },
-                    { data: 'destinataire_agence' },
                     { data: 'destinataire_tel' },
+                    { data: 'destinataire_agence' },
                     { data: 'etat' },
                     { data: 'created_at',
                         render: function(data, type, row) {

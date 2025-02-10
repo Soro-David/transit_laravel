@@ -1,4 +1,4 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 @endsection
 @section('content')
@@ -145,7 +145,7 @@
             });
             console.log(JSON.stringify(formDataJson, null, 2));
             $.ajax({
-                url: '{{route('agent_colis.store.payment')}}',
+                url: '{{route('ipms_angre_colis.store.payment')}}',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formDataJson),

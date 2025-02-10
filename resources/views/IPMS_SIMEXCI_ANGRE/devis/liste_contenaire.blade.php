@@ -1,10 +1,10 @@
-@extends('agent.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 @endsection
 @section('content')
 <section class="py-3">
     <h2 class="">Colis en attente</h2>
-    <form action="{{route('agent_colis.contenaire.fermer')}}" method="POST" class="mt-4">
+    <form action="{{route('ipms_angre_colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -14,15 +14,15 @@
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
+                                                <th>Référence</th>
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence Expédition</th>
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence Destination</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -31,17 +31,17 @@
                                     </table>
                                 </div>
                                 <div class="container">
-                                    <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
+                                    {{-- <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6> --}}
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    {{-- <div class="col-md-6">
                                         <div class="border p-4 rounded shadow-sm">
                                             <div class="mb-3">
                                                 <label for="commentaire1" class="form-label">Commentaire</label>
                                                 <textarea name="commentaire1" id="commentaire1" rows="5" class="form-control"></textarea>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     <div class="col-md-6">
                                         <div class="col-8">
                                             <label for="reference_contenaire" class="form-label">Référence Contenaire</label>
@@ -183,7 +183,7 @@
         language: {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
-        ajax: '{{ route('agent_colis.get.colis.contenaire') }}',
+        ajax: '{{ route('ipms_angre_colis.get.colis.contenaire') }}',
         columns: [
             { data: 'reference_colis' },
             {
