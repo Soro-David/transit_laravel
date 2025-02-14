@@ -8,7 +8,7 @@
         <div class="dashboard-bar p-3 mb-4 bg-white rounded">
             <h2 class="text-center text-primary m-0">Tableau de bord</h2>
             <div class="scrolling-container">
-                <h4 class="scrolling-agency">AFT Agence Louis Bleriot</h4>
+                <h4 class="scrolling-agency">IPMS-SIMEX-CI Angré 8ème Tranche</h4>
             </div>
         </div>
 

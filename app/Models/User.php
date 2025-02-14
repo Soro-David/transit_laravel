@@ -64,8 +64,14 @@ class User extends Authenticatable
     {
         return 'https://www.gravatar.com/avatar/' . md5($this->email);
     }
+    
     public function agent()
+{
+    return $this->belongsTo(Agent::class, 'agent_id');
+}
+
+    public function invoices()
     {
-        return $this->hasOne(Agent::class);
+        return $this->hasMany(Invoice::class);
     }
 }

@@ -93,6 +93,28 @@
                         </li>
                     </ul>
                 </li>
+                {{-- Gestion des facture --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-file-invoice"></i>
+                        <p>{{ __('Gestion des factures') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('invoice.create.invoice') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Nouvelle Facture') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('invoice.historique.invoice') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Historique') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 {{-- Gestion des Cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

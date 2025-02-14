@@ -22,4 +22,8 @@ class Agent extends Model
     {
         return $this->belongsTo(Agency::class);
     }
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

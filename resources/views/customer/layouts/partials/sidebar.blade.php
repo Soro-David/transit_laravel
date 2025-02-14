@@ -42,18 +42,31 @@
                         <p>{{ __('Suivi de colis') }}</p>
                     </a>
                 </li>
-                 <li class="nav-item has-treeview">
+                 {{-- <li class="nav-item has-treeview">
                     <a href="{{ route('customer_colis.facture') }}" class="nav-link">
                         <i class="fas fa-file-alt"></i>
                         <p>{{ __('Facture') }}</p>
                     </a>
-                </li>
+                </li> --}}
             </ul>
         </nav>
     </div>
 </aside>
-
 <style>
+    /* Style pour la barre latérale */
+    .main-sidebar {
+        background-color: #ffffff; /* Fond blanc */
+    }
+
+    /* Style pour les éléments de liste */
+    .main-sidebar .nav-sidebar > .nav-item > .nav-link {
+        color: #000000; /* Texte noir */
+    }
+
+    /* Style pour les éléments de liste au survol */
+    .main-sidebar .nav-sidebar > .nav-item > .nav-link:hover {
+        color: #00008B; /* Texte bleu foncé au survol */
+    }
     .custom-logo {
         max-height: 90px;
         padding: 5px;

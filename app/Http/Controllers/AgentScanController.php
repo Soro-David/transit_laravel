@@ -62,7 +62,7 @@ class AgentScanController extends Controller
                 'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') 
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
             ->where('etat', 'Chargé')  // Filtre l'état des colis
             ->get(); 

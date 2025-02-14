@@ -70,42 +70,13 @@
                         </li>
                     </ul>
                 </li>
-
-                
-                {{-- <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('products') }}">
-                        <i class="fas fa-concierge-bell"></i>
-                        <p>{{ __('Gestion des colis') }}</p>
-                        <i class="right fas fa-angle-left"></i>
+                {{-- Gestion des facture --}}
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('chine_invoice.create.invoice') }}" class="nav-link">
+                        <i class="fas fa-file-invoice"></i>
+                        <p>{{ __('Gestion des factures') }}</p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{route('agent_colis.create.step1')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Ajouter') }}</p>
-                            </a>
-                        </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.on_old') }}</p>
-                            </a>
-                        </li> --}}
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.hold')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Validés') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{route('agent_colis.dump')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Arrivé') }}</p>
-                            </a>
-                        </li>
-                    </ul> --}}
-                {{-- </li> --}} 
-             
+                </li>
                 {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

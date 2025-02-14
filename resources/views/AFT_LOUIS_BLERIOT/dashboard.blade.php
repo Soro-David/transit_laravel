@@ -11,7 +11,6 @@
                 <h4 class="scrolling-agency">AFT Agence Louis Bleriot</h4>
             </div>
         </div>
-
         <!-- Statistiques -->
         <div class="row">
             <div class="col-lg-3 col-md-6 col-sm-12">

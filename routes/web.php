@@ -12,14 +12,18 @@ use App\Http\Controllers\CustomerColisController;
 use App\Http\Controllers\AgentColisController; 
 use App\Http\Controllers\AftlbColisController; 
 use App\Http\Controllers\AftlbScanController; 
+use App\Http\Controllers\AftlbInvoiceController; 
+use App\Http\Controllers\ChineInvoiceController;
+use App\Http\Controllers\IpmsInvoiceController;
+use App\Http\Controllers\IpmsAngreInvoiceController;
+use App\Http\Controllers\AdminInvoiceController;
 use App\Http\Controllers\ChineColisController; 
 use App\Http\Controllers\ChineScanController; 
-
-// use App\Http\Controllers\ApmsAngreColisController; 
 use App\Http\Controllers\ApmsAngreColisController;
 use App\Http\Controllers\ApmsAngreScanController;
 use App\Http\Controllers\ApmsColisController;
 use App\Http\Controllers\ApmsScanController;
+
 
 use App\Models\Colis;
 
@@ -56,6 +60,63 @@ Auth::routes();
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('home');
+
+    Route::get('/colis-admin/count', function () {
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->count();
+        return response()->json(['colisCount' => $colisCount]);
+    })->name('admin_colis.count');
+
+    Route::get('/colis-admin/prix-total', function () {
+        $totalPrixTransit = Colis::where('etat', 'Validé')
+            ->sum('prix_transit_colis');
+
+        return response()->json(['totalPrixTransit' => $totalPrixTransit]);
+    })->name('admin_colis.prix-total');
+
+
+    Route::get('/colis-admin/vol-cargaison-count', function () {
+        $count = Colis::where('mode_transit', 'aérien')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('admin_colis.vol-cargaison-count');
+
+    Route::get('/colis-admin/conteneur-count', function () {
+        $count = Colis::where('mode_transit', 'maritime')
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('admin_colis.conteneur-count');
+
+    Route::get('/colis-admin/valides-par-mois', function () {
+        $currentYear = now()->year;
+
+        $colisParMois = Colis::select(
+                DB::raw('MONTH(created_at) as mois'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereYear('created_at', $currentYear)
+            ->where('etat', 'Validé')
+            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->orderBy(DB::raw('MONTH(created_at)'))
+            ->get()
+            ->pluck('total', 'mois');
+
+        // Initialiser un tableau avec 12 zéros pour chaque mois
+        $data = array_fill(1, 12, 0);
+
+        // Remplir le tableau avec les données récupérées
+        foreach ($colisParMois as $mois => $total) {
+            $data[$mois] = $total;
+        }
+
+        return response()->json(array_values($data));
+    })->name('admin_colis.valides-par-mois');;
+
+
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
     Route::get('/managers/agence', [AdminController::class, 'gestion_agence'])->name('managers.agence');
@@ -68,7 +129,18 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
     Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
 
+    Route::prefix('invoice')->name('invoice.')->group(function(){
+        Route::get('/', [AdminInvoiceController::class, 'index'])->name('index'); 
+        Route::get('/create/new/invoice', [AdminInvoiceController::class, 'create_invoice'])->name('create.invoice');
+        Route::post('/store/new/invoice', [AdminInvoiceController::class, 'store_invoice'])->name('store.invoice');
+        Route::get('/history/invoice', [AdminInvoiceController::class, 'historique_invoice'])->name('historique.invoice');
+        Route::get('/edit/invoice', [AdminInvoiceController::class, 'edit_invoice'])->name('edit.invoice');
+        Route::get('/show/invoice', [AdminInvoiceController::class, 'reference_auto'])->name('show.invoice');
+        Route::get('/reference.auto/{query}', [AdminInvoiceController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/get-invoice-fait',[AdminInvoiceController::class, 'get_invoice_historique'])->name('get.invoice.historique');
 
+        });
+        
     Route::prefix('colis')->name('colis.')->group(function(){
         Route::get('/', [ColisController::class,'index'])->name('index'); 
         Route::get('/on-hold', [ColisController::class,'hold'])->name('hold'); 
@@ -181,8 +253,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
+        
+        
 
-});
+    });
     Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
     });
     
@@ -225,6 +299,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/chauffeur-info',[SettingController::class, 'chauffeurIndex'])->name('chauffeur.index');
         Route::get('/clients/data', [SettingController::class, 'getClientsData'])->name('clients.data');
     });
+
+    
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
 
@@ -452,6 +528,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
     Route::get('/colis/vol-cargaison-count', function () {
         $count = Colis::where('mode_transit', 'aérien')
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'AFT Agence Louis Bleriot');
+            })
             ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
             ->count();
 
@@ -460,6 +539,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
     Route::get('/colis/conteneur-count', function () {
         $count = Colis::where('mode_transit', 'maritime')
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'AFT Agence Louis Bleriot');
+            })
             ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
             ->count();
 
@@ -475,6 +557,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
             )
             ->whereYear('created_at', $currentYear)
             ->where('etat', 'Validé')
+            ->whereHas('expediteur', function ($query) {
+                $query->where('agence', 'AFT Agence Louis Bleriot');
+            })
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->orderBy(DB::raw('MONTH(created_at)'))
             ->get()
@@ -587,13 +672,90 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/get-notifications', [NavAftlbController::class, 'get_notifications'])->name('get.notifications');
         Route::post('/notification-markAsRead', [NavAftlbController::class, 'markAsRead'])->name('markAsRead');
     });
+    Route::prefix('aftlb_invoice')->name('aftlb_invoice.')->group(function(){
+        Route::get('/', [AftlbInvoiceController::class, 'index'])->name('index'); 
+        Route::get('/create/new/invoice-aft-louis-b', [AftlbInvoiceController::class, 'create_invoice'])->name('create.invoice');
+        Route::post('/store/new/invoice-aft-louis-b', [AftlbInvoiceController::class, 'store_invoice'])->name('store.invoice');
+        Route::get('/history/invoice-aft-louis-b', [AftlbInvoiceController::class, 'historique_invoice'])->name('historique.invoice');
+        Route::get('/edit/invoice-aft-louis-b', [AftlbInvoiceController::class, 'edit_invoice'])->name('edit.invoice');
+        Route::get('/show/invoice-aft-louis-b', [AftlbInvoiceController::class, 'reference_auto'])->name('show.invoice');
+        Route::get('/reference.auto/{query}-aft-louis-b', [AftlbInvoiceController::class, 'reference_auto'])->name('reference.auto');
+        });
 });
 
 
 Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(function () {
     // Route principale pour l'interface de l'agence AFT Agence Louis Bleriot
     Route::get('/', [AgentController::class, 'IPMS_SIMEXCI_INDEX'])->name('IPMS_SIMEXCI.dashboard');
+    Route::get('/colis-ipms/count', function () {
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->whereHas('expediteur', function ($query) {
+                                $query->where('agence', 'IPMS-SIMEX-CI');
+                            })
+                            ->count();
+        return response()->json(['colisCount' => $colisCount]);
+    })->name('ipms_colis.count');
 
+    Route::get('/colis-ipms/prix-total', function () {
+        $totalPrixTransit = Colis::where('etat', 'Validé')
+            ->whereHas('destinataire', function ($query) {
+                $query->where('agence', 'IPMS-SIMEX-CI');
+            })
+            ->sum('prix_transit_colis');
+
+        return response()->json(['totalPrixTransit' => $totalPrixTransit]);
+    })->name('ipms_colis.prix-total');
+
+
+    Route::get('/colis-ipms/vol-cargaison-count', function () {
+        $count = Colis::where('mode_transit', 'aérien')
+            ->whereHas('destinataire', function ($query) {
+                $query->where('agence', 'IPMS-SIMEX-CI');
+            })
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('ipms_colis.vol-cargaison-count');
+
+    Route::get('/colis-ipms/conteneur-count', function () {
+        $count = Colis::where('mode_transit', 'maritime')
+            ->whereHas('destinataire', function ($query) {
+                $query->where('agence', 'IPMS-SIMEX-CI');
+            })
+            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+            ->count();
+
+        return response()->json(['count' => $count]);
+    })->name('ipms_colis.conteneur-count');
+
+    Route::get('/colis-ipms/valides-par-mois', function () {
+        $currentYear = now()->year;
+
+        $colisParMois = Colis::select(
+                DB::raw('MONTH(created_at) as mois'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereYear('created_at', $currentYear)
+            ->where('etat', 'Validé')
+            ->whereHas('destinataire', function ($query) {
+                $query->where('agence', 'IPMS-SIMEX-CI');
+            })
+            ->groupBy(DB::raw('MONTH(created_at)'))
+            ->orderBy(DB::raw('MONTH(created_at)'))
+            ->get()
+            ->pluck('total', 'mois');
+
+        // Initialiser un tableau avec 12 zéros pour chaque mois
+        $data = array_fill(1, 12, 0);
+
+        // Remplir le tableau avec les données récupérées
+        foreach ($colisParMois as $mois => $total) {
+            $data[$mois] = $total;
+        }
+
+        return response()->json(array_values($data));
+    })->name('ipms_colis.valides-par-mois');;
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
         Route::get('/', [ApmsColisController::class, 'index'])->name('index'); 
@@ -662,6 +824,15 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
             Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
             Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
         });
+        Route::prefix('ipms_invoice')->name('ipms_invoice.')->group(function(){
+            Route::get('/', [IpmsInvoiceController::class, 'index'])->name('index'); 
+            Route::get('/create/new/invoice-aft--ipms', [IpmsInvoiceController::class, 'create_invoice'])->name('create.invoice');
+            Route::post('/store/new/invoice-aft-ipms', [IpmsInvoiceController::class, 'store_invoice'])->name('store.invoice');
+            Route::get('/history/invoice-aft-ipms', [IpmsInvoiceController::class, 'historique_invoice'])->name('historique.invoice');
+            Route::get('/edit/invoice-aft-ipms', [IpmsInvoiceController::class, 'edit_invoice'])->name('edit.invoice');
+            Route::get('/show/invoice-aft-ipms', [IpmsInvoiceController::class, 'reference_auto'])->name('show.invoice');
+            Route::get('/reference.auto/{query}-ipms', [IpmsInvoiceController::class, 'reference_auto'])->name('reference.auto');
+            });
 });
 
 
@@ -700,6 +871,9 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
     
     Route::get('/colis-angre/conteneur-count', function () {
         $count = Colis::where('mode_transit', 'maritime')
+        ->whereHas('destinataire', function ($query) {
+            $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+        })
             ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
             ->count();
     
@@ -715,6 +889,9 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
             )
             ->whereYear('created_at', $currentYear)
             ->where('etat', 'Dechargé')
+            ->whereHas('destinataire', function ($query) {
+                $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+            })
             ->groupBy(DB::raw('MONTH(created_at)'))
             ->orderBy(DB::raw('MONTH(created_at)'))
             ->get()
@@ -800,6 +977,12 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
         Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
     });
+    Route::prefix('ipms_angre_invoice')->name('ipms_angre_invoice.')->group(function(){
+        Route::get('/', [IpmsAngreInvoiceController::class, 'index'])->name('index'); 
+        Route::get('/create/new/invoice-ipms-angre', [IpmsAngreInvoiceController::class, 'create_invoice'])->name('create.invoice');
+        Route::post('/store/new/invoice-aft-ipms-angre', [IpmsAngreInvoiceController::class, 'store_invoice'])->name('store.invoice');
+        Route::get('/edit/invoice-ipms-angre', [IpmsAngreInvoiceController::class, 'edit_invoice'])->name('edit.invoice');
+        });
 });
 
 
@@ -962,6 +1145,15 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/get-notifications', [NavAdminController::class, 'get_notifications'])->name('get.notifications');
         Route::post('/notification-markAsRead', [NavAdminController::class, 'markAsRead'])->name('markAsRead');
     });
+    Route::prefix('chine_invoice')->name('chine_invoice.')->group(function(){
+        Route::get('/', [ChineInvoiceController::class, 'index'])->name('index'); 
+        Route::get('/create/new/invoice-chine', [ChineInvoiceController::class, 'create_invoice'])->name('create.invoice');
+        Route::post('/store/new/invoice-chine', [ChineInvoiceController::class, 'store_invoice'])->name('store.invoice');
+        Route::get('/history/invoice--chine', [ChineInvoiceController::class, 'historique_invoice'])->name('historique.invoice');
+        Route::get('/edit/invoice-chine', [ChineInvoiceController::class, 'edit_invoice'])->name('edit.invoice');
+        Route::get('/show/invoice-chine', [ChineInvoiceController::class, 'reference_auto'])->name('show.invoice');
+        Route::get('/reference.auto/{query}-chine', [ChineInvoiceController::class, 'reference_auto'])->name('reference.auto');
+        });
 });
 
 
