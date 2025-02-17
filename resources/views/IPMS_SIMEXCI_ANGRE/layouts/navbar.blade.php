@@ -8,7 +8,13 @@
   </ul>
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
+<<<<<<< Updated upstream
     <li class="nav-item dropdown">
+=======
+
+    
+    {{-- <li class="nav-item dropdown">
+>>>>>>> Stashed changes
       <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
           <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
           <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
