@@ -36,18 +36,6 @@ class AdminInvoiceController extends Controller
         return view('admin.invoice.nouvelle');
     }
 
-
-    // public static function generateInvoiceNumber()
-    // {
-    //     // Récupérer le dernier numéro de facture utilisé
-    //     $lastInvoice = self::orderBy('id', 'desc')->first();
-    //     $lastNumber = $lastInvoice ? intval(substr($lastInvoice->numero_facture, 3)) : 0;
-
-    //     $newNumber = $lastNumber + 1;
-
-    //     return '00' . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
-    // }
-
     public function store_invoice()
     {
         $reference_colis = request()->input('reference_colis');

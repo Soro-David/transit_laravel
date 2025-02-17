@@ -236,9 +236,18 @@ private function generateReferenceColis()
     public function add_colis(Request $request)
     {
         
-        $agences = Agence::select('nom_agence', 'id')->get();
-        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-        return view('admin.colis.add_colis', compact('agences','referenceColis'));
+       // Récupérer les pays sans doublons
+    $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
+    ->distinct()
+    ->pluck('pays_agence');
+
+    // Récupérer les agences avec leur pays associé
+    $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+    $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+
+    $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        return view('admin.colis.add_colis', compact('agencesExpedition','agencesDestination', 'referenceColis', 'paysUniques'));
     }
 
     public function store_colis(Request $request)
@@ -969,14 +978,11 @@ private function generateReferenceColis()
                 ->addColumn('action', function ($row) {
                     $editUrl = route('colis.valide.edit', ['id' => $row->id]);
                     $deleteUrl = route('colis.destroy.colis.valide', ['id' => $row->id]);
-                    $printUrl = route('colis.facture.colis.print', ['id' => $row->id]);
+                    // $printUrl = route('colis.facture.colis.print', ['id' => $row->id]);
                     return '
                         <div class="btn-group">
                             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
                                 <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                            </a>
-                                <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="Imprimer" target="_blank">
-                                <i class="fas fa-print"></i>
                             </a>
                         </div> 
                         <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">

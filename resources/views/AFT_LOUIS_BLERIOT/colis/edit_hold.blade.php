@@ -64,6 +64,15 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description du colis</label>
+                        <textarea name="description" id="" cols="5" rows="5" class="form-control" 
+                        disabled>{{ $colis->description_colis }}</textarea>
+                    </div>
+                </div>                
+            </div>
+            <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Poids du Colis</label>

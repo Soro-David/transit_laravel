@@ -53,27 +53,43 @@
     </div>
 </aside>
 <style>
-    /* Style pour la barre latérale */
-    .main-sidebar {
-        background-color: #ffffff; /* Fond blanc */
-    }
+ /* Style pour la barre latérale */
+.main-sidebar {
+    background-color: #f5f5f5;  /* Fond gris clair pour un look moderne */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);  /* Léger ombrage */
+    color: #333;  /* Texte en gris foncé */
+}
 
-    /* Style pour les éléments de liste */
-    .main-sidebar .nav-sidebar > .nav-item > .nav-link {
-        color: #000000; /* Texte noir */
-    }
+/* Style des liens de navigation */
+.main-sidebar .nav-sidebar > .nav-item > .nav-link {
+    color: #333;  /* Couleur de texte harmonisée */
+    transition: color 0.3s ease, background-color 0.3s ease;  /* Transition fluide */
+    font-weight: 500;  /* Épaisseur moyenne pour plus de lisibilité */
+    border-radius: 4px;  /* Coins légèrement arrondis */
+}
 
-    /* Style pour les éléments de liste au survol */
-    .main-sidebar .nav-sidebar > .nav-item > .nav-link:hover {
-        color: #00008B; /* Texte bleu foncé au survol */
-    }
-    .custom-logo {
-        max-height: 90px;
-        padding: 5px;
-        margin: auto;
-    }
+/* Changement de couleur au survol */
+.main-sidebar .nav-sidebar > .nav-item > .nav-link:hover {
+    color: #0056b3;  /* Bleu foncé au survol */
+    background-color: #e2e6ea;  /* Fond léger pour un effet élégant */
+}
 
-    .nav-item {
-        margin-bottom: 15px;
-    }
+/* Style pour le logo */
+.custom-logo {
+    max-height: 90px;
+    padding: 5px;
+    margin: auto;
+    transition: transform 0.3s ease;
+}
+
+/* Effet de zoom léger au survol du logo */
+.custom-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Espacement entre les items */
+.nav-item {
+    margin-bottom: 15px;
+}
+
 </style>

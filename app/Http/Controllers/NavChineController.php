@@ -7,20 +7,20 @@ use App\Models\Colis;
 use App\Models\Notifications;
 use App\Models\Product;
 
-class NavAftlbController extends Controller
+class NavChineController extends Controller
 {
     //
     public function index()
     {
 
-        return view('AFT_LOUIS_BLERIOT.layouts.navbar');
+        return view('AGENCE_CHINE.layouts.navbar');
     }
 
     public function get_notifications(Request $request)
     {
         try {
             // Vérifier si un paramètre d'agence est passé
-            $agence = $request->input('agence', 'AFT Agence Louis Bleriot'); // Valeur par défaut : 'AFT Agence Louis Bleriot'
+            $agence = $request->input('agence', 'Agence de Chine'); // Valeur par défaut : 'AFT Agence Louis Bleriot'
 
             // Obtenir les colis en fonction de l'agence
             $colis = Colis::where('etat', 'En attente')

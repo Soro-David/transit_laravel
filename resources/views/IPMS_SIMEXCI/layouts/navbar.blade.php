@@ -8,19 +8,19 @@
   </ul>
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
-    <li class="nav-item dropdown">
-      <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
-          <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
-          <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
-      </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="notification-menu">
-          <span class="dropdown-item dropdown-header" id="notification-header">0 Notifications</span>
-          <div class="dropdown-divider"></div>
-          <div id="notification-items"></div>
-          <div class="dropdown-divider"></div>
-          <a href="{{ route('notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
-      </div>
-    </li>
+      {{-- <li class="nav-item dropdown">
+        <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
+            <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
+            <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="notification-menu">
+            <span class="dropdown-item dropdown-header" id="notification-header">0 Notifications</span>
+            <div class="dropdown-divider"></div>
+            <div id="notification-items"></div>
+            <div class="dropdown-divider"></div>
+            <a href="{{ route('notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
+        </div>
+      </li> --}}
 
     <!-- User Profile -->
     <li class="nav-item dropdown">
