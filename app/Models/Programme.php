@@ -11,20 +11,27 @@ class Programme extends Model
     use HasFactory;
 
     protected $fillable = [
-        'chauffeur_id',
-        'colis_id',
         'date_programme',
-        'status',
-        
+        'chauffeur_id',
+        'reference_colis',
+        'actions_a_faire',
+        'nom_expediteur',
+        'nom_destinataire',
+        'lieu_destinataire',
+        'tel_expediteur',
+        'tel_destinataire',
+        'lieu_expedition',
+        'lieu_destination',
+        'etat_rdv', // Ajout du nouveau champ
     ];
 
-    public function chauffeur()
+    public function chauffeur(): BelongsTo
     {
         return $this->belongsTo(Chauffeur::class);
     }
 
-    public function colis()
+    public function colis(): BelongsTo
     {
-        return $this->belongsTo(Colis::class);
+        return $this->belongsTo(Colis::class, 'reference_colis', 'reference_colis');
     }
 }

@@ -67,15 +67,39 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        // dd($data);
-        return User::create([
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'adresse' => $data['adresse'],
-            'tel' => $data['tel'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        return DB::transaction(function () use ($data) {
+            // 1. Create the user
+            $user = User::create([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                'agence_id' => $data['agence_id'],
+            ]);
+
+            // 2. Create the customer record (si nécessaire)
+            Client::create([
+                'nom' => $data['first_name'],
+                'prenom' => $data['last_name'],
+                'email' => $data['email'],
+                'user_id' => $user->id,
+                'telephone' => $data['tel'],
+                'adresse' => $data['adresse'],
+                'agence' => Agence::find($data['agence_id'])->nom_agence,
+            ]);
+
+            // 3. Create the expediteur record
+            Expediteur::create([
+                'nom' => $data['first_name'], // Ré-ajout du nom
+                'prenom' => $data['last_name'],
+                'email' => $data['email'],
+                'tel' => $data['tel'],
+                'adresse' => $data['adresse'],
+                'agence' => Agence::find($data['agence_id'])->nom_agence,
+            ]);
+
+            return $user;
+        });
     }
 
     public function edit($id)

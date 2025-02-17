@@ -1406,7 +1406,18 @@ public function colis_valide(Request $request)
 {
     return view('admin.colis.valide');
 }
+public function getColisInfo($reference)
+{
+    $colis = Colis::with('expediteur', 'destinataire')
+        ->where('reference_colis', $reference)
+        ->first();
 
+    if ($colis) {
+        return response()->json($colis);
+    } else {
+        return response()->json(null); // Or return an appropriate error code
+    }
+}
 public function cargaison_ferme(Request $request)
 {
     return view('admin.cargaison.cargaison_ferme');

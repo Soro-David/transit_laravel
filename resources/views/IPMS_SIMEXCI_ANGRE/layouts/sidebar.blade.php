@@ -178,7 +178,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('ipmx_rdv.rdv.index') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Liste RDV') }}</p>
                             </a>
@@ -207,16 +207,16 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('agent_transport.show.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Chauffeurs') }}</p>
-                            </a>
+                        <a href="{{ route('IPMSANGRE_transport.chauffeurs.show') }}" class="nav-link">
+    <i class="far nav-icon"></i>
+    <p>{{ __('Chauffeurs') }}</p>
+</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('agent_transport.planing.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Planifier') }}</p>
-                            </a>
+                        <a href="{{ route('IPMSANGRE_transport.planification.show') }}" class="nav-link">
+    <i class="far nav-icon"></i>
+    <p>{{ __('Planifier') }}</p>
+</a>
                         </li>
                     </ul>
                 </li>

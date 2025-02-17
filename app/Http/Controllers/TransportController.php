@@ -2,21 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\userRequest;
-use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\Facades\DataTables;
-use App\Models\Customer;
-use App\Models\User;
-use App\Models\Product;
 use App\Models\Agence;
 use App\Models\Chauffeur;
-use App\Models\Colis;
-use App\Models\Destinataire;
-use App\Models\Expediteur;
-use App\Models\Programme;
-use App\Mail\ChauffeurWelcomeMail;
-use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class TransportController extends Controller
 {
@@ -29,21 +21,23 @@ class TransportController extends Controller
     {
         return view('admin.transport.index');
     }
+
     public function show_chauffeur()
     {
         $agences = Agence::select('nom_agence', 'id')->get();
-        return view('admin.transport.chauffeur', compact('agences'));
+        $pays_agence = Agence::distinct()->pluck('pays_agence');
+        return view('admin.transport.chauffeur', compact('agences', 'pays_agence'));
     }
 
     public function planing_chauffeur()
     {
         $agences = Agence::select('nom_agence', 'id')->get();
-        $chauffeurs = Chauffeur::select('nom','prenom','id')->get();
-        return view('admin.transport.planing', compact('agences','chauffeurs'));
+
+        return view('admin.transport.planing', compact('agences'));
     }
-    
+
     /**
-     * Show the form for creating a new resource. 
+     * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
@@ -80,209 +74,131 @@ class TransportController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function destroyChauffeur($id)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
-// ajax
-    public function get_chauffeur_list(Request $request)
-    {
-        if ($request->ajax()) {
-            $chauffeur = Chauffeur::select(['id','nom', 'prenom', 'tel', 'email','agence']);
-            return DataTables::of($chauffeur)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit';
-                    $deleteUrl = '/users/' . $row->id; // Route pour supprimer (à adapter)
-
-                    return '
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-primary" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify">
-                            <i class="fas fa-pencil-alt"></i>
-                        </a>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML agent.transport
-                ->make(true);
+        try {
+            $chauffeur = Chauffeur::findOrFail($id);
+            $chauffeur->delete();
+            return response()->json(['success' => 'Chauffeur supprimé avec succès.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erreur lors de la suppression.'], 500);
         }
     }
 
-
-// function pour le programme chauffeur
-    public function programme_chauffeur()
+    public function editChauffeur($id)
     {
-        // $agences = Agence::select('nom_agence', 'id')->get();
-        // $chauffeurs = Chauffeur::select('nom','prenom','id')->get();
-        return view('admin.transport.programme');
-    }
-// edit du programme chauffeur
-    public function edit_programme($id)
-    {
-        // Récupérer tous les programmes pour le chauffeur avec l'ID spécifié
-        $programmes = Programme::where('chauffeur_id', $id)->with('colis')->get();
-
-        return view('admin.transport.edit_programme', compact('programmes'));
+        $chauffeur = Chauffeur::findOrFail($id);
+        $agences = Agence::all();
+        return response()->json(['chauffeur' => $chauffeur, 'agences' => $agences]);
     }
 
-    // function de suppression du programme 
-    public function delete_chauffeur($id)
-    {
-        // Trouver le chauffeur
-        $chauffeur = Chauffeur::find($id);
-
-        if ($chauffeur) {
-            // Supprimer tous les programmes associés
-            $chauffeur->programmes()->delete();
-
-            // // Supprimer le chauffeur
-            // $chauffeur->delete();
-
-            return response()->json(['success' => 'Le programme pour ce chauffeur a été supprimés avec succès.']);
-        }
-
-        return response()->json(['error' => 'Programme  non trouvé.'], 404);
-    }
-    // Ajax pour obtenir la liste des programmes
-    public function get_programme_list(Request $request)
-    {
-        if ($request->ajax()) {
-            // Récupérer les chauffeurs associés aux programmes
-            $chauffeurs = Chauffeur::whereHas('programmes')
-                ->select(['id', 'nom', 'prenom', 'tel', 'email'])
-                ->distinct()
-                ->get(); // Assurez-vous de récupérer les résultats
-    
-            return DataTables::of($chauffeurs)
-                ->addColumn('action', function ($row) {
-                    $editUrl = route('transport.programme.edit', ['id' => $row->id]);
-                    $deleteUrl = route('transport.programme.delete', ['id' => $row->id]); // Route pour supprimer
-    
-                    return '
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-primary" title="Edit">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML agent.transport
-                ->make(true);
-        }
-    
-        return response()->json(['error' => 'Unauthorized'], 401); // Gérer les requêtes non AJAX
-    }
-// autocomplete    
-public function reference_auto($query)
+    public function updateChauffeur(Request $request, $id)
 {
-    try {
-        $results = Colis::with('destinataire') // Charger les informations du destinataire
-            ->where('reference_colis', 'LIKE', "%$query%")
-            ->whereIn('etat', ['Dechargé', 'Validé']) // Filtrer par état
-            ->select('id', 'reference_colis', 'destinataire_id')
-            ->get();
-
-        return response()->json($results->map(function ($colis) {
-            return [
-                'label' => $colis->reference_colis,
-                'value' => $colis->reference_colis,
-                'reference_colis' => $colis->reference_colis,
-                'destinataire_nom' => $colis->destinataire->nom,
-                'destinataire_prenom' => $colis->destinataire->prenom,
-                'destinataire_email' => $colis->destinataire->email,
-                'destinataire_tel' => $colis->destinataire->tel,
-                'destinataire_lieu' => $colis->destinataire->lieu_destination,
-                'id' => $colis->id
-            ];
-        }));
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
-
-
-
-
-
-
-
-public function store_chauffeur(Request $request)
-{
-    // Valider les données du formulaire
     $request->validate([
-        'nom_chauffeur' => 'required|string|max:255',
-        'prenom_chauffeur' => 'required|string|max:255',
-        'email_chauffeur' => 'required|email|max:255',
-        'tel_chauffeur' => 'required|string|max:255',
-        'agence_expedition' => 'required'
+        'agence_expedition' => 'required|exists:agences,id',
+        'password' => 'nullable|string|min:8|confirmed', // Mot de passe facultatif
+        'tel_chauffeur' => 'required|string|max:255',  // Add validation rule for tel_chauffeur
     ]);
 
-    try {
-        // Créer le chauffeur
-        $chauffeur = Chauffeur::create([
-            'nom' => $request->nom_chauffeur,
-            'prenom' => $request->prenom_chauffeur,
-            'email' => $request->email_chauffeur,
-            'tel' => $request->tel_chauffeur,
-            'agence' => $request->agence_expedition,
-        ]);
+    $chauffeur = Chauffeur::findOrFail($id);
 
-        // Envoyer l'e-mail de bienvenue
-        Mail::to($chauffeur->email)->send(new ChauffeurWelcomeMail($chauffeur));
+    $chauffeur->agence_id = $request->agence_expedition;
+    $chauffeur->tel = $request->tel_chauffeur;  // Update the tel field
 
-        return redirect()->back()->with('success', 'Chauffeur ajouté avec succès et e-mail envoyé !');
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'ajout du chauffeur.');
+    // Si un nouveau mot de passe est fourni, le mettre à jour
+    if ($request->filled('password')) {
+        $chauffeur->password = Hash::make($request->password);
+    }
+    $agence = Agence::find($request->agence_expedition);
+
+    $chauffeur->agence = $agence->nom_agence;
+
+    $chauffeur->save();
+
+    return redirect()->route('transport.show.chauffeur')->with('success', 'Chauffeur mis à jour avec succès !');
+}
+    // ajax
+    public function get_chauffeur_list(Request $request)
+{
+    if ($request->ajax()) {
+        $chauffeurs = Chauffeur::with('agence')  // Eager load the agency relationship
+            ->select(['chauffeurs.id', 'chauffeurs.nom', 'chauffeurs.prenom', 'chauffeurs.tel', 'chauffeurs.email', 'chauffeurs.agence_id']);
+
+        // Filter by agency country
+        if ($request->has('pays_agence') && $request->get('pays_agence') != '') {
+            $chauffeurs->join('agences', 'chauffeurs.agence_id', '=', 'agences.id')
+                ->where('agences.pays_agence', $request->get('pays_agence'));
+        }
+
+        return DataTables::of($chauffeurs)
+            ->addColumn('agence', function ($chauffeur) {
+                return $chauffeur->agence ? $chauffeur->agence->nom_agence : 'N/A';
+            })
+            ->addColumn('action', function ($row) {
+                return '
+                    <button class="btn btn-sm btn-primary edit-chauffeur-btn" data-id="' . $row->id . '" data-bs-toggle="modal" data-bs-target="#editChauffeurModal">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-chauffeur-btn" data-id="' . $row->id . '" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 }
 
-    public function store_plannification(Request $request)
+    // autocomplete
+    public function reference_auto($query)
     {
-            
-            $chauffeurId = $request->input('chauffeur_id');
-            $chauffeurDetails = json_decode($request->input('chauffeur_details_data'), true);
-            // dd($chauffeurDetails);
+        $results = User::where('email', 'LIKE', "%$query%")
+            ->select('id', 'first_name', 'last_name', 'email')
+            ->get();
 
-            // Exemple : Traitement des données
-            foreach ($chauffeurDetails as $detail) {
-                // Enregistrer les données ou effectuer un traitement spécifique
-                Programme::create([
-                    'chauffeur_id' => $chauffeurId,
-                    'colis_id' => $detail['id'],
-                    'date_programme' => now(), // Exemple de date
-                    'status' => 'En attente',
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Plannification enregistrée avec succès !');
-
+        return response()->json($results);
     }
-    
+
+
+    public function store_chauffeur(Request $request)
+    {
+        // Valider les données du formulaire, incluant le mot de passe
+        $request->validate([
+            'nom_chauffeur' => 'required|string|max:255',
+            'prenom_chauffeur' => 'required|string|max:255',
+            'email_chauffeur' => 'required|email|max:255|unique:chauffeurs,email',
+            'tel_chauffeur' => 'required|string|max:255',
+            'agence_expedition' => 'required|exists:agences,id',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Use a transaction to ensure both user and chauffeur creation succeed or fail together.
+        return DB::transaction(function () use ($request) {
+            // 1. Create the user
+            $user = User::create([
+                'first_name' => $request->prenom_chauffeur,
+                'last_name' => $request->nom_chauffeur,
+                'email' => $request->email_chauffeur,
+                'password' => Hash::make($request->password),
+                'role' => 'chauffeur',
+                'agence_id' => $request->agence_expedition,
+            ]);
+
+            // 2. Create the chauffeur record
+            $agence = Agence::find($request->agence_expedition); // Récupère l'agence
+
+            Chauffeur::create([
+                'nom' => $request->nom_chauffeur,
+                'prenom' => $request->prenom_chauffeur,
+                'email' => $request->email_chauffeur,
+                'tel' => $request->tel_chauffeur,
+                'agence_id' => $request->agence_expedition, // Store the agency ID
+                'agence' => $agence->nom_agence,  // Store the agency name
+                'password' => Hash::make($request->password),
+            ]);
+
+            // Rediriger avec un message de succès
+            return redirect()->route('transport.index')->with('success', 'Chauffeur ajouté avec succès!');
+        });
+    }
 }

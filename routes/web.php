@@ -14,15 +14,21 @@ use App\Http\Controllers\AftlbColisController;
 use App\Http\Controllers\AftlbScanController; 
 use App\Http\Controllers\ChineColisController; 
 use App\Http\Controllers\ChineScanController; 
-
+use App\Http\Controllers\ProgrammeLBController;
+use App\Http\Controllers\AgentChineTransportController;
+use App\Http\Controllers\AgentLBTransportController;
+use App\Http\Controllers\AgentIPMSANGRETransportController;
 // use App\Http\Controllers\ApmsAngreColisController; 
 use App\Http\Controllers\ApmsAngreColisController;
 use App\Http\Controllers\ApmsAngreScanController;
 use App\Http\Controllers\ApmsColisController;
 use App\Http\Controllers\ApmsScanController;
-
+use App\Http\Controllers\ProgrammeChineController;
+use App\Http\Controllers\RdvchineController;
+use App\Http\Controllers\RdvipmxangreController;
+use App\Http\Controllers\RdvlbController;
 use App\Models\Colis;
-
+use App\Http\Controllers\ProgrammeIPMXANGREController;
 use App\Http\Controllers\TransportController;
 use App\Http\Controllers\AgentTransportController;
 use App\Http\Controllers\GestionAgentController;
@@ -34,15 +40,16 @@ use App\Http\Controllers\ChauffeurController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\NavAdminController;
 use App\Http\Controllers\NavAftlbController;
-
+use App\Http\Controllers\ChauffeurAuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Controllers\RdvController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AgentController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\ChauffeurColisController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -139,6 +146,25 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/create/complete', [ColisController::class, 'complete'])->name('complete');
 
     });
+    Route::prefix('admin/transport')->name('transport.')->group(function () {
+        Route::get('/', [TransportController::class, 'index'])->name('index');
+        Route::get('/chauffeur', [TransportController::class, 'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/planing-chauffeur', [TransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
+        Route::get('/chauffeur/data', [TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/store-chauffeur', [TransportController::class, 'store_chauffeur'])->name('store.chauffeur');
+        Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/chauffeur/{id}/edit', [TransportController::class, 'editChauffeur'])->name('chauffeur.edit'); // Route pour récupérer les données pour l'édition
+    Route::put('/chauffeur/{id}', [TransportController::class, 'updateChauffeur'])->name('chauffeur.update');  // Route pour mettre à jour le chauffeur
+     Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('chauffeur.destroy')   ->middleware('csrf');;
+    // Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('transport.chauffeur.destroy');
+    });
+    Route::get('/programme', function () {
+        return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
+    })->name('programme.index');
+    Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
+    Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
+    Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+    
         // agence Route 
     Route::prefix('agence')->name('agence.')->group(function(){
         Route::get('/', [AgenceController::class,'index'])->name('index'); 
@@ -161,30 +187,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::delete('/agent/{id}', [GestionAgentController::class, 'destroy'])->name('agent.destroy');
 
     });
-    // transport
-    Route::prefix('transport')->name('transport.')->group(function(){
-        Route::get('/', [TransportController::class,'index'])->name('index'); 
-        Route::get('/create', [TransportController::class,'create'])->name('create');
-        Route::get('/programme-chauffeur', [TransportController::class,'programme_chauffeur'])->name('programme.chauffeur');
-        Route::get('/show-chauffeur', [TransportController::class,'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur', [TransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
-
-        Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::get('/programme/data',[TransportController::class, 'get_programme_list'])->name('get.programme.list');
-        Route::post('/store-chauffeur', [TransportController::class,'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification', [TransportController::class,'store_plannification'])->name('store.plannification'); 
-        // route edit programme et update programme
-        Route::get('/programme/{id}/edit', [TransportController::class, 'edit_programme'])->name('programme.edit');
-        Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
-        Route::delete('/programme/{id}', [TransportController::class, 'delete_chauffeur'])->name('programme.delete');
-
-        Route::get('/store',[TransportController::class, 'store'])->name('store');
-        Route::post('/store', [TransportController::class,'store'])->name('store'); 
-
-});
-    Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
-    });
+   
     
         // Client rouute
         Route::prefix('client')->name('client.')->group(function(){
@@ -227,8 +230,23 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     });
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
+    Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
+    Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
+    Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
+    Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+    Route::get('/programme/edit/{programme}', [ProgrammeController::class, 'edit']); // Route pour récupérer les données pour l'édition
+    Route::put('/programme/update/{programme}', [ProgrammeController::class, 'update']); // Route pour la mise à jour
+    Route::delete('/programme/delete/{programme}', [ProgrammeController::class, 'destroy']); // Route pour la suppression
+
+    // Ajout des routes pour le programme de l'agent
+       // Ajout des routes pour le RDV
+    Route::get('/rdv', [RdvController::class, 'index'])->name('rdv.index');
+    Route::get('/rdv/depot/data', [RdvController::class, 'depotData'])->name('rdv.depot.data');
+    Route::get('/rdv/recuperation/data', [RdvController::class, 'recuperationData'])->name('rdv.recuperation.data');
+   
 
 });
+
 
 Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('customer.dashboard');
@@ -568,18 +586,43 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::match(['get', 'post-aft-louis-b'], '/store', [AgentTransportController::class, 'store'])->name('store');
     });
 
-    // Groupe de routes pour la gestion du transport
     Route::prefix('aftlb_transport')->name('aftlb_transport.')->group(function(){
-        Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
-        Route::get('/create-aft-louis-b', [AgentTransportController::class, 'create'])->name('create');
-        Route::get('/show-chauffeur-aft-louis-b', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur-aft-louis-b', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}-aft-louis-b', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/data-aft-louis-b', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/store-chauffeur-aft-louis-b', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification-aft-louis-b', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
-        Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store'); 
+        Route::get('/', [AgentLBTransportController::class, 'index'])->name('index'); 
+        Route::get('/create-aft-louis-b', [AgentLBTransportController::class, 'create'])->name('create');
+        Route::get('/show-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/planing-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
+        Route::get('/reference.auto/{query}-aft-louis-b', [AgentLBTransportController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        Route::post('/store-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
+        Route::post('/store-planification-aft-louis-b', [AgentLBTransportController::class, 'store_plannification'])->name('store.plannification'); 
+        Route::match(['get', 'post'], '/store', [AgentLBTransportController::class, 'store'])->name('store'); 
+
+        // Route pour afficher le formulaire de modification d'un chauffeur
+        Route::get('/chauffeurs/{id}/edit', [AgentLBTransportController::class, 'edit'])->name('edit');
+
+        // Route pour mettre à jour un chauffeur (méthode PUT)
+        Route::put('/chauffeurs/{id}', [AgentLBTransportController::class, 'update'])->name('update');
+
+         // Route pour supprimer un chauffeur (méthode DELETE)
+        Route::delete('/chauffeurs/{id}', [AgentLBTransportController::class, 'destroy'])->name('destroy');
     });
+
+    
+    Route::prefix('programmelb')->name('lb_programme.')->group(function () {
+        Route::get('/transport', [ProgrammeLBController::class, 'index'])->name('planing.index');
+        Route::post('/chauffeur/store', [ProgrammeLBController::class, 'storeChauffeur'])->name('chauffeur.store');
+        Route::post('/store', [ProgrammeLBController::class, 'storeProgramme'])->name('store');
+        Route::get('/data', [ProgrammeLBController::class, 'data'])->name('data');
+        Route::get('/edit/{programme}', [ProgrammeLBController::class, 'edit'])->name('edit');
+        Route::put('/update/{programme}', [ProgrammeLBController::class, 'update'])->name('update');
+        Route::delete('/delete/{programme}', [ProgrammeLBController::class, 'destroy'])->name('delete');
+    });
+    Route::prefix('rdvlb')->name('lb_rdv.')->group(function(){
+        Route::get('/rdv', [Rdvlbcontroller::class, 'index'])->name('rdv.index');
+        Route::get('/rdv/depot/data', [Rdvlbcontroller::class, 'depotData'])->name('rdv.depot.data');
+        Route::get('/rdv/recuperation/data', [Rdvlbcontroller::class, 'recuperationData'])->name('rdv.recuperation.data');
+    });
+   
 
     // Groupe de routes pour les notifications de l'agent
     Route::prefix('aftlb_notification')->name('aftlb_notification.')->group(function(){
@@ -782,18 +825,48 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
     });
 
     // Groupe de routes pour la gestion du transport
-    Route::prefix('agent_transport')->name('agent_transport.')->group(function(){
-        Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
-        Route::get('/create', [AgentTransportController::class, 'create'])->name('create');
-        Route::get('/show-chauffeur', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/store-chauffeur', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
-        Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store'); 
+    Route::prefix('IPMSANGRE_transport')->name('IPMSANGRE_transport.')->group(function () {
+        Route::get('/', [AgentIPMSANGRETransportController::class, 'index'])->name('index');
+        Route::get('/create', [AgentIPMSANGRETransportController::class, 'create'])->name('create');
+        Route::get('/chauffeurs', [AgentIPMSANGRETransportController::class, 'show_chauffeur'])->name('chauffeurs.show');
+        Route::get('/planification', [AgentIPMSANGRETransportController::class, 'planing_chauffeur'])->name('planification.show');
+    
+        // Autocomplete
+        Route::get('/reference_auto/{query}', [AgentIPMSANGRETransportController::class, 'reference_auto'])->name('reference.auto');
+        Route::get('/chauffeurs/{id}/edit', [AgentIPMSANGRETransportController::class, 'edit'])->name('chauffeurs.edit');
+    
+        // Route pour mettre à jour un chauffeur (méthode PUT)
+        Route::put('/chauffeurs/{id}', [AgentIPMSANGRETransportController::class, 'update'])->name('chauffeurs.update');
+        Route::delete('/chauffeurs/{id}', [AgentIPMSANGRETransportController::class, 'destroy'])->name('chauffeurs.destroy');
+        // DataTables
+        Route::get('/chauffeurs/data', [AgentIPMSANGRETransportController::class, 'get_chauffeur_list'])->name('chauffeurs.data');
+    
+        // CRUD Chauffeurs
+        Route::post('/chauffeurs', [AgentIPMSANGRETransportController::class, 'store_chauffeur'])->name('chauffeurs.store');
+        // Route::get('/rdv', [RdvController::class, 'index'])->name('rdv.index');
+        // Route::get('/rdv/depot/data', [RdvController::class, 'depotData'])->name('rdv.depot.data');
+        // Route::get('/rdv/recuperation/data', [RdvController::class, 'recuperationData'])->name('rdv.recuperation.data');
+        // Plannification
+        Route::post('/planification', [AgentIPMSANGRETransportController::class, 'store_plannification'])->name('planification.store');
+        Route::match(['get', 'post'], '/store', [AgentIPMSANGRETransportController::class, 'store'])->name('store');
     });
 
+    Route::prefix('programmeipmxangre')->name('ipmxangre_programme.')->group(function () {
+        Route::get('/transport', [ProgrammeIPMXANGREController::class, 'index'])->name('planing.index');
+        Route::post('/chauffeur/store', [ProgrammeIPMXANGREController::class, 'storeChauffeur'])->name('chauffeur.store');
+        Route::post('/store', [ProgrammeIPMXANGREController::class, 'storeProgramme'])->name('store');
+        Route::get('/data', [ProgrammeIPMXANGREController::class, 'data'])->name('data');
+        Route::get('/edit/{programme}', [ProgrammeIPMXANGREController::class, 'edit'])->name('edit');
+        Route::put('/update/{programme}', [ProgrammeIPMXANGREController::class, 'update'])->name('update');
+        Route::delete('/delete/{programme}', [ProgrammeIPMXANGREController::class, 'destroy'])->name('delete');
+    });
+    Route::prefix('rdvipmx')->name('ipmx_rdv.')->group(function(){
+        Route::get('/rdv', [RdvipmxangreController::class, 'index'])->name('rdv.index');
+        Route::get('/rdv/depot/data', [RdvipmxangreController::class, 'depotData'])->name('rdv.depot.data');
+        Route::get('/rdv/recuperation/data', [RdvipmxangreController::class, 'recuperationData'])->name('rdv.recuperation.data');
+    });
+    
+    
     // Groupe de routes pour les notifications de l'agent
     Route::prefix('agent_notification')->name('agent_notification.')->group(function(){
         Route::get('/', [NavAdminController::class, 'index'])->name('index');
@@ -943,18 +1016,47 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
     });
 
-    // Groupe de routes pour la gestion du transport
-    Route::prefix('chine_transport')->name('agent_transport.')->group(function(){
-        Route::get('/', [AgentTransportController::class, 'index'])->name('index'); 
-        Route::get('/create-aft_chine', [AgentTransportController::class, 'create'])->name('create');
-        Route::get('/show-chauffeur-aft_chine', [AgentTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur-aft_chine', [AgentTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}-aft_chine', [AgentTransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/data-aft_chine', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/store-chauffeur-aft_chine', [AgentTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification-aft_chine', [AgentTransportController::class, 'store_plannification'])->name('store.plannification'); 
-        Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store'); 
+   // Groupe de routes pour la gestion du transport de l'agence Chine
+Route::prefix('chine_transport')->name('chine_transport.')->group(function () {
+    Route::get('/', [AgentChineTransportController::class, 'index'])->name('index');
+    Route::get('/create', [AgentChineTransportController::class, 'create'])->name('create');
+    Route::get('/chauffeurs', [AgentChineTransportController::class, 'show_chauffeur'])->name('chauffeurs.show');
+    // Route::get('/planification', [AgentChineTransportController::class, 'planing_chauffeur'])->name('planification.show');
+
+    // Autocomplete
+    Route::get('/reference_auto/{query}', [AgentChineTransportController::class, 'reference_auto'])->name('reference.auto');
+    Route::get('/chauffeurs/{id}/edit', [AgentChineTransportController::class, 'edit'])->name('chauffeurs.edit');
+
+    // Route pour mettre à jour un chauffeur (méthode PUT)
+    Route::put('/chauffeurs/{id}', [AgentChineTransportController::class, 'update'])->name('chauffeurs.update');
+    Route::delete('/chauffeurs/{id}', [AgentChineTransportController::class, 'destroy'])->name('chauffeurs.destroy');
+    // DataTables
+    Route::get('/chauffeurs/data', [AgentChineTransportController::class, 'get_chauffeur_list'])->name('chauffeurs.data');
+
+    // CRUD Chauffeurs
+    Route::post('/chauffeurs', [AgentChineTransportController::class, 'store_chauffeur'])->name('chauffeurs.store');
+    
+    Route::post('/planification', [AgentChineTransportController::class, 'store_plannification'])->name('planification.store');
+    Route::match(['get', 'post'], '/store', [AgentChineTransportController::class, 'store'])->name('store');
+});
+ Route::prefix('programmechine')->name('chine_programme.')->group(function () {
+        Route::get('/transport', [ProgrammeChineController::class, 'index'])->name('planing.index');
+        Route::post('/chauffeur/store', [ProgrammeChineController::class, 'storeChauffeur'])->name('chauffeur.store');
+        Route::post('/store', [ProgrammeChineController::class, 'storeProgramme'])->name('store');
+        Route::get('/data', [ProgrammeChineController::class, 'data'])->name('data');
+        Route::get('/edit/{programme}', [ProgrammeChineController::class, 'edit'])->name('edit');
+        Route::put('/update/{programme}', [ProgrammeChineController::class, 'update'])->name('update');
+        Route::delete('/delete/{programme}', [ProgrammeChineController::class, 'destroy'])->name('delete');
     });
+
+ // Ajout des routes pour le RDV
+ Route::prefix('chinrdv')->name('rdv_chine.')->group(function(){
+    Route::get('/rdv', [RdvchineController::class, 'index'])->name('rdv.index');
+    Route::get('/rdv/depot/data', [RdvchineController::class, 'depotData'])->name('rdv.depot.data');
+    Route::get('/rdv/recuperation/data', [RdvchineController::class, 'recuperationData'])->name('rdv.recuperation.data');
+ });
+
+ 
 
     // Groupe de routes pour les notifications de l'agent
     Route::prefix('chine_notification')->name('agent_notification.')->group(function(){
@@ -971,9 +1073,14 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
 
 
-Route::get('/programme', function () {
-    return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
-})->name('programme.index');
-Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
-Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
-Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+
+//ROUTE POUR ROLE CHAUFFEUR
+
+Route::prefix('chauffeur')->middleware(['auth', 'role:chauffeur'])->group(function () {
+    // Route::get('/login', [ChauffeurAuthController::class, 'index'])->name('chauffeur.login');
+//    Route::post('/login', [ChauffeurAuthController::class, 'login'])->name('chauffeur.login.post');
+   Route::get('/dashboard', [ChauffeurAuthController::class, 'dashboard'])->name('chauffeur.dashboard');
+   Route::get('/programme', [ChauffeurColisController::class, 'index'])->name('chauffeur.programme.index');
+   Route::patch('/chauffeur/{programme}/update-etat', [ChauffeurColisController::class, 'updateEtatRdv'])->name('chauffeur.programme.updateEtatRdv');
+});
+Route::get('/admin/colis/getColisInfo/{reference_colis}', [ColisController::class, 'getColisInfo']);

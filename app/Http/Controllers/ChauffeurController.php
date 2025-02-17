@@ -48,26 +48,4 @@ class ChauffeurController extends Controller
     }
     
 
-    public function store(Request $request)
-{
-    // Valider les données du formulaire
-    $request->validate([
-        'nom_chauffeur' => 'required|string|max:255',
-        'email_chauffeur' => 'required|email|max:255',
-        'tel_chauffeur' => 'required|string|max:255',
-        'agence_expedition' => 'required|exists:agences,id', // Assurez-vous que l'agence existe
-    ]);
-
-    // Créer un nouveau chauffeur
-    Chauffeur::create([
-        'nom' => $request->nom_chauffeur,
-        'email' => $request->email_chauffeur,
-        'tel' => $request->tel_chauffeur,
-        'agence_id' => $request->agence_expedition,  // Assurez-vous que le champ est bien l'ID
-    ]);
-
-    // Rediriger avec un message de succès
-    return redirect()->route('transport.index')->with('success', 'Chauffeur ajouté avec succès!');
-}
-    
 }

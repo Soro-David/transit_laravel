@@ -46,6 +46,10 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+        'chauffeur' => [
+            'driver' => 'session',
+            'provider' => 'chauffeurs',
+        ],
     ],
 
     /*
@@ -69,6 +73,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'chauffeurs' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Chauffeur::class,
         ],
 
         // 'users' => [

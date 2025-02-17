@@ -177,7 +177,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('rdv_chine.rdv.index') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Liste RDV') }}</p>
                             </a>
@@ -205,19 +205,19 @@
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('agent_transport.show.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Chauffeurs') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('agent_transport.planing.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Planifier') }}</p>
-                            </a>
-                        </li>
-                    </ul>
+    <li class="nav-item">
+        <a href="{{ route('chine_transport.chauffeurs.show') }}" class="nav-link">
+            <i class="far nav-icon"></i>
+            <p>{{ __('Chauffeurs') }}</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('chine_programme.planing.index') }}" class="nav-link">
+            <i class="far nav-icon"></i>
+            <p>{{ __('Planifier') }}</p>
+        </a>
+    </li>
+</ul>
                 </li>
             </ul>
         </nav>

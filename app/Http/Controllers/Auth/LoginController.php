@@ -77,6 +77,9 @@ class LoginController extends Controller
             }
             return redirect()->route('agent.dashboard');
         }
+        elseif($user->role === 'chauffeur'){
+            return redirect()->route('chauffeur.dashboard');
+       }
 
         return redirect('/home');
     }
