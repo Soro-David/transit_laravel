@@ -19,10 +19,13 @@ class NavAftlbController extends Controller
     public function get_notifications(Request $request)
     {
         try {
-            // Obtenir les colis avec l'état "En attente" et l'agence d'expédition "AFT Agence Louis Bleriot"
+            // Vérifier si un paramètre d'agence est passé
+            $agence = $request->input('agence', 'AFT Agence Louis Bleriot'); // Valeur par défaut : 'AFT Agence Louis Bleriot'
+
+            // Obtenir les colis en fonction de l'agence
             $colis = Colis::where('etat', 'En attente')
-                ->whereHas('expediteur', function ($query) {
-                    $query->where('agence', 'AFT Agence Louis Bleriot');
+                ->whereHas('expediteur', function ($query) use ($agence) {
+                    $query->where('agence', $agence);
                 })
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -48,28 +51,28 @@ class NavAftlbController extends Controller
                 'message' => 'Une erreur est survenue : ' . $e->getMessage(),
             ], 500);
         }
-
     }
 
-    public function markAsRead(Request $request)
-    {
-        try {
-            $notificationId = $request->input('notification_id');
-            $notification = Notifications::find($notificationId); // Assurez-vous de spécifier le bon modèle Notifications
+
+    // public function markAsRead(Request $request)
+    // {
+    //     try {
+    //         $notificationId = $request->input('notification_id');
+    //         $notification = Notifications::find($notificationId); // Assurez-vous de spécifier le bon modèle Notifications
     
-            if ($notification) {
-                // Marquer la notification comme lue
-                $notification->read_at = now(); // Ajouter un champ 'read_at' dans votre modèle Notifications
-                $notification->save();
+    //         if ($notification) {
+    //             // Marquer la notification comme lue
+    //             $notification->read_at = now(); // Ajouter un champ 'read_at' dans votre modèle Notifications
+    //             $notification->save();
     
-                return response()->json(['success' => true]);
-            } else {
-                return response()->json(['success' => false, 'message' => 'Notification introuvable']);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Erreur lors de la mise à jour de la notification']);
-        }
-    }
+    //             return response()->json(['success' => true]);
+    //         } else {
+    //             return response()->json(['success' => false, 'message' => 'Notification introuvable']);
+    //         }
+    //     } catch (\Exception $e) {
+    //         return response()->json(['success' => false, 'message' => 'Erreur lors de la mise à jour de la notification']);
+    //     }
+    // }
     
 
 

@@ -93,12 +93,18 @@ class AgentController extends Controller
                 
         $currentYear = Carbon::now()->year;
 
-        $colisParMois = DB::table('colis')
-            ->selectRaw('MONTH(created_at) as mois, COUNT(*) as total')
-            ->whereYear('created_at', $currentYear)
-            ->groupBy('mois')
-            ->pluck('total', 'mois')
-            ->toArray();
+        $colisParMois = Colis::select(
+                        DB::raw('MONTH(created_at) as mois'),
+                        DB::raw('COUNT(*) as total')
+                    )->whereHas('expediteur', function ($query) {
+                        $query->where('agence', 'AFT Agence Louis Bleriot');
+                    })
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->orderBy(DB::raw('MONTH(created_at)'))
+                    ->pluck('total', 'mois')
+                    ->toArray();
+
         $moisNoms = ['Jan', 'Fév', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
             $colisData = [];
                        
@@ -112,30 +118,67 @@ class AgentController extends Controller
 
     public function IPMS_SIMEXCI_INDEX()
     {
-        // dd(request());
         $orders = Order::with(['items', 'payments'])->get();
-        $customers_count = Customer::count();
-        $products_count = Product::count();
+         $customers_count = Customer::count();
+         $products_count = Product::count();
+         $colisCount = Colis::where('etat', 'Validé')
+                     ->whereHas('destinataire', function($query) {
+                         $query->where('agence', 'IPMS-SIMEX-CI');
+                     })
+                     ->count();
+         $colisPrix = Colis::where('etat', 'Validé')
+                            ->whereHas('destinataire', function($query) {
+                                $query->where('agence', 'IPMS-SIMEX-CI');
+                            })
+                            ->count();
+ 
+ 
+                     
+         $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+                            ->whereHas('destinataire', function($query) {
+                                $query->where('agence', 'IPMS-SIMEX-CI');
+                            })
+                     ->sum('prix_transit_colis');
+         $volCargaisonCount = Colis::where('mode_transit', 'aérien')
+                     ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                     ->whereHas('destinataire', function($query) {
+                        $query->where('agence', 'IPMS-SIMEX-CI');
+                    })
+                     ->count();
+                 
+         $conteneurCount = Colis::where('mode_transit', 'maritime')
+                     ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                     ->whereHas('destinataire', function($query) {
+                        $query->where('agence', 'IPMS-SIMEX-CI');
+                    })
+                     ->count();
+                 
+         $currentYear = Carbon::now()->year;
+ 
+         $colisParMois = Colis::select(
+                        DB::raw('MONTH(created_at) as mois'),
+                        DB::raw('COUNT(*) as total')
+                    )->whereHas('destinataire', function($query) {
+                        $query->where('agence', 'IPMS-SIMEX-CI');
+                    })
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->orderBy(DB::raw('MONTH(created_at)'))
+                    ->pluck('total', 'mois')
+                    ->toArray();
 
-        return view('IPMS_SIMEXCI.dashboard', [
-            'orders_count' => $orders->count(),
-            'income' => $orders->map(function($i) {
-                if($i->receivedAmount() > $i->total()) {
-                    return $i->total();
-                }
-                return $i->receivedAmount();
-            })->sum(),
-            'income_today' => $orders->where('created_at', '>=', date('Y-m-d').' 00:00:00')->map(function($i) {
-                if($i->receivedAmount() > $i->total()) {
-                    return $i->total();
-                }
-                return $i->receivedAmount();
-            })->sum(),
-            'customers_count' => $customers_count,
-            'products_count' => $products_count
-        ]);
-        return view('IPMS_SIMEXCI.dashboard');
-    }
+         $moisNoms = ['Jan', 'Fév', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+             $colisData = [];
+                        
+             for ($i = 1; $i <= 12; $i++) {
+                 $colisData[] = $colisParMois[$i] ?? 0;
+             }
+             // dd($colisData);        
+ 
+         return view('IPMS_SIMEXCI.dashboard', compact('orders','colisData', 'moisNoms','colisParMois', 'customers_count', 'products_count','colisCount','totalPrixTransit','volCargaisonCount','conteneurCount'));
+     }
+
+
     public function IPMS_SIMEXCI_ANGRE_INDEX()
     {
         // dd(request());
@@ -177,12 +220,18 @@ class AgentController extends Controller
                  
          $currentYear = Carbon::now()->year;
  
-         $colisParMois = DB::table('colis')
-             ->selectRaw('MONTH(created_at) as mois, COUNT(*) as total')
-             ->whereYear('created_at', $currentYear)
-             ->groupBy('mois')
-             ->pluck('total', 'mois')
-             ->toArray();
+         $colisParMois = Colis::select(
+                        DB::raw('MONTH(created_at) as mois'),
+                        DB::raw('COUNT(*) as total')
+                    )->whereHas('destinataire', function($query) {
+                        $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+                    })
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->orderBy(DB::raw('MONTH(created_at)'))
+                    ->pluck('total', 'mois')
+                    ->toArray();
+
          $moisNoms = ['Jan', 'Fév', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
              $colisData = [];
                         
@@ -225,12 +274,16 @@ class AgentController extends Controller
     $currentYear = Carbon::now()->year;
 
     // Fetch data grouped by month
-    $colisParMois = DB::table('colis')
-                      ->selectRaw('MONTH(created_at) as mois, COUNT(*) as total')
-                      ->whereYear('created_at', $currentYear)
-                      ->groupBy('mois')
-                      ->pluck('total', 'mois')
-                      ->toArray();
+    $colisParMois = Colis::select(
+                    DB::raw('MONTH(created_at) as mois'),
+                    DB::raw('COUNT(*) as total')
+                )->whereHas('expediteur', function ($query) {
+                    $query->where('agence', 'Agence de Chine');})
+                ->whereYear('created_at', $currentYear)
+                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->orderBy(DB::raw('MONTH(created_at)'))
+                ->pluck('total', 'mois')
+                ->toArray();
 
     // Initialize an array for months with data
     $colisData = [];

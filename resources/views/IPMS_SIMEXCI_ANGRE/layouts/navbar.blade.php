@@ -8,6 +8,7 @@
   </ul>
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     <li class="nav-item dropdown">
 =======
@@ -15,6 +16,10 @@
     
     {{-- <li class="nav-item dropdown">
 >>>>>>> Stashed changes
+=======
+    
+    {{-- <li class="nav-item dropdown">
+>>>>>>> origin/dev1
       <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
           <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
           <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
@@ -26,7 +31,7 @@
           <div class="dropdown-divider"></div>
           <a href="{{ route('notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
       </div>
-    </li>
+    </li> --}}
 
     <!-- User Profile -->
     <li class="nav-item dropdown">

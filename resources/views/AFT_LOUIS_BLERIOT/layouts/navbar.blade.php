@@ -1,48 +1,49 @@
 <nav class="main-header navbar navbar-expand navbar-white navbar-light fixed-top">
-  <ul class="navbar-nav">
-    <li class="nav-item">
-      <a class="nav-link" data-widget="pushmenu" href="{{ route('home') }}" role="button">
-        <i class="fas fa-bars"></i>
-      </a>
-    </li>
-  </ul>
-  <ul class="navbar-nav ml-auto">
-    <!-- Notifications -->
-    <li class="nav-item dropdown">
-      <a class="nav-link notification-icon" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
-        <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
-      </a>    
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="notification-menu">
-          <span class="dropdown-item dropdown-header" id="notification-header">0 Notifications</span>
-          <div class="dropdown-divider"></div>
-          <div id="notification-items"></div>
-          <div class="dropdown-divider"></div>
-          <a href="{{ route('aftlb_notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
-      </div>
-  </li>
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="{{ route('home') }}" role="button">
+          <i class="fas fa-bars"></i>
+        </a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <!-- Notifications -->
+      <li class="nav-item dropdown">
+        <a class="nav-link notification-icon" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
+            <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="notification-menu">
+            <span class="dropdown-item dropdown-header" id="notification-header">0 Notifications</span>
+            <div class="dropdown-divider"></div>
+            <div id="notification-items"></div>
+            <div class="dropdown-divider"></div>
+            <a href="{{ route('aftlb_notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
+        </div>
+      </li>
+
       <!-- User Profile -->
-    <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#">
-        <img src="{{ Auth::user()->profile_photo_url ?? asset('images/poslg.png') }}" class="img-circle"  style="width: 30px; height: 30px;">
-            <span>{{ auth()->user()->getFullname() }}</span>
-      </a>
-      <div class="dropdown-menu dropdown-menu-right">
-        <a href="#" class="dropdown-item" data-toggle="modal" data-target="#changeProfilePhotoModal">
-          <i class="fas fa-user-circle mr-2"></i> Changer la photo de profil
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <img src="{{ Auth::user()->profile_photo_url ?? asset('images/poslg.png') }}" class="img-circle"  style="width: 30px; height: 30px;">
+              <span>{{ auth()->user()->getFullname() }}</span>
         </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fa fa-edit"></i> Modifier le compte
-        </a>
-        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit()">
-          <i class="fas fa-sign-out-alt mr-2"></i> Se déconnecter
-        </a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-          @csrf
-        </form>
-      </div>
-    </li>
+        <div class="dropdown-menu dropdown-menu-right">
+          <a href="#" class="dropdown-item" data-toggle="modal" data-target="#changeProfilePhotoModal">
+            <i class="fas fa-user-circle mr-2"></i> Changer la photo de profil
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fa fa-edit"></i> Modifier le compte
+          </a>
+          <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit()">
+            <i class="fas fa-sign-out-alt mr-2"></i> Se déconnecter
+          </a>
+          <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+          </form>
+        </div>
+      </li>
   </ul>
 </nav>
 
@@ -74,48 +75,6 @@
   </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-      // Fonction pour récupérer les notifications
-      async function fetchNotifications() {
-          try {
-              const response = await fetch('/get_notifications');
-              const data = await response.json();
-
-              if (data.success) {
-                  // Mettre à jour le compteur de notifications
-                  document.getElementById('notification-count').textContent = data.count;
-                  document.getElementById('notification-header').textContent = `${data.count} Notifications`;
-
-                  // Mettre à jour la liste des notifications
-                  const notificationItems = document.getElementById('notification-items');
-                  notificationItems.innerHTML = ''; // Vider les anciennes notifications
-
-                  data.notifications.forEach(notification => {
-                      const item = document.createElement('a');
-                      item.href = '#';
-                      item.classList.add('dropdown-item');
-                      item.innerHTML = `
-                          <i class="fas fa-envelope mr-2"></i> ${notification.message}
-                          <span class="float-right text-muted text-sm">${notification.time}</span>
-                      `;
-                      notificationItems.appendChild(item);
-                  });
-              } else {
-                  console.error('Erreur lors de la récupération des notifications:', data.message);
-              }
-          } catch (error) {
-              console.error('Erreur lors de la récupération des notifications:', error);
-          }
-      }
-
-      // Récupérer les notifications initiales
-      fetchNotifications();
-
-      // Mettre à jour les notifications toutes les 30 secondes
-      setInterval(fetchNotifications, 30000);
-  });
-</script>
 {{-- stylee  --}}
 <style>
    body{
@@ -149,11 +108,55 @@
 </style>
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour récupérer les notifications par agence
+    async function fetchNotifications(agence = 'AFT Agence Louis Bleriot') {
+        try {
+            const response = await fetch(`/aftlb_notification/get-notifications?agence=${agence}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Mettre à jour le compteur de notifications
+                document.getElementById('notification-count').textContent = data.count;
+                document.getElementById('notification-header').textContent = `${data.count} Notifications`;
+
+                // Mettre à jour la liste des notifications
+                const notificationItems = document.getElementById('notification-items');
+                notificationItems.innerHTML = ''; // Vider les anciennes notifications
+
+                data.notifications.forEach(notification => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.classList.add('dropdown-item');
+                    item.innerHTML = `
+                        <i class="fas fa-envelope mr-2"></i> ${notification.message}
+                        <span class="float-right text-muted text-sm">${notification.time}</span>
+                    `;
+                    notificationItems.appendChild(item);
+                });
+            } else {
+                console.error('Erreur lors de la récupération des notifications:', data.message);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des notifications:', error);
+        }
+    }
+
+    // Récupérer les notifications initiales pour l'agence par défaut
+    fetchNotifications();
+
+    // Mettre à jour les notifications toutes les 30 secondes
+    setInterval(fetchNotifications, 30000);
+});
+
+
+
  $(document).ready(function () {
     // Fonction pour charger les notifications
     function loadNotifications() {
         $.ajax({
-            url: '{{ route("agent_notification.get.notifications") }}',
+            url: '{{ route("aftlb_notification.get.notifications") }}',
             type: 'GET',
             success: function (response) {
                 if (response.success) {
@@ -206,7 +209,7 @@
 
         // Effectuer une requête AJAX pour marquer la notification comme lue
         $.ajax({
-            url: '{{ route("agent_notification.markAsRead") }}',
+            url: '{{ route("aftlb_notification.markAsRead") }}',
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',

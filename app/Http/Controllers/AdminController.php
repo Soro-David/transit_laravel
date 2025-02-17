@@ -13,6 +13,10 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Agence;
 use ConsoleTVs\Charts\Classes\Chartjs\Chart;
+use App\Models\Colis;
+use App\Models\Expediteur;
+// use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 
@@ -27,42 +31,48 @@ class AdminController extends Controller
 
 public function index()
 {
-    // Récupérer les commandes avec les éléments et paiements associés
     $orders = Order::with(['items', 'payments'])->get();
-    
-    // Compter les clients et produits
-    $customers_count = Customer::count();
-    $products_count = Product::count();
-    $agence = Agence::select('nom_agence')->first();
-    // Créer un graphique
-    $chart = new Chart;
-    $chart->labels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']);
-    $chart->dataset('Revenue by Month', 'line', [10, 20, 30, 40, 50, 60])
-        ->color('#ff0000')
-        ->backgroundColor('rgba(255, 0, 0, 0.3)');
+         $customers_count = Customer::count();
+         $products_count = Product::count();
+         $colisCount = Colis::where('etat', 'Validé')
+                     ->count();
+         $colisPrix = Colis::where('etat', 'Validé')
+                            ->count();
+ 
+ 
+                     
+         $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+                     ->sum('prix_transit_colis');
+         $volCargaisonCount = Colis::where('mode_transit', 'aérien')
+                     ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                     ->count();
+                 
+         $conteneurCount = Colis::where('mode_transit', 'maritime')
+                     ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                     ->count();
+                 
+                     $currentYear = now()->year;
 
-    // Calculer les revenus totaux et du jour
-    $income = $orders->map(function($order) {
-        return min($order->receivedAmount(), $order->total());
-    })->sum();
-
-    $income_today = $orders->where('created_at', '>=', date('Y-m-d').' 00:00:00')
-        ->map(function($order) {
-            return min($order->receivedAmount(), $order->total());
-        })->sum();
-
-    // Retourner la vue avec les données
-    return view('admin.dashboard', [
-        'orders_count' => $orders->count(),
-        'income' => $income,
-        'income_today' => $income_today,
-        'customers_count' => $customers_count,
-        'products_count' => $products_count,
-        'chart' => $chart,
-        'agence' => $agence,
-          // Passer le graphique à la vue
-    ]);
-}
+        $colisParMois = Colis::select(
+                            DB::raw('MONTH(created_at) as mois'),
+                            DB::raw('COUNT(*) as total')
+                        )
+                        ->whereYear('created_at', $currentYear)
+                        ->groupBy(DB::raw('MONTH(created_at)'))
+                        ->orderBy(DB::raw('MONTH(created_at)'))
+                        ->pluck('total', 'mois')
+                        ->toArray();
+                     
+         $moisNoms = ['Jan', 'Fév', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+             $colisData = [];
+                        
+             for ($i = 1; $i <= 12; $i++) {
+                 $colisData[] = $colisParMois[$i] ?? 0;
+             }
+             // dd($colisData);        
+ 
+         return view('admin.dashboard', compact('orders','colisData', 'moisNoms','colisParMois', 'customers_count', 'products_count','colisCount','totalPrixTransit','volCargaisonCount','conteneurCount'));
+     }
 
   
     public function gestion_agence()

@@ -120,11 +120,21 @@ class CustomerColisController extends Controller
         $user = User::findOrfail($id);
         // Chargement des données
         // dd($user);
-        $agences = Agence::select('nom_agence', 'id')->get();
+        // Récupérer les pays sans doublons
+    $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
+    ->distinct()
+    ->pluck('pays_agence');
+
+
+        // Récupérer les agences avec leur pays associé
+        $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+        $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+        $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+
         $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
         $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
         $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-        return view('customer.colis.add_colis', compact('agences','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
+        return view('customer.colis.add_colis', compact('agences','agencesExpedition','agencesDestination','paysUniques','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
     }
 
 

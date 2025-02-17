@@ -55,7 +55,7 @@
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
-                        </li>
+                        </li> 
                         <li class="nav-item">
                             <a href="{{route('aftlb_colis.colis.valide')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -69,6 +69,13 @@
                             </a>
                         </li>
                     </ul>
+                </li>
+                {{-- Gestion des facture --}}
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('aftlb_invoice.create.invoice') }}" class="nav-link">
+                        <i class="fas fa-file-invoice"></i>
+                        <p>{{ __('Gestion des factures') }}</p>
+                    </a>
                 </li>
                 {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">

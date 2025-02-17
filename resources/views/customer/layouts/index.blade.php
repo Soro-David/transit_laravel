@@ -58,8 +58,7 @@
                 </div>
             </section>
             <section class="content">
-                @include('customer.layouts.partials.alert.success')
-                @include('customer.layouts.partials.alert.error')
+                
                 @yield('content')
             </section>
         </div>

@@ -62,8 +62,16 @@
                             </td>
                             <td style="border: 2px solid black; padding: 20px;">
                                 {{-- @dd($colisItem->type_colis); --}}
-                                <strong><span style="text-decoration: underline;">TYPE DE COLIS:</span> {{ $colisItem->type_colis }} </strong><br>
-                                <strong><span style="text-decoration: underline;">DESCRIPTION DU COLIS:</span> {{ $colisItem->description_colis }}- {{ strtoupper($colisItem->expediteur_agence) }}</strong>
+                                <strong>
+                                    <span style="text-decoration: underline;">TYPE DE COLIS:</span> 
+                                    <br>{{ $colisItem->type_colis }}
+                                </strong>
+                                <br>
+                                <strong>
+                                    <span style="text-decoration: underline;">DESCRIPTION DU COLIS:</span> 
+                                    <br>{{ $colisItem->description_colis }} - {{ strtoupper($colisItem->expediteur_agence) }}
+                                </strong>
+                                
                             </td>
                             <td style="border: 2px solid black; padding: 20px;">{{ $index + 1 }} / {{ count($colis) }}</td>
                         </tr>

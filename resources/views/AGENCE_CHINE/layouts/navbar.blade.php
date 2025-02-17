@@ -9,7 +9,7 @@
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
     <li class="nav-item dropdown">
-      <a class="nav-link notification-icon" data-toggle="dropdown" href="#">
+      <a class="nav-link notification-icon" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">
           <i class="fas fa-bell fa-2x mx-5" aria-hidden="true"></i>
           <span class="badge badge-warning navbar-badge mx-5" id="notification-count">0</span>
       </a>
@@ -18,7 +18,7 @@
           <div class="dropdown-divider"></div>
           <div id="notification-items"></div>
           <div class="dropdown-divider"></div>
-          <a href="{{ route('notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
+          <a href="{{ route('chine_notification.index') }}" class="dropdown-item dropdown-footer">Voir toutes les notifications</a>
       </div>
     </li>
 
@@ -44,157 +44,200 @@
         </form>
       </div>
     </li>
-  </ul>
+</ul>
 </nav>
 
 <!-- Modal for Changing Profile Photo -->
 <div class="modal fade" id="changeProfilePhotoModal" tabindex="-1" role="dialog" aria-labelledby="changeProfilePhotoModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="changeProfilePhotoModalLabel">Changer la photo de profil</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form action="{{ route('profile.photo.update') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="profile_photo">Télécharger une nouvelle photo</label>
-            <input type="file" name="profile_photo" id="profile_photo" class="form-control" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-          <button type="submit" class="btn btn-primary">Sauvegarder</button>
-        </div>
-      </form>
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="changeProfilePhotoModalLabel">Changer la photo de profil</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
+    <form action="{{ route('profile.photo.update') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+      @method('PUT')
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="profile_photo">Télécharger une nouvelle photo</label>
+          <input type="file" name="profile_photo" id="profile_photo" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        <button type="submit" class="btn btn-primary">Sauvegarder</button>
+      </div>
+    </form>
   </div>
 </div>
-
+</div>
 
 {{-- stylee  --}}
 <style>
-   body{
-    padding-top: 50px;
-    
+ body{
+  padding-top: 50px;
+  
 
-  }
-  .main-header{
-    background-color: #b7bfdb;
-    color: #f09c1f;
-  }
-  .navbar .img-circle {
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  .navbar-nav .dropdown-menu {
-    min-width: 200px;
-  }
-  .navbar-nav .dropdown-menu .dropdown-item {
-    font-size: 14px;
-    padding: 10px;
-  }
-  .badge-danger {
-    background-color: #ee0a21; /* Rouge Bootstrap */
-    color: white;
+}
+.main-header{
+  background-color: #bdc8dbe8;
+  color: #f09c1f;
+}
+.navbar .img-circle {
+  border-radius: 50%;
+  object-fit: cover;
+}
+.navbar-nav .dropdown-menu {
+  min-width: 200px;
+}
+.navbar-nav .dropdown-menu .dropdown-item {
+  font-size: 14px;
+  padding: 10px;
+}
+.badge-danger {
+  background-color: #ee0a21; /* Rouge Bootstrap */
+  color: white;
 }
 .badge-warning {
-    background-color: hsl(133, 76%, 18%); /* Rouge Bootstrap */
-    color: white;
+  background-color: hsl(133, 76%, 18%); /* Rouge Bootstrap */
+  color: white;
 }
 </style>
 
 <script>
- $(document).ready(function () {
-    // Fonction pour charger les notifications
-    function loadNotifications() {
-        $.ajax({
-            url: '{{ route("agent_notification.get.notifications") }}',
-            type: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    // Mettre à jour le badge de notification
-                    const notificationCount = response.count;
-                    const badge = $('#notification-count');
 
-                    badge.text(notificationCount);
+document.addEventListener('DOMContentLoaded', function() {
+  // Fonction pour récupérer les notifications par agence
+  async function fetchNotifications(agence = 'Agence de Chine') {
+      try {
+          const response = await fetch(`/chine_notification/get-notifications-chine?agence=${agence}`);
+          const data = await response.json();
 
-                    // Vérifier si le nombre dépasse 0
-                    if (notificationCount > 0) {
-                        badge.removeClass('badge-warning').addClass('badge-danger');
-                    } else {
-                        badge.removeClass('badge-danger').addClass('badge-warning');
-                    }
+          if (data.success) {
+              // Mettre à jour le compteur de notifications
+              document.getElementById('notification-count').textContent = data.count;
+              document.getElementById('notification-header').textContent = `${data.count} Notifications`;
 
-                    // Mettre à jour la liste des notifications
-                    let notificationItems = '';
-                    response.notifications.forEach(function (notification) {
-                        notificationItems += `
-                            <a href="#" class="dropdown-item notification-item" data-id="${notification.id}">
-                                <i class="fas fa-box mr-2"></i> ${notification.message}
-                                <span class="float-right text-muted text-sm">${notification.time}</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                        `;
-                    });
-                    $('#notification-items').html(notificationItems);
+              // Mettre à jour la liste des notifications
+              const notificationItems = document.getElementById('notification-items');
+              notificationItems.innerHTML = ''; // Vider les anciennes notifications
 
-                    // Mettre à jour l'en-tête des notifications
-                    $('#notification-header').text(`${notificationCount} Notifications`);
-                }
-            },
-            error: function () {
-                console.error('Erreur lors du chargement des notifications.');
-            },
-        });
-    }
+              data.notifications.forEach(notification => {
+                  const item = document.createElement('a');
+                  item.href = '#';
+                  item.classList.add('dropdown-item');
+                  item.innerHTML = `
+                      <i class="fas fa-envelope mr-2"></i> ${notification.message}
+                      <span class="float-right text-muted text-sm">${notification.time}</span>
+                  `;
+                  notificationItems.appendChild(item);
+              });
+          } else {
+              console.error('Erreur lors de la récupération des notifications:', data.message);
+          }
+      } catch (error) {
+          console.error('Erreur lors de la récupération des notifications:', error);
+      }
+  }
 
-    // Charger les notifications au chargement de la page
-    loadNotifications();
+  // Récupérer les notifications initiales pour l'agence par défaut
+  fetchNotifications();
 
-    // Recharger toutes les 30 secondes
-    setInterval(loadNotifications, 30000);
+  // Mettre à jour les notifications toutes les 30 secondes
+  setInterval(fetchNotifications, 30000);
+});
 
-    // Fonction pour marquer une notification comme lue et la retirer
-    $(document).on('click', '.notification-item', function () {
-        const notificationId = $(this).data('id');
-        const clickedElement = $(this); // Conserver l'élément cliqué
 
-        // Effectuer une requête AJAX pour marquer la notification comme lue
-        $.ajax({
-            url: '{{ route("agent_notification.markAsRead") }}',
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                notification_id: notificationId,
-            },
-            success: function (response) {
-                if (response.success) {
-                    // Retirer la notification du menu
-                    clickedElement.closest('.notification-item').remove();
 
-                    // Mettre à jour le compteur de notifications
-                    const currentCount = parseInt($('#notification-count').text(), 10) || 0;
-                    const newCount = Math.max(0, currentCount - 1);
+$(document).ready(function () {
+  // Fonction pour charger les notifications
+  function loadNotifications() {
+      $.ajax({
+          url: '{{ route("chine_notification.get.notifications") }}',
+          type: 'GET',
+          success: function (response) {
+              if (response.success) {
+                  // Mettre à jour le badge de notification
+                  const notificationCount = response.count;
+                  const badge = $('#notification-count');
 
-                    $('#notification-count').text(newCount);
+                  badge.text(notificationCount);
 
-                    // Mettre à jour l'en-tête des notifications
-                    if (newCount === 0) {
-                        $('#notification-header').text('Aucune notification');
-                        $('#notification-count').removeClass('badge-danger').addClass('badge-warning');
-                    }
-                }
-            },
-            error: function () {
-                console.error('Erreur lors de la mise à jour de la notification.');
-            },
-        });
-    });
+                  // Vérifier si le nombre dépasse 0
+                  if (notificationCount > 0) {
+                      badge.removeClass('badge-warning').addClass('badge-danger');
+                  } else {
+                      badge.removeClass('badge-danger').addClass('badge-warning');
+                  }
+
+                  // Mettre à jour la liste des notifications
+                  let notificationItems = '';
+                  response.notifications.forEach(function (notification) {
+                      notificationItems += `
+                          <a href="#" class="dropdown-item notification-item" data-id="${notification.id}">
+                              <i class="fas fa-box mr-2"></i> ${notification.message}
+                              <span class="float-right text-muted text-sm">${notification.time}</span>
+                          </a>
+                          <div class="dropdown-divider"></div>
+                      `;
+                  });
+                  $('#notification-items').html(notificationItems);
+
+                  // Mettre à jour l'en-tête des notifications
+                  $('#notification-header').text(`${notificationCount} Notifications`);
+              }
+          },
+          error: function () {
+              console.error('Erreur lors du chargement des notifications.');
+          },
+      });
+  }
+
+  // Charger les notifications au chargement de la page
+  loadNotifications();
+
+  // Recharger toutes les 30 secondes
+  setInterval(loadNotifications, 30000);
+
+  // Fonction pour marquer une notification comme lue et la retirer
+  $(document).on('click', '.notification-item', function () {
+      const notificationId = $(this).data('id');
+      const clickedElement = $(this); // Conserver l'élément cliqué
+
+      // Effectuer une requête AJAX pour marquer la notification comme lue
+      $.ajax({
+          url: '{{ route("chine_notification.markAsRead") }}',
+          type: 'POST',
+          data: {
+              _token: '{{ csrf_token() }}',
+              notification_id: notificationId,
+          },
+          success: function (response) {
+              if (response.success) {
+                  // Retirer la notification du menu
+                  clickedElement.closest('.notification-item').remove();
+
+                  // Mettre à jour le compteur de notifications
+                  const currentCount = parseInt($('#notification-count').text(), 10) || 0;
+                  const newCount = Math.max(0, currentCount - 1);
+
+                  $('#notification-count').text(newCount);
+
+                  // Mettre à jour l'en-tête des notifications
+                  if (newCount === 0) {
+                      $('#notification-header').text('Aucune notification');
+                      $('#notification-count').removeClass('badge-danger').addClass('badge-warning');
+                  }
+              }
+          },
+          error: function () {
+              console.error('Erreur lors de la mise à jour de la notification.');
+          },
+      });
+  });
 });
 
 </script>

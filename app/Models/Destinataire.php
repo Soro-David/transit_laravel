@@ -14,4 +14,9 @@ class Destinataire extends Model
     {
         return $this->hasMany(Colis::class);
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

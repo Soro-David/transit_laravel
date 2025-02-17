@@ -80,16 +80,59 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="agence_expedition" class="form-label">Agence d'expédition</label>
-                            <select name="agence_expedition" id="agence_expedition" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
-                                @foreach ($agences as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                            <label for="pays_expedition" class="form-label">Pays d'expédition</label>
+                            <select name="pays_expedition" id="pays_expedition" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le pays d'expédition --</option>
+                                @foreach ($paysUniques as $pays)
+                                    <option value="{{ $pays }}">{{ $pays }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label for="agence_expedition" class="form-label">Agence d'expédition</label>
+                            <select name="agence_expedition" id="agence_expedition" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                @foreach ($agencesExpedition as $agence)
+                                    <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
+                                        {{ $agence->nom_agence }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                    const paysSelect = document.getElementById('pays_expedition');
+                    const agenceSelect = document.getElementById('agence_expedition');
+                    const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
+
+                    paysSelect.addEventListener('change', function () {
+                        const selectedPays = this.value;
+
+                        // Réinitialiser les options
+                        agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
+
+                        // Ajouter uniquement les options correspondant au pays sélectionné
+                        agenceOptions.forEach(option => {
+                            if (option.getAttribute('data-pays') === selectedPays) {
+                                agenceSelect.appendChild(option.cloneNode(true));
+                            }
+                        });
+                    });
+
+                    // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
+                    if (paysSelect.value) {
+                        paysSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+
+            </script>
             </div>
             {{-- Boutons navigation --}}
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -147,7 +190,7 @@
                             <label for="agence_destination" class="form-label">Agence de destination</label>
                             <select name="agence_destination" id="agence_destination" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                                @foreach ($agences as $agence)
+                                @foreach ($agencesDestination as $agence)
                                     <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
                                 @endforeach
                             </select>
