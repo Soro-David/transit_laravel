@@ -229,12 +229,12 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item has-treeview">
+                {{-- <li class="nav-item has-treeview">
                     <a href="{{ route('setting.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>
                         <p>{{ __('Paramètre') }}</p>
                     </a>
-                </li>
+                </li> --}}
             </ul>
         </nav>
     </div>

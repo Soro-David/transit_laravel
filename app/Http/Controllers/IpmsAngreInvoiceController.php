@@ -82,9 +82,13 @@ class IpmsAngreInvoiceController extends Controller
         $reste = $prix_total - $montant_paye;
 
         $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user();
         
         // Création de la facture
         Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
             'agent_id' => $id_agent,

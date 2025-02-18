@@ -9,7 +9,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Liste des colis des colis arrivés</h4><br>
+                            <h4 class="text-left mt-4">Liste des colis arrivés</h4><br>
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
@@ -21,8 +21,8 @@
                                                 <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Status</th>
+                                                {{-- <th>Agence Destinataire</th> --}}
+                                                {{-- <th>Status</th> --}}
                                                 <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
@@ -41,7 +41,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Valider le colis</h5>
+                    <h5 class="modal-title">Validation du colis</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -165,6 +165,7 @@ $(document).ready(function () {
                 }
             },
             { data: 'expediteur_tel' },
+            // { data: 'destinataire_agence' },
             { data: 'expediteur_agence' },
             {
                 data: null,
@@ -172,9 +173,9 @@ $(document).ready(function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
+            // { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
-            { data: 'etat' },
+            // { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {
                     // Vérifiez si la date existe et la formater
@@ -240,10 +241,6 @@ $(document).ready(function () {
                 }
             }
         ]
-         // Rafraîchissement de la table toutes les 4 secondes
-    setInterval(function() {
-        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
-    }, 4000);
     });
 
     /**

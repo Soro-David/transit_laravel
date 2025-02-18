@@ -37,6 +37,11 @@
 
     @yield('css')
 </head>
+<!-- Loader -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+</div>
 
 <body class="hold-transition sidebar-mini">
     <!-- Site wrapper -->
@@ -99,7 +104,50 @@
 
 
     @yield('js')
-
+    
 </body>
-
 </html>
+
+<script>
+// Exécute le code après que la page soit complètement chargée
+window.addEventListener('load', function() {
+    // Cache le loader
+    document.getElementById('loader').style.display = 'none';
+    // Affiche le contenu
+    document.getElementById('content').style.display = 'block';
+});
+</script>
+<style>
+/* Style général du loader */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+}
+
+/* Style de l'animation */
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+/* Animation de rotation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+</style>

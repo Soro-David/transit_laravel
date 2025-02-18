@@ -12,6 +12,9 @@ class Invoice extends Model
         'agent_id',
         'montant',
         'numero_facture',
+        'nom_agent',
+        'nom_expediteur',
+        'nom_destinataire',
         // 'description',
         
     ];

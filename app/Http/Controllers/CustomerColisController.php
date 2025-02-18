@@ -266,7 +266,7 @@ class CustomerColisController extends Controller
 
         // dd($colis);
             session()->forget(['step1']);
-            return redirect()->route('customer_colis.create.end');
+            return redirect()->route('customer_colis.hold');
 
         } catch (\Exception $e) {
             // Enregistre l'erreur dans les logs

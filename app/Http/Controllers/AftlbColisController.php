@@ -255,6 +255,7 @@ class AftlbColisController extends Controller
             ]);
     
             // Stocker les données en session
+        // dd($request);
             
             session(['step2' => $request->only([
                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 

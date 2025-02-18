@@ -187,8 +187,8 @@
                    
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="agence_expedition" class="form-label">Agence de Destination</label>
-                            <select name="agence_expedition" id="agence_expedition" class="form-control">
+                            <label for="agence_destination" class="form-label">Agence de Destination</label>
+                            <select name="agence_destination" id="agence_destination" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
                                 @foreach ($agencesDestination as $agence)
                                     <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">

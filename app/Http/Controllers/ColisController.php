@@ -294,7 +294,7 @@ private function generateReferenceColis()
     }
 
 
-    public function stepPayment()
+    public function stepPayement()
     {
        
         return view('admin.colis.add.payement');
@@ -508,53 +508,9 @@ private function generateReferenceColis()
 
 
 
-    public function storeStep3(Request $request)
-    {
-
-        $request->validate([
-            'articles.*.description' => 'required|string|max:255',
-            'articles.*.quantite' => 'required|integer|min:1',
-            'articles.*.dimension' => 'required|string|max:255',
-            'articles.*.poids' => 'required|numeric|min:0',
-        ]);
     
-        // Stocker les données validées dans la session
-        session(['step2' => $request->only(['description', 'quantite', 'dimension', 'poids'])]);
-
-        return redirect()->route('colis.create.step4');
-    }
-    /**
-     * Étape 3 : Informations de transit.
-     */
-    public function createStep4(Request $request)
-    {
-       $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-        // dd($referenceColis);
-        return view('admin.colis.add.step4',['referenceColis' => $referenceColis]);
-    }
-    public function storeStep4(Request $request)
-    {
-       
-        $request->session()->put('step4', $request->all());
-        $request->validate([
-            // 'mode_transit' => 'required',
-            // 'reference_colis' => 'required',
-        ]);
-
-        session(['step4' => $request->only([
-            'mode_transit', 'reference_colis'
-        ])]);
-
-        return redirect()->route('colis.create.payement');
-    }
-    /**
-     * Enregistre les informations de paiement.
-     */
-    public function stepPayement()
-    {
-       
-        return view('admin.colis.add.payement',['stepProgress' => 100]);
-    }
+   
+  
     public function storePayement(Request $request)
     {
 

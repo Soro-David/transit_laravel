@@ -15,9 +15,9 @@
                         <tr>
                             <th>N° Facture</th>
                             <th>Expéditeur</th>
-                            <th>Date de Création</th>
+                            <th>Destinataire</th>
                             <th>Agent</th>
-                            <th>ACTIONS</th>
+                            <th>Date facture</th>
                         </tr>
                     </thead>
                 </table>
@@ -37,20 +37,11 @@
             ajax: '{{ route('invoice.get.invoice.historique') }}',
             columns: [
                 { data: 'numero_facture', name: 'numero_facture' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;  // Affiche le nom et prénom de l'expéditeur
-                    }
-                },
+                { data: 'nom_expediteur', name: 'nom_expediteur' },
+                { data: 'nom_destinataire', name: 'nom_destinataire' },
+                { data: 'nom_agent', name: 'nom_agent' },
                 { data: 'date_creation', name: 'date_creation' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_agent + ' ' + row.prenom_agent;  // Affiche le nom et prénom de l'agent
-                    }
-                },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
+                
             ]
         });
     });

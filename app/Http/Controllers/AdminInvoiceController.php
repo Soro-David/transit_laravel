@@ -70,9 +70,14 @@ class AdminInvoiceController extends Controller
         $reste = $prix_total - $montant_paye;
 
         $id_agent = Auth::user()->id;
-        
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        // dd($nom_agent);
+
         // Création de la facture
         Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
             'agent_id' => $id_agent,
@@ -131,33 +136,14 @@ class AdminInvoiceController extends Controller
         if ($request->ajax()) {
             $invoices = Invoice::select(
                     'numero_facture', 
-                    'expediteur_id as nom_expediteur', 
-                    'destinataire_id as prenom_expediteur', 
-                    'agent_id as nom_destinataire', 
-                    'montant as prenom_destinataire', 
-                    'numero_facture as nom_agent', 
-                    'numero_facture as prenom_agent',
+                    'nom_expediteur', 
+                    'nom_destinataire', 
+                    'nom_agent', 
+                    'montant', 
                     'created_at as date_creation',
                 )
-                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') 
-                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
                 ->get(); 
-    
-            return DataTables::of($invoices)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/invoices/' . $row->id . '/edit';
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) 
+                return DataTables::of($invoices) 
                 ->make(true);
         }
     }

@@ -21,10 +21,6 @@
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-
-
-    
-    
     <!-- Scripts globaux -->
     <script>
         window.APP = @json([
@@ -39,9 +35,17 @@
     @yield('css')
 </head>
 
+
 <body class="hold-transition sidebar-mini">
+
+        <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p class="text-center">Chargement...</p>
+    </div>
+  
     <!-- Site wrapper -->
-    <div class="wrapper">
+    <div class="wrapper" id="content" style="display: none;">
         @include('admin.layouts.partials.navbar')
         @include('admin.layouts.partials.sidebar')
 
@@ -64,6 +68,7 @@
             <section class="content">
                 @include('admin.layouts.partials.alert.success')
                 @include('admin.layouts.partials.alert.error')
+               
                 @yield('content')
             </section>
         </div>
@@ -74,8 +79,7 @@
         <!-- Control Sidebar -->
         <aside class="control-sidebar control-sidebar-dark"></aside>
     </div>
-
-    <!-- Scripts principaux -->
+     <!-- Scripts principaux -->
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="'resources/js/app.js'"></script>
     <script src="'public/js/Html5-qrcode.js'"></script>
@@ -103,7 +107,60 @@
 
 
     @yield('js')
-
 </body>
 
 </html>
+<script>
+// Exécute le code après que la page soit complètement chargée
+window.addEventListener('load', function() {
+    // Cache le loader
+    document.getElementById('loader').style.display = 'none';
+    // Affiche le contenu
+    document.getElementById('content').style.display = 'block';
+});
+</script>
+<style>
+/* Style général du loader */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.9); /* Légère transparence */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    color: #555;
+}
+
+/* Style de l'animation */
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
+}
+
+/* Animation de rotation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Texte du loader */
+#loader p {
+    font-size: 18px;
+    color: #444;
+    font-weight: bold;
+}
+
+
+</style>
