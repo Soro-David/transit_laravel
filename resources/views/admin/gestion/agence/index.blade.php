@@ -83,6 +83,8 @@
                                                 <select name="pays_agence" class="form-control" value="{{ old('pays_agence') }}" id="pays_agence">
                                                     <option value="">Selectionnez un pays</option>
                                                     <option value="Côte d'Ivoire">CI</option>
+                                                    <option value="France">France</option>
+                                                    <option value="Chine">Chine</option>
                                                 </select>
                                                 @error('email')
                                                 <div class="text-danger">
