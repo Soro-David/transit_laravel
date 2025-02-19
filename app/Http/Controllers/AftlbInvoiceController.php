@@ -87,7 +87,7 @@ class AftlbInvoiceController extends Controller
         $reste = $prix_total - $montant_paye;
 
         $id_agent = Auth::user()->id;
-        $nom_agent = Auth::user();
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
         
         // Création de la facture
         $u=Invoice::create([

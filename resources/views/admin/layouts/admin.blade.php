@@ -35,14 +35,14 @@
     @yield('css')
 </head>
 
-
-<body class="hold-transition sidebar-mini">
-
-        <!-- Loader -->
+    <!-- Loader -->
     <div id="loader">
         <div class="spinner"></div>
         <p class="text-center">Chargement...</p>
     </div>
+<body class="hold-transition sidebar-mini">
+
+    
   
     <!-- Site wrapper -->
     <div class="wrapper" id="content" style="display: none;">
