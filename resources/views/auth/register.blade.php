@@ -129,7 +129,7 @@
 @section('css')
 <style>
    body {
-    background-image: url('{{ asset('images/font_login.jpg') }}'); /* Chemin de l'image de fond */
+    background-image: url('{{ asset('images/login2.png') }}'); /* Chemin de l'image de fond */
     background-size: auto; /* L'image garde sa taille d'origine */
     background-position: center; /* L'image reste centrée */
     background-repeat: no-repeat; /* L'image ne se répète pas */
