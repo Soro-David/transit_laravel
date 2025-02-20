@@ -66,6 +66,7 @@
     <!-- JavaScript for DataTable and Export -->
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 
 // document.addEventListener("DOMContentLoaded", function () {
