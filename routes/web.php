@@ -377,7 +377,7 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::post('/store-payement{id}', [CustomerColisController::class, 'step_payement'])->name('store.payement');
            
             Route::get('/create/colis-aft-louis-b', [CustomerColisController::class, 'add_colis'])->name('create.colis');
-            Route::post('/store/colis-aft-louis-b', [CustomerColisController::class, 'store_colis'])->name('store.colis');
+            // Route::post('/store/colis-aft-louis-b', [CustomerColisController::class, 'store_colis'])->name('store.colis');
     
 
 
