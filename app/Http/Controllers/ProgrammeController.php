@@ -11,7 +11,7 @@ class ProgrammeController extends Controller
 {
     public function index()
     {
-        return view('admin.programme.programme');
+        return view('admin.Programme.programme');
     }
 
     public function data()
