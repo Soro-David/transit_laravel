@@ -235,7 +235,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
      Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('chauffeur.destroy')   ->middleware('csrf');;
     // Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('transport.chauffeur.destroy');
     });
-    Route::get('/programme', function () {
+    Route::get('/programme-planifie', function () {
         return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
     })->name('programme.index');
     Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
@@ -281,7 +281,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         // route edit programme et update programme
         Route::get('/programme/{id}/edit', [TransportController::class, 'edit_programme'])->name('programme.edit');
         Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
-        Route::delete('/programme/{id}', [TransportController::class, 'delete_chauffeur'])->name('programme.delete');
+        Route::delete('/programme-transport/{id}', [TransportController::class, 'delete_chauffeur'])->name('programme.delete');
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
@@ -335,7 +335,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
-    Route::get('/programme', [ProgrammeController::class, 'index'])->name('programme.index');
+    Route::get('/programme-index', [ProgrammeController::class, 'index'])->name('programme.index');
     Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
     Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
     Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
@@ -1178,7 +1178,7 @@ Route::prefix('chauffeur')->middleware(['auth', 'role:chauffeur'])->group(functi
     // Route::get('/login', [ChauffeurAuthController::class, 'index'])->name('chauffeur.login');
 //    Route::post('/login', [ChauffeurAuthController::class, 'login'])->name('chauffeur.login.post');
    Route::get('/dashboard', [ChauffeurAuthController::class, 'dashboard'])->name('chauffeur.dashboard');
-   Route::get('/programme', [ChauffeurColisController::class, 'index'])->name('chauffeur.programme.index');
+   Route::get('/programme-chauffeur', [ChauffeurColisController::class, 'index'])->name('chauffeur.programme.index');
    Route::patch('/chauffeur/{programme}/update-etat', [ChauffeurColisController::class, 'updateEtatRdv'])->name('chauffeur.programme.updateEtatRdv');
 });
 Route::get('/admin/colis/getColisInfo/{reference_colis}', [ColisController::class, 'getColisInfo']);
