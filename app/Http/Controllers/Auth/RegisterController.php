@@ -9,6 +9,12 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Client; 
+use App\Models\Agence; 
+use App\Models\Expediteur; 
+
+// use App\Http\Controllers\Auth\Client; 
 
 class RegisterController extends Controller
 {
@@ -75,29 +81,29 @@ class RegisterController extends Controller
                 'last_name' => $data['last_name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
-                'agence_id' => $data['agence_id'],
+                // 'agence_id' => $data['agence_id'],
             ]);
 
-            // 2. Create the customer record (si nécessaire)
-            Client::create([
-                'nom' => $data['first_name'],
-                'prenom' => $data['last_name'],
-                'email' => $data['email'],
-                'user_id' => $user->id,
-                'telephone' => $data['tel'],
-                'adresse' => $data['adresse'],
-                'agence' => Agence::find($data['agence_id'])->nom_agence,
-            ]);
+            // // 2. Create the customer record (si nécessaire)
+            // Client::create([
+            //     'nom' => $data['first_name'],
+            //     'prenom' => $data['last_name'],
+            //     'email' => $data['email'],
+            //     'user_id' => $user->id,
+            //     'telephone' => $data['tel'],
+            //     'adresse' => $data['adresse'],
+            //     // 'agence' => Agence::find($data['agence_id'])->nom_agence,
+            // ]);
 
-            // 3. Create the expediteur record
-            Expediteur::create([
-                'nom' => $data['first_name'], // Ré-ajout du nom
-                'prenom' => $data['last_name'],
-                'email' => $data['email'],
-                'tel' => $data['tel'],
-                'adresse' => $data['adresse'],
-                'agence' => Agence::find($data['agence_id'])->nom_agence,
-            ]);
+            // // 3. Create the expediteur record
+            // Expediteur::create([
+            //     'nom' => $data['first_name'], // Ré-ajout du nom
+            //     'prenom' => $data['last_name'],
+            //     'email' => $data['email'],
+            //     'tel' => $data['tel'],
+            //     'adresse' => $data['adresse'],
+            //     // 'agence' => Agence::find($data['agence_id'])->nom_agence,
+            // ]);
 
             return $user;
         });
