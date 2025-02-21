@@ -364,10 +364,10 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('/create', [CustomerColisController::class,'create'])->name('create'); 
             Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
             Route::get('/history', [CustomerColisController::class,'history'])->name('history');
-            Route::get('/suivi', [CustomerColisController::class,'suivi'])->name('suivi');
+            Route::get('/suivi-customer', [CustomerColisController::class,'suivi'])->name('suivi');
             Route::get('/facture', [CustomerColisController::class,'facture'])->name('facture');
             Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
-            Route::get('/get-colis-suivi',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
+            Route::get('/get-colis-suivi-customer',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
             Route::get('/get-colis-valide',[CustomerColisController::class, 'get_colis_valide'])->name('get.colis.valide');
             Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');
             Route::get('/facture/pdf', [CustomerColisController::class, 'telechargerPdf'])->name('facture.pdf');

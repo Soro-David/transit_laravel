@@ -510,30 +510,26 @@ class CustomerColisController extends Controller
         // Récupérer les colis associés à l'email et à l'état "en attente"
         $colis = Colis::select(
             'colis.*',
+            'colis.reference_colis as reference_colis',
+            'expediteurs.agence as expediteur_agence',
+            'destinataires.tel as destinataire_tel',
+            'destinataires.agence as destinataire_agence',
+            'colis.etat as etat',
+            'colis.updated_at as updated_at',
             'expediteurs.nom as expediteur_nom',
             'expediteurs.prenom as expediteur_prenom',
             'expediteurs.email as expediteur_email',
-            'expediteurs.agence as expediteur_agence',
             'destinataires.nom as destinataire_nom',
             'destinataires.prenom as destinataire_prenom',
-            'destinataires.agence as destinataire_agence',
-            'destinataires.tel as destinataire_tel',
-            'colis.reference_colis as reference_colis',
-            'colis.etat as etat',
-            'colis.created_at as created_at'
+            
+            
+
         )
         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id') // Jointure avec la table expediteurs
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id') // Jointure avec la table destinataires
         ->where('expediteurs.email', $email) // Vérifie que l'expéditeur correspond à l'utilisateur connecté
         ->whereIn('colis.etat', ['En transit', 'Validé', 'En entrepot', 'Dechargé', 'Chargé', 'Fermé', 'Livré'])  
         ->get();
-    
-        // Vérifier si des colis ont été trouvés
-        if ($colis->isEmpty()) {
-            return response()->json(['message' => 'Aucun colis trouvé'], 404);
-        }
-    
-        // Modifier l'état des colis selon les règles spécifiées
         foreach ($colis as $colisItem) {
             switch ($colisItem->etat) {
                 case 'Fermé':
@@ -545,13 +541,11 @@ class CustomerColisController extends Controller
                 case 'Livré':
                     $colisItem->etat = 'Colis livré';
                     break;
-                // Vous pouvez ajouter d'autres cas si nécessaire
             }
         }
-    
-        // Construire et retourner la DataTable    
         return DataTables::of($colis)->make(true);
     }
+
 // facture
 public function get_facture(Request $request)
 {

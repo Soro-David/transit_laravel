@@ -14,15 +14,12 @@
                                     <thead>
                                         <tr>
                                             <th>Référence</th>
-                                            {{-- <th>Nom Expéditeur</th> --}}
-                                            {{-- <th>Email Expéditeur</th> --}}
                                             <th>Agence d'expédition</th>
                                             <th>Destinataire</th>
                                             <th>Téléplone</th>
                                             <th>Agence Destination</th>
                                             <th> Status</th>
                                             <th> Date</th>
-                                            {{-- <th>Action</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -30,7 +27,6 @@
                                 </table>
                             </div>
                             <div class="container">
-                                <h6 class="text-right mt-4">Prix total : <span id="prix-total">0</span> FCFA</h6>
                             </div>
                         </div>
                     </div>
@@ -52,13 +48,6 @@
         },
         columns: [
             { data: 'reference_colis' },
-            // {
-            //     data: null,
-            //     render: function (data, type, row) {
-            //         return row.expediteur_nom + ' ' + row.expediteur_prenom;
-            //     }
-            // },
-            // { data: 'expediteur_email' },
             { data: 'expediteur_agence' },
             {
                 data: null,
@@ -89,35 +78,6 @@
             },
             // { data: 'action', orderable: false, searchable: false }
         ],
-    });
-    $(".add-product").on("click", function() {
-        var description = $("#description").val();
-        var quantite = $("#quantite").val();
-        var dimension = $("#dimension").val();
-        var prix = $("#prix").val();
-        if (description && quantite && dimension && prix) {
-            $.ajax({
-                url: '{{ route("colis.store") }}',
-                method: "POST",
-                data: {
-                    description: description,
-                    quantite: quantite,
-                    dimension: dimension,
-                    prix: prix,
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function(response) {
-                    table.row
-                        .add([
-                            response.description,
-                            response.quantite,
-                            response.dimension,
-                            response.prix
-                        ])
-                        .draw(false);
-                }
-            });
-        }
     });
 });
 </script>
