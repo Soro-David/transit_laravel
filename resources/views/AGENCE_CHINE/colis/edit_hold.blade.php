@@ -98,7 +98,7 @@
         </div>
         <div class="d-flex justify-content-start gap-2 mt-4">
             <!-- Bouton Retour -->
-            <a href="#" class="btn btn-secondary">
+            <a href="{{ route('chine_colis.hold') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left" style="font-size: 18px; margin-right: 5px;"></i> Retour
             </a>
             <!-- Bouton Mise à jour -->
