@@ -44,7 +44,7 @@ class ProgrammeIPMXANGREController extends Controller
                 'date_programme' => 'required|date',
                 'chauffeur_id' => 'required|exists:chauffeurs,id',
                 'reference_colis.*' => 'nullable|exists:colis,reference_colis',
-                'actions_a_faire.*' => 'nullable|in:depot,recuperation',
+                'actions_a_faire.*' => 'nullable|in:depot,recuperation,livraison',
             ]);
 
             $dateProgramme = $request->date_programme;
@@ -113,7 +113,7 @@ class ProgrammeIPMXANGREController extends Controller
             'date_programme' => 'nullable|date', // Rendre nullable si on veut modifier que le RDV.
             'chauffeur_id' => 'nullable|exists:chauffeurs,id',
             'reference_colis' => 'nullable|exists:colis,reference_colis', // rendre nullable
-            'actions_a_faire' => 'nullable|in:depot,recuperation', //rendre nullable
+            'actions_a_faire' => 'nullable|in:depot,recuperation,livraison', //rendre nullable
         ];
     
         $request->validate($rules);

@@ -79,6 +79,7 @@
                                             <option value="">-- Sélectionner une action --</option>
                                             <option value="depot">Dépôt</option>
                                             <option value="recuperation">Récupération</option>
+                                            <option value="livraison">Livraison</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
@@ -160,6 +161,7 @@
                                     <option value="">-- Sélectionner une action --</option>
                                     <option value="depot">Dépôt</option>
                                     <option value="recuperation">Récupération</option>
+                                    <option value="livraison">Livraison</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -359,6 +361,7 @@
                         <option value="">-- Sélectionner une action --</option>
                         <option value="depot">Dépôt</option>
                         <option value="recuperation">Récupération</option>
+                       <option value="livraison">Livraison</option>
                     </select>
                 </div>
                 <div class="mb-3">
