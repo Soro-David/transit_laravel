@@ -9,55 +9,56 @@
     <form action="{{route('agence.agent.update',['id' => $users->id]) }})}}" method="POST" class="form-container">
         @csrf
         @method('PUT')
-   <div class="form-section">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="mb-3">
-                    <label for="nom_agence" class="form-label">Nom de l'agence</label>
-                    <input type="text" name="nom_agence" id="nom_agence" 
-                            value="" class="form-control" required>
+        <div class="form-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">Nom </label>
+                        <input type="text" name="first_name" id="first_name" 
+                                value="{{$users->first_name}}" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Prénom</label>
+                        <input type="text" name="last_name" id="last_name" 
+                                value="{{$users->last_name}}" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" name="email" id="email" 
+                                value="{{$users->email}}" class="form-control" >
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Rôle</label>
+                        <input type="text" name="role" id="role" 
+                                value="{{$users->role}}" class="form-control">
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="adresse_agence" class="form-label">Adresse de l'agence</label>
-                    <input type="text" name="adresse_agence" id="adresse_agence" 
-                            value="" class="form-control" required>
+            <div class="form-group">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="agence" class="form-label">Rôle</label>
+                        <input type="text" name="agence" id="agence" 
+                                value="{{$users->agence->nom_agence}}" class="form-control" >
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="pays_agence" class="form-label">Pays de l'agence</label>
-                    <input type="text" name="pays_agence" id="pays_agence" 
-                            value="" class="form-control">
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="devise_agence" class="form-label">Dévise</label>
-                    <input type="text" name="devise_agence" id="devise_agence" 
-                            value="" class="form-control">
-                </div>
-            </div>
-            {{-- <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="prix_au_kg" class="form-label">Prix en kg</label>
-                    <input type="text" name="prix_kg" id="prix_au_kg" 
-                            value="" class="form-control" required>
-                </div>
-            </div> --}}
         </div>
-    </div>
-    {{-- Boutons "Retour" et "Mise à jour" --}}
-    <div class="d-flex justify-content-start gap-2 mt-4">
-        <!-- Bouton Retour -->
-        <a href="{{ route('managers.agent') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left" style="font-size: 18px; margin-right: 5px;"></i> Retour
-        </a>
-
-        <!-- Bouton Mise à jour -->
-        <button type="submit" class="btn btn-primary">Mise à jour</button>
-    </div>
+        {{-- Boutons "Retour" et "Mise à jour" --}}
+        <div class="d-flex justify-content-start gap-2 mt-4">
+            <!-- Bouton Retour -->
+            <a href="{{ route('managers.agent') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left" style="font-size: 18px; margin-right: 5px;"></i> Retour
+            </a>
+            <!-- Bouton Mise à jour -->
+            <button type="submit" class="btn btn-primary">Mise à jour</button>
+        </div>
 
 </form>
 </section>

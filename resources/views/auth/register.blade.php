@@ -110,7 +110,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                            <button type="submit" class="btn btn-primary btn-block btn-lg btn-hover-orange">
                                 S'inscrire
                             </button>
                         </div>
@@ -128,26 +128,21 @@
 @endsection
 @section('css')
 <style>
+    .btn-hover-orange:hover {
+    background-color: #ff9800 !important; /* Orange */
+    border-color: #e68900 !important;
+}
    body {
-    background-image: url('{{ asset('images/login2.png') }}'); /* Chemin de l'image de fond */
-    background-size: auto; /* L'image garde sa taille d'origine */
-    background-position: center; /* L'image reste centrée */
-    background-repeat: no-repeat; /* L'image ne se répète pas */
-    height: 100vh; /* Hauteur pleine de la fenêtre */
+    background-image: url('{{ asset('images/login2.png') }}'); 
+    background-size: auto; 
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center; /* Centre le formulaire au milieu de l'écran */
+    align-items: center;
 }
-    body {
-        background-image: url('{{ asset('images/font_login1.jpg') }}'); /* Chemin de l'image de fond */
-    background-size: auto; /* L'image garde sa taille d'origine */
-    background-position: center; /* L'image reste centrée */
-    background-repeat: no-repeat; /* L'image ne se répète pas */
-    height: 100vh; /* Hauteur pleine de la fenêtre */
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-}
+
 .card-body{
     width: 100%;
     max-width: 600px; /

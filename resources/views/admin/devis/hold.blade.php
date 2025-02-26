@@ -65,8 +65,8 @@
                             return row.destinataire_nom + ' ' + row.destinataire_prenom;
                         }
                     },
-                    { data: 'destinataire_agence' },
                     { data: 'destinataire_tel' },
+                    { data: 'destinataire_agence' },
                     { data: 'etat' },
                     { data: 'created_at',
                         render: function(data, type, row) {
