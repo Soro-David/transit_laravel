@@ -234,6 +234,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
     Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
     Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+    Route::get('/programme/export-pdf', [ProgrammeController::class, 'exportPDF'])->name('programme.export.pdf');
     Route::get('/programme/edit/{programme}', [ProgrammeController::class, 'edit']); // Route pour récupérer les données pour l'édition
     Route::put('/programme/update/{programme}', [ProgrammeController::class, 'update']); // Route pour la mise à jour
     Route::delete('/programme/delete/{programme}', [ProgrammeController::class, 'destroy']); // Route pour la suppression

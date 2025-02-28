@@ -21,7 +21,10 @@
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
                 Ajouter Programme
             </button>
-
+            <a href="{{ route('programme.export.pdf') }}" class="btn btn-danger ml-2" style= "position: relative;
+            right: 350px";>
+            <i class="fas fa-file-pdf"></i> Exporter en PDF
+        </a>
             <div class="form-inline">
                 <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
             </div>

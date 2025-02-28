@@ -5,6 +5,7 @@ use App\Models\Chauffeur;
 use App\Models\Programme;
 use Illuminate\Http\Request;
 use App\Models\Colis;
+use PDF;
 use Illuminate\Support\Facades\DB;
 
 class ProgrammeController extends Controller
@@ -154,4 +155,18 @@ class ProgrammeController extends Controller
         $programme->delete();
         return redirect()->back()->with('success', 'Programme supprimé avec succès!');
     }
+    public function exportPDF()
+{
+    $programmes = Programme::with('chauffeur')
+        ->orderByDesc('date_programme')
+        ->get()
+        ->map(function ($programme) {
+            $programme->Adresse_expedition = $programme->lieu_expedition;
+            $programme->Adresse_destination = $programme->lieu_destination;
+            return $programme;
+        });
+
+    $pdf = PDF::loadView('admin.programme.pdf', compact('programmes'));
+    return $pdf->download('programmes-list.pdf');
+}
 }
