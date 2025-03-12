@@ -17,6 +17,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Expéditeur</th>
@@ -28,6 +29,7 @@
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
+                                        
                                         <tbody>
                                         </tbody>
                                     </table>
@@ -41,83 +43,76 @@
 </section>
     <!-- Script JavaScript -->
     <script>
-        $(document).ready(function () {
-            var table = $("#productTable").DataTable({
-                responsive: true, // Rend le tableau réactif
-                language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-                ajax: '{{ route("colis.get.devis.colis") }}', // URL pour récupérer les données
-                columns: [
-                    { data: 'reference_colis' },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            console.log(data);
-                            return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                        }
-                    },
-                    { data: 'expediteur_tel' },
-                    { data: 'expediteur_agence' },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                        }
-                    },
-                    { data: 'destinataire_tel' },
-                    { data: 'destinataire_agence' },
-                    { data: 'etat' },
-                    { data: 'created_at',
-                        render: function(data, type, row) {
-                            // Vérifiez si la date existe et la formater
-                            if (data) {
-                                var date = new Date(data);
-                                // Retourne la date au format aa/mm/jj
-                                var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                                var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                                var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                                return day + '/' + month + '/' + year;
-                            }
-                            return data;  // Si la date est vide, on retourne la donnée brute
-                        }
-                    },
-                    { data: 'action', orderable: false, searchable: false }
-                ],
-                dom: 'Bfrtip', // Active les boutons et positionne les contrôles
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: 'Exporter en Excel',
-                        title: 'Liste des devis en attente'
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: 'Exporter en PDF',
-                        title: 'Liste des devis en attente',
-                        orientation: 'landscape',
-                        pageSize: 'A4'
-                    },
-                    {
-                        extend: 'print',
-                        text: 'Imprimer',
-                        title: 'Liste des devis en attente',
-                        customize: function (win) {
-                            var logoUrl = "{{ asset('images/LOGOAFT.png') }}";
-                            var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                            $(win.document.body).find('h1').css({
-                                textAlign: 'center',
-                                border: '2px solid #000',
-                                padding: '1px',
-                                marginTop: '10px'
-                            });
-                            $(win.document.body).find('h1').after(logo);
-                            $(win.document.body).find('table').css('margin-top', '30px');
-                        }
+$(document).ready(function () {
+    const table = $("#productTable").DataTable({
+        responsive: true, 
+        language: {
+            url: "{{ asset('js/fr-FR.json') }}"
+        },
+        ajax: '{{ route("colis.get.devis.colis") }}',
+        columns: [
+            { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            { 
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            { 
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
+            { data: 'etat' },
+            { 
+                data: 'created_at',
+                render: function(data) {
+                    if (data) {
+                        var date = new Date(data);
+                        var day = ('0' + date.getDate()).slice(-2);
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                        var year = date.getFullYear();
+                        return day + '/' + month + '/' + year;
                     }
-                ]
-            });
-        });
+                    return '';
+                }
+            },
+            { data: 'action', orderable: false, searchable: false }
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Exporter en Excel',
+                title: 'Liste des devis en attente'
+            },
+            {
+                extend: 'pdfHtml5',
+                text: 'Exporter en PDF',
+                title: 'Liste des devis en attente',
+                orientation: 'landscape',
+                pageSize: 'A4'
+            },
+            {
+                extend: 'print',
+                text: 'Imprimer',
+                title: 'Liste des devis en attente',
+                customize: function (win) {
+                    var logoUrl = "{{ asset('images/LOGOAFT.png') }}";
+                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="width:100px;">';
+                    $(win.document.body).prepend(logo);
+                }
+            }
+        ]
+    });
+});
+
     </script>
     
     

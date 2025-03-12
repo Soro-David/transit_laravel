@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-center">Colis en entrepot</h4><br>
+                            <h4 class="text-start">Colis en entrepot</h4><br>
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
@@ -23,14 +23,15 @@
                                         <thead>
                                             <tr>
                                                 <th>Reference colis</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Nom Expéditeur</th>
                                                 <th>Contact Expéditeur</th>
                                                 <th>Agence Expéditeur</th>
                                                 <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
                                                 <th>Agence Destinataire</th>
+                                                <th>Contact Destinataire</th>
                                                 <th>Date de Création</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
 
                                             </tr>
                                         </thead>
@@ -69,75 +70,6 @@
         <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 
-// document.addEventListener("DOMContentLoaded", function () {
-//     // Initialisation des constantes
-//     const html5QrCode = new Html5Qrcode("reader");
-//     const resultElement = document.getElementById("result");
-//     const restartButton = document.getElementById("restartScan");
-//     const readerElement = document.getElementById("reader");
-//     const modal = document.getElementById("scanner_entrepot");
-
-//     // Fonction appelée lorsqu'un QR code est détecté
-//     const onScanSuccess = (decodedText) => {
-//         console.log(`Code détecté : ${decodedText}`);
-//         resultElement.innerText = `Résultat : ${decodedText}`;
-//         // Arrête le scanner et masque l'élément de la caméra
-//         html5QrCode.stop().then(() => {
-//             readerElement.style.display = "none"; // Cache l'élément caméra
-//             restartButton.style.display = "block"; // Affiche le bouton pour relancer le scan
-//         }).catch((err) => {
-//             console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
-//         });
-//     };
-
-//     // Gestion des erreurs de scan
-//     const onScanError = (errorMessage) => {
-//         console.error(`Erreur de scan : ${errorMessage}`);
-//     };
-
-//     // Fonction pour démarrer le scanner
-//     const startScanner = () => {
-//         // Affiche l'élément caméra
-//         readerElement.style.display = "block";
-        
-//         if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
-//             console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
-//             return;
-//         }
-
-//         html5QrCode.start(
-//             { facingMode: "environment" }, // Utilise la caméra arrière
-//             {
-//                 fps: 10, // Images par seconde
-//                 qrbox: { width: 250, height: 250 }, // Taille de la zone de scan
-//             },
-//             onScanSuccess,
-//             onScanError
-//         ).then(() => {
-//             console.log("Scanner démarré avec succès.");
-//             resultElement.innerText = "Résultat : En attente...";
-//             restartButton.style.display = "none"; // Masque le bouton de redémarrage
-//         }).catch((err) => {
-//             console.error(`Impossible de démarrer le scanner : ${err}`);
-//         });
-//     };
-
-//     // Gestion des événements de la modale
-//     modal.addEventListener("shown.bs.modal", function () {
-//         setTimeout(startScanner, 500); // Attend 500ms pour s'assurer que #reader est prêt
-//     });
-
-//     modal.addEventListener("hidden.bs.modal", function () {
-//         html5QrCode.stop().then(() => {
-//             console.log("Scanner arrêté avec succès.");
-//         }).catch((err) => {
-//             console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
-//         });
-//     });
-
-//     // Gestion du bouton pour relancer le scanner
-//     restartButton.addEventListener("click", startScanner);
-// });
 
 document.addEventListener("DOMContentLoaded", function () {
     const html5QrCode = new Html5Qrcode("reader");
@@ -246,100 +178,105 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-    $(document).ready(function () {
-        // Initialisation de la table DataTable
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-            ajax: '{{ route("scan.get.colis.entrepot") }}', // Récupération des données via AJAX
-            columns: [
-                { data: 'reference_colis' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
-                    }
-                },
-                { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
-                    }
-                },
-                { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
-                { data: 'created_at',
-                    render: function(data, type, row) {
-                        // Vérifiez si la date existe et la formater
-                        if (data) {
-                            var date = new Date(data);
-                            // Retourne la date au format aa/mm/jj
-                            var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                            var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                            return day + '/' + month + '/' + year;
-                        }
-                        return data;  // Si la date est vide, on retourne la donnée brute
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
-            ],
-            dom: 'Bfrtip', // Placement des boutons
-            buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'Liste des Colis en attente',
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
-                // Bouton PDF
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exporter en PDF',
-                    title: 'Liste des Colis en attente',
-                    orientation: 'landscape', // Mode paysage
-                    pageSize: 'A4', // Taille de la page
-                    customize: function (doc) {
-                        // Ajout du logo encodé en Base64 dans le PDF
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        toDataURL(logoUrl, function (dataUrl) {
-                            // Ajout de l'image au début du contenu PDF
-                            console.log(dataUrl);
-                            doc.content.unshift({
-                                image: dataUrl,
-                                width: 100, // Taille du logo
-                                alignment: 'center',
-                                margin: [0, 0, 0, 10] // Espacement
-                            });
-                        });
-                    }
-                },
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'Liste des Colis en attente',
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                        $(win.document.body).find('h1').after(logo);
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                    }
-                }
-            ]
-        });
-
+$(document).ready(function () {
+    // Configuration AJAX globale
+    $.ajaxSetup({
+        contentType: "application/json; charset=utf-8",
+        dataType: "json"
     });
+
+    // Initialisation de la table DataTable
+    var table = $("#productTable").DataTable({
+        responsive: true,
+        deferRender: true, // Améliore les performances pour les grands ensembles de données
+        language: {
+            url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier de traduction
+        },
+        ajax: '{{ route("scan.get.colis.entrepot") }}', // Récupération des données via AJAX
+        columns: [
+            { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) {
+                        return ''; // Retourne une chaîne vide si la date est null
+                    }
+                    var date = new Date(data);
+                    if (isNaN(date.getTime())) {
+                        return ''; // Vérifie si la date est invalide
+                    }
+                    var day = ('0' + date.getDate()).slice(-2);
+                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+
+        ],
+        dom: 'Bfrtip', // Placement des boutons
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Exporter en Excel',
+                title: 'Liste des Colis en attente',
+                customize: function (xlsx) {
+                    console.log("Exportation Excel réussie sans image.");
+                }
+            },
+            {
+                extend: 'pdfHtml5',
+                text: 'Exporter en PDF',
+                title: 'Liste des Colis en attente',
+                orientation: 'landscape', // Mode paysage
+                pageSize: 'A4', // Taille de la page
+                customize: function (doc) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    toDataURL(logoUrl, function (dataUrl) {
+                        console.log(dataUrl);
+                        doc.content.unshift({
+                            image: dataUrl,
+                            width: 100, // Taille du logo
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10] // Espacement
+                        });
+                    });
+                }
+            },
+            {
+                extend: 'print',
+                text: 'Imprimer',
+                title: 'Liste des Colis en attente',
+                customize: function (win) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                    $(win.document.body).find('h1')
+                        .css('text-align', 'center')
+                        .css('margin-top', '10px');
+                    $(win.document.body).find('h1').after(logo);
+                    $(win.document.body).find('table').css('margin-top', '30px');
+                }
+            }
+        ]
+    });
+});
+
 
 </script>
     

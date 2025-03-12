@@ -4,27 +4,149 @@
 
 @section('content')
 <section class="py-3">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-12">
+            <div class="card border-0 rounded shadow-sm">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="card-title mb-0 fw-bold">Informations du Véhicule de Navigation</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ route('colis.bateaux.store') }}" method="POST">
+                        @csrf
+                        <div class="row g-3 align-items-center">
+                            <!-- Référence du bateau (rempli automatiquement) -->
+                            <div class="col-md-3">
+                                <label for="reference_bateau" class="form-label fw-bold">Référence du bateau:</label>
+                                <input type="text" name="reference_bateau" id="reference_bateau" class="form-control" readonly>
+                            </div>
+    
+                            <!-- Sélection de la référence du conteneur -->
+                            <div class="col-md-3">
+                                <label for="reference_conteneur" class="form-label fw-bold">Référence conteneur:</label>
+                                <select id="reference_conteneur" name="reference_conteneur" class="form-select" onchange="generateReferenceBateau()">
+                                    <option value="" disabled selected>-- Sélectionnez la référence --</option>
+                                    @foreach ($referenceFermes as $reference)
+                                        <option value="{{ $reference }}">{{ $reference }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+    
+                            <!-- Type de véhicule -->
+                            <div class="col-md-3">
+                                <label for="type" class="form-label fw-bold">Véhicule de navigation:</label>
+                                <select id="type" name="type" class="form-select" onchange="toggleFields()">
+                                    <option value="" disabled selected>Choisir un type</option>
+                                    <option value="bateau">BATEAU</option>
+                                    <option value="ballon">BALLON</option>
+                                </select>
+                            </div>
+    
+                            <!-- Date d'arrivée -->
+                            <div class="col-md-3">
+                                <label for="date_arrive" class="form-label fw-bold">Date d'arrivée:</label>
+                                <input type="date" name="date_arrive" id="date_arrive" class="form-control">
+                            </div>
+    
+                            <!-- Compagnie -->
+                            <div class="col-md-3">
+                                <label for="compagnie" class="form-label fw-bold">Compagnie:</label>
+                                <input type="text" name="compagnie" id="compagnie" class="form-control" placeholder="Nom de la compagnie">
+                            </div>
+    
+                            <!-- Champs du bateau -->
+                            <div class="col-md-3 bateau-fields" style="display: none;">
+                                <label for="numero_bateau" class="form-label fw-bold">Numéro du bateau:</label>
+                                <input type="text" name="numero_bateau" id="numero_bateau" class="form-control" placeholder="Ex: B12345">
+                            </div>
+    
+                            <div class="col-md-3 bateau-fields" style="display: none;">
+                                <label for="nom_bateau" class="form-label fw-bold">Nom du bateau:</label>
+                                <input type="text" name="nom_bateau" id="nom_bateau" class="form-control" placeholder="Ex: Océanic">
+                            </div>
+    
+                            <!-- Champs du ballon -->
+                            <div class="col-md-3 ballon-fields" style="display: none;">
+                                <label for="numero_ballon" class="form-label fw-bold">Numéro du ballon:</label>
+                                <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" placeholder="Ex: BA123">
+                            </div>
+    
+                            <div class="col-md-3 ballon-fields" style="display: none;">
+                                <label for="nom_ballon" class="form-label fw-bold">Nom du ballon:</label>
+                                <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" placeholder="Ex: AirOcean">
+                            </div>
+    
+                            <!-- Agence de destination -->
+                            <div class="col-md-3">
+                                <label for="agence_destination" class="form-label fw-bold">Agence de destination:</label>
+                                <select id="agence_destination" name="agence_destination" class="form-select">
+                                    <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                                    @foreach ($agencesDestination as $agence)
+                                        <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+    
+                            <!-- Bouton de soumission -->
+                            <div class="col-md-12 text-center">
+                                <button type="submit" class="btn btn-success">Créer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Script JavaScript -->
+        <script>
+            function generateReferenceBateau() {
+                const referenceConteneur = document.getElementById("reference_conteneur").value;
+                const mois = "{{ $mois }}";  // Récupération du mois depuis Laravel
+                const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
+    
+                if (referenceConteneur) {
+                    const referenceBateau = `CNT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
+                    document.getElementById("reference_bateau").value = referenceBateau;
+                } else {
+                    document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
+                }
+            }
+    
+            function toggleFields() {
+                const type = document.getElementById("type").value;
+                
+                // Sélectionner tous les éléments concernés
+                const bateauFields = document.querySelectorAll(".bateau-fields");
+                const ballonFields = document.querySelectorAll(".ballon-fields");
+    
+                if (type === "bateau") {
+                    bateauFields.forEach(field => field.style.display = "block");
+                    ballonFields.forEach(field => field.style.display = "none");
+                } else if (type === "ballon") {
+                    bateauFields.forEach(field => field.style.display = "none");
+                    ballonFields.forEach(field => field.style.display = "block");
+                } else {
+                    bateauFields.forEach(field => field.style.display = "none");
+                    ballonFields.forEach(field => field.style.display = "none");
+                }
+            }
+        </script>
+    </div>
+    
+    
         <form action="" method="POST" class="mt-4">
             @csrf
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Cargaison fermées</h4><br>
+                            <h4 class="text-left mt-4">Liste des bateaux</h4><br>
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence du colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Etat du Colis</th>
-                                                <th>Date de Création</th>
-                                                <th>Action</th>
+                                                <th>Référence Bateau</th>
+                                                <th>Date depart</th>
+                                                <th>Date arriver</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -45,41 +167,9 @@ $(document).ready(function () {
             },
         ajax: '{{ route("colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
         columns: [
-            { data: 'reference_colis' },
-
-            {
-                data: null,
-                render: function (data, type, row) {
-                    console.log(data);
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
-            },
-            { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                }
-            },
-            { data: 'destinataire_agence' },
-            { data: 'destinataire_tel' },
-            { data: 'etat' },
-            {data: 'created_at',
-                render: function(data, type, row) {
-                    // Vérifiez si la date existe et la formater
-                    if (data) {
-                        var date = new Date(data);
-                        // Retourne la date au format aa/mm/jj
-                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                        return day + '/' + month + '/' + year;
-                    }
-                    return data;  // Si la date est vide, on retourne la donnée brute
-                }
-            },
-            { data: 'action', orderable: false, searchable: false }
+            { data: 'reference_bateau', title: "Référence Bateau" },
+            { data: 'date_depart', title: "Date de Départ" },
+            { data: 'date_arriver', title: "Date d'Arrivée" }
         ],
         dom: 'Bfrtip', // Placement des boutons
         buttons: [

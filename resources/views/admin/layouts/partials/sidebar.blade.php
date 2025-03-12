@@ -94,7 +94,7 @@
                     </ul>
                 </li>
                 {{-- Gestion des facture --}}
-                <li class="nav-item has-treeview">
+                {{-- <li class="nav-item has-treeview">
                     <a href="#" class="nav-link">
                         <i class="fas fa-file-invoice"></i>
                         <p>{{ __('Gestion des factures') }}</p>
@@ -114,7 +114,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
                 {{-- Gestion des Cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

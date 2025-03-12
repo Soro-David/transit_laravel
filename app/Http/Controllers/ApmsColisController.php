@@ -20,6 +20,7 @@ use App\Models\Expediteur;
 use App\Models\Destinataire;
 use App\Models\Paiement;
 use App\Models\Article;
+use App\Models\Invoice;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
@@ -640,46 +641,80 @@ class ApmsColisController extends Controller
     // Ajax pour les colis arrivés
     public function get_colis_dump(Request $request)
     {
+
         if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis', 
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Dechargé')  // Filtre l'état des colis
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-            ->get(); // Exécute la requête une seule fois
+            $colis = Colis::query()
+                ->select(
+                    'colis.*',
+                    'colis.reference_colis as reference_colis',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'expediteurs.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel',
+                    'colis.etat as etat',
+                    'colis.created_at as created_at'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('etat', 'Dechargé')
+                ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+                ->get();
+            $colisGrouped = $colis->groupBy('reference_colis');
 
-            return DataTables::of($colis)
+
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat, // conserve l'état d'origine ici
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Dechargé' ? 'Colis validé' : $row['etat'];
+                })
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
+                    $firstColis = $row['colis']->first();
+                    $editUrl = route('ipms_colis.valide.edit', ['id' => $firstColis->id]);
+                    // $deleteUrl = route('ipms_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                    $invoiceUrl = route('ipms_colis.valide.edit.invoice', ['id' => $firstColis->id]);
+    
                     return '
+                    <div class="d-flex align-items-center gap-2">
                         <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                             </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
+                        </div> 
+                        <div class="btn-group">
+                            <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+                                <i class="fas fa-file-invoice" style="font-size: 15px;"></i>
                             </a>
-                        </div>
+                        </div> 
+                         
+                    </div>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
+
 
     public function get_devis_colis(Request $request)
     {
@@ -757,27 +792,187 @@ class ApmsColisController extends Controller
             ->addColumn('etat', function ($row) {
                 return ($row->etat === 'Validé') ? 'Colis validé' : $row->etat;
             })
-            ->addColumn('action', function ($row) {
-                $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $row->id]);
-                $deleteUrl = route('ipms_colis.destroy.colis.valide', ['id' => $row->id]);
-                // $printUrl = route('ipms_colis.facture.colis.print', ['id' => $row->id]);
-                return '
-                        <div class="d-flex justify-content-start align-items-center">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
-                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                            </a>
+            // ->addColumn('action', function ($row) {
+            //     $firstColis = $row['colis']->first();
+            //     $editUrl = route('ipms_colis.valide.dit', ['id' => $firstColis->id]);
+            //     // $deleteUrl = route('ipms_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+            //     $invoiceUrl = route('ipms_colis.valid.edit.invoice', ['id' => $firstColis->id]);
 
-                            <button class="btn btn-sm btn-danger delete-btn ms-2" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                ';
-            })
-            ->rawColumns(['action'])
+            //     return '
+            //     <div class="d-flex align-items-center gap-2">
+            //         <div class="btn-group">
+            //             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+            //                 <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+            //             </a>
+            //         </div> 
+            //          <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+            //             <i class="fas fa-file-invoice"></i>
+            //         </a>
+            //     </div>
+            //     ';
+            // })
+            // ->rawColumns(['action'])
             ->make(true);
     }
 }
 
+
+public function editInvoice($id)
+{
+    
+    dd($id);
+    $colis_principal = Colis::find($id);
+
+    if (!$colis_principal) {
+        return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
+    }
+
+    $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+    if ($colis->isEmpty()) {
+        return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+    }
+
+    return view('IPMS_SIMEXCI.invoice.edit', compact('colis'));
+}
+
+public function inprimerEtiquette($id)
+{
+        $colis_principal = Colis::find($id);
+
+        if (!$colis_principal) {
+            return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
+        }
+
+        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+        if ($colis->isEmpty()) {
+            return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }       
+
+        foreach ($colis as $colisItem) {
+               $qrData = [
+                   'Référence colis'       => $colisItem->reference_colis,
+                   'Statut'                => $colisItem->status,
+                   'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
+                   'Nom Destinataire'      => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
+                   'Téléphone Destinataire'=> $colisItem->destinataire->tel,
+                   'Agence Destination'    => $colisItem->destinataire->agence ?? '',
+                   'Lieu de Destination'   => $colisItem->destinataire->lieu_destination ?? '',
+               ];
+   
+               $qrCodeContent = '';
+               foreach ($qrData as $key => $value) {
+                   $qrCodeContent .= "{$key}: {$value}\n";
+               }
+   
+               $qrCode = new QrCode($qrCodeContent);
+               $writer = new PngWriter();
+               $result = $writer->write($qrCode);
+               $pngData = $result->getString();
+   
+               $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+               $fullPath = public_path($filePath);
+   
+               $directory = dirname($fullPath);
+               if (!File::exists($directory)) {
+                   File::makeDirectory($directory, 0755, true);
+               }
+   
+               file_put_contents($fullPath, $pngData);
+   
+               $colisItem->update(['qr_code_path' => $filePath]);
+           }
+   
+    return view('IPMS_SIMEXCI.invoice.edit_etiquette', compact('colis'));
+}
+
+public function imprimerFacture($id)
+{
+    $colis_principal = Colis::find($id);
+
+        if (!$colis_principal) {
+            return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
+        }
+
+        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }   
+
+    if ($colisCollection->isEmpty()) {
+        return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+    }
+
+    // Récupération du premier colis
+    $firstColis = $colisCollection->first();
+    
+    $date_facture = now();
+    $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+    $tel_expediteur = $firstColis->expediteur->tel;
+    $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+    $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+    $reference_colis = $firstColis->reference_colis;
+    
+    // Calcul du prix total
+    $prix_total = 0;
+    foreach ($colisCollection as $colis) {
+        if (!isset($colis->prix_transit_colis)) {
+            throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+        }
+        $prix_total += $colis->prix_transit_colis;
+    }
+
+    // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+    $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
+    $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+    $reste = $prix_total - $montant_paye;
+
+    $id_agent = Auth::user()->id;
+    $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+    // dd($nom_agent);
+
+    // Création de la facture
+    Invoice::create([
+        'nom_agent' => $nom_agent,
+        'nom_expediteur' => $expediteur,
+        'nom_destinataire' => $destinataire,
+        'expediteur_id' => $firstColis->expediteur->id,
+        'destinataire_id' => $firstColis->destinataire->id,
+        'agent_id' => $id_agent,
+        'montant' => $prix_total ?? 0,
+        'numero_facture' => $numero_facture,
+    ]);
+    // dd($u);
+    // Préparation des données des colis
+    $colisData = [];
+    foreach ($colisCollection as $colis) {
+        $colisData[] = [
+            'description'         => $colis->description_colis,
+            'quantite'            => $colis->quantite_colis,
+            'poids'               => $colis->poids_colis,
+            'type_colis'          => $colis->type_colis,
+            'prix_transit_colis'  => $colis->prix_transit_colis,
+        ];
+    }
+    // dd($colisData);
+
+    // Passage des données à la vue
+    return view('IPMS_SIMEXCI.invoice.edit_invoice', compact(
+        'date_facture', 
+        'reference_colis', 
+        'expediteur', 
+        'tel_expediteur', 
+        'destinataire', 
+        'prix_total', 
+        'montant_paye', 
+        'reste', 
+        'mode_payement', 
+        'colisData',
+        'numero_facture',
+    ));
+}
 
     // Fonction edit pour les colis en attente
 

@@ -50,123 +50,214 @@ class ScanController extends Controller
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.*', 
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
-                'expediteurs.tel as tel_expediteur', 
+                'expediteurs.tel as expediteur_tel', 
                 'expediteurs.agence as agence_expedition', 
                 'destinataires.nom as nom_destinataire', 
                 'destinataires.prenom as prenom_destinataire', 
-                'destinataires.tel as tel_destinataire', 
+                'destinataires.tel as destinataire_tel', 
                 'destinataires.agence as agence_destination',
-                'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'En entrepot')  // Filtre l'état des colis
+            ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('etat', 'En entrepot')
             ->get(); 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-                ->make(true);
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->nom_expediteur,
+                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->agence_expedition, 
+                    'destinataire_nom' => $group->first()->nom_destinataire,
+                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)->make(true);
         }
     }
     
-    // Ajax pour récupérer la liste des colis en Decharge
+
     public function get_colis_decharge(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.*', 
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
-                'expediteurs.tel as tel_expediteur', 
+                'expediteurs.tel as expediteur_tel', 
                 'expediteurs.agence as agence_expedition', 
                 'destinataires.nom as nom_destinataire', 
                 'destinataires.prenom as prenom_destinataire', 
-                'destinataires.tel as tel_destinataire', 
+                'destinataires.tel as destinataire_tel', 
                 'destinataires.agence as agence_destination',
-                'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Dechargé')  // Filtre l'état des colis
+            ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('etat', 'Dechargé')
             ->get(); 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-                ->make(true);
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->nom_expediteur,
+                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->agence_expedition, 
+                    'destinataire_nom' => $group->first()->nom_destinataire,
+                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)->make(true);
         }
     }
 
-    // Ajax pour récupérer la liste des colis en Charge
+
     public function get_colis_charge(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.*', 
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
-                'expediteurs.tel as tel_expediteur', 
+                'expediteurs.tel as expediteur_tel', 
                 'expediteurs.agence as agence_expedition', 
                 'destinataires.nom as nom_destinataire', 
                 'destinataires.prenom as prenom_destinataire', 
-                'destinataires.tel as tel_destinataire', 
+                'destinataires.tel as destinataire_tel', 
                 'destinataires.agence as agence_destination',
-                'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Chargé')  // Filtre l'état des colis
+            ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('etat', 'Chargé') 
             ->get(); 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-                ->make(true);
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->nom_expediteur,
+                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->agence_expedition, 
+                    'destinataire_nom' => $group->first()->nom_destinataire,
+                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)->make(true);
         }
     }
+    // Ajax pour récupérer la liste des colis en Decharge
+    // public function get_colis_decharge(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $colis = Colis::select(
+    //             'colis.*',  // Sélectionne toutes les colonnes de colis
+    //             'expediteurs.nom as nom_expediteur', 
+    //             'expediteurs.prenom as prenom_expediteur', 
+    //             'expediteurs.tel as tel_expediteur', 
+    //             'expediteurs.agence as agence_expedition', 
+    //             'destinataires.nom as nom_destinataire', 
+    //             'destinataires.prenom as prenom_destinataire', 
+    //             'destinataires.tel as tel_destinataire', 
+    //             'destinataires.agence as agence_destination',
+    //             'colis.etat as etat',
+    //             'colis.created_at as created_at'
+    //         )
+    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+    //         ->where('etat', 'Dechargé')  // Filtre l'état des colis
+    //         ->get(); 
+    //         return DataTables::of($colis)
+    //             ->addColumn('action', function ($row) {
+    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+    //                 return '
+    //                     <div class="btn-group">
+    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+    //                             <i class="fas fa-eye"></i>
+    //                         </a>
+    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+    //                             <i class="fas fa-credit-card"></i>
+    //                         </a>
+    //                     </div>
+    //                 ';
+    //             })
+    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+    //             ->make(true);
+    //     }
+    // }
+
+    
+    // Ajax pour récupérer la liste des colis en Charge
+    // public function get_colis_charge(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $colis = Colis::select(
+    //             'colis.*',  // Sélectionne toutes les colonnes de colis
+    //             'expediteurs.nom as nom_expediteur', 
+    //             'expediteurs.prenom as prenom_expediteur', 
+    //             'expediteurs.tel as tel_expediteur', 
+    //             'expediteurs.agence as agence_expedition', 
+    //             'destinataires.nom as nom_destinataire', 
+    //             'destinataires.prenom as prenom_destinataire', 
+    //             'destinataires.tel as tel_destinataire', 
+    //             'destinataires.agence as agence_destination',
+    //             'colis.etat as etat',
+    //             'colis.created_at as created_at'
+    //         )
+    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+    //         ->where('etat', 'Chargé')  // Filtre l'état des colis
+    //         ->get(); 
+    //         return DataTables::of($colis)
+    //             ->addColumn('action', function ($row) {
+    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+    //                 return '
+    //                     <div class="btn-group">
+    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+    //                             <i class="fas fa-eye"></i>
+    //                         </a>
+    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+    //                             <i class="fas fa-credit-card"></i>
+    //                         </a>
+    //                     </div>
+    //                 ';
+    //             })
+    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+    //             ->make(true);
+    //     }
+    // }
 // Fonction Ajax pour le Scan En entrepot
 
 public function getColisEntrepot(Request $request)

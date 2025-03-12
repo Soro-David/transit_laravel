@@ -17,6 +17,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
                                                 {{-- <th>Agence Expéditeur</th> --}}
@@ -48,6 +49,7 @@ $(document).ready(function () {
         ajax: '{{ route("aftlb_colis.get.colis.valide") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
             {
                 data: null,
                 render: function (data, type, row) {

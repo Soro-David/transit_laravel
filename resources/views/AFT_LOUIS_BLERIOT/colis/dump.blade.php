@@ -16,15 +16,15 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -157,6 +157,7 @@ $(document).ready(function () {
         ajax: '{{ route("aftlb_colis.get.colis.dump") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
             {
                 data: null,
                 render: function (data, type, row) {
@@ -189,7 +190,7 @@ $(document).ready(function () {
                     return data;  // Si la date est vide, on retourne la donnée brute
                 }
             },
-            { data: 'action', orderable: false, searchable: false }
+            // { data: 'action', orderable: false, searchable: false }
         ],
         dom: 'Bfrtip', // Placement des boutons
         buttons: [

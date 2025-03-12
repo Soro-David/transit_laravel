@@ -68,18 +68,6 @@
                                 <p>{{ __('Arrivé') }}</p>
                             </a>
                         </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{ route('colis.history') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.package_tracking') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('colis.history') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.history') }}</p>
-                            </a>
-                        </li> --}}
                     </ul>
                 </li>
                 <li class="nav-item has-treeview">
@@ -91,12 +79,6 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        {{-- <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('trans.add_quote') }}</p>
-                            </a>
-                        </li> --}}
                         <li class="nav-item">
                             <a href="{{ route('colis.devis.hold') }}" class="nav-link">
                                 <i class="far nav-icon"></i>

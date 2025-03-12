@@ -16,15 +16,16 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                {{-- <th>Agence Destinataire</th> --}}
-                                                {{-- <th>Status</th> --}}
+                                                <th>Agence Destinataire</th>
+                                                <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -148,15 +149,15 @@
     <!-- JavaScript for DataTable and Export -->
     <script>
 $(document).ready(function () {
-    // Initialisation de la table DataTable
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                url: "{{ asset('js/fr-FR.json') }}" 
             },
-        ajax: '{{ route("ipms_colis.get.colis.dump") }}', // Récupération des données via AJAX
+        ajax: '{{ route("ipms_colis.get.colis.dump") }}', 
         columns: [
             { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
             {
                 data: null,
                 render: function (data, type, row) {
@@ -165,36 +166,31 @@ $(document).ready(function () {
                 }
             },
             { data: 'expediteur_tel' },
-            // { data: 'destinataire_agence' },
-            { data: 'expediteur_agence' },
             {
                 data: null,
                 render: function (data, type, row) {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            // { data: 'destinataire_agence' },
+            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
-            // { data: 'etat' },
+            { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {
-                    // Vérifiez si la date existe et la formater
                     if (data) {
                         var date = new Date(data);
-                        // Retourne la date au format aa/mm/jj
-                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                        var day = ('0' + date.getDate()).slice(-2);  
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  
+                        var year = date.getFullYear().toString().slice(-2);  
                         return day + '/' + month + '/' + year;
                     }
-                    return data;  // Si la date est vide, on retourne la donnée brute
+                    return data;
                 }
             },
-            { data: 'action', orderable: false, searchable: false }
+            { data: 'action' },
         ],
-        dom: 'Bfrtip', // Placement des boutons
+        dom: 'Bfrtip',
         buttons: [
-            // Bouton Excel
             {
                 extend: 'excelHtml5',
                 text: 'Exporter en Excel',
@@ -203,29 +199,25 @@ $(document).ready(function () {
                     console.log("Exportation Excel réussie sans image.");
                 }
             },
-            // Bouton PDF
             {
                 extend: 'pdfHtml5',
                 text: 'Exporter en PDF',
                 title: 'Liste des Colis en attente',
-                orientation: 'landscape', // Mode paysage
-                pageSize: 'A4', // Taille de la page
+                orientation: 'landscape', 
+                pageSize: 'A4', 
                 customize: function (doc) {
-                    // Ajout du logo encodé en Base64 dans le PDF
                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                     toDataURL(logoUrl, function (dataUrl) {
-                        // Ajout de l'image au début du contenu PDF
                         console.log(dataUrl);
                         doc.content.unshift({
                             image: dataUrl,
-                            width: 100, // Taille du logo
+                            width: 100, 
                             alignment: 'center',
-                            margin: [0, 0, 0, 10] // Espacement
+                            margin: [0, 0, 0, 10] 
                         });
                     });
                 }
             },
-            // Bouton Imprimer
             {
                 extend: 'print',
                 text: 'Imprimer',
@@ -242,25 +234,6 @@ $(document).ready(function () {
             }
         ]
     });
-
-    /**
-     * Fonction pour convertir une image en Base64
-     * @param {string} url - L'URL de l'image
-     * @param {function} callback - Fonction de retour contenant l'image en Base64
-     */
-    function toDataURL(url, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            var reader = new FileReader();
-            reader.onloadend = function () {
-                callback(reader.result); // Retourne l'image encodée en Base64
-            };
-            reader.readAsDataURL(xhr.response);
-        };
-        xhr.open('GET', url);
-        xhr.responseType = 'blob'; // Type de réponse : Blob
-        xhr.send();
-    }
 });
 
     </script>

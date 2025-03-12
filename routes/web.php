@@ -59,6 +59,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AgentController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\ChauffeurColisController;
+use App\Http\Controllers\SignatureController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -129,6 +130,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     })->name('admin_colis.valides-par-mois');;
 
 
+    Route::get('signature', [SignatureController::class, 'showForm']);
+    Route::post('signature/save', [SignatureController::class, 'saveSignature'])->name('save.signature');
+
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
     Route::get('/managers/agence', [AdminController::class, 'gestion_agence'])->name('managers.agence');
@@ -175,9 +179,16 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         // route edit
         Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
+
+        Route::get('/on-invoice/{id}/edit', [ColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture/{id}', [ColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette/{id}', [ColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+
         Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}', [ColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::put('/colis/valide/update', [ColisController::class, 'updateMultipleColis'])->name('valide.update');
+        Route::put('/on-hold', [ColisController::class, 'update_hold'])->name('hold.update');
+        // Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
+        // Route::put('/on-valide/{id}', [ColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print', [ColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // route suppression edit
@@ -187,10 +198,15 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         // route contenaire fermer
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        //route pour ajax produit
+        Route::post('/store-produit-ajax',[ColisController::class, 'storeProduit'])->name('store.produit');
+        Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        
+        // Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('autocomplete.produit');
 
         Route::get('/list-contenaire',[ColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         Route::get('/list-vol',[ColisController::class, 'liste_vol'])->name('liste.vol');
-
+        Route::post('/bateaux/store', [ColisController::class, 'store_bateaux'])->name('bateaux.store');
 
         Route::post('/store', [ColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [ColisController::class,'show'])->name('show'); 
@@ -515,6 +531,12 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/colis-valide-aft-louis-b', [AftlbColisController::class, 'colis_valide'])->name('colis.valide');
         Route::get('/get-colis-valide-aft-louis-b', [AftlbColisController::class, 'get_colis_valide'])->name('get.colis.valide');
 
+
+
+        // Routes pour autocompletion et store produit
+        Route::post('/store-produit-ajax-aftlb',[AftlbColisController::class, 'storeProduit'])->name('store.produit');
+        Route::get('/autocomplete/produit-aftlb', [AftlbColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft-louis-b', [AftlbColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
@@ -522,10 +544,23 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/list-vol-aft-louis-b', [AftlbColisController::class, 'liste_vol'])->name('liste.vol');
 
         // Routes d'édition et mise à jour
+
+
+        // Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
+
+
+        Route::get('/on-invoice/edit-aft-louis-b/{id}', [AftlbColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-aft-louis-b/{id}', [AftlbColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette-aft-louis-b/{id}', [AftlbColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+
+        // Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/colis/valide/update', [AftlbColisController::class, 'updateMultipleColis'])->name('valide.update');
+        // Route::put('/on-hold', [ColisController::class, 'update_hold'])->name('hold.update');
+
         Route::get('/on-hold/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}-aft-louis-b', [AftlbColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}-aft-louis-b', [AftlbColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::put('/on-hold/-aft-louis-b', [AftlbColisController::class, 'update_hold'])->name('hold.update');
+        // Route::put('/on-valide/{id}-aft-louis-b', [AftlbColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-aft-louis-b', [AftlbColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // Route pour fermer un contenaire
@@ -536,7 +571,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         
         // Suppression d'un colis validé
         Route::delete('/colis/{id}-aft-louis-b', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
-
+        Route::post('/bateaux/store-aft-louis-b', [AftlbColisController::class, 'store_bateaux'])->name('bateaux.store');
         // CRUD classique sur colis
         Route::post('/store-aft-louis-b', [AftlbColisController::class, 'store'])->name('store'); 
         Route::get('/{coli}-aft-louis-b', [AftlbColisController::class, 'show'])->name('show'); 
@@ -717,6 +752,12 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::post('/store/colis-simexci', [ApmsColisController::class, 'store_colis'])->name('store.colis');
      
         // Routes d'édition et mise à jour
+
+        Route::get('/on-invoice/edit-suivi-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-suivi-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette-suivi-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+
+
         Route::get('/on-hold/{id}/edit', [ApmsColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit', [ApmsColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/on-hold/{id}', [ApmsColisController::class, 'update_hold'])->name('hold.update');
@@ -725,6 +766,10 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
   
         // Suppression d'un colis validé
         Route::delete('/colis/{id}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+
+        Route::get('/on-invoice/edit-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
 
         // CRUD classique sur colis
         Route::post('/store', [ApmsColisController::class, 'store'])->name('store'); 
@@ -874,6 +919,13 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/colis-facture/{id}/print-IPMS', [ApmsAngreColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // CRUD classique sur colis
+
+        Route::get('/on-invoice/edit-IPMS/{id}', [ApmsAngreColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-IPMS/{id}', [ApmsAngreColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette-IPMS/{id}', [ApmsAngreColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+
+
+
         Route::post('/store', [ApmsAngreColisController::class, 'store'])->name('store'); 
         Route::get('/{coli}', [ApmsAngreColisController::class, 'show'])->name('show'); 
         Route::get('/{coli}/edit', [ApmsAngreColisController::class, 'edit'])->name('edit'); 
@@ -1050,11 +1102,20 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/get-cargaison-ferme-aft_chine', [ChineColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
         Route::get('/list-vol-aft_chine', [ChineColisController::class, 'liste_vol'])->name('liste.vol');
 
+
+
+
+         // Routes pour autocompletion et store produit
+         Route::post('/store-produit-ajax-chine',[ChineColisController::class, 'storeProduit'])->name('store.produit');
+         Route::get('/autocomplete/produit-chine', [ChineColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+
+         
+
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit-aft_chine', [ChineColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit-aft_chine', [ChineColisController::class, 'edit_colis_valide'])->name('valide.edit');
-        Route::put('/on-hold/{id}-aft_chine', [ChineColisController::class, 'update_hold'])->name('hold.update');
-        Route::put('/on-valide/{id}-aft_chine', [ChineColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::put('/on-hold/-aft_chine', [ChineColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/-aft_chine', [ChineColisController::class, 'updateMultipleColis'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-aft_chine', [ChineColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // Route pour fermer un contenaire
@@ -1063,10 +1124,27 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         // Liste des conteneurs
         Route::get('/list-contenaire-aft_chine', [ChineColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         
+
+
+
+
+        // Route::put('/colis/valide/update', [ChineColisController::class, 'updateMultipleColis'])->name('valide.update');
+        // Route::put('/on-hold', [ColisController::class, 'update_hold'])->name('hold.update');
+
+        // Route::put('/on-hold/-aft-louis-b', [AftlbColisController::class, 'update_hold'])->name('hold.update');
+
+
+
         // Suppression d'un colis validé
         Route::delete('/colis/{id}-aft_chine', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
-
+        Route::post('/bateaux/store-aft_chine', [ChineColisController::class, 'store_bateaux'])->name('bateaux.store');
         // CRUD classique sur colis
+
+        Route::get('/on-invoice/edit-aft_chine/{id}', [ChineColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-aft_chine/{id}', [ChineColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/etiquette-aft_chine/{id}', [ChineColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+
+
         Route::post('/store-aft_chine', [ChineColisController::class, 'store'])->name('store'); 
         Route::get('/{coli}-aft_chine', [ChineColisController::class, 'show'])->name('show'); 
         Route::get('/{coli}/edit-aft_chine', [ChineColisController::class, 'edit'])->name('edit'); 

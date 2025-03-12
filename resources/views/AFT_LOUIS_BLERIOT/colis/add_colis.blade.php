@@ -1,22 +1,22 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agent')
-
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
 <section class="p-4 mx-auto">
-    
+
     <form action="{{ route('aftlb_colis.store.colis') }}" method="post" class="form-container">
         @csrf
 
         @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
         @endif
         <div class="progress-bar-container text-center mb-4">
             <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
@@ -24,11 +24,11 @@
             </ul>
             <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
                 <li class="step" data-step="1">2</li>
-                
+
             </ul>
             <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
                 <li class="step" data-step="2">3</li>
-                
+
             </ul>
             <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
                 <li class="step" data-step="3">4</li>
@@ -42,15 +42,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" 
-                                    value="{{ old('nom_expediteur') }}" class="form-control" required>
+                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ old('nom_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                    value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ old('prenom_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -58,15 +56,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" 
-                                    value="{{ old('email_expediteur') }}" class="form-control">
+                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{ old('email_expediteur') }}" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" 
-                                    value="{{ old('tel_expediteur') }}" class="form-control" required>
+                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ old('tel_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -74,8 +70,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" 
-                                       value="{{ old('adresse_expediteur') }}" class="form-control" required>
+                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ old('adresse_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -84,7 +79,7 @@
                             <select name="pays_expedition" id="pays_expedition" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez le pays d'expédition --</option>
                                 @foreach ($paysUniques as $pays)
-                                    <option value="{{ $pays }}">{{ $pays }}</option>
+                                <option value="{{ $pays }}">{{ $pays }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -97,42 +92,42 @@
                             <select name="agence_expedition" id="agence_expedition" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
                                 @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
-                                        {{ $agence->nom_agence }}
-                                    </option>
+                                <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
+                                    {{ $agence->nom_agence }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
                 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const paysSelect = document.getElementById('pays_expedition');
-    const agenceSelect = document.getElementById('agence_expedition');
-    const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const paysSelect = document.getElementById('pays_expedition');
+                        const agenceSelect = document.getElementById('agence_expedition');
+                        const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
 
-    paysSelect.addEventListener('change', function () {
-        const selectedPays = this.value;
+                        paysSelect.addEventListener('change', function() {
+                            const selectedPays = this.value;
 
-        // Réinitialiser les options
-        agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
+                            // Réinitialiser les options
+                            agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
 
-        // Ajouter uniquement les options correspondant au pays sélectionné
-        agenceOptions.forEach(option => {
-            if (option.getAttribute('data-pays') === selectedPays) {
-                agenceSelect.appendChild(option.cloneNode(true));
-            }
-        });
-    });
+                            // Ajouter uniquement les options correspondant au pays sélectionné
+                            agenceOptions.forEach(option => {
+                                if (option.getAttribute('data-pays') === selectedPays) {
+                                    agenceSelect.appendChild(option.cloneNode(true));
+                                }
+                            });
+                        });
 
-    // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
-    if (paysSelect.value) {
-        paysSelect.dispatchEvent(new Event('change'));
-    }
-});
-
-</script>
+                        // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
+                        if (paysSelect.value) {
+                            paysSelect.dispatchEvent(new Event('change'));
+                        }
+                    });
+                </script>
+            </div>
             {{-- Boutons navigation --}}
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
@@ -148,15 +143,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" 
-                                       value="{{ old('nom_destinataire') }}" class="form-control" required>
+                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="{{ old('nom_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" 
-                                       value="{{ old('prenom_destinataire') }}" class="form-control" required>
+                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" value="{{ old('prenom_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -164,15 +157,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" 
-                                       value="{{ old('email_destinataire') }}" class="form-control">
+                            <input type="email" name="email_destinataire" id="email_destinataire" value="{{ old('email_destinataire') }}" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" 
-                                       value="{{ old('tel_destinataire') }}" class="form-control" required>
+                            <input type="text" name="tel_destinataire" id="tel_destinataire" value="{{ old('tel_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -180,20 +171,16 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" 
-                                       value="{{ old('adresse_destinataire') }}" class="form-control" required>
+                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" value="{{ old('adresse_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
-                   
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="agence_destination" class="form-label">Agence de Destination</label>
+                            <label for="agence_destination" class="form-label">Agence de destination</label>
                             <select name="agence_destination" id="agence_destination" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
                                 @foreach ($agencesDestination as $agence)
-                                    <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
-                                        {{ $agence->nom_agence }}
-                                    </option>
+                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -224,9 +211,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="reference_colis" class="form-label">Référence</label>
-                            <input type="text" name="reference_colis" id="reference_colis" 
-                                value="{{ $referenceColis}}" 
-                                class="form-control" readonly>
+                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis}}" class="form-control" readonly>
                         </div>
                     </div>
                     <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -243,32 +228,23 @@
                 <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité</label>
-                            <input type="number" name="quantite_colis[]" class="form-control" required>
+                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
+                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                        <label class="form-label">Produit(s) ou Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="type_embalage[]" class="form-control produit-input">
+                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
+                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
                     </div>
-                    <div class="col-md-6" id="dimension_section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" id="hauteur" name="hauteur[]" class="form-control" placeholder="Hauteur">
-                            <input type="number" id="largeur" name="largeur[]" class="form-control" placeholder="Largeur">
-                            <input type="number" id="longueur" name="longueur[]" class="form-control" placeholder="Longueur">
-                        </div>
-                        <div id="dimension_result" name="dimension_result" class="mt-2" style="display: none; font-weight: bold;"></div>
-                        {{-- <div id="dimension_result"   class="mt-2" style="display: none; font-weight: bold;"></div> --}}
-                    </div>                    
-                    <div class="col-md-6" id="poids_section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                    <div class="col-md-2">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="type_colis" class="form-label">Type de colis</label>
@@ -279,7 +255,22 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-8 col-md-8 col-lg-8">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 dimension-section" id="dimension_section">
+                        <label class="form-label">Dimensions (cm)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                        </div>
+                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
+                    </div>
+                    <div class="col-md-6 poids-section" id="poids_section" style="display: none;">
+                        <label class="form-label">Poids (kg)</label>
+                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-6">
                         <div class="mb-3">
                             <label for="description_colis" class="form-label">Description colis</label>
                             <textarea 
@@ -300,72 +291,163 @@
             <div id="colisContainer"></div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                <button type="submit" class="btn btn-success" style="display: none;" >Valider</button>
+                <button type="submit" class="btn btn-success" style="display: none;">Valider</button>
             </div>
         </fieldset>
 </form>
+
+<div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="produitForm">
+                    <div class="mb-3">
+                        <label for="description_produit" class="form-label">Description</label>
+                        <input type="text" name="description" id="description_produit" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categorie_produit" class="form-label">Catégorie</label>
+                        <select name="categorie" id="categorie_produit" class="form-control" required>
+                            <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
+                            <option value="Colis">COLIS</option>
+                            <option value="Service">SERVICES</option>
+                            <option value="Remise">REMISES</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prix_unitaire" class="form-label">Prix Unitaire</label>
+                        <input type="number" name="prix" id="prix_unitaire" class="form-control" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary btn-save" data-url="{{ route('aftlb_colis.store.produit') }}">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
 </section>
 
 <script>
-    $(document).ready(function () {
-    // Fonction pour afficher les champs en fonction du mode de transport sélectionné
-    $("#mode_transit").change(function () {
-        let mode = $(this).val();
-        if (mode === "maritime") {
-            $("#dimension_section").show();
-            $("#poids_section").hide();
-        } else if (mode === "aerien") {
-            $("#dimension_section").hide();
-            $("#poids_section").show();
+
+$(document).ready(function() {
+    initAutocomplete($(document));
+    function initAutocomplete(element) {
+        $(element).find(".produit-input").off("keyup").on("keyup", function() {
+            let query = $(this).val().trim();
+            let input = $(this);
+            let row = input.closest('.row');
+            let resultsContainer = row.find('.autocomplete-results');
+            let prixInput = row.find('input[name="prix[]"]');
+            let quantiteInput = row.find('input[name="quantite_colis[]"]');
+            let prixTotalDisplay = row.find('.prix-total');
+
+            if (query.length >= 2) {
+                $.ajax({
+                    url: "{{ route('aftlb_colis.recherche.auto') }}",
+                    type: "GET",
+                    dataType: "json",
+                    data: { query: query },
+                    success: function(data) {
+                        resultsContainer.empty().show();
+                        if (data.length > 0) {
+                            $.each(data, function(index, produit) {
+                                let resultItem = $('<div class="autocomplete-item"></div>')
+                                    .text(produit.description)
+                                    .css({
+                                        padding: "5px",
+                                        cursor: "pointer",
+                                        borderBottom: "1px solid #eee"
+                                    })
+                                    .on('click', function() {
+                                        input.val(produit.description);
+                                        resultsContainer.empty().hide();
+
+                                        // Mise à jour du prix unitaire et du prix total
+                                        let prixUnitaire = parseFloat(produit.prix);
+                                        let quantite = parseInt(quantiteInput.val()) || 1;
+                                        let prixTotal = prixUnitaire * quantite;
+
+                                        prixInput.attr("data-prix-unitaire", prixUnitaire); // Stocker le prix unitaire
+                                        prixInput.val(prixTotal);
+                                        prixTotalDisplay.text(prixTotal);
+                                    });
+
+                                resultsContainer.append(resultItem);
+                            });
+                        } else {
+                            resultsContainer.hide();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Erreur AJAX:", error);
+                        resultsContainer.empty().hide();
+                    }
+                });
+            } else {
+                resultsContainer.empty().hide();
+            }
+        });
+    }
+
+    // Met à jour le prix total lors de la modification de la quantité
+    $(document).on('input', '.quantite-colis', function() {
+        let row = $(this).closest('.row');
+        let prixInput = row.find('input[name="prix[]"]');
+        let prixTotalDisplay = row.find('.prix-total');
+        let quantite = parseInt($(this).val()) || 1;
+        let prixUnitaire = parseFloat(prixInput.attr("data-prix-unitaire")) || 0;
+
+        let prixTotal = prixUnitaire * quantite;
+
+        prixInput.val(prixTotal);
+        prixTotalDisplay.text(prixTotal);
+    });
+
+    // Fermer les suggestions en cliquant en dehors
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.input-group, .autocomplete-results').length) {
+            $('.autocomplete-results').hide();
         }
     });
 
-    // Afficher les dimensions en texte (ex: 30x50x20)
-    $(document).on("input", "#hauteur, #largeur, #longueur", function () {
-        let hauteur = $("#hauteur").val();
-        let largeur = $("#largeur").val();
-        let longueur = $("#longueur").val();
-
-        if (hauteur && largeur && longueur) {
-            $("#dimension_result").text(`${longueur}x${largeur}x${hauteur} cm`).show();
-        } else {
-            $("#dimension_result").hide();
+    // Empêcher la soumission du formulaire avec "Enter" si l'autocomplétion est ouverte
+    $(document).on('keydown', '.produit-input', function(event) {
+        if (event.key === "Enter" && $('.autocomplete-results').is(':visible')) {
+            event.preventDefault();
         }
     });
 
-     // Ajouter un nouveau colis avec la même logique
-     $(document).on("click", ".add-colis", function (e) {
+    // Ajouter un nouveau colis et initialiser l'autocomplétion
+    $(document).on("click", ".add-colis", function(e) {
         e.preventDefault();
-        const newColis = `
+        const newColis = $(`
             <div class="colis-fieldset mb-4">
                 <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
                             <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control" required>
+                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                        <label class="form-label">Produit(s) ou Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="type_embalage[]" class="form-control produit-input">
+                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
+                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
                     </div>
-                    <div class="col-md-6 dimension-section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                        </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
+                    <div class="col-md-2">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
                     </div>
-                    <div class="col-md-6 poids-section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                    </div>
-                </div>
-                <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="type_colis" class="form-label">Type de colis</label>
@@ -376,16 +458,31 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-8 col-md-8 col-lg-8">
-                            <div class="mb-3">
-                              <label for="description_colis" class="form-label">Description colis</label>
-                              <textarea 
-                                name="description_colis[]" 
-                                id="description_colis" 
-                                class="form-control" 
-                                rows="4"
-                                placeholder="Saisissez la description du colis"></textarea>
-                            </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 dimension-section">
+                        <label class="form-label">Dimensions (cm)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                        </div>
+                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
+                    </div>
+                    <div class="col-md-6 poids-section" style="display: none;">
+                        <label class="form-label">Poids (kg)</label>
+                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-6">
+                        <div class="mb-3">
+                            <label for="description_colis" class="form-label">Description colis</label>
+                            <textarea 
+                            name="description_colis[]" 
+                            id="description_colis" 
+                            class="form-control" 
+                            rows="4"
+                            placeholder="Saisissez la description du colis"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="text-end mt-2">
@@ -393,13 +490,15 @@
                     <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
                 </div>
             </div>
-        `;
-        $("#colisContainer").append(newColis);
-        toggleFields(); // Appliquer les règles d'affichage pour le nouveau colis
-    });
+        `);
 
-    // Supprimer un colis
-    $(document).on("click", ".remove-colis", function () {
+        $("#colisContainer").append(newColis);
+        initAutocomplete(newColis);
+        toggleFields();
+    });
+   
+     // Supprimer un colis
+     $(document).on("click", ".remove-colis", function () {
         $(this).closest(".colis-fieldset").remove();
     });
 
@@ -430,6 +529,109 @@
         }
     });
 
+    // Initialiser les champs visibles selon le mode de transport sélectionné
+    toggleFields();
+
+    $(document).ready(function () {
+    // Configuration du token CSRF pour toutes les requêtes AJAX
+    $.ajaxSetup({
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+    });
+
+    // Remplissage automatique du champ description lorsque l'utilisateur clique sur "+"
+    $(".btn-add").on("click", function () {
+        let produit = $(this).siblings(".produit-input").val().trim();
+        $("#description_produit").val(produit);
+    });
+
+    // Gérer la création d'un nouveau produit dans le modal
+    $(".btn-save").on("click", function () {
+        let description = $("#description_produit").val().trim();
+        let categorie = $("#categorie_produit").val();
+        let prix = parseFloat($("#prix_unitaire").val().trim()) || 0;
+        let url = $(this).data("url"); // Récupération de l'URL depuis data-url
+
+        console.log("Description:", description);
+        console.log("Catégorie:", categorie);
+        console.log("Prix:", prix);
+        console.log("URL:", url);
+
+        // Vérification des champs
+        if (!description) {
+            alert("Veuillez saisir une description.");
+            return;
+        }
+        if (!categorie) {
+            alert("Veuillez sélectionner une catégorie.");
+            return;
+        }
+        if (isNaN(prix) || prix <= 0) {
+            alert("Veuillez entrer un prix valide.");
+            return;
+        }
+        $(".btn-save").prop("disabled", true).text("Enregistrement...");
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                description: description,
+                categorie: categorie,
+                prix: prix,
+            }),
+            success: function (response) {
+                alert(response.message); 
+                $("#produitForm")[0].reset(); 
+                $("#produitModal").modal("hide");
+                $(".btn-save").prop("disabled", false).text("Créer");
+
+                // Remplir les champs dans la ligne active si un champ est en focus
+                let activeInput = $(".produit-input:focus");
+                if (activeInput.length) {
+                    activeInput.val(description);
+                    let row = activeInput.closest(".row");
+                    let prixInput = row.find('input[name="prix[]"]');
+                    let quantiteInput = row.find('input[name="quantite_colis[]"]');
+                    let prixTotalDisplay = row.find(".prix-total");
+
+                    let quantite = parseInt(quantiteInput.val()) || 1;
+                    let prixTotal = prix * quantite;
+                    prixInput.attr("data-prix-unitaire", prix);
+                    prixInput.val(prixTotal);
+                    prixTotalDisplay.text(prixTotal);
+                }
+            },
+            error: function (xhr) {
+                let message = "Erreur lors de l'enregistrement du produit !\n";
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    $.each(xhr.responseJSON.errors, function (key, value) {
+                        message += value + "\n";
+                    });
+                }
+                alert(message);
+                $(".btn-save").prop("disabled", false).text("Créer");
+            },
+        });
+    });
+});
+});
+
+$(document).ready(function () {
+    // Fonction pour afficher les champs en fonction du mode de transport sélectionné
+    function toggleFields() {
+        let mode = $("#mode_transit").val();
+        $(".dimension-section").toggle(mode === "maritime");
+        $(".poids-section").toggle(mode === "aerien");
+    }
+
+    // Appliquer les changements lors de la sélection du mode de transit
+    $("#mode_transit").change(function () {
+        toggleFields();
+    });
     // Initialiser les champs visibles selon le mode de transport sélectionné
     toggleFields();
 });
@@ -469,8 +671,6 @@ $(document).ready(function () {
             showStep(currentStep);
         }
     });
-
-
     // Afficher l'étape initiale
     showStep(currentStep);
 });
@@ -496,6 +696,7 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
                 updateFieldsetButtons();
             }
         });
+
         // Update the buttons visibility for the fieldsets
         function updateFieldsetButtons() {
             var allFieldsets = $('fieldset');
@@ -511,9 +712,6 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
                 }
             });
     }
-
-
-
         // Handle transit mode visibility based on selection
         $('#mode_transit').on('change', function () {
             const selectedMode = $(this).val();
@@ -614,6 +812,29 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
 
 </script>
 <style>
+
+.autocomplete-results {
+    position: absolute; /* Important pour le positionnement */
+    top: 100%; /* Affiche les résultats sous l'input */
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Pour être au-dessus des autres éléments */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    display: none; /* Caché par défaut */
+}
+
+.autocomplete-item {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.autocomplete-item:hover {
+    background-color: #f0f0f0;
+}
+
 body {
     background-color: #f7f7f7;
 }

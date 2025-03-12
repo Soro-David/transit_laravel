@@ -10,7 +10,7 @@ class Produit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'quantite', 'prix', 'dimensions', 'description', 'colis_id'
+        'prix', 'categorie', 'description'
     ];
 
     public function colis()

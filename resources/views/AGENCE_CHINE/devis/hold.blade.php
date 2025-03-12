@@ -16,9 +16,10 @@
                                 <thead>
                                     <tr>
                                         <th>Référence</th>
+                                        <th>Nombre de colis</th>
                                         <th>Expéditeur</th>
                                         <th>Téléphone</th>
-                                        <th>Agence Expéditeur</th>
+                                        {{-- <th>Agence Expéditeur</th> --}}
                                         <th>Destinataire</th>
                                         <th>Téléphone</th>
                                         <th>Agence Destinataire</th>
@@ -47,6 +48,7 @@
             ajax: '{{ route("chine_colis.get.devis.colis") }}', // URL pour récupérer les données
             columns: [
                 { data: 'reference_colis' },
+                    { data: 'nombre_de_colis' },
                     {
                         data: null,
                         render: function (data, type, row) {
@@ -55,7 +57,6 @@
                         }
                     },
                     { data: 'expediteur_tel' },
-                    { data: 'expediteur_agence' },
                     // { data: 'expediteur_agence' },
                     {
                         data: null,
@@ -67,18 +68,20 @@
                     { data: 'destinataire_tel' },
                     { data: 'etat' },
                     { data: 'created_at',
-                    render: function(data, type, row) {
-                        if (data) {
-                            var date = new Date(data);
-                            var day = ('0' + date.getDate()).slice(-2);
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                            var year = date.getFullYear().toString().slice(-2);
-                            return day + '/' + month + '/' + year;
+                        render: function(data, type, row) {
+                            // Vérifiez si la date existe et la formater
+                            if (data) {
+                                var date = new Date(data);
+                                // Retourne la date au format aa/mm/jj
+                                var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                                var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                                var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                                return day + '/' + month + '/' + year;
+                            }
+                            return data;  // Si la date est vide, on retourne la donnée brute
                         }
-                        return data;
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
+                    },
+                    { data: 'action', orderable: false, searchable: false }
             ],
             dom: 'Bfrtip', // Active les boutons et positionne les contrôles
             buttons: [

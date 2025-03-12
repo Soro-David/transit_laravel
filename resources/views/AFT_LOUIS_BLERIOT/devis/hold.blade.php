@@ -16,6 +16,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
                                                 {{-- <th>Agence Expéditeur</th> --}}
@@ -49,6 +50,7 @@
                 ajax: '{{ route("aftlb_colis.get.devis.colis") }}', // URL pour récupérer les données
                 columns: [
                     { data: 'reference_colis' },
+                    { data: 'nombre_de_colis' },
                     {
                         data: null,
                         render: function (data, type, row) {

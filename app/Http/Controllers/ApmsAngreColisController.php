@@ -819,6 +819,8 @@ public function get_colis_hold(Request $request)
                     $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $row->id]);
                     $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['id' => $row->id]);
                     $printUrl = route('ipms_angre_colis.facture.colis.print', ['id' => $row->id]);
+                    $invoiceUrl = route('ipms_angre_colis.valide.edit.invoice', ['id' => $firstColis->id]);
+
                     return '
                         <div class="btn-group">
                             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
@@ -831,6 +833,9 @@ public function get_colis_hold(Request $request)
                         <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
                             <i class="fas fa-trash"></i>
                         </button>
+                        <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+                            <i class="fas fa-file-invoice"></i>
+                        </a>
                     ';
                 })
                 ->rawColumns(['action'])

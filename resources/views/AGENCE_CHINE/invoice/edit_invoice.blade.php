@@ -111,7 +111,8 @@
             </p>
         </div>
     
-        <div class="div_btn mt-4 no-print">
+        <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
+            <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
             <button class=" btn_print btn btn-primary" onclick="printAffiche()">Imprimer</button>
         </div>
     </div>
