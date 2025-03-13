@@ -9,6 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode;
+// use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -21,6 +22,8 @@ use App\Models\Destinataire;
 use App\Models\Paiement;
 use App\Models\Article;
 use App\Models\Invoice;
+use App\Models\Bateaux;
+// use App\Models\Bateaux;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
@@ -597,43 +600,55 @@ class ApmsColisController extends Controller
 
     public function get_colis_suivi(Request $request)
     {
+
+
         if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis', 
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            // ->where('etat', 'Dechargé')  // Filtre l'état des colis
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-            ->get(); // Exécute la requête une seule fois
+            $colis = Colis::query()
+                ->select(
+                    'colis.*',
+                    'colis.reference_colis as reference_colis',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'expediteurs.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel',
+                    'colis.etat as etat',
+                    'colis.created_at as created_at'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('colis.etat', '!=', 'Dechargé')
+                ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+                ->where('colis.mode_transit', 'maritime')
+                ->get();
+            $colisGrouped = $colis->groupBy('reference_colis');
 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
 
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat, // conserve l'état d'origine ici
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Dechargé' ? 'Colis validé' : $row['etat'];
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
                 ->make(true);
         }
     }
@@ -662,6 +677,8 @@ class ApmsColisController extends Controller
                 ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
                 ->where('etat', 'Dechargé')
                 ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+                ->where('colis.mode_transit', 'maritime')
+                ->where('colis.recup', 'oui')
                 ->get();
             $colisGrouped = $colis->groupBy('reference_colis');
 
@@ -737,6 +754,7 @@ class ApmsColisController extends Controller
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
             ->whereIn('etat', ['Devis','Validé'])  // Filtre l'état des colis
             ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre')
+            ->where('colis.mode_transit', 'maritime')
             ->get(); // Exécute la requête une seule fois
 
             return DataTables::of($colis)
@@ -766,55 +784,56 @@ class ApmsColisController extends Controller
     }
 
     public function get_colis_valide(Request $request) 
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-                'colis.*',  
-                'colis.reference_colis as reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->where('colis.etat', 'Validé')
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-            ->get();
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                    'colis.*',  
+                    'colis.reference_colis as reference_colis',
+                    'expediteurs.nom as expediteur_nom', 
+                    'expediteurs.prenom as expediteur_prenom', 
+                    'expediteurs.tel as expediteur_tel', 
+                    'expediteurs.agence as expediteur_agence', 
+                    'destinataires.nom as destinataire_nom', 
+                    'destinataires.prenom as destinataire_prenom', 
+                    'destinataires.agence as destinataire_agence', 
+                    'destinataires.tel as destinataire_tel',
+                    'colis.etat as etat',
+                    'colis.created_at as created_at'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('colis.etat', 'Validé')
+                ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+                ->where('colis.mode_transit', 'maritime')
+                ->get();
 
-        return DataTables::of($colis)
-            ->addColumn('etat', function ($row) {
-                return ($row->etat === 'Validé') ? 'Colis validé' : $row->etat;
-            })
-            // ->addColumn('action', function ($row) {
-            //     $firstColis = $row['colis']->first();
-            //     $editUrl = route('ipms_colis.valide.dit', ['id' => $firstColis->id]);
-            //     // $deleteUrl = route('ipms_colis.destroy.colis.valide', ['id' => $firstColis->id]);
-            //     $invoiceUrl = route('ipms_colis.valid.edit.invoice', ['id' => $firstColis->id]);
+            return DataTables::of($colis)
+                ->addColumn('etat', function ($row) {
+                    return ($row->etat === 'Validé') ? 'Colis validé' : $row->etat;
+                })
+                // ->addColumn('action', function ($row) {
+                //     $firstColis = $row['colis']->first();
+                //     $editUrl = route('ipms_colis.valide.dit', ['id' => $firstColis->id]);
+                //     // $deleteUrl = route('ipms_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                //     $invoiceUrl = route('ipms_colis.valid.edit.invoice', ['id' => $firstColis->id]);
 
-            //     return '
-            //     <div class="d-flex align-items-center gap-2">
-            //         <div class="btn-group">
-            //             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
-            //                 <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-            //             </a>
-            //         </div> 
-            //          <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
-            //             <i class="fas fa-file-invoice"></i>
-            //         </a>
-            //     </div>
-            //     ';
-            // })
-            // ->rawColumns(['action'])
-            ->make(true);
+                //     return '
+                //     <div class="d-flex align-items-center gap-2">
+                //         <div class="btn-group">
+                //             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+                //                 <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+                //             </a>
+                //         </div> 
+                //          <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+                //             <i class="fas fa-file-invoice"></i>
+                //         </a>
+                //     </div>
+                //     ';
+                // })
+                // ->rawColumns(['action'])
+                ->make(true);
+        }
     }
-}
 
 
 public function editInvoice($id)
@@ -1117,6 +1136,92 @@ public function imprimerFacture($id)
         return view('IPMS_SIMEXCI.devis.edit_qrcode', compact('colis'));
     }
 
+    public function liste_bateau()
+    {
+        // Récupérer uniquement les bateaux non récupérés
+        $bateaux = Bateaux::select('id', 'reference_bateau', 'date_arriver', 'reference_conteneur')
+                        ->where('recuperer', '!=', 'oui') // Exclure les bateaux déjà récupérés
+                        ->where('type', '=', 'bateau')
+                        ->get();
+
+        return view('IPMS_SIMEXCI.bateau.liste_bateau', compact('bateaux'));
+    }
+
+    public function validerBateau(Request $request)
+    {
+        // Validation des données entrantes
+        $request->validate([
+            'reference_conteneur' => 'required|string',
+        ]);
+
+        try {
+            // Utilisation d'une transaction pour garantir la cohérence des mises à jour
+            return DB::transaction(function () use ($request) {
+                $bateau = Bateaux::where('reference_conteneur', $request->reference_conteneur)->first();
+
+                if (!$bateau) {
+                    throw new Exception('🚢 Bateau non trouvé.');
+                }
+
+                // Vérifier si le bateau est déjà récupéré
+                if ($bateau->recuperer === 'oui') {
+                    throw new Exception('⚠️ Ce bateau a déjà été récupéré.');
+                }
+
+                $referenceConteneur = $bateau->reference_conteneur;
+
+                // Récupérer tous les colis liés à ce conteneur
+                $colis = Colis::where('reference_contenaire', $referenceConteneur)->get();
+
+                if ($colis->isEmpty()) {
+                    throw new Exception('📦 Aucun colis trouvé pour ce conteneur.');
+                }
+
+                // Mise à jour en masse des colis récupérés
+                Colis::where('reference_contenaire', $referenceConteneur)->update(['recup' => 'oui']);
+
+                // Mettre à jour le champ "recuperer" du bateau
+                $bateau->update(['recuperer' => 'oui']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '✅ Tous les colis et le bateau ont été récupérés avec succès.',
+                ]);
+            });
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    
+
+
+    public function get_bateau(Request $request)
+    {
+        if ($request->ajax()) {
+            $bateaux = Bateaux::select(
+                'reference_bateau',
+                'created_at as date_depart', // Création comme date de départ
+                'date_arriver'
+            )->where('agence_destination', 'IPMS-SIMEX-CI')
+            ->where('recuperer', '=', 'oui')
+            ->get();
+    
+            return DataTables::of($bateaux)
+                ->editColumn('date_depart', function ($row) {
+                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+                })
+                ->editColumn('date_arriver', function ($row) {
+                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
+                })
+                ->make(true);
+        }
+    }
+
     public function get_colis_contenaire(Request $request)
     {
         if ($request->ajax()) {
@@ -1138,6 +1243,7 @@ public function imprimerFacture($id)
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
             ->where('etat', 'Chargé')  // Filtre l'état des colis
             ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->where('colis.mode_transit', 'maritime')
             ->get(); // Exécute la requête une seule fois
 
             return DataTables::of($colis)
@@ -1181,7 +1287,9 @@ public function imprimerFacture($id)
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
             ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
             ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
+            ->where('colis.mode_transit', 'maritime')
             ->where('destinataires.agence', 'IPMS-SIMEX-CI')
+            ->where('colis.mode_transit', 'maritime')
             ->get(); // Exécute la requête 
 
             return DataTables::of($colis)

@@ -40,11 +40,11 @@
                         </li>
                     </ul>
                 </li>
-                {{-- Gestion des facture --}}
+                {{-- Gestion des Bateaux --}}
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('ipms_invoice.create.invoice') }}" class="nav-link">
-                        <i class="fas fa-file-invoice"></i>
-                        <p>{{ __('Gestion des factures') }}</p>
+                    <a href="{{ route('ipms_colis.liste_bateau') }}" class="nav-link">
+                        <i class="fas fa-ship"></i>
+                        <p>{{ __('Bateaux Arrivés') }}</p>
                     </a>
                 </li>
                 <li class="nav-item has-treeview">

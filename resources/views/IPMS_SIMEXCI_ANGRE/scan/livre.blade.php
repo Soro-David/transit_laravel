@@ -23,15 +23,14 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Référence</th>
+                                                        <th>Nombre de colis</th>
                                                         <th>Expéditeur</th>
-                                                        <th>Contact</th>
-                                                        <th>Agence Expéditeur</th>
+                                                        <th>Téléphone</th>
                                                         <th>Destinataire</th>
-                                                        <th>Contact</th>
-                                                        {{-- <th>Agence Destinataire</th> --}}
+                                                        <th>Téléphone</th>
+                                                        <th>Agence Destinataire</th>
+                                                        <th>Status</th>
                                                         <th>Date</th>
-                                                        <th>Action</th>
-        
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -197,39 +196,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
             ajax: '{{ route("ipms_angre_scan.get.colis.livre") }}', // Récupération des données via AJAX
             columns: [
-                { data: 'reference_colis' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
+            { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    console.log(data);
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+            { data: 'etat' },
+            { data: 'created_at',
+                render: function(data, type, row) {
+                    if (data) {
+                        var date = new Date(data);
+                        var day = ('0' + date.getDate()).slice(-2);  
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  
+                        var year = date.getFullYear().toString().slice(-2);  
+                        return day + '/' + month + '/' + year;
                     }
-                },
-                { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
-                    }
-                },
-                { data: 'tel_destinataire' },
-                // { data: 'agence_destination' },
-                { data: 'created_at',
-                    render: function(data, type, row) {
-                        // Vérifiez si la date existe et la formater
-                        if (data) {
-                            var date = new Date(data);
-                            // Retourne la date au format aa/mm/jj
-                            var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                            var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                            return day + '/' + month + '/' + year;
-                        }
-                        return data;  // Si la date est vide, on retourne la donnée brute
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
-            ],
+                    return data;
+                }
+            },
+            // { data: 'action' },
+        ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
                 // Bouton Excel

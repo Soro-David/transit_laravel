@@ -42,13 +42,13 @@
                         </li>
                     </ul>
                 </li>
-                {{-- Gestion des facture --}}
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('ipms_angre_invoice.create.invoice') }}" class="nav-link">
-                        <i class="fas fa-file-invoice"></i>
-                        <p>{{ __('Gestion des factures') }}</p>
-                    </a>
-                </li>
+               {{-- Gestion des Ballon --}}
+               <li class="nav-item has-treeview">
+                <a href="{{ route('ipms_angre_colis.liste_ballon') }}" class="nav-link">
+                    <i class="fas fa-ship"></i>
+                    <p>{{ __('Ballon Arrivés') }}</p>
+                </a>
+            </li>
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">

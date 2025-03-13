@@ -747,7 +747,11 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/get-colis-hold-simexci', [ApmsColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/get-colis-dump/simexci', [ApmsColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-colis-suivi-simexci', [ApmsColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
+        Route::get('/get-bateau-suivi-simexci', [ApmsColisController::class, 'get_bateau'])->name('get.bateau');
+        Route::get('/on-bateau-simexci', [ApmsColisController::class, 'liste_bateau'])->name('liste_bateau'); 
        
+        Route::post('/valider/bateau-simexci', [ApmsColisController::class, 'validerBateau'])->name('valider.bateau');
+
         Route::get('/create/colis-simexci', [ApmsColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-simexci', [ApmsColisController::class, 'store_colis'])->name('store.colis');
      
@@ -917,6 +921,13 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::put('/on-hold/{id}', [ApmsAngreColisController::class, 'update_hold'])->name('hold.update');
         Route::put('/on-valide/{id}', [ApmsAngreColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-IPMS', [ApmsAngreColisController::class, 'print_facture'])->name('facture.colis.print');
+
+        Route::get('/get-ballon-suivi-IPMS', [ApmsAngreColisController::class, 'get_ballon'])->name('get.ballon');
+        Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
+
+        Route::post('/valider/ballon-IPMS', [ApmsAngreColisController::class, 'validerBallon'])->name('valider.ballon');
+
+        // Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
 
         // CRUD classique sur colis
 

@@ -19,6 +19,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Les_colis;
 use App\Models\Colis;
+// use App\Models\Bateaux;
 use App\Models\Bateaux;
 use App\Models\Expediteur;
 use App\Models\Destinataire;

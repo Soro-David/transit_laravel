@@ -29,7 +29,8 @@ class Colis extends Model
         'status',
         'client_id',
         'dimension_result',
-        'type_colis'
+        'type_colis',
+        'recup'
         
     ];
 

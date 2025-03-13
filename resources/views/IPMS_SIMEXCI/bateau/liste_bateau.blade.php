@@ -1,0 +1,193 @@
+@extends('IPMS_SIMEXCI.layouts.agent')
+@section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
+@section('content')
+<section class="py-3">
+
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-12">
+                <div class="card border-0 rounded shadow-sm">
+                    <div class="card-header bg-success text-white text-center">
+                        <h4 class="card-title mb-0 fw-bold">Informations du Véhicule de Navigation</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            @foreach ($bateaux as $bateau)
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-primary shadow">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-ship fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title fw-bold">{{ $bateau->reference_bateau }}</h5>
+                                            <p class="card-text text-muted">📅 Date d'arrivée : <strong>{{ $bateau->date_arriver }}</strong></p>
+
+                                            <button class="btn-valider"
+                                                    data-bateau-id="{{ $bateau->id }}"
+                                                    id="validerBtn-{{ $bateau->id }}"
+                                                    data-reference-conteneur="{{ $bateau->reference_conteneur }}"
+                                                    onclick="validerBateau(this)">
+                                                <i class="fas fa-check-circle"></i> Valider
+                                            </button>
+                                    
+
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @if ($bateaux->isEmpty())
+                            <p class="text-center text-muted mt-3">Aucun bateau trouvé.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                <div id="products-container">
+                    <div class="table-responsive">
+                        <table id="productTable" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Référence Bateau</th>
+                                    <th>Date départ</th>
+                                    <th>Date arrivée</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    function validerBateau(button) {
+        let referenceConteneur = button.getAttribute('data-reference-conteneur');
+
+        Swal.fire({
+            title: 'Voulez-vous vraiment récupérer ce bateau ?',
+            text: "Cette action est irréversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, récupérer!',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route("ipms_colis.valider.bateau") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        reference_conteneur: referenceConteneur
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Récupéré!', response.message, 'success')
+                                .then(() => location.reload());
+                        } else {
+                            Swal.fire('Erreur!', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        let message = 'Une erreur est survenue lors de la récupération du bateau.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        Swal.fire('Erreur!', message, 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                url: "{{ asset('js/fr-FR.json') }}" 
+            },
+            ajax: '{{ route('ipms_colis.get.bateau') }}',
+            columns: [
+                { data: 'reference_bateau', title: "Référence Bateau" },
+                { data: 'date_depart', title: "Date de Départ" },
+                { data: 'date_arriver', title: "Date d'Arrivée" }
+            ],
+        });
+    });
+</script>
+
+<style>
+    .btn {
+        width: 15%;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .dataTable-wrapper {
+        width: 80% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .btn-valider {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #28a745; /* Vert Bootstrap */
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 50px; /* Forme bien arrondie */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-valider:hover {
+    background-color: #218838; /* Légèrement plus foncé au survol */
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-valider:active {
+    transform: scale(0.95);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-valider i {
+    font-size: 20px;
+}
+
+</style>
+
+</section>
+@endsection

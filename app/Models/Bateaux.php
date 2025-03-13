@@ -22,5 +22,6 @@ class Bateaux extends Model
         'agence_destination',
         'nom_ballon',
         'numero_ballon',
+        'recuperer'
     ];
 }
