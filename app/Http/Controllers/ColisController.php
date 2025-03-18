@@ -207,7 +207,7 @@ private function generateReferenceColis()
     // Récupérer la première lettre du nom et du prénom
     $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
     $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-// dd($firstLetterNom, $firstLetterPrenom);
+    // dd($firstLetterNom, $firstLetterPrenom);
     // Récupérer la première lettre du mois actuel
     $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
 
@@ -1038,17 +1038,30 @@ private function generateReferenceContenaire()
         
         $colis_principal = Colis::find($id);
 
+        $colis_info = Colis::with(['expediteur', 'destinataire'])
+                                ->select(
+                                    'colis.reference_colis',
+                                    'expediteurs.nom as expediteur_nom',
+                                    'expediteurs.prenom as expediteur_prenom',
+                                    'expediteurs.tel as expediteur_tel',
+                                    'destinataires.nom as destinataire_nom',
+                                    'destinataires.prenom as destinataire_prenom',
+                                    'destinataires.tel as destinataire_tel'
+                                )
+                                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                                ->find($id);
+        // dd($colis_principal->reference_colis);
         if (!$colis_principal) {
             return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
         }
 
         $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
         if ($colis->isEmpty()) {
             return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
         }
 
-        return view('admin.invoice.edit', compact('colis'));
+        return view('admin.invoice.edit', compact('colis','colis_info'));
     }
 
     public function inprimerEtiquette($id)

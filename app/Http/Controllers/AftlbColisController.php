@@ -1035,6 +1035,19 @@ public function get_colis_hold(Request $request)
         
         
         $colis_principal = Colis::find($id);
+        $colis_info = Colis::with(['expediteur', 'destinataire'])
+                                ->select(
+                                    'colis.reference_colis',
+                                    'expediteurs.nom as expediteur_nom',
+                                    'expediteurs.prenom as expediteur_prenom',
+                                    'expediteurs.tel as expediteur_tel',
+                                    'destinataires.nom as destinataire_nom',
+                                    'destinataires.prenom as destinataire_prenom',
+                                    'destinataires.tel as destinataire_tel'
+                                )
+                                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                                ->find($id);
 
         if (!$colis_principal) {
             return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
@@ -1046,7 +1059,7 @@ public function get_colis_hold(Request $request)
             return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
         }
 
-        return view('AFT_LOUIS_BLERIOT.invoice.edit', compact('colis'));
+        return view('AFT_LOUIS_BLERIOT.invoice.edit', compact('colis','colis_info'));
     }
 
     public function inprimerEtiquette($id)

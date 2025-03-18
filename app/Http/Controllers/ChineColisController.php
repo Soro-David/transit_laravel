@@ -275,7 +275,7 @@ class ChineColisController extends Controller
                 'description_colis',
             ])]);
 
-            return redirect()->route('chine_colis.create.payement');
+            return redirect()->route('chine_colis.generer.qrcode');
 
         } catch (\Exception $e) {
             // Enregistre l'erreur dans les logs
@@ -418,21 +418,21 @@ class ChineColisController extends Controller
     // dd($colisData);
         $nombreQuantiteColis = count($data['quantite_colis']);
     
-        $payementData = [
-            'mode_de_payement' => $data['mode_payement'],
-            'montant_reçu' => $data['montant_reçu'],
-            'operateur_mobile' => $data['operateur_mobile'],
-            'numero_compte' => $data['numero_compte'],
-            'nom_banque' => $data['nom_banque'],
-            'id_transaction' => $data['transaction_id'],
-            'numero_tel' => $data['numero_tel'],
-            'numero_cheque' => $data['numero_cheque'],
-        ];
+        // $payementData = [
+        //     'mode_de_payement' => $data['mode_payement'],
+        //     'montant_reçu' => $data['montant_reçu'],
+        //     'operateur_mobile' => $data['operateur_mobile'],
+        //     'numero_compte' => $data['numero_compte'],
+        //     'nom_banque' => $data['nom_banque'],
+        //     'id_transaction' => $data['transaction_id'],
+        //     'numero_tel' => $data['numero_tel'],
+        //     'numero_cheque' => $data['numero_cheque'],
+        // ];
     // dd($payementData);
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
-        $payement = Paiement::create($payementData);
+        // $payement = Paiement::create($payementData);
     
         // Créer les colis
         $colis = [];
@@ -440,7 +440,7 @@ class ChineColisController extends Controller
             $colis[] = Colis::create(array_merge($colisItem, [
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
-                'paiement_id' => $payement->id,
+                // 'paiement_id' => $payement->id,
             ]));
         }
     // dd($colis);
@@ -915,6 +915,19 @@ public function editInvoice($id)
     
     
     $colis_principal = Colis::find($id);
+    $colis_info = Colis::with(['expediteur', 'destinataire'])
+                                ->select(
+                                    'colis.reference_colis',
+                                    'expediteurs.nom as expediteur_nom',
+                                    'expediteurs.prenom as expediteur_prenom',
+                                    'expediteurs.tel as expediteur_tel',
+                                    'destinataires.nom as destinataire_nom',
+                                    'destinataires.prenom as destinataire_prenom',
+                                    'destinataires.tel as destinataire_tel'
+                                )
+                                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                                ->find($id);
 
     if (!$colis_principal) {
         return redirect()->route('chine_colis.hold')->with('error', 'Colis non trouvé.');
@@ -926,7 +939,7 @@ public function editInvoice($id)
         return redirect()->route('chine_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
     }
 
-    return view('AGENCE_CHINE.invoice.edit', compact('colis'));
+    return view('AGENCE_CHINE.invoice.edit', compact('colis','colis_info'));
 }
 
 public function inprimerEtiquette($id)

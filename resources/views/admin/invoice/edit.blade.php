@@ -16,7 +16,7 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
-                           <h3>Ref: RE342</h3>
+                           <h3>REF COLIS: {{  $colis_info->reference_colis }}</h3>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prix Total :</label>
@@ -42,15 +42,15 @@
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">Soro</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_nom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_prenom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Téléphone :</label>
-                            <span class="form-control border-0 bg-light w-50">050505055</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_tel }}</span>
                         </div>
                     </div>
                 </div>
@@ -64,15 +64,15 @@
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_nom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_prenom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Téléphone:</label>
-                            <span class="form-control border-0 bg-light w-50">0394848974</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_principal->destinataire_tel }}</span>
                         </div>
                     </div>
                 </div>

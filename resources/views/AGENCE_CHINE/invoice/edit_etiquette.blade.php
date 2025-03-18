@@ -1,4 +1,4 @@
-@extends('AGENCE_CHINE.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agentprint')
 
 @section('content-header')
 @endsection
@@ -57,7 +57,7 @@
                     <table class="table" style="width: 100%; margin: 20px auto; font-weight: bold; text-align: center; border: 2px solid black; border-collapse: collapse; font-size: 14px;">
                         <tr>
                             <td style="border: 2px solid black; padding: 10px;">
-                                <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-width: 100px; width: auto; height: auto; margin-right: 10px; display: inline-block;">
+                                <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-width: 70px; width: auto; height: auto; margin-right: 10px; display: inline-block;">
                                 <span style="font-size: 40px; font-weight: bold; color: #333; display: inline-block;">{{ $colisItem->reference_colis }}</span><br><br>
                                 <span>Type de colis: {{ $colisItem->type_colis }}</span> 
                             </td>
@@ -71,7 +71,7 @@
 
     <!-- Boutons pour retourner et imprimer -->
     <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
-        <<a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
+        <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
         <button class="btn btn-primary" onclick="printAffiche()" style="width: 15%; height: 50px; font-size: 24px;">Imprimer</button>
     </div>
 

@@ -8,75 +8,75 @@
 <section class="p-4 mx-auto">
     <div class="form-container text-center">
         <div class="row d-flex justify-content-between">
-            <!-- Expéditeur à gauche -->
-            <div class="col-md-5">
-                <div class="card border-0 rounded shadow-sm">
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations des colis</h4><br>
+           <!-- Expéditeur à gauche -->
+           <div class="col-md-5">
+            <div class="card border-0 rounded shadow-sm">
+                <div>
+                    <h4 class="card-title text-center mb-3 fw-bold">Informations des colis</h4><br>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3 d-flex align-items-center">
+                       <h3>REF COLIS: {{  $colis_info->reference_colis }}</h3>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                           <h3>Ref: RE342</h3>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prix Total :</label>
-                            <span class="form-control border-0 bg-light w-50"> 56346 F</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Payé :</label>
-                            <span class="form-control border-0 bg-light w-50">4055</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Reste :</label>
-                            <span class="form-control border-0 bg-light w-50">40 F</span>
-                        </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Prix Total :</label>
+                        <span class="form-control border-0 bg-light w-50"> 56346 F</span>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Payé :</label>
+                        <span class="form-control border-0 bg-light w-50">4055</span>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Reste :</label>
+                        <span class="form-control border-0 bg-light w-50">40 F</span>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-5">
-                <div class="card border-0 rounded shadow-sm">
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations de l'expéditeur</h4><br>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">Soro</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Téléphone :</label>
-                            <span class="form-control border-0 bg-light w-50">050505055</span>
-                        </div>
-                    </div>
+        </div>
+        
+        <div class="col-md-5">
+            <div class="card border-0 rounded shadow-sm">
+                <div>
+                    <h4 class="card-title text-center mb-3 fw-bold">Informations de l'expéditeur</h4><br>
                 </div>
-            </div>                  
-            <!-- Destinataire à droite -->
-            <div class="col-md-5">
-                <div class="card border-0 rounded shadow-sm">
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations du destinataire</h4><br>
+                <div class="card-body p-4">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Nom :</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_nom }}</span>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Téléphone:</label>
-                            <span class="form-control border-0 bg-light w-50">0394848974</span>
-                        </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Prénom :</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_prenom }}</span>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Téléphone :</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_tel }}</span>
                     </div>
                 </div>
             </div>
+        </div>                  
+        <!-- Destinataire à droite -->
+        <div class="col-md-5">
+            <div class="card border-0 rounded shadow-sm">
+                <div>
+                    <h4 class="card-title text-center mb-3 fw-bold">Informations du destinataire</h4><br>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Nom :</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_nom }}</span>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Prénom :</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_prenom }}</span>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label class="form-label fw-bold w-50">Téléphone:</label>
+                        <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_tel }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
              
               <div class="col-md-5">
                 <div class="card border-0 rounded shadow-sm">
