@@ -366,6 +366,7 @@ class ApmsAngreColisController extends Controller
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colisItem->reference_colis,
                 'Statut' => $colisItem->etat,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
@@ -1085,6 +1086,7 @@ public function get_colis_hold(Request $request)
         // Pour chaque colis, générer le QR code
         foreach ($colis as $colisItem) {
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis'       => $colisItem->reference_colis,
                 'Statut'                => $colisItem->status,
                 'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,

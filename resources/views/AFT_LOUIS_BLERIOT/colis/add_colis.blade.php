@@ -34,7 +34,35 @@
                 <li class="step" data-step="3">4</li>
             </ul>
         </div>
-        <!-- Étape 1 : Informations de l'Expéditeur -->
+        <!-- Étape 1 : Informations transport -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
+                            <select name="mode_transit" id="mode_transit" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
+                                <option value="maritime">Maritime</option>
+                                <option value="aerien">Aérien</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="reference_colis" class="form-label">Référence</label>
+                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis }}" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Étape 2 : Informations de l'Expéditeur -->
         <fieldset>
             <div class="form-section">
                 <h5 class="text-center mb-4 mt-5">Informations de l'Expéditeur</h5>
@@ -179,12 +207,11 @@
                             <label for="agence_destination" class="form-label">Agence de destination</label>
                             <select name="agence_destination" id="agence_destination" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                                @foreach ($agencesDestination as $agence)
-                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
+                                <option value="IPMS-SIMEX-CI">IPMS-SIMEX-CI</option>
+                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">IPMS-SIMEX-CI Angre 8ème Tranche</option>
                             </select>
                         </div>
-                    </div>
+                    </div>                    
                 </div>
             </div>
             {{-- Boutons navigation --}}
@@ -194,37 +221,13 @@
             </div>
         </fieldset>
         <!-- Étape 3 : Mode de transit -->
-        <fieldset style="display: none;">
-            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
-                            <select name="mode_transit" id="mode_transit" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
-                                <option value="maritime">Maritime</option>
-                                <option value="aerien">Aérien</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="reference_colis" class="form-label">Référence</label>
-                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis}}" class="form-control" readonly>
-                        </div>
-                    </div>
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
-                </div>
-            </div>
-        </fieldset>
+
         <!-- Étape 4 : Informations du Colis -->
         <fieldset id="colisTemplate" style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations du Colis</h5>
             <div class="form-section">
+
+
                 <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
@@ -235,7 +238,7 @@
                     <div class="col-md-4">
                         <label class="form-label">Produit(s) ou Service(s)</label>
                         <div class="input-group">
-                            <input type="text" name="type_embalage[]" class="form-control produit-input">
+                            <input type="text" name="service[]" class="form-control produit-input">
                             <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
                         <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
@@ -334,6 +337,20 @@
 </section>
 
 <script>
+
+
+        // Fonction pour mettre à jour l'agence de destination selon le mode de transit sélectionné
+    document.getElementById('mode_transit').addEventListener('change', function() {
+        var modeTransit = this.value;
+        var agenceDestination = document.getElementById('agence_destination');
+
+        if (modeTransit === 'maritime') {
+            agenceDestination.value = 'IPMS-SIMEX-CI'; // Sélectionner l'agence maritime
+        } else if (modeTransit === 'aerien') {
+            agenceDestination.value = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Sélectionner l'agence aérienne
+        }
+    });
+
 
 $(document).ready(function() {
     initAutocomplete($(document));

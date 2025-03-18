@@ -37,7 +37,7 @@ class CursorPaginator extends AbstractCursorPaginator implements Arrayable, Arra
             $this->{$key} = $value;
         }
 
-        $this->perPage = $perPage;
+        $this->perPage = (int) $perPage;
         $this->cursor = $cursor;
         $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
 
@@ -119,6 +119,16 @@ class CursorPaginator extends AbstractCursorPaginator implements Arrayable, Arra
     public function onFirstPage()
     {
         return is_null($this->cursor) || ($this->cursor->pointsToPreviousItems() && ! $this->hasMore);
+    }
+
+    /**
+     * Determine if the paginator is on the last page.
+     *
+     * @return bool
+     */
+    public function onLastPage()
+    {
+        return ! $this->hasMorePages();
     }
 
     /**

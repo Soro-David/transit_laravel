@@ -176,300 +176,240 @@ class ScanController extends Controller
             return DataTables::of($colisWithCount)->make(true);
         }
     }
-    // Ajax pour récupérer la liste des colis en Decharge
-    // public function get_colis_decharge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'Dechargé')  // Filtre l'état des colis
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
 
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
-
+    public function getColisEntrepot(Request $request)
+    {
+        // Vérifier si colisId est bien présent
+        if (!$request->has('colisId')) {
+            return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
+        }
     
-    // Ajax pour récupérer la liste des colis en Charge
-    // public function get_colis_charge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'Chargé')  // Filtre l'état des colis
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+        // Recherche du colis en fonction de la référence
+        $colis = Colis::where('reference_colis', $request->colisId)->first();
+    
+        // Vérifier si le colis existe
+        if (!$colis) {
+            return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
+        }
+    
+       // Vérifier si l'état est déjà "Chargé", "Déchargé", "En entrepôt" ou "Fermé"
+        if (in_array($colis->etat, ['Chargé', 'Déchargé', 'En entrepot', 'Fermé'])) {
+            return response()->json(['success' => false, 'message' => "Le colis est déjà mis en entrepôt."], 400);
+        }
+    
+        // Vérifier si l'état est "En entrepôt" avant de le marquer comme "Chargé"
+        if ($colis->etat !== 'Validé') {
+            return response()->json([
+                'success' => false,
+                'message' => "Le colis n'est pas encore validé. Impossible de le mettre en entrepôt.",
+            ], 400);
+        }
+    
+        // Modifier l'état du colis en "Chargé"
+        $colis->etat = 'En entrepot';
+    
+        // Sauvegarder les modifications dans la base de données
+        $colis->save();
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Le colis a été mis en entrepôt avec succès.',
+            'colis' => [
+                'reference' => $colis->reference_colis,
+                'etat' => $colis->etat,
+                'description' => $colis->description,
+            ],
+        ]);
+    }
 
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
+
+
 // Fonction Ajax pour le Scan En entrepot
 
-public function getColisEntrepot(Request $request)
+public function updateColisEntrepot(Request $request)
 {
-    // Vérifier si colisId est bien présent
-    if (!$request->has('colisId')) {
-        return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
-    }
-
-    // Recherche du colis en fonction de la référence
-    $colis = Colis::where('reference_colis', $request->colisId)->first();
-
-    // Vérifier si le colis existe
-    if (!$colis) {
-        return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
-    }
-
-    // Vérifier si l'état est déjà "Chargé", "Déchargé", "En entrepôt" ou "Fermé"
-    if (in_array($colis->etat, ['Chargé', 'Déchargé', 'En entrepot', 'Fermé'])) {
-        return response()->json(['success' => false, 'message' => "Le colis est déjà mis en entrepôt."], 400);
-    }
-
-    // Vérifier si l'état est "Validé" avant de le marquer comme "En entrepôt"
-    if (!in_array($colis->etat, ['Validé'])) {
+    // Vérification des paramètres nécessaires
+    if (!$request->has('colisId') || !$request->has('id')) {
+        $missingParams = [];
+        if (!$request->has('colisId')) {
+            $missingParams[] = 'colisId';
+        }
+        if (!$request->has('id')) {
+            $missingParams[] = 'id';
+        }
         return response()->json([
-            'success' => false,
-            'message' => "Le colis n'est pas encore validé. Impossible de le mettre en entrepôt.",
+            'success'  => false,
+            'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
         ], 400);
     }
 
-    // Modifier l'état du colis en "En entrepôt"
-    $colis->etat = 'En entrepot';
+    // Recherche des colis correspondants à la référence et à l'identifiant
+    $colisList = Colis::where('reference_colis', $request->colisId)
+                      ->where('id', $request->id)
+                      ->get();
 
-    // Sauvegarder les modifications dans la base de données
-    $colis->save();
+    // Vérifier si des colis ont été trouvés
+    if ($colisList->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'messages' => ['Aucun colis trouvé avec cette référence et cet identifiant.']
+        ], 404);
+    }
 
+    // Initialisation des messages et des colis mis à jour
+    $messages = [];
+    $updatedColis = [];
+
+    // Parcours des colis trouvés
+    foreach ($colisList as $colis) {
+        if ($colis->etat === 'En entrepot') {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+        } elseif ($colis->etat === 'Validé') {
+            // Modification de l'état du colis en "En entrepot"
+            $colis->etat = 'En entrepot';
+            $colis->save();
+            $updatedColis[] = [
+                'reference_colis' => $colis->reference_colis,
+                'etat'            => $colis->etat,
+            ];
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
+        } else {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore validé. Impossible de le mettre en entrepôt.";
+        }
+    }
+
+    // Retourner la réponse JSON avec les messages et colis mis à jour
     return response()->json([
-        'success' => true,
-        'message' => 'Le colis a été mis en entrepôt avec succès.',
-        'colis' => [
-            'reference' => $colis->reference_colis,
-            'etat' => $colis->etat,
-            'description' => $colis->description,
-        ],
+        'success'  => !empty($updatedColis),
+        'messages' => $messages,
+        'colis'    => $updatedColis,
     ]);
 }
+
 
 // Fonction Ajax pour le Scan chargement
 // {{ route("scan.get.colis.charge") }}
-public function getColisCharge(Request $request)
+public function updateColisCharge(Request $request)
 {
-    // Vérifier si colisId est bien présent
-    if (!$request->has('colisId')) {
-        return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
-    }
-
-    // Recherche du colis en fonction de la référence
-    $colis = Colis::where('reference_colis', $request->colisId)->first();
-
-    // Vérifier si le colis existe
-    if (!$colis) {
-        return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
-    }
-
-    // Vérifier si l'état est déjà "Déchargé"
-    if ($colis->etat === 'Chargé') {
-        return response()->json(['success' => false, 'message' => "Le colis est déjà Chargé."], 400);
-    }
-
-    // Vérifier si l'état est déjà "Arrivé"
-    if ($colis->etat === 'Arrivé') {
-        return response()->json(['success' => false, 'message' => "Le colis est déjà Arrivé."], 400);
-    }
-
-    // Vérifier si l'état est "En entrepot" avant de le marquer comme "Charge"
-    if ($colis->etat !== 'En entrepot') {
-        return response()->json([
-            'success' => false,
-            'message' => "Le colis n'est pas encore mis en entrepot. Impossible de le charger.",
-        ], 400);
-    }
-
-    // Modifier l'état du colis en "Déchargé"
-    $colis->etat = 'Chargé';
-
-    // Sauvegarder les modifications dans la base de données
-    $colis->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Le colis a été chargé avec succès.',
-        'colis' => [
-            'reference' => $colis->reference_colis,
-            'etat' => $colis->etat,
-            'description' => $colis->description,
-        ],
-    ]);
-}
-
-
-// Fonction Ajax pour le Scan dechargement
-public function getColisDecharge(Request $request)
-{
-    // Vérifier si colisId est bien présent
-    if (!$request->has('colisId')) {
-        return response()->json(['success' => false, 'message' => 'colisId manquant.'], 400);
-    }
-
-    // Recherche du colis en fonction de la référence
-    $colis = Colis::where('reference_colis', $request->colisId)->first();
-
-    // Vérifier si le colis existe
-    if (!$colis) {
-        return response()->json(['success' => false, 'message' => 'Colis introuvable.'], 404);
-    }
-
-    // Vérifier si l'état est déjà "Déchargé"
-    if ($colis->etat === 'Déchargé') {
-        return response()->json(['success' => false, 'message' => "Le colis a déjà été déchargé."], 400);
-    }
-
-    // Vérifier si l'état est "Fermé" avant de le marquer comme "Déchargé"
-    if ($colis->etat === 'Fermé') {
-        // Modifier l'état du colis en "Déchargé"
-        $colis->etat = 'Déchargé';
-    } else {
-        return response()->json([
-            'success' => false,
-            'message' => "Le colis ne peut pas être déchargé car son état actuel est : " . $colis->etat,
-        ], 400);
-    }
-
-    // Sauvegarder les modifications dans la base de données
-    $colis->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Le colis a été déchargé avec succès.',
-        'colis' => [
-            'reference' => $colis->reference_colis,
-            'etat' => $colis->etat,
-            'description' => $colis->description,
-        ],
-    ]);
-}
-
-
-
     
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+    if (!$request->has('colisId') || !$request->has('id')) {
+        $missingParams = [];
+        if (!$request->has('colisId')) {
+            $missingParams[] = 'colisId';
+        }
+        if (!$request->has('id')) {
+            $missingParams[] = 'id';
+        }
+        return response()->json([
+            'success'  => false,
+            'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+        ], 400);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+
+    // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+    $colisList = Colis::where('reference_colis', $request->colisId)
+                      ->where('id', $request->id)
+                    //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                      ->get();
+
+    // Vérifier si des colis ont été trouvés
+    if ($colisList->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+        ], 404);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+    $messages = [];
+    $updatedColis = [];
+
+    // Parcourir chaque colis trouvé
+    foreach ($colisList as $colis) {
+        if ($colis->etat === 'Chargé') {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+        } elseif ($colis->etat === 'En entrepot') {
+            // Modifier l'état du colis en "En entrepot"
+            $colis->etat = 'Chargé';
+            $colis->save();
+            $updatedColis[] = [
+                'etat'        => $colis->etat,
+            ];
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès.";
+        } else {
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore mis en Entrepot. Impossible de le mettre chargé.";
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+    return response()->json([
+        'success'  => !empty($updatedColis),
+        'messages' => $messages,
+        'colis'    => $updatedColis,
+    ]);
+    dd( $updatedColis);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+}
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+
+public function updateColisDecharge(Request $request)
+{
+    
+if (!$request->has('colisId') || !$request->has('id')) {
+    $missingParams = [];
+    if (!$request->has('colisId')) {
+        $missingParams[] = 'colisId';
     }
+    if (!$request->has('id')) {
+        $missingParams[] = 'id';
+    }
+    return response()->json([
+        'success'  => false,
+        'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+    ], 400);
+}
+
+
+// Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+$colisList = Colis::where('reference_colis', $request->colisId)
+                  ->where('id', $request->id)
+                //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                  ->get();
+
+// Vérifier si des colis ont été trouvés
+if ($colisList->isEmpty()) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+    ], 404);
+}
+
+$messages = [];
+$updatedColis = [];
+
+// Parcourir chaque colis trouvé
+foreach ($colisList as $colis) {
+    if ($colis->etat === 'Dechargé') {
+        $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Déchargé.";
+    } elseif ($colis->etat === 'Fermé') {
+        // Modifier l'état du colis en "En entrepot"
+        $colis->etat = 'Déchargé';
+        $colis->save();
+        $updatedColis[] = [
+            'etat'        => $colis->etat,
+        ];
+        $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
+    } else {
+        $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Arrivé. Impossible de le mettre déchargé.";
+    }
+}
+
+return response()->json([
+    'success'  => !empty($updatedColis),
+    'messages' => $messages,
+    'colis'    => $updatedColis,
+]);
+
+}
+
+
 }

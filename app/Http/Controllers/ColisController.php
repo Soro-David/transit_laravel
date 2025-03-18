@@ -306,6 +306,7 @@ private function generateReferenceContenaire()
 
     public function store_colis(Request $request)
     {
+        // dd($request);
         try {
             // Sauvegarde des données de la première étape dans la session
             $request->session()->put('step1', $request->all());
@@ -326,7 +327,7 @@ private function generateReferenceContenaire()
                 'mode_transit',
                 'reference_colis',
                 'quantite_colis',
-                'type_embalage',
+                'service',
                 'hauteur',
                 'largeur',
                 'longueur',
@@ -336,7 +337,7 @@ private function generateReferenceContenaire()
                 'description_colis',
             ])]);
 
-            return redirect()->route('colis.create.payement');
+            return redirect()->route('colis.generer.qrcode');
 
         } catch (\Exception $e) {
             // Enregistre l'erreur dans les logs
@@ -480,21 +481,21 @@ private function generateReferenceContenaire()
     // dd($colisData);
         $nombreQuantiteColis = count($data['quantite_colis']);
     
-        $payementData = [
-            'mode_de_payement' => $data['mode_payement'],
-            'montant_reçu' => $data['montant_reçu'],
-            'operateur_mobile' => $data['operateur_mobile'],
-            'numero_compte' => $data['numero_compte'],
-            'nom_banque' => $data['nom_banque'],
-            'id_transaction' => $data['transaction_id'],
-            'numero_tel' => $data['numero_tel'],
-            'numero_cheque' => $data['numero_cheque'],
-        ];
+        // $payementData = [
+        //     'mode_de_payement' => $data['mode_payement'],
+        //     'montant_reçu' => $data['montant_reçu'],
+        //     'operateur_mobile' => $data['operateur_mobile'],
+        //     'numero_compte' => $data['numero_compte'],
+        //     'nom_banque' => $data['nom_banque'],
+        //     'id_transaction' => $data['transaction_id'],
+        //     'numero_tel' => $data['numero_tel'],
+        //     'numero_cheque' => $data['numero_cheque'],
+        // ];
     // dd($payementData);
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
-        $payement = Paiement::create($payementData);
+        // $payement = Paiement::create($payementData);
     
         // Créer les colis
         $colis = [];
@@ -502,7 +503,7 @@ private function generateReferenceContenaire()
             $colis[] = Colis::create(array_merge($colisItem, [
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
-                'paiement_id' => $payement->id,
+                // 'paiement_id' => $payement->id,
             ]));
         }
     // dd($colis);
@@ -1066,6 +1067,7 @@ private function generateReferenceContenaire()
 
             foreach ($colis as $colisItem) {
                    $qrData = [
+                       'Identifiant' => $colisItem->id,
                        'Référence colis'       => $colisItem->reference_colis,
                        'Statut'                => $colisItem->status,
                        'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1126,6 +1128,7 @@ private function generateReferenceContenaire()
         $date_facture = now();
         $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
         $tel_expediteur = $firstColis->expediteur->tel;
+        $tel_destinataire = $firstColis->destinataire->tel;
         $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
         $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
@@ -1185,6 +1188,7 @@ private function generateReferenceContenaire()
             'mode_payement', 
             'colisData',
             'numero_facture',
+            'tel_destinataire'
         ));
     }
     
@@ -1338,6 +1342,7 @@ private function generateReferenceContenaire()
         // Pour chaque colis, générer le QR code
         foreach ($colis as $colisItem) {
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis'       => $colisItem->reference_colis,
                 'Statut'                => $colisItem->status,
                 'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1714,27 +1719,93 @@ public function get_colis_vol(Request $request)
 }
 
 
-    public function contenaire_fermer(Request $request)
-    {
-        try {
-            // Compter les enregistrements avant la mise à jour
-            $count = Colis::where('etat', 'Chargé')->count();
-            if ($count === 0) {
-                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
-            }
-    
-            // Générer une référence unique pour le conteneur
-            $referenceContenaire = $this->generateReferenceContenaire();
-    
-            // Mise à jour des enregistrements
-            $colisData = Colis::where('etat', 'Chargé')
-                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-    
-            return redirect()->back()->with('success', "$colisData colis ont été enregistrés dans le conteneur avec succès.");
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+public function contenaire_fermer(Request $request)
+{
+
+    // dd($request);
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
+
+        // Compter les enregistrements avant la mise à jour
+        $count = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->count();
+        // dd($count);
+        if ($count === 0) {
+            return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé et un mode de transit Maritime.');
         }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
     }
+}
+
+public function vol_fermer(Request $request)
+{
+    // dd($request);
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
+
+        // Compter les enregistrements avant la mise à jour
+        $count = Colis::where('etat', 'Chargé')
+                        ->where('mode_transit', 'aerien')
+                        ->count();
+
+        if ($count === 0) {
+            return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+        }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+                            ->where('mode_transit', 'aerien')
+                            ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+    }
+}
+
 
 public function devis_hold(Request $request)
 {

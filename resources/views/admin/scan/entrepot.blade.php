@@ -1,5 +1,6 @@
 @extends('admin.layouts.admin')
 @section('content-header')
+
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -11,7 +12,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-start">Colis en entrepot</h4><br>
+                            <h4 class="text-left mt-4">Colis en entrepot</h4><br>
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
@@ -22,16 +23,16 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Reference colis</th>
+                                                <th>Reference</th>
                                                 <th>Nombre de colis</th>
-                                                <th>Nom Expéditeur</th>
-                                                <th>Contact Expéditeur</th>
-                                                <th>Agence Expéditeur</th>
-                                                <th>Nom Destinataire</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Contact Destinataire</th>
-                                                <th>Date de Création</th>
-                                                {{-- <th>Action</th> --}}
+                                                <th>Expéditeur</th>
+                                                <th>Téléphone</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Destinataire</th>
+                                                <th>Téléphone</th>
+                                                <th>Agence Destination</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
 
                                             </tr>
                                         </thead>
@@ -67,10 +68,7 @@
     <!-- JavaScript for DataTable and Export -->
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-
-
 document.addEventListener("DOMContentLoaded", function () {
     const html5QrCode = new Html5Qrcode("reader");
     const resultElement = document.getElementById("result");
@@ -79,43 +77,51 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("scanner_entrepot");
 
     const onScanSuccess = (decodedText) => {
-    const reference_colis = decodedText.match(/Référence colis:\s*(\S+)/);  // Expression régulière pour extraire la référence
-    console.log(`Code détecté : ${decodedText}`);
-    console.log(`Référence : ${reference_colis[1]}`);  // Affiche la référence extraite
+        // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
+        const referenceMatch = decodedText.match(/Référence colis:\s*(\S+)/);
+        const idMatch = decodedText.match(/Identifiant:\s*(\S+)/);
 
-    resultElement.innerText = `Résultat : ${decodedText}`;
+        // Vérifier que les deux valeurs ont bien été extraites
+        if (!referenceMatch || !idMatch) {
+            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            resultElement.innerText = "Erreur : données QR code invalides.";
+            return;
+        }
 
-    // Requête AJAX pour mettre à jour l'état du colis
-    $.ajax({
+        // Extraction des valeurs capturées
+        const referenceColis = referenceMatch[1];
+        const identifiant = idMatch[1];
+
+        console.log(`Code détecté : ${decodedText}`);
+        console.log(`Référence : ${referenceColis}`);
+        console.log(`Identifiant : ${identifiant}`);
+        resultElement.innerText = `Résultat : ${decodedText}`;
+
+        // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
+// Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
+$.ajax({
     url: "{{ route('scan.update.colis.entrepot') }}",
     type: "POST",
     headers: {
         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
     },
     data: {
-        colisId: reference_colis[1], // Envoie la référence extraite
+        colisId: referenceColis, // Envoie la référence extraite
+        id: identifiant,         // Envoie l'identifiant extrait
     },
     success: function (response) {
         console.log("Réponse du serveur :", response);
-
+        // Affichage des messages retournés par le serveur
         if (response.success) {
-            // Succès : le colis a été mis à jour
-            resultElement.innerText = `Colis ${reference_colis[1]} mise en entrepot avec succès`;
+            resultElement.innerText = response.messages.join("\n");
         } else {
-            // Affichage du message d'erreur retourné par le serveur
-            if (response.message === "Le colis est déjà en entrepot") {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            } else {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            }
+            resultElement.innerText = "Erreur : " + response.messages.join("\n");
         }
     },
     error: function (error) {
         console.error("Erreur lors du chargement :", error);
-
-        // Vérification si l'erreur contient une réponse JSON
-        if (error.responseJSON && error.responseJSON.message) {
-            resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
+        if (error.responseJSON && error.responseJSON.messages) {
+            resultElement.innerText = error.responseJSON.messages.join("\n");
         } else {
             resultElement.innerText = "Erreur de chargement du colis.";
         }
@@ -123,26 +129,29 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-    // Arrête le scanner et masque l'élément caméra
-    html5QrCode
-        .stop()
-        .then(() => {
-            readerElement.style.display = "none";
-            restartButton.style.display = "block";
-        })
-        .catch((err) => {
-            console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
-        });
-};
+        // Arrêt du scanner et mise à jour de l'affichage
+        html5QrCode
+            .stop()
+            .then(() => {
+                readerElement.style.display = "none";
+                restartButton.style.display = "block";
+            })
+            .catch((err) => {
+                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+            });
+    };
 
     const startScanner = () => {
+        // Affiche l'élément du lecteur
         readerElement.style.display = "block";
 
+        // Vérifie que l'élément #reader a des dimensions valides
         if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
             console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
             return;
         }
 
+        // Démarrage du scanner avec les options définies
         html5QrCode
             .start(
                 { facingMode: "environment" },
@@ -158,10 +167,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     };
 
+    // Démarrer le scanner dès que la modale est affichée
     modal.addEventListener("shown.bs.modal", function () {
         setTimeout(startScanner, 500);
     });
 
+    // Arrêter le scanner lorsque la modale est fermée
     modal.addEventListener("hidden.bs.modal", function () {
         html5QrCode
             .stop()
@@ -173,27 +184,19 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
+    // Bouton de redémarrage du scanner
     restartButton.addEventListener("click", startScanner);
 });
 
-
-
-$(document).ready(function () {
-    // Configuration AJAX globale
-    $.ajaxSetup({
-        contentType: "application/json; charset=utf-8",
-        dataType: "json"
-    });
-
-    // Initialisation de la table DataTable
-    var table = $("#productTable").DataTable({
-        responsive: true,
-        deferRender: true, // Améliore les performances pour les grands ensembles de données
-        language: {
-            url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier de traduction
-        },
-        ajax: '{{ route("scan.get.colis.entrepot") }}', // Récupération des données via AJAX
-        columns: [
+    $(document).ready(function () {
+        // Initialisation de la table DataTable
+        var table = $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                },
+            ajax: '{{ route("scan.get.colis.entrepot") }}', // Récupération des données via AJAX
+            columns: [
             { data: 'reference_colis' },
             { data: 'nombre_de_colis' },
             {
@@ -230,53 +233,58 @@ $(document).ready(function () {
             }
 
         ],
-        dom: 'Bfrtip', // Placement des boutons
-        buttons: [
-            {
-                extend: 'excelHtml5',
-                text: 'Exporter en Excel',
-                title: 'Liste des Colis en attente',
-                customize: function (xlsx) {
-                    console.log("Exportation Excel réussie sans image.");
-                }
-            },
-            {
-                extend: 'pdfHtml5',
-                text: 'Exporter en PDF',
-                title: 'Liste des Colis en attente',
-                orientation: 'landscape', // Mode paysage
-                pageSize: 'A4', // Taille de la page
-                customize: function (doc) {
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    toDataURL(logoUrl, function (dataUrl) {
-                        console.log(dataUrl);
-                        doc.content.unshift({
-                            image: dataUrl,
-                            width: 100, // Taille du logo
-                            alignment: 'center',
-                            margin: [0, 0, 0, 10] // Espacement
+            dom: 'Bfrtip', // Placement des boutons
+            buttons: [
+                // Bouton Excel
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exporter en Excel',
+                    title: 'Liste des Colis en attente',
+                    customize: function (xlsx) {
+                        console.log("Exportation Excel réussie sans image.");
+                    }
+                },
+                // Bouton PDF
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exporter en PDF',
+                    title: 'Liste des Colis en attente',
+                    orientation: 'landscape', // Mode paysage
+                    pageSize: 'A4', // Taille de la page
+                    customize: function (doc) {
+                        // Ajout du logo encodé en Base64 dans le PDF
+                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                        toDataURL(logoUrl, function (dataUrl) {
+                            // Ajout de l'image au début du contenu PDF
+                            console.log(dataUrl);
+                            doc.content.unshift({
+                                image: dataUrl,
+                                width: 100, // Taille du logo
+                                alignment: 'center',
+                                margin: [0, 0, 0, 10] // Espacement
+                            });
                         });
-                    });
+                    }
+                },
+                // Bouton Imprimer
+                {
+                    extend: 'print',
+                    text: 'Imprimer',
+                    title: 'Liste des Colis en attente',
+                    customize: function (win) {
+                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                        $(win.document.body).find('h1')
+                            .css('text-align', 'center')
+                            .css('margin-top', '10px');
+                        $(win.document.body).find('h1').after(logo);
+                        $(win.document.body).find('table').css('margin-top', '30px');
+                    }
                 }
-            },
-            {
-                extend: 'print',
-                text: 'Imprimer',
-                title: 'Liste des Colis en attente',
-                customize: function (win) {
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                    $(win.document.body).find('h1')
-                        .css('text-align', 'center')
-                        .css('margin-top', '10px');
-                    $(win.document.body).find('h1').after(logo);
-                    $(win.document.body).find('table').css('margin-top', '30px');
-                }
-            }
-        ]
-    });
-});
+            ]
+        });
 
+    });
 
 </script>
     

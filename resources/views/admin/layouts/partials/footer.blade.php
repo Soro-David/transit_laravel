@@ -1,4 +1,4 @@
-<footer class="main-footer">
+<footer class="main-footer footer no-print">
     <div class="float-right d-none d-sm-block">
       <p>Développé par <strong>KKS-Technologie</strong>. Tous droits réservés.</p>
     </div>

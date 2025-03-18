@@ -14,7 +14,6 @@ class Colis extends Model
         'reference_contenaire',
         'quantite_colis',
         'description_colis',
-        'type_embalage',
         'valeur_colis',
         'poids_colis',
         'dimension',
@@ -30,7 +29,8 @@ class Colis extends Model
         'client_id',
         'dimension_result',
         'type_colis',
-        'recup'
+        'recup',
+        'service'
         
     ];
 

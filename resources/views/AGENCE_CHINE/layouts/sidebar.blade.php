@@ -70,13 +70,6 @@
                         </li>
                     </ul>
                 </li>
-                {{-- Gestion des facture --}}
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('chine_invoice.create.invoice') }}" class="nav-link">
-                        <i class="fas fa-file-invoice"></i>
-                        <p>{{ __('Gestion des factures') }}</p>
-                    </a>
-                </li>
                 {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

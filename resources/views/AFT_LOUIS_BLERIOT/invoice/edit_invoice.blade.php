@@ -21,7 +21,7 @@
                 </td>
                 <td class="border-0"></td>
                 <td class="td_droite border-0 text-start">
-                    <h4>Facture Pour : {{$expediteur}}</h4>
+                    <h4>{{$expediteur}}</h4>
                     <p><strong></strong></p>
                     <p>Téléphone :{{$tel_expediteur}}</p>
                     {{-- <h4 class="mt-4">Détails de la Facture</h4> --}}

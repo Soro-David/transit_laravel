@@ -198,6 +198,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         // route contenaire fermer
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/vol-fermer',[ColisController::class, 'vol_fermer'])->name('vol.fermer');
         //route pour ajax produit
         Route::post('/store-produit-ajax',[ColisController::class, 'storeProduit'])->name('store.produit');
         Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('recherche.auto');
@@ -333,9 +334,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-colis-dechargement',[ScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
         Route::get('/get-colis-chargement',[ScanController::class, 'get_colis_charge'])->name('get.colis.charge');
         Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::post('/update-colis-status/entrepot', [ScanController::class, 'getColisEntrepot'])->name('update.colis.entrepot');
-        Route::post('/update-colis-status/charge', [ScanController::class, 'getColisCharge'])->name('update.colis.charge');
-        Route::post('/update-colis-status/decharge', [ScanController::class, 'getColisDecharge'])->name('update.colis.decharge');
+        Route::post('/update-colis-status/entrepot', [ScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
+        Route::post('/update-colis-status/charge', [ScanController::class, 'updateColisCharge'])->name('update.colis.charge');
+        Route::post('/update-colis-status/decharge', [ScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
@@ -565,6 +566,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
         // Route pour fermer un contenaire
         Route::post('/contenaire-fermer-aft-louis-b', [AftlbColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/vol-fermer-aft-louis-b',[AftlbColisController::class, 'vol_fermer'])->name('vol.fermer');
         
         // Liste des conteneurs
         Route::get('/list-contenaire-aft-louis-b', [AftlbColisController::class, 'liste_contenaire'])->name('liste.contenaire');
@@ -1131,7 +1133,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
         // Route pour fermer un contenaire
         Route::post('/contenaire-fermer-aft_chine', [ChineColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
-        
+        Route::post('/vol-fermer-aft_chine',[ChineColisController::class, 'vol_fermer'])->name('vol.fermer');
         // Liste des conteneurs
         Route::get('/list-contenaire-aft_chine', [ChineColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         

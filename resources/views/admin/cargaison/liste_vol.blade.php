@@ -3,15 +3,13 @@
 @section('content')
 <section class="py-3">
     <h2 class="">Colis dans le Ballon</h2>
-    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
-        @csrf
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <div>
-                                        <label for="reference_contenaire" style="font-size: 25px;">CONTENEUR REF:</label>
+                                        <label for="reference_contenaire" style="font-size: 25px;">VOL REF:</label>
                                         <strong style="font-size: 30px;">{{ $referenceVol }}</strong>
                                     </div>
                                     <table id="productTable" class="table table-striped table-bordered">
@@ -29,18 +27,19 @@
                                     </table>
                                 </div>
                                 <div class="row">
-                                    <input type="hidden" name="colis_data" id="colis_data">
                                     <div class="container text-right">
-                                        <button type="submit" class="btn btn-danger mt-3" id="btnFermerVol">
-                                             Fermé le Ballon
-                                        </button>
+                                        <form id="btnFermerVol" action="{{ route('colis.vol.fermer') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
+                                                Fermer le ballon
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                     </div>
                 </div>
             </div>
-    </form>
 </section>
 <!-- Script JavaScript -->
 <script>
@@ -73,9 +72,10 @@
         ],
     });
         // Gestion du bouton de fermeture du conteneur avec SweetAlert
- $('#btnFermerVol').click(function (e) {
-        e.preventDefault();
+        $('#btnFermerVol').click(function (e) {
+        e.preventDefault();  // Empêcher la soumission du formulaire avant la confirmation
 
+        // Afficher la confirmation avec SweetAlert
         Swal.fire({
             title: "Êtes-vous sûr ?",
             text: "Voulez-vous vraiment fermer ce conteneur ? Cette action est irréversible.",
@@ -86,8 +86,10 @@
             confirmButtonText: "Oui, fermer",
             cancelButtonText: "Annuler"
         }).then((result) => {
+            // Si l'utilisateur confirme, soumettre le formulaire
             if (result.isConfirmed) {
-                $('form').submit(); // Soumission du formulaire après confirmation
+            // console.log("n,bb,nhk")
+            $('#btnFermerVol').submit();
             }
         });
     });

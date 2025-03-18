@@ -16,17 +16,27 @@ class EventCollector extends TimeDataCollector
     /** @var integer */
     protected $previousTime;
 
-    public function __construct($requestStartTime = null)
+    /** @var bool */
+    protected $collectValues;
+
+    public function __construct($requestStartTime = null, $collectValues = false)
     {
         parent::__construct($requestStartTime);
-        $this->previousTime = microtime(true);
+        $this->collectValues = $collectValues;
         $this->setDataFormatter(new SimpleFormatter());
     }
 
     public function onWildcardEvent($name = null, $data = [])
     {
-        $params = $this->prepareParams($data);
         $currentTime = microtime(true);
+
+        if (! $this->collectValues) {
+            $this->addMeasure($name, $currentTime, $currentTime, [], null, 'Events');
+
+            return;
+        }
+
+        $params = $this->prepareParams($data);
 
         // Find all listeners for the current event
         foreach ($this->events->getListeners($name) as $i => $listener) {
@@ -62,8 +72,7 @@ class EventCollector extends TimeDataCollector
 
             $params['listeners.' . $i] = $listener;
         }
-        $this->addMeasure($name, $this->previousTime, $currentTime, $params);
-        $this->previousTime = $currentTime;
+        $this->addMeasure($name, $currentTime, $currentTime, $params, null, 'Events');
     }
 
     public function subscribe(Dispatcher $events)
@@ -88,7 +97,7 @@ class EventCollector extends TimeDataCollector
     public function collect()
     {
         $data = parent::collect();
-        $data['nb_measures'] = count($data['measures']);
+        $data['nb_measures'] = $data['count'] = count($data['measures']);
 
         return $data;
     }

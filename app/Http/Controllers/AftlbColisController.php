@@ -285,7 +285,7 @@ class AftlbColisController extends Controller
                 'description_colis',
             ])]);
 
-            return redirect()->route('aftlb_colis.create.payement');
+            return redirect()->route('aftlb_colis.generer.qrcode');
 
         } catch (\Exception $e) {
             // Enregistre l'erreur dans les logs
@@ -429,21 +429,21 @@ class AftlbColisController extends Controller
     // dd($colisData);
         $nombreQuantiteColis = count($data['quantite_colis']);
     
-        $payementData = [
-            'mode_de_payement' => $data['mode_payement'],
-            'montant_reçu' => $data['montant_reçu'],
-            'operateur_mobile' => $data['operateur_mobile'],
-            'numero_compte' => $data['numero_compte'],
-            'nom_banque' => $data['nom_banque'],
-            'id_transaction' => $data['transaction_id'],
-            'numero_tel' => $data['numero_tel'],
-            'numero_cheque' => $data['numero_cheque'],
-        ];
+        // $payementData = [
+        //     'mode_de_payement' => $data['mode_payement'],
+        //     'montant_reçu' => $data['montant_reçu'],
+        //     'operateur_mobile' => $data['operateur_mobile'],
+        //     'numero_compte' => $data['numero_compte'],
+        //     'nom_banque' => $data['nom_banque'],
+        //     'id_transaction' => $data['transaction_id'],
+        //     'numero_tel' => $data['numero_tel'],
+        //     'numero_cheque' => $data['numero_cheque'],
+        // ];
     // dd($payementData);
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
-        $payement = Paiement::create($payementData);
+        // $payement = Paiement::create($payementData);
     
         // Créer les colis
         $colis = [];
@@ -451,7 +451,7 @@ class AftlbColisController extends Controller
             $colis[] = Colis::create(array_merge($colisItem, [
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
-                'paiement_id' => $payement->id,
+                // 'paiement_id' => $payement->id,
             ]));
         }
     // dd($colis);
@@ -1546,43 +1546,20 @@ public function get_colis_hold(Request $request)
     public function get_cargaison_ferme(Request $request)
     {
         if ($request->ajax()) {
-            $colis = Colis::select(
-                    'colis.*',
-                    'expediteurs.nom as expediteur_nom',
-                    'expediteurs.prenom as expediteur_prenom',
-                    'expediteurs.tel as expediteur_tel',
-                    'expediteurs.agence as expediteur_agence',
-                    'destinataires.nom as destinataire_nom',
-                    'destinataires.prenom as destinataire_prenom',
-                    'destinataires.agence as destinataire_agence',
-                    'destinataires.tel as destinataire_tel'
-                )
-                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                ->where('colis.etat', 'Fermé')
-                ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-                ->get();
+            $bateaux = Bateaux::select(
+                'reference_bateau',
+                'created_at as date_depart', // Création comme date de départ
+                'date_arriver'
+            ) ->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->get();
     
-            return DataTables::of($colis)
-                ->editColumn('etat', function ($row) {
-                    // Afficher un libellé personnalisé si l'état est Fermé
-                    return $row->etat === 'Fermé' ? 'Cargaison Fermée' : $row->etat;
+            return DataTables::of($bateaux)
+                ->editColumn('date_depart', function ($row) {
+                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
                 })
-                ->addColumn('action', function ($row) {
-                    // Construire l'URL d'édition (à adapter si vous utilisez des routes nommées)
-                    $editUrl = '/users/' . $row->id . '/edit';
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
+                ->editColumn('date_arriver', function ($row) {
+                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
                 })
-                ->rawColumns(['action'])
                 ->make(true);
         }
     }
@@ -1604,26 +1581,105 @@ public function cargaison_ferme(Request $request)
 }
 public function contenaire_fermer(Request $request)
 {
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
 
-try {
-    // Compter les enregistrements avant la mise à jour
-    $count = Colis::where('etat', 'Chargé')->count();
-    if ($count === 0) {
-        return redirect()->back()->with('warning', 'Aucun colis avec l’état "validé" trouvé.');
+        $agence = 'AFT Agence Louis Bleriot'; // Définir l'agence une seule fois
+
+        $colis = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->get();
+
+        $count = $colis->count();
+
+        if ($count === 0) {
+            return redirect()->back()->with('warning', "Aucun colis avec l'état Chargé, un mode de transit Maritime et l'agence $agence.");
+        }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis de l'agence $agence ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
     }
-
-    // Générer une référence unique pour le conteneur
-    $referenceContenaire = $this->generateReferenceContenaire();
-    // Mise à jour des enregistrements
-     $colisData = Colis::where('etat', 'Chargé')
-                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-
-    return redirect()->back()->with('success', "$colisData colis sont enregistrer dans le conteneur $referenceContenaire avec succès.");
-} catch (\Exception $e) {
-    return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
-}
 }
 
+public function vol_fermer(Request $request)
+{
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
+
+        $agence = 'AFT Agence Louis Bleriot'; // Définir l'agence une seule fois
+
+        $colis = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'aerien')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->get();
+
+        $count = $colis->count();
+            // dd($count);
+        if ($count === 0) {
+            return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+        }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+                    ->where('mode_transit', 'aerien')
+                    ->whereHas('expediteur', function ($query) use ($agence) {
+                     $query->where('agence', $agence);
+        })
+        ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+    }
+}
 
 
 public function devis_hold(Request $request)

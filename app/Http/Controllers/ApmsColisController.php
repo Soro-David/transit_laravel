@@ -871,6 +871,7 @@ public function inprimerEtiquette($id)
 
         foreach ($colis as $colisItem) {
                $qrData = [
+                   'Identifiant' => $colisItem->id,
                    'Référence colis'       => $colisItem->reference_colis,
                    'Statut'                => $colisItem->status,
                    'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1095,6 +1096,7 @@ public function imprimerFacture($id)
         // Pour chaque colis, générer le QR code
         foreach ($colis as $colisItem) {
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis'       => $colisItem->reference_colis,
                 'Statut'                => $colisItem->status,
                 'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,

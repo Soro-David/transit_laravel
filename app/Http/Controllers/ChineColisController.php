@@ -1392,6 +1392,7 @@ public function get_colis_hold(Request $request)
         // Pour chaque colis, générer le QR code
         foreach ($colis as $colisItem) {
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis'       => $colisItem->reference_colis,
                 'Statut'                => $colisItem->status,
                 'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1434,11 +1435,13 @@ public function get_colis_hold(Request $request)
     }
 
     public function get_colis_contenaire(Request $request)
+    
     {
+
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis', 
+                'colis.id', // Ajout de l'id pour éviter les erreurs
+                'colis.reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -1447,41 +1450,65 @@ public function get_colis_hold(Request $request)
                 'destinataires.prenom as destinataire_prenom', 
                 'destinataires.agence as destinataire_agence', 
                 'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
+                'colis.etat',
+                'colis.created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Chargé')  // Filtre l'état des colis
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.mode_transit', 'maritime')  
+            ->where('colis.etat', 'Chargé')
             ->where('expediteurs.agence', 'Agence de Chine')
-            ->get(); // Exécute la requête une seule fois
-
-            return DataTables::of($colis)
+            ->get();
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'colis' => $group,
+                    'id' => $group->first()->id // Ajout de l'ID pour action
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
+                })
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
+                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $row['id']]);
                     return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
+                       <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group">
+                                <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div> 
                         </div>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
 
     public function get_colis_vol(Request $request)
     {
+
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis',
+                'colis.id', // Ajout de l'id pour éviter les erreurs
+                'colis.reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -1490,35 +1517,58 @@ public function get_colis_hold(Request $request)
                 'destinataires.prenom as destinataire_prenom', 
                 'destinataires.agence as destinataire_agence', 
                 'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
+                'colis.etat',
+                'colis.created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
-            ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
-            ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.mode_transit', 'Aerien')
+            ->where('colis.etat', 'Chargé')
             ->where('expediteurs.agence', 'Agence de Chine')
-            ->get(); // Exécute la requête 
-
-            return DataTables::of($colis)
+            ->get();
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'colis' => $group,
+                    'id' => $group->first()->id 
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
+                })
                 ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
+                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $row['id']]);
                     return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
+                       <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group">
+                                <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div> 
                         </div>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
+
 
     public function get_cargaison_ferme(Request $request)
     {
@@ -1585,23 +1635,106 @@ public function cargaison_ferme(Request $request)
 }
 public function contenaire_fermer(Request $request)
 {
+    // dd($request);
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
 
-try {
-    // Compter les enregistrements avant la mise à jour
-    $count = Colis::where('etat', 'Chargé')->count();
-    if ($count === 0) {
-        return redirect()->back()->with('warning', 'Aucun colis avec l’état "validé" trouvé.');
+        $agence = 'Agence de Chine'; // Définir l'agence une seule fois
+
+        $colis = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->get();
+
+        $count = $colis->count();
+
+        if ($count === 0) {
+            return redirect()->back()->with('warning', "Aucun colis avec l'état Chargé, un mode de transit Maritime et l'agence $agence.");
+        }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'maritime')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis de l'agence $agence ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
     }
-     // Générer une référence unique pour le conteneur
-     $referenceContenaire = $this->generateReferenceContenaire();
-    // Mise à jour des enregistrements
-    $colisData = Colis::where('etat', 'Chargé')
+}
+
+public function vol_fermer(Request $request)
+{
+    // dd($request);
+    try {
+        // Démarrez une transaction de base de données pour garantir l'atomicité
+        DB::beginTransaction();
+
+        $agence = 'Agence de Chine'; // Définir l'agence une seule fois
+
+        $colis = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'aerien')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->get();
+
+        $count = $colis->count();
+            // dd($count);
+        if ($count === 0) {
+            return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+        }
+
+        // Générer une référence unique pour le conteneur
+        $referenceContenaire = $this->generateReferenceContenaire();
+
+        // Mise à jour des enregistrements
+        $updatedCount = Colis::where('etat', 'Chargé')
+                    ->where('mode_transit', 'aerien')
+                    ->whereHas('expediteur', function ($query) use ($agence) {
+                     $query->where('agence', $agence);
+        })
         ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
 
-    return redirect()->back()->with('success', "$colisData colis sont enregistrer dans le conteneur $referenceContenaire avec succès.");
-} catch (\Exception $e) {
-    return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
-}
+        // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+        if ($updatedCount !== $count) {
+            DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+        }
+
+        // Commit la transaction
+        DB::commit();
+
+        // Retourner un message de succès avec le nombre de colis traités
+        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, annuler la transaction
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+    }
 }
 
 

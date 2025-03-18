@@ -3,52 +3,54 @@
 @section('content')
 <section class="py-3">
 
-    <form action="{{route('colis.contenaire.fermer')}}" method="POST" class="mt-4">
         @csrf
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <div id="products-container">
-                                <div class="table-responsive">
-                                    <div>
-                                        <label for="reference_contenaire" style="font-size: 25px;">CONTENEUR REF:</label>
-                                        <strong style="font-size: 30px;">{{ $referenceContenaire }}</strong>
-                                    </div>
-                                    <table id="productTable" class="table table-striped table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>référence</th>
-                                                <th>Nombre de colis</th>
-                                                <th>Agence d'expédition</th>
-                                                <th>Date</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="row">
-                                    <input type="hidden" name="colis_data" id="colis_data">
-                                    <div class="container text-right">
-                                        <button type="button" class="btn btn-danger mt-3" id="btnFermerConteneur">
-                                             Fermer le conteneur
-                                        </button>                                        
-                                    </div>
-                                </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                    <div id="products-container">
+                        <div class="table-responsive">
+                            <div>
+                                <label for="reference_contenaire" style="font-size: 25px;">CONTENEUR REF:</label>
+                                <strong style="font-size: 30px;">{{ $referenceContenaire }}</strong>
                             </div>
+                            <table id="productTable" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Nombre de colis</th>
+                                        <th>Agence d'expédition</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row">
+                            <div class="container text-right">
+                                <form id="fermerConteneurForm" action="{{ route('colis.contenaire.fermer') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
+                                        Fermer le conteneur
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-    </form>
+        </div>
+    
 </section>
 <!-- Script JavaScript -->
 <script>
 $(document).ready(function () {
+    // Initialiser DataTable pour afficher les colis
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-            url: "{{ asset('js/fr-FR.json') }}" 
+            url: "{{ asset('js/fr-FR.json') }}"
         },
         ajax: '{{ route('colis.get.colis.contenaire') }}',
         columns: [
@@ -56,26 +58,27 @@ $(document).ready(function () {
             { data: 'nombre_de_colis' },
             { data: 'expediteur_agence' },
             {data: 'created_at',
-            render: function(data, type, row) {
-                    if (data) {
-                        const date = new Date(data);
-                        const day = ('0' + date.getDate()).slice(-2);
-                        const month = ('0' + (date.getMonth() + 1)).slice(-2);
-                        const year = date.getFullYear().toString().slice(-2);
-                        const hours = ('0' + date.getHours()).slice(-2);
-                        const minutes = ('0' + date.getMinutes()).slice(-2);
-                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
-                    }
-                    return data;
+            render: function(data) {
+                if (data) {
+                    const date = new Date(data);
+                    const day = ('0' + date.getDate()).slice(-2);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    const year = date.getFullYear().toString().slice(-2);
+                    const hours = ('0' + date.getHours()).slice(-2);
+                    const minutes = ('0' + date.getMinutes()).slice(-2);
+                    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
                 }
-            },
+                return data;
+            }},
             { data: 'action', orderable: false, searchable: false }
-        ],
+        ]
     });
- // Gestion du bouton de fermeture du conteneur avec SweetAlert
- $('#btnFermerConteneur').click(function (e) {
-        e.preventDefault();
 
+    // Gestion du bouton pour fermer le conteneur avec confirmation
+    $('#btnFermerConteneur').click(function (e) {
+        e.preventDefault();  // Empêcher la soumission du formulaire avant la confirmation
+
+        // Afficher la confirmation avec SweetAlert
         Swal.fire({
             title: "Êtes-vous sûr ?",
             text: "Voulez-vous vraiment fermer ce conteneur ? Cette action est irréversible.",
@@ -86,12 +89,15 @@ $(document).ready(function () {
             confirmButtonText: "Oui, fermer",
             cancelButtonText: "Annuler"
         }).then((result) => {
+            // Si l'utilisateur confirme, soumettre le formulaire
             if (result.isConfirmed) {
-                $('form').submit(); // Soumission du formulaire après confirmation
+            // console.log("n,bb,nhk")
+            $('#fermerConteneurForm').submit();
             }
         });
     });
 });
+
 </script>
 
 <style>
