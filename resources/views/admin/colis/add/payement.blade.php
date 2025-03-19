@@ -26,6 +26,7 @@
                             <option value="mobile_money">Mobile Money</option>
                             <option value="cheque">Chèque</option>
                             <option value="cash">Espèces</option>
+                            <option value="cinetpay">CinetPay</option>
                         </select>
                     </div>
                 </div>
@@ -40,14 +41,14 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="numero_compte" class="form-label">Numéro de compte</label>
-                                <input type="text" name="numero_compte" id="numero_compte" 
+                                <input type="text" name="numero_compte" id="numero_compte"
                                        class="form-control" placeholder="Entrez le numéro de compte">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="nom_banque" class="form-label">Nom de la banque</label>
-                                <input type="text" name="nom_banque" id="nom_banque" 
+                                <input type="text" name="nom_banque" id="nom_banque"
                                        class="form-control" placeholder="Entrez le nom de la banque">
                             </div>
                         </div>
@@ -60,32 +61,7 @@
                     </div>
                 </div>
                 <!-- Section Mobile Money -->
-                <div id="mobile_money_payment" class="payment-section" style="display: none;">
-                    <h5 class="mb-3">Détails Mobile Money</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="numero_tel" class="form-label">Numéro de téléphone</label>
-                                <input type="tel" name="numero_tel" id="numero_tel" 
-                                       class="form-control" placeholder="Entrez votre numéro de téléphone">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="operateur_mobile" class="form-label">Opérateur</label>
-                                <select name="operateur_mobile" id="operateur_mobile" class="form-control">
-                                    <option value="mtn">MTN</option>
-                                    <option value="orange">Orange</option>
-                                    <option value="airtel">Airtel</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="transaction_id" class="form-label">ID de transaction</label>
-                        <input type="text" name="transaction_id" id="transaction_id" class="form-control">
-                    </div>
-                </div>
+               
                 <!-- Section Chèque -->
                 <div id="cheque_payment" class="payment-section" style="display: none;">
                     <h5 class="mb-3">Détails du Chèque</h5>
@@ -116,60 +92,146 @@
                         </div>
                     </div>
                 </div>
+                <!-- Section CinetPay -->
+                <div id="cinetpay_payment" class="payment-section" style="display: none;">
+                    <h5 class="mb-3">Paiement CinetPay</h5>
+                    <p>Cliquez sur le bouton ci-dessous pour effectuer le paiement via CinetPay.</p>
+                    <button type="button" class="btn btn-primary" id="cinetpayButton">Payer avec CinetPay</button>
+                </div>
         </div>
-        {{-- Bouton de soumission --}}
-        <div class="text-end mt-4">
+        {{-- Bouton de soumission fallback pour les autres modes de paiement (hors CinetPay) --}}
+        <div class="text-end mt-4" id="submit_button_section">
             <button type="submit" class="btn btn-primary">Confirmer le paiement</button>
         </div>
     </form>
 </section>
 {{-- Scripts JS --}}
+<script src="https://cdn.cinetpay.com/seamless/main.js"></script>
 <script>
     $(document).ready(function () {
         const sections = $('.payment-section');
-        // Cacher toutes les sections
+        const submitButtonSection = $('#submit_button_section');
+        let genererQrcodeUrl = ''; // Variable pour stocker l'URL de redirection vers generer_qrcode
+
+        // Fonction pour cacher toutes les sections de paiement spécifiques
         function hideSections() {
             sections.hide();
+            submitButtonSection.show();
         }
-        // Changement de mode de paiement
-        $('#mode_payement').on('change', function () {
-            hideSections();
-            const selectedMode = $(this).val();
-            $(`#${selectedMode}_payment`).show();
-        });
-        $('#paymentForm').on('submit', function () {
-            const formData = $(this).serializeArray();
+
+        // Fonction checkout de CinetPay (inchangée)
+        function checkout() {
+            CinetPay.setConfig({
+                apikey: '521006956621e4e7a6a3d16.70681548', // Remplacez par votre clé API CinetPay
+                site_id: '405886', // Remplacez par votre ID de site CinetPay
+                notify_url: '{{ route('colis.cinetpay.notify') }}', // Route de notification CinetPay
+                mode: 'PRODUCTION' // ou 'PRODUCTION' selon l'environnement
+            });
+            CinetPay.getCheckout({
+                transaction_id: Math.floor(Math.random() * 100000000).toString(), // ID de transaction unique
+                amount: 100, // Montant (à rendre dynamique)
+                currency: 'XOF',
+                channels: 'ALL',
+                description: 'Test de paiement',   
+                 //Fournir ces variables pour le paiements par carte bancaire
+                customer_name:"Wayne",//Le nom du client
+                customer_surname:"The",//Le prenom du client
+                customer_email: "redfieldluise@gmail.com",//l'email du client
+                customer_phone_number: "0708325027",//l'email du client
+                        customer_address : "BP 0024",//addresse du client
+                        customer_city: "Abidjan",// La ville du client
+                        customer_country : "CI",// le code ISO du pays
+                        customer_state : "CI",// le code ISO l'état
+                        customer_zip_code : "225", // code postal
+            });
+            CinetPay.waitResponse(function(data) {
+                console.log(data);
+                if (data.status == "REFUSED") {
+                    alert("Votre paiement a échoué. Veuillez réessayer.");
+                } else if (data.status == "ACCEPTED") {
+                    alert("Votre paiement a été effectué avec succès.");
+                    // Soumettre le formulaire AJAX automatiquement après succès CinetPay
+                    submitPaymentForm(); // Appeler la fonction de soumission AJAX ici
+                }
+            });
+            CinetPay.onError(function(data) {
+                console.log(data);
+                alert("Erreur lors du paiement CinetPay. Veuillez réessayer.");
+            });
+        }
+
+        // Fonction pour soumettre le formulaire de paiement via AJAX
+        function submitPaymentForm() {
+            const formData = $('#paymentForm').serializeArray(); // Sérialiser les données du formulaire
             const formDataJson = {};
             formData.forEach(item => {
                 formDataJson[item.name] = item.value;
             });
-            console.log(JSON.stringify(formDataJson, null, 2));
+            console.log(JSON.stringify(formDataJson, null, 2)); // Log des données JSON (pour débogage)
             $.ajax({
-                url: '{{route('colis.store.payment')}}',
+                url: '{{route('colis.store.payment')}}', // Route pour enregistrer le paiement
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formDataJson),
                 success: function (response) {
-                    alert('Paiement enregistré avec succès !');
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
+                    if ($('#mode_payement').val() === 'cinetpay') {
+                        // Pour CinetPay, redirection après la soumission AJAX réussie
+                        genererQrcodeUrl = response.redirect;
+                        window.location.href = genererQrcodeUrl; // Rediriger vers la page de reçu
                     } else {
-                        console.error('Aucune URL de redirection fournie');
+                        // Pour les autres modes de paiement, redirection immédiate
+                        alert('Paiement enregistré avec succès !');
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        } else {
+                            console.error('Aucune URL de redirection fournie');
+                        }
+                        $('#paymentForm')[0].reset();
+                        hideSections();
                     }
-                    $('#paymentForm')[0].reset();
-                    hideSections();
                 },
                 error: function (xhr) {
                     alert('Une erreur s\'est produite lors de l\'enregistrement du paiement.');
                     console.error(xhr.responseText);
                 }
             });
+        }
+
+        // Listener pour le bouton CinetPay
+        $('#cinetpayButton').on('click', function() {
+            checkout(); // Lancer le processus de paiement CinetPay
         });
-        hideSections();
+
+        // Listener pour le changement de mode de paiement (affichage des sections)
+        $('#mode_payement').on('change', function () {
+            hideSections();
+            const selectedMode = $(this).val();
+            if (selectedMode === 'cinetpay') {
+                $('#cinetpay_payment').show();
+                submitButtonSection.hide(); // Cacher le bouton "Confirmer le paiement" pour CinetPay
+            } else {
+                $(`#${selectedMode}_payment`).show();
+                submitButtonSection.show(); // Afficher pour les autres modes
+            }
+        });
+
+        // Listener pour la soumission du formulaire (pour les modes de paiement autres que CinetPay)
+        $('#paymentForm').on('submit', function (event) {
+            event.preventDefault(); // Empêcher la soumission classique du formulaire
+            if ($('#mode_payement').val() !== 'cinetpay') {
+                submitPaymentForm(); // Soumettre le formulaire AJAX pour les autres modes
+            } else {
+                // Ne rien faire ici pour CinetPay, la soumission se fait après le paiement réussi dans waitResponse
+            }
+        });
+
+
+        hideSections(); // Cacher les sections au chargement de la page
     });
 </script>
 {{-- CSS Personnalisé --}}
 <style>
+    /* ... Votre CSS personnalisé reste inchangé ... */
     .form-container {
         max-width: 95%;
         margin: auto;
@@ -208,7 +270,7 @@
         margin-bottom: 20px;
     }
 
-   
+
 
     /* Card contenant la barre de progression */
     .progress-card {

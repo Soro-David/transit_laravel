@@ -222,6 +222,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/colis/store', [ColisController::class, 'store_colis'])->name('store.colis');
         Route::get('/create/payement/colis', [ColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment/colis', [ColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/cinetpay/notify', [ColisController::class, 'cinetpayNotify'])->name('cinetpay.notify');
         Route::get('/generer/qrcode.colis', [ColisController::class, 'generer_qrcode'])->name('generer.qrcode');
 
 
@@ -356,6 +357,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
     Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
     Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+    Route::get('/programme/export-pdf', [ProgrammeController::class, 'exportPDF'])->name('programme.export.pdf');
     Route::get('/programme/edit/{programme}', [ProgrammeController::class, 'edit']); // Route pour récupérer les données pour l'édition
     Route::put('/programme/update/{programme}', [ProgrammeController::class, 'update']); // Route pour la mise à jour
     Route::delete('/programme/delete/{programme}', [ProgrammeController::class, 'destroy']); // Route pour la suppression

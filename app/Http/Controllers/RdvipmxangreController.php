@@ -30,7 +30,18 @@ class RdvipmxangreController extends Controller
         $recuperationRdvs = $recuperationRdvs->filter(function ($programme) {
             return $programme->chauffeur !== null;
         });
+           // Ajout de la section Voler Livraison
+           $livraisonRdvs = Programme::with(['chauffeur' => function ($query) {
+            $query->where('agence_id', [1, 6]);
+        }])
+        ->where('actions_a_faire', 'livraison')
+        ->get();
 
-        return view('IPMS_SIMEXCI_ANGRE.rdv.rdv', compact('depotRdvs', 'recuperationRdvs'));
+    // Filtrage des résultats
+    $depotRdvs = $depotRdvs->filter(fn($p) => $p->chauffeur);
+    $recuperationRdvs = $recuperationRdvs->filter(fn($p) => $p->chauffeur);
+    $livraisonRdvs = $livraisonRdvs->filter(fn($p) => $p->chauffeur);
+
+        return view('IPMS_SIMEXCI_ANGRE.rdv.rdv', compact('depotRdvs', 'recuperationRdvs', 'livraisonRdvs'));
     }
 }

@@ -18,8 +18,13 @@
                     <li class="nav-item">
                         <a class="nav-link" id="recuperation-tab" data-toggle="tab" href="#recuperation" role="tab" aria-controls="recuperation" aria-selected="false">RDV Récupération</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="voler-tab" data-toggle="tab" href="#voler" role="tab" aria-controls="voler" aria-selected="false">RDV Livraison</a>
+                    </li>
                 </ul>
+                
                 <div class="tab-content" id="rdvTabsContent">
+                    <!-- Tab Dépôt -->
                     <div class="tab-pane fade show active" id="depot" role="tabpanel" aria-labelledby="depot-tab">
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -49,6 +54,8 @@
                             <p>Aucun RDV de dépôt trouvé.</p>
                         @endif
                     </div>
+
+                    <!-- Tab Récupération -->
                     <div class="tab-pane fade" id="recuperation" role="tabpanel" aria-labelledby="recuperation-tab">
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -76,6 +83,37 @@
                         </table>
                         @if($recuperationRdvs->isEmpty())
                             <p>Aucun RDV de récupération trouvé.</p>
+                        @endif
+                    </div>
+
+                    <!-- Nouveau Tab Voler Livraison -->
+                    <div class="tab-pane fade" id="voler" role="tabpanel" aria-labelledby="voler-tab">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nom Expéditeur</th>
+                                    <th>Référence Colis</th>
+                                    <th>Téléphone Expéditeur</th>
+                                    <th>Date</th>
+                                    <th>Lieu de Vol</th>
+                                    <th>Chauffeur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($livraisonRdvs as $rdv)
+                                    <tr>
+                                        <td>{{ $rdv->nom_expediteur }}</td>
+                                        <td>{{ $rdv->reference_colis }}</td>
+                                        <td>{{ $rdv->tel_expediteur }}</td>
+                                        <td>{{ $rdv->date_programme }}</td>
+                                        <td>{{ $rdv->lieu_expedition }}</td>
+                                        <td>{{ $rdv->chauffeur->nom }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        @if($livraisonRdvs->isEmpty())
+                            <p>Aucun RDV de vol trouvé.</p>
                         @endif
                     </div>
                 </div>
