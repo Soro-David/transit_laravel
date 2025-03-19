@@ -259,16 +259,16 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6 dimension-section" id="dimension_section">
+                    <div class="col-md-6 dimension-section">
                         <label class="form-label">Dimensions (cm)</label>
                         <div class="d-flex gap-2">
                             <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
                             <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
                             <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
                         </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
+                        <div class="dimension-result mt-2"  name="dimension_result" style="display: none; font-weight: bold;"></div>
                     </div>
-                    <div class="col-md-6 poids-section" id="poids_section" style="display: none;">
+                    <div class="col-md-6 poids-section" style="display: none;">
                         <label class="form-label">Poids (kg)</label>
                         <input type="number" name="poids[]" class="form-control" placeholder="Poids">
                     </div>
@@ -454,7 +454,7 @@ $(document).ready(function() {
                     <div class="col-md-4">
                         <label class="form-label">Produit(s) ou Service(s)</label>
                         <div class="input-group">
-                            <input type="text" name="type_embalage[]" class="form-control produit-input">
+                            <input type="text" name="service[]" class="form-control produit-input">
                             <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
                         <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
@@ -483,7 +483,7 @@ $(document).ready(function() {
                             <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
                             <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
                         </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
+                        <div class="dimension-result mt-2" name="dimension_result" style="display: none; font-weight: bold;"></div>
                     </div>
                     <div class="col-md-6 poids-section" style="display: none;">
                         <label class="form-label">Poids (kg)</label>

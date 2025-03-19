@@ -336,7 +336,6 @@ private function generateReferenceContenaire()
                 'poids',
                 'description_colis',
             ])]);
-
             return redirect()->route('colis.generer.qrcode');
 
         } catch (\Exception $e) {
@@ -394,6 +393,7 @@ private function generateReferenceContenaire()
             session(['step2' => $request->only([
                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
                 'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
+                'dimension_result'
             ])]);
             return response()->json([
                 'success' => true,
@@ -421,7 +421,7 @@ private function generateReferenceContenaire()
             session('step1', []),
             session('step2', [])
         );
-    // dd($data);
+    dd($data);
         // Ajouter le statut au tableau de données
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
@@ -466,9 +466,9 @@ private function generateReferenceContenaire()
                 'reference_colis' => $data['reference_colis'],
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
-                'type_embalage' => $data['type_embalage'][$index] ?? null,
+                'service' => $data['service'][$index] ?? null,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
-                // 'dimension_result' => $data['dimension_result'][$index] ?? null,
+                'dimension_result' => $data['dimension_result'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
                 'status' => $data['status'] ?? null,
                 'etat' => $data['etat'] ?? null,

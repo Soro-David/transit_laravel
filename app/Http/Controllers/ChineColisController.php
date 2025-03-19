@@ -353,6 +353,7 @@ class ChineColisController extends Controller
 
     public function generer_qrcode(Request $request)
     {
+        dd($request);
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
             session('step1', []),
@@ -403,9 +404,9 @@ class ChineColisController extends Controller
                 'reference_colis' => $data['reference_colis'],
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
-                'type_embalage' => $data['type_embalage'][$index] ?? null,
+                'service' => $data['service'][$index] ?? null,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
-                // 'dimension_result' => $data['dimension_result'][$index] ?? null,
+                'dimension_result' => $data['dimension_result'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
                 'status' => $data['status'] ?? null,
                 'etat' => $data['etat'] ?? null,
