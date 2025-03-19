@@ -335,6 +335,7 @@ private function generateReferenceContenaire()
                 'type_colis',
                 'poids',
                 'description_colis',
+                'prix'
             ])]);
             return redirect()->route('colis.generer.qrcode');
 
@@ -394,6 +395,7 @@ private function generateReferenceContenaire()
                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
                 'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
                 'dimension_result'
+                
             ])]);
             return response()->json([
                 'success' => true,
@@ -467,6 +469,7 @@ private function generateReferenceContenaire()
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
+                'prix_transit_colis' => $data['prix'][$index] ?? null,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'dimension_result' => $data['dimension_result'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
