@@ -14,4 +14,9 @@ class Expediteur extends Model
     {
         return $this->hasMany(Colis::class);
     }
+     // Relation avec les paiements
+     public function paiements()
+     {
+         return $this->hasMany(Paiement::class);
+     }
 }

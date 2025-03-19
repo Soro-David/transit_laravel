@@ -143,7 +143,7 @@ class AftlbColisController extends Controller
     /**
      * Étape de paiement.
      */
-    // public function payement()
+    // public function  ement()
     // {
     //     return view('admin.colis.add.payement');
     // }

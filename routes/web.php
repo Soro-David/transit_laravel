@@ -128,6 +128,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/colis/store', [ColisController::class, 'store_colis'])->name('store.colis');
         Route::get('/create/payement/colis', [ColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment/colis', [ColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/cinetpay/notify', [ColisController::class, 'cinetpayNotify'])->name('cinetpay.notify');
         Route::get('/generer/qrcode.colis', [ColisController::class, 'generer_qrcode'])->name('generer.qrcode');
 
 
