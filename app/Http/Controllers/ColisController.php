@@ -337,7 +337,8 @@ private function generateReferenceContenaire()
                 'description_colis',
                 'prix'
             ])]);
-            return redirect()->route('colis.generer.qrcode');
+         return redirect()->route('colis.create.payement');
+        // return redirect()->route('colis.generer.qrcode');
 
         } catch (\Exception $e) {
             // Enregistre l'erreur dans les logs
@@ -423,7 +424,7 @@ private function generateReferenceContenaire()
             session('step1', []),
             session('step2', [])
         );
-    dd($data);
+  
         // Ajouter le statut au tableau de données
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
