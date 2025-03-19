@@ -283,6 +283,7 @@ class AftlbColisController extends Controller
                 'type_colis',
                 'poids',
                 'description_colis',
+                'prix'
             ])]);
 
             return redirect()->route('aftlb_colis.generer.qrcode');
@@ -416,6 +417,7 @@ class AftlbColisController extends Controller
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
+                'prix_transit_colis' => $data['prix'][$index] ?? null,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'dimension_result' => $data['dimension_result'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
