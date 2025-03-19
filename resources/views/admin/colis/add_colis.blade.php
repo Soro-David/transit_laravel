@@ -162,8 +162,7 @@
                 <button type="button" class="btn btn-primary btn-next">Suivant</button>
             </div>
         </fieldset>
-
-        <!-- Étape 2 : Informations du Destinataire -->
+        <!-- Étape 3 : Informations du Destinataire -->
         <fieldset style="display: none;">
             <h5 class="text-center mb-4">Informations du Destinataire</h5>
             <div class="form-section">

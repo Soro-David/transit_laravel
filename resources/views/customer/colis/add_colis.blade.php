@@ -33,7 +33,35 @@
                 <li class="step" data-step="3">4</li>
             </ul>
         </div>
-        <!-- Étape 1 : Informations de l'Expéditeur -->
+        <!-- Étape 1 : Informations transport -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
+                            <select name="mode_transit" id="mode_transit" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
+                                <option value="maritime">Maritime</option>
+                                <option value="aerien">Aérien</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="reference_colis" class="form-label">Référence</label>
+                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis }}" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Étape 2 : Informations de l'Expéditeur -->
         <fieldset>
             <div class="form-section">
                 <h5 class="text-center mb-4 mt-5">Informations de l'Expéditeur</h5>
@@ -41,31 +69,27 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" 
-                                value="{{ old('nom_expediteur', $user->last_name) }}" class="form-control" required>
+                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ old('nom_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" 
-                                value="{{ old('prenom_expediteur', $user->first_name) }}" class="form-control" required>
+                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ old('prenom_expediteur') }}" class="form-control" required>
                         </div>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" 
-                                value="{{ old('email_expediteur', $user->email) }}" class="form-control">
+                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{ old('email_expediteur') }}" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" 
-                                value="{{ old('tel_expediteur', $user->tel) }}" class="form-control" required>
+                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ old('tel_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -73,8 +97,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" 
-                                value="{{ old('adresse_expediteur', $user->adresse) }}" class="form-control" required>
+                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ old('adresse_expediteur') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -83,7 +106,7 @@
                             <select name="pays_expedition" id="pays_expedition" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez le pays d'expédition --</option>
                                 @foreach ($paysUniques as $pays)
-                                    <option value="{{ $pays }}">{{ $pays }}</option>
+                                <option value="{{ $pays }}">{{ $pays }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -94,43 +117,42 @@
                         <div class="mb-3">
                             <label for="agence_expedition" class="form-label">Agence d'expédition</label>
                             <select name="agence_expedition" id="agence_expedition" class="form-control">
-                                {{-- <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option> --}}
+                                <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
                                 @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
-                                        {{ $agence->nom_agence }}
-                                    </option>
+                                <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
+                                    {{ $agence->nom_agence }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
                 </div>
-    
+
                 <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                    const paysSelect = document.getElementById('pays_expedition');
-                    const agenceSelect = document.getElementById('agence_expedition');
-                    const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
-    
-                    paysSelect.addEventListener('change', function () {
-                        const selectedPays = this.value;
-    
-                        // Réinitialiser les options
-                        agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
-    
-                        // Ajouter uniquement les options correspondant au pays sélectionné
-                        agenceOptions.forEach(option => {
-                            if (option.getAttribute('data-pays') === selectedPays) {
-                                agenceSelect.appendChild(option.cloneNode(true));
-                            }
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const paysSelect = document.getElementById('pays_expedition');
+                        const agenceSelect = document.getElementById('agence_expedition');
+                        const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
+
+                        paysSelect.addEventListener('change', function() {
+                            const selectedPays = this.value;
+
+                            // Réinitialiser les options
+                            agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
+
+                            // Ajouter uniquement les options correspondant au pays sélectionné
+                            agenceOptions.forEach(option => {
+                                if (option.getAttribute('data-pays') === selectedPays) {
+                                    agenceSelect.appendChild(option.cloneNode(true));
+                                }
+                            });
                         });
+
+                        // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
+                        if (paysSelect.value) {
+                            paysSelect.dispatchEvent(new Event('change'));
+                        }
                     });
-    
-                    // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
-                    if (paysSelect.value) {
-                        paysSelect.dispatchEvent(new Event('change'));
-                    }
-                });
-    
                 </script>
             </div>
             {{-- Boutons navigation --}}
@@ -147,15 +169,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" 
-                                       value="{{ old('nom_destinataire') }}" class="form-control" required>
+                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="{{ old('nom_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" 
-                                       value="{{ old('prenom_destinataire') }}" class="form-control" required>
+                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" value="{{ old('prenom_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -163,15 +183,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" 
-                                       value="{{ old('email_destinataire') }}" class="form-control">
+                            <input type="email" name="email_destinataire" id="email_destinataire" value="{{ old('email_destinataire') }}" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" 
-                                       value="{{ old('tel_destinataire') }}" class="form-control" required>
+                            <input type="text" name="tel_destinataire" id="tel_destinataire" value="{{ old('tel_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -179,8 +197,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" 
-                                       value="{{ old('adresse_destinataire') }}" class="form-control" required>
+                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" value="{{ old('adresse_destinataire') }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -188,12 +205,11 @@
                             <label for="agence_destination" class="form-label">Agence de destination</label>
                             <select name="agence_destination" id="agence_destination" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                                @foreach ($agencesDestination as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
+                                <option value="IPMS-SIMEX-CI">IPMS-SIMEX-CI</option>
+                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">IPMS-SIMEX-CI Angre 8ème Tranche</option>
                             </select>
                         </div>
-                    </div>
+                    </div>                    
                 </div>
             </div>
             {{-- Boutons navigation --}}
@@ -202,7 +218,7 @@
                 <button type="button" class="btn btn-primary btn-next">Suivant</button>
             </div>
         </fieldset>
-        <!-- Étape 3 : Mode de transit -->
+        {{-- <!-- Étape 3 : Mode de transit -->
         <fieldset style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
@@ -231,7 +247,7 @@
                     </div>
                 </div>
             </div>
-        </fieldset>
+        </fieldset> --}}
         <!-- Étape 4 : Informations du Colis -->
         <fieldset id="colisTemplate" style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations du Colis</h5>
@@ -292,7 +308,7 @@
             <div class="text-end mt-2">
                 {{-- <a href="#" class="btn btn-link add-colis">Ajouter un autre colis</a> --}}
                 <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
+                <button type="button" class="btn btn-danger remove-colis"  style="display: none;" >Retirer ce colis</button>
             </div>
             <div id="colisContainer"></div>
             <div class="text-end mt-4 d-flex justify-content-end gap-2">
@@ -304,6 +320,19 @@
 </section>
 
 <script>
+
+            // Fonction pour mettre à jour l'agence de destination selon le mode de transit sélectionné
+    document.getElementById('mode_transit').addEventListener('change', function() {
+        var modeTransit = this.value;
+        var agenceDestination = document.getElementById('agence_destination');
+
+        if (modeTransit === 'maritime') {
+            agenceDestination.value = 'IPMS-SIMEX-CI'; // Sélectionner l'agence maritime
+        } else if (modeTransit === 'aerien') {
+            agenceDestination.value = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Sélectionner l'agence aérienne
+        }
+    });
+
     $(document).ready(function () {
     // Fonction pour afficher les champs en fonction du mode de transport sélectionné
     $("#mode_transit").change(function () {
