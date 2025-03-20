@@ -594,7 +594,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft-louis-b', [AftlbColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft-louis-b', [AftlbColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
@@ -1177,8 +1177,9 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft_chine', [ChineColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft_chine', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        
     });
 
     // Groupe de routes pour la gestion du scan

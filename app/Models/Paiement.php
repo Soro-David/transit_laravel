@@ -14,7 +14,7 @@ class Paiement extends Model
         'montant',
         'operateur',
         'banque',
-        'compte_utilisateur',
+        'NumeroPaiement',
         'id_transaction',
         'statut_paiement',
         'date_validation',
@@ -30,7 +30,7 @@ class Paiement extends Model
     // Relation avec Colis (un paiement appartient à un colis)
     public function colis()
     {
-        return $this->belongsTo(Colis::class);
+        return $this->hasMany(Colis::class); // Si un paiement peut concerner plusieurs colis
     }
 
     // Relation avec l'expéditeur (un paiement appartient à un expéditeur)
