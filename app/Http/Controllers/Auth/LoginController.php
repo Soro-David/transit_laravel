@@ -28,7 +28,7 @@ class LoginController extends Controller
     {
         // On autorise l'accès à la page de login même pour un utilisateur déjà connecté
         // afin de permettre la déconnexion automatique.
-        $this->middleware('guest')->except('logout');
+        $this->middleware('guest')->except('login');
     }
 
     /**

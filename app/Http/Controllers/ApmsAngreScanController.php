@@ -262,10 +262,9 @@ class ApmsAngreScanController extends Controller
 
     public function get_colis_livre(Request $request)
     {
-
         if ($request->ajax()) {
             $colis = Colis::select(
-               'colis.reference_colis as reference_colis',
+                'colis.reference_colis as reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
                 'expediteurs.tel as expediteur_tel', 
@@ -290,14 +289,14 @@ class ApmsAngreScanController extends Controller
                 return [
                     'reference_colis' => $reference,
                     'nombre_de_colis' => $group->count(),
-                    'expediteur_nom' => $group->first()->nom_expediteur,
-                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
                     'expediteur_tel' => $group->first()->expediteur_tel,
-                    'expediteur_agence' => $group->first()->agence_expedition, 
-                    'destinataire_nom' => $group->first()->nom_destinataire,
-                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'expediteur_agence' => $group->first()->expediteur_agence, 
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
                     'destinataire_tel' => $group->first()->destinataire_tel,
-                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'destinataire_agence' => $group->first()->destinataire_agence, 
                     'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
                     'colis' => $group
                 ];
@@ -307,46 +306,41 @@ class ApmsAngreScanController extends Controller
         }
     }
 
-    // public function get_colis_livre(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'Livré')  // Filtre l'état des colis
-    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
 
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
+    // public function editInvoice($id)
+    // {
+        
+        
+    //     $colis_principal = Colis::find($id);
+    //     $colis_info = Colis::with(['expediteur', 'destinataire'])
+    //                             ->select(
+    //                                 'colis.reference_colis',
+    //                                 'expediteurs.nom as expediteur_nom',
+    //                                 'expediteurs.prenom as expediteur_prenom',
+    //                                 'expediteurs.tel as expediteur_tel',
+    //                                 'destinataires.nom as destinataire_nom',
+    //                                 'destinataires.prenom as destinataire_prenom',
+    //                                 'destinataires.tel as destinataire_tel'
+    //                             )
+    //                             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+    //                             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+    //                             ->find($id);
+
+    //     if (!$colis_principal) {
+    //         return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
     //     }
+
+    //     $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+    //     if ($colis->isEmpty()) {
+    //         return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+    //     }
+
+    //     return view('IPMS_SIMEXCI.invoice.edit', compact('colis','colis_info'));
     // }
+
+
+
 
     // Ajax pour récupérer la liste des colis en Charge
     public function get_colis_charge(Request $request)
@@ -385,7 +379,7 @@ class ApmsAngreScanController extends Controller
                         </div>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
@@ -448,7 +442,7 @@ class ApmsAngreScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     

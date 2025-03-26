@@ -1,4 +1,4 @@
-@extends('admin.layouts.admin')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agentprint')
 
 @section('content-header')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.0.0/signature_pad.min.js"></script>
@@ -16,7 +16,7 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
-                           <h3>Ref: RE342</h3>
+                           <h3>REF COLIS: {{  $colis_info->reference_colis }}</h3>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prix Total :</label>
@@ -42,15 +42,15 @@
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">Soro</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_nom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_prenom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Téléphone :</label>
-                            <span class="form-control border-0 bg-light w-50">050505055</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->expediteur_tel }}</span>
                         </div>
                     </div>
                 </div>
@@ -64,15 +64,15 @@
                     <div class="card-body p-4">
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_nom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">David</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_prenom }}</span>
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Téléphone:</label>
-                            <span class="form-control border-0 bg-light w-50">0394848974</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_tel }}</span>
                         </div>
                     </div>
                 </div>
@@ -99,10 +99,10 @@
             <a href="javascript:history.back()" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2" style="font-size: 18px;"></i> Retour
             </a>
-            <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
+            {{-- <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
                 Imprimer l'étiquette
-            </a>
-            <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success" style="background-color: #90EE90; border-color: #90EE90; color: #fff;">
+            </a> --}}
+            <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success" >
                 Imprimer la facture
             </a>
         </div>        
@@ -117,14 +117,14 @@ document.getElementById('imprimer-etiquette').addEventListener('click', function
     const colisId = document.getElementById('id').value;  // Récupère l'ID du colis
     console.log('ID du colis :', colisId);
     // Redirige vers l'URL en utilisant l'ID du colis
-    window.location.href = `{{ route('colis.imprimer.etiquette', '') }}/${colisId}`;
+    window.location.href = `{{ route('ipms_angre_colis.imprimer.etiquette', '') }}/${colisId}`;
 });
 
 document.getElementById('imprimer-facture').addEventListener('click', function() {
     const colisId = document.getElementById('id').value;  // Récupère l'ID du colis
     console.log('ID du colis :', colisId);
     // Redirige vers l'URL en utilisant l'ID du colis
-    window.location.href = `{{ route('colis.imprimer.facture', '') }}/${colisId}`;
+    window.location.href = `{{ route('ipms_angre_colis.imprimer.facture', '') }}/${colisId}`;
 });
 
     document.getElementById('clear').addEventListener('click', () => {

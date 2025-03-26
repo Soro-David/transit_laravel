@@ -107,7 +107,7 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         language: {
-            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+           url: "{{ asset('js/fr-FR.json') }}"
         },
         ajax: '{{ route('agence.get.agent') }}',
         columns: [

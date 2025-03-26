@@ -30,7 +30,7 @@
                                                 {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
+                                                <th>Agence Destination</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
 
@@ -197,9 +197,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
             ajax: '{{ route("chine_scan.get.colis.charge") }}', // Récupération des données via AJAX
-            columns: [{
-                        data: 'reference_colis'
-                    },
+            columns: [
+                    {data: 'reference_colis'},
                     {
                         data: 'nombre_de_colis'
                     },
@@ -240,55 +239,55 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     },
                 ],
-            dom: 'Bfrtip', // Placement des boutons
-            buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'Liste des Colis en attente',
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
-                // Bouton PDF
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exporter en PDF',
-                    title: 'Liste des Colis en attente',
-                    orientation: 'landscape', // Mode paysage
-                    pageSize: 'A4', // Taille de la page
-                    customize: function (doc) {
-                        // Ajout du logo encodé en Base64 dans le PDF
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        toDataURL(logoUrl, function (dataUrl) {
-                            // Ajout de l'image au début du contenu PDF
-                            console.log(dataUrl);
-                            doc.content.unshift({
-                                image: dataUrl,
-                                width: 100, // Taille du logo
-                                alignment: 'center',
-                                margin: [0, 0, 0, 10] // Espacement
-                            });
-                        });
-                    }
-                },
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'Liste des Colis en attente',
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                        $(win.document.body).find('h1').after(logo);
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                    }
-                }
-            ]
+            // dom: 'Bfrtip', // Placement des boutons
+            // buttons: [
+            //     // Bouton Excel
+            //     {
+            //         extend: 'excelHtml5',
+            //         text: 'Exporter en Excel',
+            //         title: 'Liste des Colis en attente',
+            //         customize: function (xlsx) {
+            //             console.log("Exportation Excel réussie sans image.");
+            //         }
+            //     },
+            //     // Bouton PDF
+            //     {
+            //         extend: 'pdfHtml5',
+            //         text: 'Exporter en PDF',
+            //         title: 'Liste des Colis en attente',
+            //         orientation: 'landscape', // Mode paysage
+            //         pageSize: 'A4', // Taille de la page
+            //         customize: function (doc) {
+            //             // Ajout du logo encodé en Base64 dans le PDF
+            //             var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+            //             toDataURL(logoUrl, function (dataUrl) {
+            //                 // Ajout de l'image au début du contenu PDF
+            //                 console.log(dataUrl);
+            //                 doc.content.unshift({
+            //                     image: dataUrl,
+            //                     width: 100, // Taille du logo
+            //                     alignment: 'center',
+            //                     margin: [0, 0, 0, 10] // Espacement
+            //                 });
+            //             });
+            //         }
+            //     },
+            //     // Bouton Imprimer
+            //     {
+            //         extend: 'print',
+            //         text: 'Imprimer',
+            //         title: 'Liste des Colis en attente',
+            //         customize: function (win) {
+            //             var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+            //             var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+            //             $(win.document.body).find('h1')
+            //                 .css('text-align', 'center')
+            //                 .css('margin-top', '10px');
+            //             $(win.document.body).find('h1').after(logo);
+            //             $(win.document.body).find('table').css('margin-top', '30px');
+            //         }
+            //     }
+            // ]
         });
 
     });

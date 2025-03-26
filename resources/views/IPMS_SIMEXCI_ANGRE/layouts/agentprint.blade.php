@@ -45,8 +45,8 @@
 <body class="hold-transition sidebar-mini">
     <!-- Site wrapper -->
     <div class="wrapper">
-        @include('agent.layouts.navbar')
-        @include('agent.layouts.sidebar')
+        @include('IPMS_SIMEXCI_ANGRE.layouts.navbar')
+        @include('IPMS_SIMEXCI_ANGRE.layouts.sidebar')
 
         <!-- Content Wrapper -->
         <div class="content-wrapper">
@@ -65,8 +65,8 @@
 
             <!-- Main content -->
             <section class="content">
-                @include('agent.layouts.partials.alert.success')
-                @include('agent.layouts.partials.alert.error')
+                @include('IPMS_SIMEXCI_ANGRE.layouts.partials.alert.success')
+                @include('IPMS_SIMEXCI_ANGRE.layouts.partials.alert.error')
                 @yield('content')
             </section>
         </div>

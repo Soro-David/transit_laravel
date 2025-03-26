@@ -156,9 +156,9 @@
                 </li>
                 {{-- endRDV --}}
                 <li class="nav-item has-treeview">
-                    <a href="" class="nav-link {{ activeSegment('customers') }}">
+                    <a href="{{ route('chine_client.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
-                        <p>Clients</p>
+                        <p>{{ __('Clients') }}</p>
                     </a>
                 </li>
                 {{-- progammz de transport --}}

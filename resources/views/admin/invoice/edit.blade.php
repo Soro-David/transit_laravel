@@ -72,7 +72,7 @@
                         </div>
                         <div class="mb-3 d-flex align-items-center">
                             <label class="form-label fw-bold w-50">Téléphone:</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $colis_principal->destinataire_tel }}</span>
+                            <span class="form-control border-0 bg-light w-50">{{ $colis_info->destinataire_tel }}</span>
                         </div>
                     </div>
                 </div>

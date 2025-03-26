@@ -60,19 +60,36 @@ use App\Http\Controllers\AgentController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\ChauffeurColisController;
 use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\AftController;
+use App\Http\Controllers\ChineController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 
 
-Route::get('/', function () { return redirect('/login'); });
-// Route::get('/agent', function () { return redirect('/login_admin'); });
+Route::get('/', function () { return redirect('/accueil'); });
+Route::get('/login', function () { return redirect('/login'); });
+// Route::get('/accueil', function () { return redirect('/login_admin'); });
 
+Route::get('/', function () {
+    return view('accueil'); // Affiche la vue accueil.blade.php
+});
+
+Route::get('/a-propos', function () {
+    return view('apropos'); // Affiche la vue accueil.blade.php
+});
+Route::get('/nos-servives', function () {
+    return view('services'); // Affiche la vue accueil.blade.php
+});
+Route::get('/contact', function () {
+    return view('contact'); // Affiche la vue accueil.blade.php
+});
 Auth::routes();
-
+// Route::get('/accueil',function () { return redirect('/accueil');});
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('home');
+     //DataTable route
 
     Route::get('/colis-admin/count', function () {
         $colisCount = Colis::where('etat', 'Validé')
@@ -144,6 +161,18 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/managers/agent',[adminController::class, 'add_agent'])->name('managers.agent'); //DataTable route
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
     Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
+
+    Route::prefix('client')->name('client.')->group(function () {
+      
+        Route::get('/', [AdminController::class, 'clients'])->name('index'); // Renamed to 'client.index'
+        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
+        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
+        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
+        Route::get('/edit/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'edit'])->name('edit');
+        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'destroy'])->name('destroy');
+        Route::put('/update/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'update'])->name('update');
+    });
+    
 
     Route::prefix('invoice')->name('invoice.')->group(function(){
         Route::get('/', [AdminInvoiceController::class, 'index'])->name('index'); 
@@ -309,12 +338,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
     });
     
-        // Client rouute
-        Route::prefix('client')->name('client.')->group(function(){
-            Route::get('/', [ClientController::class,'index'])->name('index');
-            Route::get('/get-client',[ClientController::class, 'get_client'])->name('get.client');
-            Route::get('/clients/data', [ClientController::class, 'getClientsData'])->name('clients.data');
-        });
 
 
 
@@ -382,7 +405,10 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
             Route::get('/history', [CustomerColisController::class,'history'])->name('history');
             Route::get('/suivi-customer', [CustomerColisController::class,'suivi'])->name('suivi');
-            Route::get('/facture', [CustomerColisController::class,'facture'])->name('facture');
+            Route::get('/invoices', [CustomerColisController::class,'facture'])->name('facture');
+            // Route::get('invoices/print/{invoice}', [CustomerColisController::class, 'print'])->name('invoices.print');
+            Route::get('invoices/print/', [CustomerColisController::class, 'invoice'])->name('edit.invoice');
+
             Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
             Route::get('/get-colis-suivi-customer',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
             Route::get('/get-colis-valide',[CustomerColisController::class, 'get_colis_valide'])->name('get.colis.valide');
@@ -515,6 +541,17 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         return response()->json(array_values($data));
     })->name('colis.valides-par-mois');;
 
+    Route::prefix('aft_client')->name('aft_client.')->group(function () {
+      
+        Route::get('/', [AftController::class, 'clients'])->name('index'); // Renamed to 'client.index'
+        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
+        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
+        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
+        Route::get('/edit/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'edit'])->name('edit');
+        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'destroy'])->name('destroy');
+        Route::put('/update/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'update'])->name('update');
+    });
+    
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('aftlb_colis')->name('aftlb_colis.')->group(function(){
         Route::get('/', [AftlbColisController::class, 'index'])->name('index'); 
@@ -1093,6 +1130,16 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
                 ->pluck('total', 'mois');    
         })->name('chine_colis.valides-par-mois');
     // Groupe de routes pour les opérations sur les colis
+    Route::prefix('chine_client')->name('chine_client.')->group(function () {
+      
+        Route::get('/', [ChineController::class, 'clients'])->name('index'); // Renamed to 'client.index'
+        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
+        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
+        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
+        Route::get('/edit/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'edit'])->name('edit');
+        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'destroy'])->name('destroy');
+        Route::put('/update/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'update'])->name('update');
+    });
     Route::prefix('chine_colis')->name('chine_colis.')->group(function(){
         Route::get('/', [ChineColisController::class, 'index'])->name('index'); 
         Route::get('/on-hold-aft_chine', [ChineColisController::class, 'hold'])->name('hold'); 

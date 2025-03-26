@@ -596,8 +596,6 @@ class ApmsColisController extends Controller
 
 
 
-
-
     public function get_colis_suivi(Request $request)
     {
 
@@ -839,7 +837,7 @@ class ApmsColisController extends Controller
 public function editInvoice($id)
 {
     
-    dd($id);
+    // dd($id);
     $colis_principal = Colis::find($id);
 
     if (!$colis_principal) {

@@ -48,6 +48,7 @@ class AftlbColisController extends Controller
                 'date_arrive' => 'required|date',
                 'compagnie' => 'required|string',
                 'agence_destination' => 'required|string',
+                // 'agence_expedition' => 'required|string',
             ],
             [
                 'reference_bateau.required' => 'La référence du bateau est obligatoire.',
@@ -62,6 +63,7 @@ class AftlbColisController extends Controller
                 'agence_destination.string' => 'L\'agence de destination doit être une chaîne de caractères.',
             ]);
 
+            // dd($request);
             // Création du bateau
             $bateau = Bateaux::create([
                 'reference_bateau' => $request->reference_bateau,
@@ -70,6 +72,7 @@ class AftlbColisController extends Controller
                 'date_arriver' => $request->date_arrive,
                 'compagnie' => $request->compagnie,
                 'agence_destination' => $request->agence_destination,
+                'agence_expedition' => $request->agence_expedition,
                 'nom_bateau' => $request->nom_bateau ?? null,
                 'numero_bateau' => $request->numero_bateau ?? null,
                 'nom_ballon' => $request->nom_ballon ?? null,
@@ -244,7 +247,8 @@ class AftlbColisController extends Controller
 
     // Récupérer les agences avec leur pays associé
     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-    $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    $agencesExpedition = Agence::where('nom_agence', 'AFT Agence Louis Bleriot')->get();
     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
 
 
@@ -365,7 +369,7 @@ class AftlbColisController extends Controller
 
     public function generer_qrcode(Request $request)
     {
-        dd($request);
+        // dd($request);
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
             session('step1', []),
@@ -1566,7 +1570,7 @@ public function get_colis_hold(Request $request)
                 'reference_bateau',
                 'created_at as date_depart', // Création comme date de départ
                 'date_arriver'
-            ) ->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ) ->where('agence_expedition', 'AFT Agence Louis Bleriot')
             ->get();
     
             return DataTables::of($bateaux)

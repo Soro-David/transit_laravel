@@ -198,7 +198,7 @@
                 <li class="nav-item has-treeview">
                     <a href="{{ route('client.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
-                        <p>Clients</p>
+                        <p>{{ __('Clients') }}</p>
                     </a>
                 </li>
                 {{-- Transport --}}

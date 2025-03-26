@@ -85,6 +85,7 @@ class IpmsInvoiceController extends Controller
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
             'agent_id' => $id_agent,
+            'reference_colis'=>$reference_colis,
             'montant' => $prix_total ?? 0,
             'numero_facture' => $numero_facture,
         ]);

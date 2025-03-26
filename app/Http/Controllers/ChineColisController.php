@@ -24,6 +24,7 @@ use App\Models\Destinataire;
 use App\Models\Paiement;
 use App\Models\Article;
 use App\Models\Produit;
+use App\Models\Bateaux;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
@@ -67,6 +68,7 @@ class ChineColisController extends Controller
                 'date_arriver' => $request->date_arrive,
                 'compagnie' => $request->compagnie,
                 'agence_destination' => $request->agence_destination,
+                'agence_expedition' => $request->agence_expedition,
                 'nom_bateau' => $request->nom_bateau ?? null,
                 'numero_bateau' => $request->numero_bateau ?? null,
                 'nom_ballon' => $request->nom_ballon ?? null,
@@ -236,7 +238,8 @@ class ChineColisController extends Controller
         ->pluck('pays_agence');
         // Récupérer les agences avec leur pays associé
         $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-        $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+        // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+        $agencesExpedition = Agence::where('nom_agence', 'Agence de Chine')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
         $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
         
@@ -354,7 +357,7 @@ class ChineColisController extends Controller
 
     public function generer_qrcode(Request $request)
     {
-        dd($request);
+        // dd($request);
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
             session('step1', []),
@@ -1589,48 +1592,21 @@ public function get_colis_hold(Request $request)
     public function get_cargaison_ferme(Request $request)
     {
         if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis', 
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Fermé')  // Filtre l'état des colis
-            ->where('expediteurs.agence', 'Agence de Chine')
-            ->get(); // Exécute la requête une seule fois
-
-            return DataTables::of($colis)
-                ->addColumn('etat', function ($row) {
-                    if ($row->etat === 'Fermé') {
-                        return 'Cargaison Fermée'; // Si l'état est "Validé", afficher "Colis validé"
-                    } 
-                    return $row->etat; // Sinon, retourner l'état original
+            $bateaux = Bateaux::select(
+                'reference_bateau',
+                'created_at as date_depart',
+                'date_arriver'
+            ) 
+            ->where('agence_expedition', 'Agence de Chine')
+            ->get();
+    
+            return DataTables::of($bateaux)
+                ->editColumn('date_depart', function ($row) {
+                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
                 })
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
+                ->editColumn('date_arriver', function ($row) {
+                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
                 ->make(true);
         }
     }

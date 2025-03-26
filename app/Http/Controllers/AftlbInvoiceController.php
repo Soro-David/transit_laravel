@@ -51,6 +51,7 @@ class AftlbInvoiceController extends Controller
     public function store_invoice()
     {
         $reference_colis = request()->input('reference_colis');
+        dd($reference_colis);
         $colisCollection = Colis::where('reference_colis', $reference_colis)
                 ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
                 ->whereIn('colis.etat', ['Validé', 'Dechargé'])  // Filtre sur l'état des colis
@@ -97,6 +98,7 @@ class AftlbInvoiceController extends Controller
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
             'agent_id' => $id_agent,
+            'reference_colis'=>$reference_colis,
             'montant' => $prix_total ?? 0,
             'numero_facture' => $numero_facture,
         ]);

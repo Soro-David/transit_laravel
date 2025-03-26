@@ -91,6 +91,7 @@ class IpmsAngreInvoiceController extends Controller
             'nom_destinataire' => $destinataire,
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
+            'reference_colis'=>$reference_colis,
             'agent_id' => $id_agent,
             'montant' => $prix_total ?? 0,
             'numero_facture' => $numero_facture,

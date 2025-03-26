@@ -69,13 +69,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ old('nom_expediteur') }}" class="form-control" required>
+                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{$user->first_name }}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{$user->last_name }}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -83,13 +83,13 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{ old('email_expediteur') }}" class="form-control">
+                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{$user->email }}" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ old('tel_expediteur') }}" class="form-control" required>
+                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" required>
                         </div>
                     </div>
                 </div>
@@ -97,7 +97,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ old('adresse_expediteur') }}" class="form-control" required>
+                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{$user->adresse}}" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -261,8 +261,8 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                            <label for="type_embalage" class="form-label">Produits ou services</label>
+                            <input type="text" name="services[]" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6" id="dimension_section">
@@ -373,8 +373,8 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                            <label for="type_embalage" class="form-label">Produits ou services</label>
+                            <input type="text" name="services[]" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6 dimension-section">

@@ -29,7 +29,7 @@
                                                         <th>Destinataire</th>
                                                         <th>Téléphone</th>
                                                         <th>Agence Destinataire</th>
-                                                        <th>Status</th>
+                                                        {{-- <th>Status</th> --}}
                                                         <th>Date</th>
                                                     </tr>
                                                 </thead>
@@ -212,9 +212,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
-            { data: 'etat' },
+            { data: 'destinataire_agence' },
+            // { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {
                     if (data) {
@@ -229,60 +229,60 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             // { data: 'action' },
         ],
-            dom: 'Bfrtip', // Placement des boutons
-            buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'Liste des Colis en attente',
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
-                // Bouton PDF
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exporter en PDF',
-                    title: 'Liste des Colis en attente',
-                    orientation: 'landscape', // Mode paysage
-                    pageSize: 'A4', // Taille de la page
-                    customize: function (doc) {
-                        // Ajout du logo encodé en Base64 dans le PDF
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        toDataURL(logoUrl, function (dataUrl) {
-                            // Ajout de l'image au début du contenu PDF
-                            console.log(dataUrl);
-                            doc.content.unshift({
-                                image: dataUrl,
-                                width: 100, // Taille du logo
-                                alignment: 'center',
-                                margin: [0, 0, 0, 10] // Espacement
-                            });
-                        });
-                    }
-                },
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'Liste des Colis en attente',
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                        $(win.document.body).find('h1').after(logo);
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                    }
-                }
-            ]
+            // dom: 'Bfrtip', // Placement des boutons
+            // buttons: [
+            //     // Bouton Excel
+            //     {
+            //         extend: 'excelHtml5',
+            //         text: 'Exporter en Excel',
+            //         title: 'Liste des Colis en attente',
+            //         customize: function (xlsx) {
+            //             console.log("Exportation Excel réussie sans image.");
+            //         }
+            //     },
+            //     // Bouton PDF
+            //     {
+            //         extend: 'pdfHtml5',
+            //         text: 'Exporter en PDF',
+            //         title: 'Liste des Colis en attente',
+            //         orientation: 'landscape', // Mode paysage
+            //         pageSize: 'A4', // Taille de la page
+            //         customize: function (doc) {
+            //             // Ajout du logo encodé en Base64 dans le PDF
+            //             var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+            //             toDataURL(logoUrl, function (dataUrl) {
+            //                 // Ajout de l'image au début du contenu PDF
+            //                 console.log(dataUrl);
+            //                 doc.content.unshift({
+            //                     image: dataUrl,
+            //                     width: 100, // Taille du logo
+            //                     alignment: 'center',
+            //                     margin: [0, 0, 0, 10] // Espacement
+            //                 });
+            //             });
+            //         }
+            //     },
+            //     // Bouton Imprimer
+            //     {
+            //         extend: 'print',
+            //         text: 'Imprimer',
+            //         title: 'Liste des Colis en attente',
+            //         customize: function (win) {
+            //             var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+            //             var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+            //             $(win.document.body).find('h1')
+            //                 .css('text-align', 'center')
+            //                 .css('margin-top', '10px');
+            //             $(win.document.body).find('h1').after(logo);
+            //             $(win.document.body).find('table').css('margin-top', '30px');
+            //         }
+            //     }
+            // ]
         });
  // Rafraîchissement de la table toutes les 4 secondes
- setInterval(function() {
-        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
-    }, 4000);
+//  setInterval(function() {
+//         table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
+//     }, 4000);
     });
 
 </script>

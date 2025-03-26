@@ -115,7 +115,7 @@
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
-    
+                            <input type="hidden" name="agence_expedition" value="{{ old('agence_expedition', 'AFT Agence Louis Bleriot') }}">
                             <!-- Bouton de soumission -->
                             <div class="col-md-12 text-center">
                                 <button type="submit" class="btn btn-success">Créer</button>
@@ -134,7 +134,7 @@
                 const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
     
                 if (referenceConteneur) {
-                    const referenceBateau = `CNT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
+                    const referenceBateau = `CGS-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
                     document.getElementById("reference_bateau").value = referenceBateau;
                 } else {
                     document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
@@ -200,55 +200,6 @@ $(document).ready(function () {
             { data: 'date_depart', title: "Date de Départ" },
             { data: 'date_arriver', title: "Date d'Arrivée" }
         ],
-        dom: 'Bfrtip', // Placement des boutons
-        buttons: [
-            // Bouton Excel
-            {
-                extend: 'excelHtml5',
-                text: 'Exporter en Excel',
-                title: 'Liste des Colis en attente',
-                customize: function (xlsx) {
-                    console.log("Exportation Excel réussie sans image.");
-                }
-            },
-            // Bouton PDF
-            {
-                extend: 'pdfHtml5',
-                text: 'Exporter en PDF',
-                title: 'Liste des Colis en attente',
-                orientation: 'landscape', // Mode paysage
-                pageSize: 'A4', // Taille de la page
-                customize: function (doc) {
-                    // Ajout du logo encodé en Base64 dans le PDF
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    toDataURL(logoUrl, function (dataUrl) {
-                        // Ajout de l'image au début du contenu PDF
-                        console.log(dataUrl);
-                        doc.content.unshift({
-                            image: dataUrl,
-                            width: 100, // Taille du logo
-                            alignment: 'center',
-                            margin: [0, 0, 0, 10] // Espacement
-                        });
-                    });
-                }
-            },
-            // Bouton Imprimer
-            {
-                extend: 'print',
-                text: 'Imprimer',
-                title: 'Liste des Colis en attente',
-                customize: function (win) {
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                    $(win.document.body).find('h1')
-                        .css('text-align', 'center')
-                        .css('margin-top', '10px');
-                    $(win.document.body).find('h1').after(logo);
-                    $(win.document.body).find('table').css('margin-top', '30px');
-                }
-            }
-        ]
     });
 
     /**

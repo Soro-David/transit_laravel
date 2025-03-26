@@ -43,7 +43,7 @@
 </section>
 <!-- Script JavaScript -->
 <script>
-   $(document).ready(function () {
+$(document).ready(function () {
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {

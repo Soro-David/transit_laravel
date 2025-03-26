@@ -17,6 +17,7 @@ use App\Models\Expediteur;
 use App\Models\Destinataire;
 use App\Models\Paiement;
 use App\Models\Article;
+use App\Models\Invoice;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
@@ -175,7 +176,7 @@ class CustomerColisController extends Controller
                 'mode_transit',
                 'reference_colis',
                 'quantite_colis',
-                'type_embalage',
+                'services',
                 'hauteur',
                 'largeur',
                 'longueur',
@@ -225,7 +226,7 @@ class CustomerColisController extends Controller
                     'reference_colis' => $data['reference_colis'],
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => $quantite,
-                    'type_embalage' => $data['type_embalage'][$index] ?? null,
+                    'service' => $data['services'][$index] ?? null,
                     'poids_colis' => $data['poids_colis'][$index] ?? null,
                     // 'dimension_result' => $data['dimension_result'][$index] ?? null,
                     'mode_transit' => $data['mode_transit'] ?? null,
@@ -293,7 +294,7 @@ class CustomerColisController extends Controller
     {
         $email = auth()->user()->email;
         // Récupérer tous les colis liés à cet email
-        $colis = Les_colis::where('email', $email);
+        $colis = Colis::where('email', $email);
         // dd( $colis);
         return view('customer.colis.hold');
     }
@@ -307,11 +308,116 @@ class CustomerColisController extends Controller
     {
         return view('customer.colis.suivi');
     }
-    public function facture()
+
+    public function facture(Request $request)
     {
-        return view('customer.facture.invoice1');
+        $userEmail = auth()->user()->email;
+
+        $expediteurs = Expediteur::where('email', $userEmail)->get();
+
+        if ($expediteurs->isNotEmpty()) {
+            $expediteurIds = $expediteurs->pluck('id')->toArray();
+
+            $invoices = Invoice::whereIn('expediteur_id', $expediteurIds)
+                ->with(['expediteur', 'destinataire', 'agent'])
+                ->get();
+
+            $groupedInvoices = $invoices->groupBy('invoice_number');
+
+            $latestInvoices = [];
+
+            foreach ($groupedInvoices as $invoiceNumber => $invoiceGroup) {
+                $latestInvoice = $invoiceGroup->sortByDesc('created_at')->first();
+
+                $latestInvoices[] = $latestInvoice;
+            }
+
+            return view('customer.invoice.index', ['invoices' => $latestInvoices]);
+        } else {
+            abort(404, "Aucun expéditeur trouvé avec l'email : " . $userEmail);
+        }
     }
 
+    public function invoice(Request $request)
+    {
+        $id = $request->id;
+        $invoice = Invoice::findOrFail($id);
+        $userId = $invoice->expediteur_id;
+    
+        $expediteur = Expediteur::findOrFail($userId);
+        $expId = $expediteur->id;
+
+        $colis = Colis::where('expediteur_id', $expId)
+                     ->orderBy('created_at', 'desc')
+                     ->first();
+
+        $reference_colis = $colis->reference_colis;
+
+        $colisCollection = Colis::where('reference_colis', $reference_colis)
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
+                ->whereIn('colis.etat', ['Validé', 'Dechargé'])  // Filtre sur l'état des colis
+                ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')  // Filtre sur l'agence de l'expéditeur
+                ->get();  // Récupérer les résultats de la requête
+
+            // Vérifier si la collection est vide et renvoyer un message d'erreur
+            if ($colisCollection->isEmpty()) {
+                return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+            }
+
+        // Récupération du premier colis
+        $firstColis = $colisCollection->first();
+        
+        $date_facture = now();
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $tel_expediteur = $firstColis->expediteur->tel;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+
+
+        // Calcul du prix total
+        $prix_total = 0;
+        foreach ($colisCollection as $colis) {
+            if (!isset($colis->prix_transit_colis)) {
+                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+            }
+            $prix_total += $colis->prix_transit_colis;
+        }
+
+        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+        $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
+        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+        $reste = $prix_total - $montant_paye;
+
+        $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        
+        $colisData = [];
+        foreach ($colisCollection as $colis) {
+            $colisData[] = [
+                'description'         => $colis->description_colis,
+                'quantite'            => $colis->quantite_colis,
+                'poids'               => $colis->poids_colis,
+                'type_colis'          => $colis->type_colis,
+                'prix_transit_colis'  => $colis->prix_transit_colis,
+            ];
+        }
+
+        // dd($colisData);
+        // Passage des données à la vue
+        return view('customer.invoice.invoice', compact(
+            'date_facture', 
+            'reference_colis', 
+            'expediteur', 
+            'tel_expediteur', 
+            'destinataire', 
+            'prix_total', 
+            'montant_paye', 
+            'reste', 
+            'mode_payement', 
+            'colisData',
+            'numero_facture',
+        ));
+    }
     /**
      * Show the form for editing the specified resource.
      *

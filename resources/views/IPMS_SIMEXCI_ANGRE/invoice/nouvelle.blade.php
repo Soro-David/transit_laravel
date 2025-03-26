@@ -1,4 +1,4 @@
-@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agentprint')
 
 @section('content-header')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -6,7 +6,7 @@
 
 @section('content')
 <section class="p-4 mx-auto">
-    <form action="{{ route('ipms_angre_invoice.store.invoice') }}" method="POST">
+    <form action="{{ route('invoice.store.invoice') }}" method="POST">
         @csrf
         <div class="form-container text-center">
             <div class="row justify-content-center">

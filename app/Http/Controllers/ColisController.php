@@ -423,7 +423,7 @@ private function generateReferenceContenaire()
             session('step1', []),
             session('step2', [])
         );
-    dd($data);
+    // dd($data);
         // Ajouter le statut au tableau de données
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';

@@ -67,7 +67,6 @@ class ChineInvoiceController extends Controller
 
         // Récupération du premier colis
         $firstColis = $colisCollection->first();
-        
         $date_facture = now();
         $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
         $tel_expediteur = $firstColis->expediteur->tel;
@@ -99,6 +98,7 @@ class ChineInvoiceController extends Controller
             'nom_destinataire' => $destinataire,
             'expediteur_id' => $firstColis->expediteur->id,
             'destinataire_id' => $firstColis->destinataire->id,
+            'reference_colis'=>$reference_colis,
             'agent_id' => $id_agent,
             'montant' => $prix_total ?? 0,
             'numero_facture' => $numero_facture,

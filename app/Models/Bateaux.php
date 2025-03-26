@@ -20,6 +20,7 @@ class Bateaux extends Model
         'nom_bateau',
         'numero_bateau',
         'agence_destination',
+        'agence_expedition',
         'nom_ballon',
         'numero_ballon',
         'recuperer'

@@ -14,15 +14,11 @@
                                     <thead>
                                         <tr>
                                             <th>Référence</th>
-                                            {{-- <th>Nom Expéditeur</th>
-                                            <th>Email Expéditeur</th> --}}
                                             <th>Agence Expédition</th>
                                             <th>Destinataire</th>
-                                            {{-- <th>Email Destinataire</th> --}}
                                             <th>Téléphone</th>
                                             <th>Agence Destination</th>
-                                            <th> Status</th>
-                                            {{-- <th> Etat du colis</th> --}}
+                                            <th> Date et heure</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>

@@ -21,7 +21,7 @@
                 </td>
                 <td class="border-0"></td>
                 <td class="td_droite border-0 text-start">
-                    <h4>Facture Pour : {{$expediteur}}</h4>
+                    <h4>{{$expediteur}}</h4>
                     <p><strong></strong></p>
                     <p>Téléphone :{{$tel_expediteur}}</p>
                     {{-- <h4 class="mt-4">Détails de la Facture</h4> --}}
@@ -92,8 +92,8 @@
             </tr>
             <tr>
                 <td>Ligne 2, Colonne 1</td>
-                <td>{{$expediteur}}</td>
-                <td>{{$destinataire}}</td>
+                <td>{{$expediteur}} <br> {{$tel_expediteur}}</td>
+                <td>{{$destinataire}} <br> {{$tel_destinataire}}</td>
             </tr>
         </table>
     
@@ -111,7 +111,8 @@
             </p>
         </div>
     
-        <div class="div_btn mt-4 no-print">
+        <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
+            <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
             <button class=" btn_print btn btn-primary" onclick="printAffiche()">Imprimer</button>
         </div>
     </div>

@@ -20,7 +20,7 @@
                 <li class="nav-item has-treeview mb-3">
                     <a href="{{ route('customer_colis.create.colis') }}" class="nav-link">
                         <i class="fas fa-plus"></i>
-                        <p>{{ __('Demander un dévis') }}</p>
+                        <p>{{ __('Demande de dévis') }}</p>
                     </a>
                 </li>
                 <li class="nav-item has-treeview mb-3">
@@ -42,12 +42,12 @@
                         <p>{{ __('Suivi de colis') }}</p>
                     </a>
                 </li>
-                 {{-- <li class="nav-item has-treeview">
+                 <li class="nav-item has-treeview">
                     <a href="{{ route('customer_colis.facture') }}" class="nav-link">
                         <i class="fas fa-file-alt"></i>
-                        <p>{{ __('Facture') }}</p>
+                        <p>{{ __('Mes Factures') }}</p>
                     </a>
-                </li> --}}
+                </li>
             </ul>
         </nav>
     </div>

@@ -15,7 +15,7 @@ use App\Models\Agence;
 use ConsoleTVs\Charts\Classes\Chartjs\Chart;
 use App\Models\Colis;
 use App\Models\Expediteur;
-// use Illuminate\Support\Facades\DB;
+use App\Models\Destinataire;
 use Carbon\Carbon;
 
 
@@ -79,7 +79,10 @@ public function index()
     {
         return view('admin.gestion.agence.index');
     }
-
+    public function accueil()
+    {
+        return view('accueil');
+    }
 
     public function store(userRequest $request)
     {
@@ -105,6 +108,7 @@ public function index()
     {
         if ($request->ajax()) {
             $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
+            // dd($users);
             return DataTables::of($users)
                 ->addColumn('action', function ($row) {
                     $editUrl = route('agence.agent.edit', ['id' => $row->id]);
@@ -127,6 +131,159 @@ public function index()
         }
     }
 
+    public function clients(Request $request)
+    {
+        $clients = DB::table('expediteurs')
+            ->select(
+                'nom',
+                'prenom',
+                'tel',
+                'email',
+                DB::raw("'expediteur' as type"),
+                'created_at'
+            )
+            ->unionAll(
+                DB::table('destinataires')
+                    ->select(
+                        'nom',
+                        'prenom',
+                        'tel',
+                        'email',
+                        DB::raw("'destinataire' as type"), 
+                        'created_at'
+                    )
+            )
+            ->get();
+    
+        $groupedClients = $clients->groupBy(function ($client) {
+            return $client->nom . '|' . $client->prenom . '|' . $client->tel . '|' . $client->email;
+        });
+    
+        $uniqueClients = $groupedClients->map(function ($group) {
+            $client = $group->first(); 
+    
+            $types = $group->pluck('type')->unique()->toArray();
+    
+            if (count($types) === 2) {
+                $client->type_client = 'expediteur et destinataire'; 
+            } else {
+                $client->type_client = $types[0]; 
+            }
+    
+            return $client;
+        })->values(); 
+    
+        return view('admin.client.index', compact('uniqueClients'));
+    }
+
+
+public function edit($nom, $prenom, $tel, $email)
+{
+    
+    $expediteur = Expediteur::where('nom', $nom)
+                         ->where('prenom', $prenom)
+                         ->where('tel', $tel)
+                         ->where('email', $email)
+                         ->first();
+
+    $destinataire = Destinataire::where('nom', $nom)
+                             ->where('prenom', $prenom)
+                             ->where('tel', $tel)
+                             ->where('email', $email)
+                             ->first();
+
+    $client = $expediteur ?? $destinataire; // Prend le premier trouvé
+
+    if (!$client) {
+        abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
+    }
+
+    return view('admin.client.edit', compact('client')); // Créer une vue "edit.blade.php"
+}
+
+public function destroy($nom, $prenom, $tel, $email)
+{
+  
+    $expediteur = Expediteur::where('nom', $nom)
+                         ->where('prenom', $prenom)
+                         ->where('tel', $tel)
+                         ->where('email', $email)
+                         ->first();
+
+    $destinataire = Destinataire::where('nom', $nom)
+                             ->where('prenom', $prenom)
+                             ->where('tel', $tel)
+                             ->where('email', $email)
+                             ->first();
+
+    $client = $expediteur ?? $destinataire; // Prend le premier trouvé
+
+    if (!$client) {
+        abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
+    }
+
+    // Supprimer le client de la base de données
+    // (Déterminer si c'est un expéditeur ou un destinataire avant de supprimer)
+    if ($client instanceof Expediteur) {
+        $client->delete();
+    } elseif ($client instanceof Destinataire) {
+        $client->delete();
+    }
+
+    // Rediriger vers la liste des clients avec un message de succès
+    return redirect()->route('client.index')->with('success', 'Client supprimé avec succès.');
+}
+
+
+    public function show($type_client, $id)
+    {
+        if ($type_client === 'expediteur') {
+            $client = Expediteur::findOrFail($id);
+        } else {
+            $client = Destinataire::findOrFail($id);
+        }
+
+        return view('admin.client.show', compact('client', 'type_client'));
+    }
+
+    public function update(Request $request, $nom, $prenom, $tel, $email)
+{
+     // Valider les données de la requête
+     $validatedData = $request->validate([
+        'nom' => 'required|string|max:255',
+        'prenom' => 'required|string|max:255',
+        'tel' => 'required|string|max:20',
+        'email' => 'required|email|max:255',
+    ]);
+        // Rechercher le client dans la base de données (expéditeurs ou destinataires)
+    // (Exemple simplifié - à adapter à votre logique de recherche)
+
+    $expediteur = Expediteur::where('nom', $nom)
+    ->where('prenom', $prenom)
+    ->where('tel', $tel)
+    ->where('email', $email)
+    ->first();
+
+    $destinataire = Destinataire::where('nom', $nom)
+    ->where('prenom', $prenom)
+    ->where('tel', $tel)
+    ->where('email', $email)
+    ->first();
+
+    $client = $expediteur ?? $destinataire; // Prend le premier trouvé
+
+    if (!$client) {
+    abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
+    }
+       // Mettre à jour les informations du client
+    $client->nom = $validatedData['nom'];
+    $client->prenom = $validatedData['prenom'];
+    $client->tel = $validatedData['tel'];
+    $client->email = $validatedData['email'];
+    $client->save();
+     // Rediriger vers la liste des clients avec un message de succès
+     return redirect()->route('clients.index')->with('success', 'Client mis à jour avec succès.');
+}
 }
 
 

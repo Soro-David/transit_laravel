@@ -19,7 +19,7 @@ class ClientController extends Controller
         if ($request->ajax()) {
             // Sélectionne uniquement les champs nécessaires
             $data = Client::select([
-                'id',            // Ajoutez l'id si vous prévoyez d'utiliser une action sur chaque ligne
+                'id',  
                 'nom', 
                 'prenom', 
                 'telephone', 

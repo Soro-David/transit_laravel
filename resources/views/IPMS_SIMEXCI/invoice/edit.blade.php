@@ -99,10 +99,10 @@
             <a href="javascript:history.back()" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2" style="font-size: 18px;"></i> Retour
             </a>
-            <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
+            {{-- <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
                 Imprimer l'étiquette
-            </a>
-            <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success" style="background-color: #90EE90; border-color: #90EE90; color: #fff;">
+            </a> --}}
+            <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success">
                 Imprimer la facture
             </a>
         </div>        
