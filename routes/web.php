@@ -251,6 +251,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/colis/store', [ColisController::class, 'store_colis'])->name('store.colis');
         Route::get('/create/payement/colis', [ColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment/colis', [ColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/cinetpay/notify', [ColisController::class, 'cinetpayNotify'])->name('cinetpay.notify');
         Route::get('/generer/qrcode.colis', [ColisController::class, 'generer_qrcode'])->name('generer.qrcode');
 
 
@@ -379,6 +380,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
     Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
     Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+    Route::get('/programme/export-pdf', [ProgrammeController::class, 'exportPDF'])->name('programme.export.pdf');
     Route::get('/programme/edit/{programme}', [ProgrammeController::class, 'edit']); // Route pour récupérer les données pour l'édition
     Route::put('/programme/update/{programme}', [ProgrammeController::class, 'update']); // Route pour la mise à jour
     Route::delete('/programme/delete/{programme}', [ProgrammeController::class, 'destroy']); // Route pour la suppression
@@ -629,7 +631,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft-louis-b', [AftlbColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft-louis-b', [AftlbColisController::class, 'generer_qrcode'])->name('generer.qrcode');
     });
 
@@ -1222,8 +1224,9 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft_chine', [ChineColisController::class, 'stepPayment'])->name('create.payement');
-        Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payment');
+        Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft_chine', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        
     });
 
     // Groupe de routes pour la gestion du scan

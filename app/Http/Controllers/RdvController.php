@@ -18,6 +18,12 @@ class RdvController extends Controller
             ->where('actions_a_faire', 'recuperation')
             ->get();
 
-        return view('admin.rdv.rdv', compact('depotRdvs', 'recuperationRdvs'));
+              // Ajout de la section Voler Livraison
+        $livraisonRdvs = Programme::with('chauffeur')
+        ->where('actions_a_faire', 'livraison')
+        ->get();
+
+
+        return view('admin.rdv.rdv', compact('depotRdvs', 'recuperationRdvs','livraisonRdvs'));
     }
 }

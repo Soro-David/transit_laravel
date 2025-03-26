@@ -7,19 +7,41 @@ use Illuminate\Database\Eloquent\Model;
 
 class Paiement extends Model
 {
-    protected $fillable = ['mode_de_paiement', 
-                            'montant_reçu', '
-                            operateur_mobile',
-                            'numero_tel',
-                            'nom_banque',
-                            'numero_compte',
-                            'id_transaction',
-                            'colis_id',
-                            'numero_cheque'];
+    use HasFactory;
 
-    // Relation avec Colis
+    protected $fillable = [
+        'methode_paiement',
+        'montant',
+        'operateur',
+        'banque',
+        'NumeroPaiement',
+        'id_transaction',
+        'statut_paiement',
+        'date_validation',
+        'colis_id',
+        'expediteur_id', // Utilisation de expediteur_id
+        'agent_id'
+    ];
+
+    protected $casts = [
+        'date_validation' => 'datetime',
+    ];
+
+    // Relation avec Colis (un paiement appartient à un colis)
     public function colis()
     {
-        return $this->hasMany(Colis::class);
+        return $this->hasMany(Colis::class); // Si un paiement peut concerner plusieurs colis
+    }
+
+    // Relation avec l'expéditeur (un paiement appartient à un expéditeur)
+    public function expediteur()
+    {
+        return $this->belongsTo(Expediteur::class); // Changement ici
+    }
+
+    // Relation avec l'agent (un paiement peut être validé par un agent)
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
     }
 }

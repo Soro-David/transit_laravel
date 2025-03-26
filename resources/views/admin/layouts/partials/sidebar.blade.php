@@ -218,12 +218,6 @@
                         <li class="nav-item">
                             <a href="{{ route('programme.index') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Planifier') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('transport.show.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
                                 <p>{{ __('Programme') }}</p>
                             </a>
                         </li>

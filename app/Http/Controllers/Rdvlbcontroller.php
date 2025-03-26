@@ -31,7 +31,19 @@ class Rdvlbcontroller extends Controller
             return $programme->chauffeur !== null;
         });
 
-        return view('AFT_LOUIS_BLERIOT.rdv.rdv', compact('depotRdvs', 'recuperationRdvs'));
+          // Ajout de la section Voler Livraison
+          $livraisonRdvs = Programme::with(['chauffeur' => function ($query) {
+            $query->where('agence_id', 5);
+        }])
+        ->where('actions_a_faire', 'livraison')
+        ->get();
+
+    // Filtrage des résultats
+    $depotRdvs = $depotRdvs->filter(fn($p) => $p->chauffeur);
+    $recuperationRdvs = $recuperationRdvs->filter(fn($p) => $p->chauffeur);
+    $livraisonRdvs = $livraisonRdvs->filter(fn($p) => $p->chauffeur);
+
+        return view('AFT_LOUIS_BLERIOT.rdv.rdv', compact('depotRdvs', 'recuperationRdvs','livraisonRdvs'));
     }
 }
 
