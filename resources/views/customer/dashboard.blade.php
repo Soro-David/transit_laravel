@@ -221,7 +221,7 @@
                     </div>
             
                     <!-- Statistics Section -->
-                    <div class="row">
+                    {{-- <div class="row">
                         <div class="col-lg-3 col-md-6 col-sm-12">
                             <div class="small-box bg-red">
                                 <div class="inner">
@@ -273,7 +273,7 @@
                                 <canvas id="myChart"></canvas>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </section>
         </div>

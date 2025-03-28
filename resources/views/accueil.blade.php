@@ -305,7 +305,7 @@
                         <h5 class="text-white fw-bold">Global Trade Services</h5>
                         <p class="text-white fw-bold">Efficient solutions for your import and export needs.</p>
                         <div>
-                            <a href="#" class="btn btn-danger demande-devis">Demande de devis</a>
+                            <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
@@ -316,7 +316,7 @@
                         <h5 class="text-white fw-bold">Seamless Logistics</h5>
                         <p class="text-white fw-bold">Your trusted partner for reliable logistics services.</p>
                         <div>
-                            <a href="#" class="btn btn-danger demande-devis">Demande de devis</a>
+                            <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
@@ -327,7 +327,7 @@
                         <h5 class="text-white fw-bold">Expert Customs Clearance</h5>
                         <p class="text-white fw-bold">Navigate customs regulations with our expert assistance.</p>
                         <div>
-                            <a href="#" class="btn btn-danger demande-devis">Demande de devis</a>
+                            <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
