@@ -459,50 +459,78 @@ class CustomerColisController extends Controller
         if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-    
-        // Valider les données du formulaire
+
+        // Valider les données du formulaire (adapté à tous les types de paiement)
         $validatedData = $request->validate([
-            'mode_de_paiement'  => 'required|string',
-            'numero_compte'     => 'nullable|string',
-            'nom_banque'        => 'nullable|string',
-            'transaction_id'    => 'nullable|string',
-            'numero_tel'        => 'nullable|string',
-            'operateur_mobile'  => 'nullable|string',
-            'numero_cheque'     => 'nullable|string',
+            'mode_payement'         => 'required|string',
+            'numero_compte'        => 'nullable|string',
+            'nom_banque'           => 'nullable|string',
+            'transaction_id'       => 'nullable|string',
+            'numero_tel'           => 'nullable|string',
+            'operateur_mobile'     => 'nullable|string',
+            'numero_cheque'        => 'nullable|string',
+            'montant_reçu'         => 'nullable|numeric', // Pour paiement en espèces
+            'cinetpay_transaction_id' => 'nullable|string', // Pour CinetPay
         ]);
-    
+
         // Récupérer le colis en utilisant le paramètre $id
         $colis = Colis::findOrFail($id);
-        
-        // Associer le paiement au colis
-        $validatedData['colis_id'] = $id;
-    
-        // Vérifier si un paiement a déjà été effectué pour ce colis
+
+        // Préparer les données pour la table paiements
+        $paiementData = [
+            'colis_id'          => $id,
+            'methode_paiement'  => $validatedData['mode_payement'],
+            'expediteur_id'     => $colis->expediteur_id, // Récupérer expediteur_id du colis
+            'date_validation'   => now(), // Date de validation du paiement
+            'statut_paiement'   => 'Payé', // Statut de paiement mis à 'Payé'
+            'agent_id'          => null, // Vous pouvez récupérer l'agent connecté si nécessaire Auth::user()->id
+        ];
+
+        // Remplir les champs spécifiques en fonction du mode de paiement
+        if ($validatedData['mode_payement'] === 'bank') {
+            $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
+            $paiementData['NumeroPaiement'] = $validatedData['numero_compte'] ?? null;
+            $paiementData['id_transaction'] = $validatedData['transaction_id'] ?? null;
+        } elseif ($validatedData['mode_payement'] === 'mobile_money') {
+            $paiementData['operateur']      = $validatedData['operateur_mobile'] ?? null;
+            $paiementData['NumeroPaiement'] = $validatedData['numero_tel'] ?? null;
+            // Priorité à la transaction CinetPay si elle existe, sinon transaction ID classique
+            $paiementData['id_transaction'] = $validatedData['cinetpay_transaction_id'] ?? $validatedData['transaction_id'] ?? null;
+        } elseif ($validatedData['mode_payement'] === 'cheque') {
+            $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
+            $paiementData['NumeroPaiement'] = $validatedData['numero_cheque'] ?? null;
+        } elseif ($validatedData['mode_payement'] === 'cash') {
+            $paiementData['montant']        = $validatedData['montant_reçu'] ?? null; // Enregistrer le montant reçu pour les espèces
+        }
+
+        // Enregistrer le montant du colis dans la table paiement
+        $paiementData['montant'] = $colis->prix_transit_colis;
+
+
+        // Vérifier si un paiement a déjà été effectué pour ce colis (optionnel, selon votre logique)
         $existingPayment = Paiement::where('colis_id', $id)->first();
         if ($existingPayment) {
             return response()->json(['message' => 'Le paiement a déjà été effectué pour ce colis.'], 400);
         }
-    
+
         // Créer le paiement
-        Paiement::create($validatedData);
-    
+        Paiement::create($paiementData);
+
         // Mettre à jour le champ 'etat' du colis en le marquant comme "Validé"
         $colis->etat = 'Validé';
         $colis->save();
-    
+
         return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
-        return redirect()->route('customer_colis.index');    
+        return redirect()->route('customer_colis.index'); // Redirection à ajuster si nécessaire
     }
-    
-    
+
     public function edit_payement($id)
     {
         // Récupérer le colis par son ID
         $colis = Colis::findOrFail($id);
-    
+
         return view('customer.colis.edit_payement', compact('colis'));
     }
-    
 // AJAX pour récupérer la liste des colis en attente
     public function get_colis(Request $request)
     {
