@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Vérifier que les deux valeurs ont bien été extraites
         if (!referenceMatch || !idMatch) {
-            console.error("Impossible d'extraire la référence ou l'identifiant.",idMatch);
+            console.error("Impossible d'extraire la référence ou l'identifiant.",referenceMatch);
             resultElement.innerText = "Erreur : données QR code invalides.";
             return;
         }

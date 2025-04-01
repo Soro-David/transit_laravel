@@ -487,6 +487,7 @@ private function generateReferenceContenaire()
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colisItem->reference_colis,
                 'Statut' => $colisItem->etat,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
@@ -643,6 +644,7 @@ $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallba
     foreach ($colis as $colisItem) {
         // Données à encoder dans le QR code
         $qrData = [
+            'Identifiant' => $colisItem->id,
             'Référence colis' => $colisItem->reference_colis,
             'Statut' => $colisItem->etat,
             'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
@@ -862,6 +864,7 @@ public function storePayement(Request $request)
         
         // Format lisible pour le QR code
         $qrData = [
+            'Identifiant' => $colisItem->id,
             'Référence colis' => $data['reference_colis'],
             'Statut' => $colis->status,
             'Nom Expéditeur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
@@ -1771,6 +1774,7 @@ public function get_colis_hold(Request $request)
 
             // Reconstitution des données du QR Code (comme avant)
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colis->reference_colis,
                 'Statut' => $colis->status,
                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,

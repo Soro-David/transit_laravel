@@ -511,6 +511,7 @@ public function store_colis(Request $request)
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colisItem->reference_colis,
                 'Statut' => $colisItem->etat,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
@@ -1223,6 +1224,7 @@ public function get_colis_hold(Request $request)
 
             foreach ($colis as $colisItem) {
                    $qrData = [
+                       'Identifiant' => $colisItem->id,
                        'Référence colis'       => $colisItem->reference_colis,
                        'Statut'                => $colisItem->status,
                        'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1384,6 +1386,7 @@ public function get_colis_hold(Request $request)
 
             // Reconstitution des données du QR Code (comme avant)
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colis->reference_colis,
                 'Statut' => $colis->status,
                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,

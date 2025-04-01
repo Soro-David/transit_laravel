@@ -481,7 +481,7 @@ class ChineColisController extends Controller
              // Mise à jour du colis
              $colis->prix_transit_colis = $data['prix_transit_colis'];
              $colis->status = 'payé';
-             $colis->etat = 'Devis';
+            //  $colis->etat = 'Devis';
              $colis->save();
  
              // Message SMS
@@ -502,6 +502,7 @@ class ChineColisController extends Controller
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
             $qrData = [
+                'Identifiant' => $colisItem->id,
                 'Référence colis' => $colisItem->reference_colis,
                 'Statut' => $colisItem->etat,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
@@ -1100,6 +1101,7 @@ public function inprimerEtiquette($id)
 
         foreach ($colis as $colisItem) {
                $qrData = [
+                   'Identifiant' => $colisItem->id,
                    'Référence colis'       => $colisItem->reference_colis,
                    'Statut'                => $colisItem->status,
                    'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
@@ -1263,6 +1265,7 @@ public function updateMultipleColis(Request $request)
 
         // Reconstitution des données du QR Code (comme avant)
         $qrData = [
+            'Identifiant' => $colisItem->id,
             'Référence colis' => $colis->reference_colis,
             'Statut' => $colis->status,
             'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
