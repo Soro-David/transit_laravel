@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Vérifier que les deux valeurs ont bien été extraites
         if (!referenceMatch || !idMatch) {
-            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            console.error("Impossible d'extraire la référence ou l'identifiant.",idMatch);
             resultElement.innerText = "Erreur : données QR code invalides.";
             return;
         }
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 id: identifiant,          // Envoie l'identifiant extrait
             },
             success: function (response) {
-                console.log("Réponse du serveur :", response);
+                console.log("Réponse du serveur helo :", response);
                 // Affichage des messages retournés par le serveur
                 if (response.messages && Array.isArray(response.messages)) {
                     resultElement.innerText = response.messages.join("\n");
