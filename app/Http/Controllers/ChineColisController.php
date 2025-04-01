@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Storage;
 use Endroid\QrCode\Builder\Builder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class ChineColisController extends Controller
 {
@@ -748,6 +749,15 @@ class ChineColisController extends Controller
                 $colis->etat = 'Devis';
                 $colis->save();
 
+                             // **Code d'envoi d'email AJOUTÉ ICI :**
+                // Send Email after successful update
+                try {
+                    \Mail::to($colis->expediteur->email)->send(new \App\Mail\ColisValidatedMail($colis));
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'envoi de l\'email de validation pour le colis ' . $colisId . ': ' . $e->getMessage());
+                    // Log the error, but don't break the process. Maybe notify admin about email sending failure.
+                }
+                // **Fin du code d'envoi d'email**
                 // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
                 $qrData = [
                     'Référence colis' => $colis->reference_colis,

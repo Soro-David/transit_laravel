@@ -749,6 +749,15 @@ public function store_colis(Request $request)
                 $colis->etat = 'Devis';
                 $colis->save();
 
+                // Send Email after successful update
+                try {
+                    \Mail::to($colis->expediteur->email)->send(new \App\Mail\ColisValidatedMail($colis));
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'envoi de l\'email de validation pour le colis ' . $colisId . ': ' . $e->getMessage());
+                    // Log the error, but don't break the process. Maybe notify admin about email sending failure.
+                }
+
+
                 // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
                 $qrData = [
                     'Référence colis' => $colis->reference_colis,

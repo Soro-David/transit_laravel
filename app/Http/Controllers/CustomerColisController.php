@@ -520,6 +520,14 @@ class CustomerColisController extends Controller
         $colis->etat = 'Validé';
         $colis->save();
 
+         // Envoyer l'email de confirmation de paiement
+         try {
+            \Mail::to($colis->expediteur->email)->send(new \App\Mail\PaymentConfirmedMail($colis, $paiementData));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'email de confirmation de paiement pour le colis ' . $colis->id . ': ' . $e->getMessage());
+            // Log l'erreur, mais ne bloque pas le processus principal
+        }
+
         return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
         return redirect()->route('customer_colis.index'); // Redirection à ajuster si nécessaire
     }
