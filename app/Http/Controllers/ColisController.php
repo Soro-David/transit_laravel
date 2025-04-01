@@ -8,11 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-// use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
-// use Carbon\Carbon;
-// use Illuminate\Support\Facades\DB;
+
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -32,6 +30,13 @@ use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Infobip\Api\SmsApi;
+use Infobip\Configuration;
+use Infobip\Models\SmsAdvancedTextualRequest;
+use Infobip\Models\SmsDestination;
+use Infobip\Models\SmsTextualMessage;
+use App\Services\InfobipService;
+
 
 class ColisController extends Controller
 {
@@ -334,7 +339,7 @@ private function generateReferenceContenaire()
                 'type_colis',
                 'poids',
                 'description_colis',
-                'prix' // Assurez-vous que 'prix' est bien envoyé depuis le formulaire
+                'prix'
             ])]);
     
             return redirect()->route('colis.create.payement');
@@ -350,76 +355,15 @@ private function generateReferenceContenaire()
        
         return view('admin.colis.add.payement');
     }
-
-    // public function storePayment(Request $request)
-    // {
-    //     try {
-    //         $validatedData = $request->validate([
-    //         //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-    //         //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-    //         //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-    //         //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-    //         //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-    //         //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-    //         //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-    //         //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-    //         // ], [
-    //         //     'required' => 'Le champ :attribute est obligatoire.',
-    //         //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-    //         //     'numeric' => 'Le champ :attribute doit être un nombre.',
-    //         //     'min' => 'Le champ :attribute doit être au moins :min.',
-    
-    //         //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-    //         //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
-    
-    //         //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-    //         //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-    //         //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-    //         //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-    //         //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-    //         //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-    //         //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-    //         //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-    //         //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-    //         //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
-    //         ]);
-    
-    //         // Stocker les données en session
-
-
-    //         session(['step2' => $request->only([
-    //             'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-    //             'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-    //             'dimension_result'
-                
-    //         ])]);
-    //         return response()->json([
-    //             'success' => true,
-    //             'redirect' => route('colis.generer.qrcode'),
-    //         ]);
-
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
-    //         ], 422);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-    //         ], 500);
-    //     }
-    // }
     
 
-    public function generer_qrcode(Request $request)
+    public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
             session('step1', []),
             session('step2', [])
         );
-    // dd($data);
         // Ajouter le statut au tableau de données
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
@@ -505,7 +449,40 @@ private function generateReferenceContenaire()
                 // 'paiement_id' => $payement->id,
             ]));
         }
-    // dd($colis);
+
+
+        // SMS data
+        
+        $colisData = $colis;
+        // dd($colisData);
+        foreach ($colisData as $colisId => $data) {
+            // dd($data);
+            try {
+                $colis = Colis::findOrFail($data->id);
+                $numero_expediteur = +2250546158376;
+                // dd($numero_expediteur);
+                // dd( $colis->prix_transit_colis);
+                // Mise à jour du colis
+                $colis->prix_transit_colis = $data['prix_transit_colis'];
+                $colis->status = 'payé';
+                $colis->etat = 'Devis';
+                $colis->save();
+    
+                // Message SMS
+                $message = "Bonjour " . $colis->expediteur->nom . ", votre colis (Réf: " . $colis->reference_colis . ") a été validé avec succès. Le prix est " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. AFT IMPORT/EXPORT vous remercie pour votre confiance.";
+
+                // Envoi du SMS
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+    
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+                return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+            }
+        }
+     // End SMS Data
+    $colis = $colisData;
+     // dd($colis);
         // Générer les QR codes pour chaque colis
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
@@ -547,7 +524,7 @@ private function generateReferenceContenaire()
             // Mettre à jour le chemin du QR code dans la base de données
             $colisItem->update(['qr_code_path' => $filePath]);
         }
-    
+
         // Réinitialiser les sessions après traitement
         session()->forget(['step1', 'step2']);
     
@@ -883,12 +860,6 @@ public function storePayement(Request $request)
             Article::create($article);
         }
         
-        // dd($article);
-
-        
-
-    // dd($colis );
-
         // Format lisible pour le QR code
         $qrData = [
             'Référence colis' => $data['reference_colis'],
@@ -899,7 +870,6 @@ public function storePayement(Request $request)
             'Agence Destination' => $data['agence_destination'] ?? '',
             'Lieu de Destination' => $data['lieu_destination'] ?? '',
         ];
-
 
         // Construire le contenu du QR code
         $qrCodeContent = '';
@@ -1212,7 +1182,6 @@ public function storePayement(Request $request)
 
     public function editInvoice($id)
     {
-        
         
         $colis_principal = Colis::find($id);
 
@@ -1681,50 +1650,90 @@ public function get_colis_hold(Request $request)
         return view('admin.colis.edit_colis_valide', compact('colis'));
     }
 
-    public function update_hold(Request $request) // Suppression de $id ici
+    // public function update_hold(Request $request) // Suppression de $id ici
+    // {
+    //     // Validation des données (important pour la sécurité)
+    //     $validatedData = $request->validate([
+    //         'colis.*.prix_transit_colis' => 'required|numeric|min:0',
+    //         // Ajoutez d'autres règles de validation pour chaque champ modifiable.
+    //     ]);
+
+    //     $colisData = $request->input('colis');
+
+    //     foreach ($colisData as $colisId => $data) {
+    //         try {
+    //             $colis = Colis::findOrFail($colisId);
+    //             $numero_expediteur = $colis->expediteur->tel;
+    //             dd($numero_expediteur);
+    //             // Mise à jour des champs autorisés (sécurité !)
+    //             $colis->prix_transit_colis = $data['prix_transit_colis'];
+    //             $colis->status = 'payé';
+    //             $colis->etat = 'Devis';
+    //             $colis->save();
+
+    //             // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
+    //             $qrData = [
+    //                 'Référence colis' => $colis->reference_colis,
+    //                 'Statut' => $colis->status,
+    //                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
+    //                 'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
+    //                 'Téléphone Destinataire' => $colis->destinataire->tel,
+    //                 'Agence Destination' => $colis->destinataire->agence ?? '',
+    //                 'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
+    //             ];
+    //             // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
+    //             Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
+
+    //         } catch (\Exception $e) {
+    //             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+    //             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+    //         }
+    //     }
+
+    //     // Redirection avec un message de succès
+    //     return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
+    // }
+    
+    public function update_hold(Request $request, InfobipService $infobipService)
     {
-        // Validation des données (important pour la sécurité)
         $validatedData = $request->validate([
             'colis.*.prix_transit_colis' => 'required|numeric|min:0',
-            // Ajoutez d'autres règles de validation pour chaque champ modifiable.
         ]);
-
+    
         $colisData = $request->input('colis');
-
+    
         foreach ($colisData as $colisId => $data) {
             try {
                 $colis = Colis::findOrFail($colisId);
-
-                // Mise à jour des champs autorisés (sécurité !)
+                $numero_expediteur = +2250546158376;
+                // dd($numero_expediteur);
+                // dd( $colis);
+                // Mise à jour du colis
                 $colis->prix_transit_colis = $data['prix_transit_colis'];
                 $colis->status = 'payé';
                 $colis->etat = 'Devis';
                 $colis->save();
+    
+                // Message SMS
+                $message = "Bonjour " . $colis->expediteur->nom . ", 
+                            le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. 
+                            Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. 
+                            Connectez-vous pour effectuer votre paiement.";
 
-                // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
-                $qrData = [
-                    'Référence colis' => $colis->reference_colis,
-                    'Statut' => $colis->status,
-                    'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-                    'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-                    'Téléphone Destinataire' => $colis->destinataire->tel,
-                    'Agence Destination' => $colis->destinataire->agence ?? '',
-                    'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-                ];
-
-                // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
-                Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
+                // Envoi du SMS
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+    
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
             }
         }
-
-        // Redirection avec un message de succès
+    
         return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
     }
     
+
     public function updateMultipleColis(Request $request)
     {
         // Validation globale (optionnelle, mais recommandée)

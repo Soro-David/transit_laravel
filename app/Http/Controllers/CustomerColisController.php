@@ -322,7 +322,7 @@ class CustomerColisController extends Controller
                 ->with(['expediteur', 'destinataire', 'agent'])
                 ->get();
 
-            $groupedInvoices = $invoices->groupBy('invoice_number');
+            $groupedInvoices = $invoices->groupBy('agent_id');
 
             $latestInvoices = [];
 

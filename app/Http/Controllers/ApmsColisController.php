@@ -30,6 +30,12 @@ use Illuminate\Support\Facades\Storage;
 use Endroid\QrCode\Builder\Builder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Infobip\Api\SmsApi;
+use Infobip\Configuration;
+use Infobip\Models\SmsAdvancedTextualRequest;
+use Infobip\Models\SmsDestination;
+use Infobip\Models\SmsTextualMessage;
+use App\Services\InfobipService;
 
 class ApmsColisController extends Controller
 {
@@ -550,37 +556,73 @@ class ApmsColisController extends Controller
     }
 
     // Fonction update pour les colis en attente
-    public function update_hold(Request $request, $id)
-    {
-    // dd($request->all());
+    // public function update_hold(Request $request, $id)
+    // {
+    //     // dd($request->all());
 
-        // Validation des données
-        $request->validate([
-            // 'destinataire_agence' => 'required|string|max:255',
-            // 'destinataire_tel' => 'required|string|max:255',
-            // 'quantite_colis' => 'required|numeric',
-            // 'valeur_colis' => 'required|numeric',
-            // 'mode_transit' => 'required|string|max:255',
-            // 'poids_colis' => 'required|numeric',
-            // 'prix_transit_colis' => 'required|numeric',
+    //     // Validation des données
+    //     $request->validate([
+    //         // 'destinataire_agence' => 'required|string|max:255',
+    //         // 'destinataire_tel' => 'required|string|max:255',
+    //         // 'quantite_colis' => 'required|numeric',
+    //         // 'valeur_colis' => 'required|numeric',
+    //         // 'mode_transit' => 'required|string|max:255',
+    //         // 'poids_colis' => 'required|numeric',
+    //         // 'prix_transit_colis' => 'required|numeric',
+    //     ]);
+    
+    //     // Récupération du colis
+    //     $colis = Colis::findOrFail($id);
+    //     // Mise à jour des champs
+    //     $colis->update([
+    //         'destinataire_agence' => $request->input('destinataire_agence'),
+    //         'destinataire_tel' => $request->input('destinataire_tel'),
+    //         'quantite_colis' => $request->input('quantite_colis'),
+    //         'valeur_colis' => $request->input('valeur_colis'),
+    //         'mode_transit' => $request->input('mode_transit'),
+    //         'poids_colis' => $request->input('poids_colis'),
+    //         'prix_transit_colis' => $request->input('prix_transit_colis'),
+    //         'status' => 'payé', // Ajout du statut
+    //         'etat' => 'Devis', // Ajout du statut
+    //     ]);
+    //     // Redirection avec un message de succès
+    //     return redirect()->route('ipms_colis.hold')->with('success', 'Colis mis à jour avec succès !');
+    // }
+
+    public function update_hold(Request $request, InfobipService $infobipService)
+    {
+        $validatedData = $request->validate([
+            'colis.*.prix_transit_colis' => 'required|numeric|min:0',
         ]);
     
-        // Récupération du colis
-        $colis = Colis::findOrFail($id);
-        // Mise à jour des champs
-        $colis->update([
-            'destinataire_agence' => $request->input('destinataire_agence'),
-            'destinataire_tel' => $request->input('destinataire_tel'),
-            'quantite_colis' => $request->input('quantite_colis'),
-            'valeur_colis' => $request->input('valeur_colis'),
-            'mode_transit' => $request->input('mode_transit'),
-            'poids_colis' => $request->input('poids_colis'),
-            'prix_transit_colis' => $request->input('prix_transit_colis'),
-            'status' => 'payé', // Ajout du statut
-            'etat' => 'Devis', // Ajout du statut
-        ]);
-        // Redirection avec un message de succès
-        return redirect()->route('ipms_colis.hold')->with('success', 'Colis mis à jour avec succès !');
+        $colisData = $request->input('colis');
+    
+        foreach ($colisData as $colisId => $data) {
+            try {
+                $colis = Colis::findOrFail($colisId);
+                $numero_expediteur = +2250546158376;
+                // dd($numero_expediteur);
+                // dd( $colis);
+                // Mise à jour du colis
+                $colis->prix_transit_colis = $data['prix_transit_colis'];
+                $colis->status = 'payé';
+                $colis->etat = 'Devis';
+                $colis->save();
+    
+                // Message SMS
+                $message = "Bonjour " . $colis->expediteur->nom . ", le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. Connectez-vous pour effectuer votre paiement.";
+
+                // Envoi du SMS
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+    
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+                return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+            }
+        }
+    
+        return redirect()->route('ipms_colis.hold')->with('success', 'Devis faits avec succès !');
     }
 
     /**

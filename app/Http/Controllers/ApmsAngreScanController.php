@@ -562,6 +562,36 @@ public function updateColisDecharge(Request $request)
         }
     }
 
+        // SMS DATA
+        $colisData = $colisList;
+        // dd($colisData);
+        foreach ($colisData as $colisId => $data) {
+            // dd($data);
+            try {
+                $colis = Colis::findOrFail($data->id);
+                $numero_expediteur = +2250546158376;
+                // dd($numero_expediteur);
+                // dd( $colis->prix_transit_colis);
+                // Mise à jour du colis
+                // $colis->prix_transit_colis = $data['prix_transit_colis'];
+                // $colis->status = 'payé';
+                // $colis->etat = 'Devis';
+                // $colis->save();
+    
+                // Message SMS
+                $message = "Bonjour " . $colis->expediteur->nom ." ". $colis->expediteur->prenom . ", votre colis (Réf: " . $colis->reference_colis . ") a Arrivé au niveau de Agence AFT IMPORT/EXPORT. Veuillez nous contacter pour plus d'informations. AFT IMPORT/EXPORT vous remercie pour votre confiance.";
+    
+                // Envoi du SMS
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+    
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+                return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+            }
+        }
+        // END SMS DATA
+
     return response()->json([
         'success'  => !empty($updatedColis),
         'messages' => $messages,

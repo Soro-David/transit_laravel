@@ -32,6 +32,12 @@ use Illuminate\Support\Facades\Storage;
 use Endroid\QrCode\Builder\Builder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Infobip\Api\SmsApi;
+use Infobip\Configuration;
+use Infobip\Models\SmsAdvancedTextualRequest;
+use Infobip\Models\SmsDestination;
+use Infobip\Models\SmsTextualMessage;
+use App\Services\InfobipService; 
 
 class AftlbColisController extends Controller
 {
@@ -360,7 +366,7 @@ public function store_colis(Request $request)
         }
     }
   
-    public function generer_qrcode(Request $request)
+    public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         // dd($request);
         // Fusionner toutes les données de session dans un tableau
@@ -466,11 +472,41 @@ public function store_colis(Request $request)
             $colis[] = $colisModel; // Ajouter au tableau pour la génération du QR code
     
             // Créer et enregistrer le paiement pour ce colis
-            $paiement = Paiement::create(array_merge($paiementData, ['colis_id' => $colisModel->id])); // Associer le paiement au colis
+            // $paiement = Paiement::create(array_merge($paiementData, ['colis_id' => $colisModel->id])); // Associer le paiement au colis
         }
      // **Association explicite (important)**
-     $colisModel->paiement()->associate($paiement);
+    //  $colisModel->paiement()->associate($paiement);
      $colisModel->save();
+
+     $colisData = $colis;
+     // dd($colisData);
+     foreach ($colisData as $colisId => $data) {
+         // dd($data);
+         try {
+             $colis = Colis::findOrFail($data->id);
+             $numero_expediteur = +2250546158376;
+             // dd($numero_expediteur);
+             // dd( $colis->prix_transit_colis);
+             // Mise à jour du colis
+             $colis->prix_transit_colis = $data['prix_transit_colis'];
+             $colis->status = 'payé';
+             $colis->etat = 'Devis';
+             $colis->save();
+ 
+             // Message SMS
+             $message = "Bonjour " . $colis->expediteur->nom . ", votre colis (Réf: " . $colis->reference_colis . ") a été validé avec succès. Le prix est " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. AFT IMPORT/EXPORT vous remercie pour votre confiance.";
+
+             // Envoi du SMS
+             $response = $infobipService->sendSms($numero_expediteur, $message);
+             Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+ 
+         } catch (\Exception $e) {
+             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+         }
+     }
+ // End SMS Data
+ $colis = $colisData;
         // Générer les QR codes pour chaque colis
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code
@@ -729,47 +765,83 @@ public function store_colis(Request $request)
     }
 
 
-    public function update_hold(Request $request) // Suppression de $id ici
+    // public function update_hold(Request $request) // Suppression de $id ici
+    // {
+    //     // Validation des données (important pour la sécurité)
+    //     $validatedData = $request->validate([
+    //         'colis.*.prix_transit_colis' => 'required|numeric|min:0',
+    //         // Ajoutez d'autres règles de validation pour chaque champ modifiable.
+    //     ]);
+
+    //     $colisData = $request->input('colis');
+
+    //     foreach ($colisData as $colisId => $data) {
+    //         try {
+    //             $colis = Colis::findOrFail($colisId);
+
+    //             // Mise à jour des champs autorisés (sécurité !)
+    //             $colis->prix_transit_colis = $data['prix_transit_colis'];
+    //             $colis->status = 'payé';
+    //             $colis->etat = 'Devis';
+    //             $colis->save();
+
+    //             // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
+    //             $qrData = [
+    //                 'Référence colis' => $colis->reference_colis,
+    //                 'Statut' => $colis->status,
+    //                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
+    //                 'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
+    //                 'Téléphone Destinataire' => $colis->destinataire->tel,
+    //                 'Agence Destination' => $colis->destinataire->agence ?? '',
+    //                 'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
+    //             ];
+
+    //             // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
+    //             Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
+
+    //         } catch (\Exception $e) {
+    //             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+    //             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+    //         }
+    //     }
+
+    //     // Redirection avec un message de succès
+    //     return redirect()->route('aftlb_colis.hold')->with('success', 'Devis faits avec succès !');
+    // }
+
+    public function update_hold(Request $request, InfobipService $infobipService)
     {
-        // Validation des données (important pour la sécurité)
         $validatedData = $request->validate([
             'colis.*.prix_transit_colis' => 'required|numeric|min:0',
-            // Ajoutez d'autres règles de validation pour chaque champ modifiable.
         ]);
-
+    
         $colisData = $request->input('colis');
-
+    
         foreach ($colisData as $colisId => $data) {
             try {
                 $colis = Colis::findOrFail($colisId);
-
-                // Mise à jour des champs autorisés (sécurité !)
+                $numero_expediteur = +2250546158376;
+                // dd($numero_expediteur);
+                // dd( $colis);
+                // Mise à jour du colis
                 $colis->prix_transit_colis = $data['prix_transit_colis'];
                 $colis->status = 'payé';
                 $colis->etat = 'Devis';
                 $colis->save();
+    
+                // Message SMS
+                $message = "Bonjour " . $colis->expediteur->nom . ", le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. Connectez-vous pour effectuer votre paiement.";
 
-                // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
-                $qrData = [
-                    'Référence colis' => $colis->reference_colis,
-                    'Statut' => $colis->status,
-                    'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-                    'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-                    'Téléphone Destinataire' => $colis->destinataire->tel,
-                    'Agence Destination' => $colis->destinataire->agence ?? '',
-                    'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-                ];
-
-                // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
-                Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
+                // Envoi du SMS
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+    
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
             }
         }
-
-        // Redirection avec un message de succès
+    
         return redirect()->route('aftlb_colis.hold')->with('success', 'Devis faits avec succès !');
     }
     /**

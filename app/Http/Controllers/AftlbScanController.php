@@ -328,7 +328,7 @@ class AftlbScanController extends Controller
                           ->where('id', $request->id)
                         //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
                           ->get();
-    
+        // dd($colisList);
         // Vérifier si des colis ont été trouvés
         if ($colisList->isEmpty()) {
             return response()->json([
@@ -362,7 +362,7 @@ class AftlbScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     

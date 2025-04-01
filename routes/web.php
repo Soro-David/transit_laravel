@@ -426,7 +426,6 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
     
 
 
-
             // Route::get('/agence/data',[AgenceController::class, 'get_agence'])->name('getAgence');
 
             // Route::post('/store', [AgenceController::class,'store'])->name('store'); 
