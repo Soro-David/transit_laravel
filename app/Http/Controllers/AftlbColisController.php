@@ -837,6 +837,29 @@ public function store_colis(Request $request)
                 $response = $infobipService->sendSms($numero_expediteur, $message);
                 Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
     
+                // Send Email after successful update
+                try {
+                    \Mail::to($colis->expediteur->email)->send(new \App\Mail\ColisValidatedMail($colis));
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'envoi de l\'email de validation pour le colis ' . $colisId . ': ' . $e->getMessage());
+                    // Log the error, but don't break the process. Maybe notify admin about email sending failure.
+                }
+
+
+                // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
+                $qrData = [
+                    'Référence colis' => $colis->reference_colis,
+                    'Statut' => $colis->status,
+                    'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
+                    'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
+                    'Téléphone Destinataire' => $colis->destinataire->tel,
+                    'Agence Destination' => $colis->destinataire->agence ?? '',
+                    'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
+                ];
+
+                // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
+                Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
+
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
