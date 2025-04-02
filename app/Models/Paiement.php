@@ -19,7 +19,7 @@ class Paiement extends Model
         'statut_paiement',
         'date_validation',
         'colis_id',
-        'expediteur_id', // Utilisation de expediteur_id
+        'expediteur_id',
         'agent_id'
     ];
 

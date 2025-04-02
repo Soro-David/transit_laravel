@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (error.responseJSON && error.responseJSON.messages) {
                     resultElement.innerText = error.responseJSON.messages.join("\n");
                 } else {
-                    resultElement.innerText = "Ce colis n'est indisponible dans cette agence ";
+                    resultElement.innerText = "Ce colis a été dechargé.";
                 }
             },
         });
@@ -279,9 +279,9 @@ document.addEventListener("DOMContentLoaded", function () {
             ]
         });
          // Rafraîchissement de la table toutes les 4 secondes
-    // setInterval(function() {
-    //     table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
-    // }, 4000);
+    setInterval(function() {
+        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
+    }, 4000);
 
     });
 

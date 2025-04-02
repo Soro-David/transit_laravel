@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (error.responseJSON && error.responseJSON.messages) {
                     resultElement.innerText = error.responseJSON.messages.join("\n");
                 } else {
-                    resultElement.innerText = "Ce colis n'est indisponible dans cette agence ou a déjà été déchargé.";
+                    resultElement.innerText = "Ce colis a été dechargé.";
                 }
             },
         });

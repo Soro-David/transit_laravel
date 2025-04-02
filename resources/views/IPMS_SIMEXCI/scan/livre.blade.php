@@ -29,7 +29,7 @@
                                                         <th>Destinataire</th>
                                                         <th>Téléphone</th>
                                                         <th>Agence Destinataire</th>
-                                                        <th>Status</th>
+                                                        {{-- <th>Status</th> --}}
                                                         <th>Date</th>
                                                     </tr>
                                                 </thead>
@@ -201,7 +201,6 @@ document.addEventListener("DOMContentLoaded", function () {
             {
                 data: null,
                 render: function (data, type, row) {
-                    console.log(data);
                     return row.expediteur_nom + ' ' + row.expediteur_prenom;
                 }
             },
@@ -212,22 +211,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
-            { data: 'etat' },
-            { data: 'created_at',
+            { data: 'destinataire_agence' },
+            // { data: 'etat' },
+            { 
+                data: 'created_at',
                 render: function(data, type, row) {
                     if (data) {
                         var date = new Date(data);
-                        var day = ('0' + date.getDate()).slice(-2);  
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  
-                        var year = date.getFullYear().toString().slice(-2);  
+                        var day = ('0' + date.getDate()).slice(-2);
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                        var year = date.getFullYear();
                         return day + '/' + month + '/' + year;
                     }
-                    return data;
+                    return "";
                 }
-            },
-            // { data: 'action' },
+            }
         ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
