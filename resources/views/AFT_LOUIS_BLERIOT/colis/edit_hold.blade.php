@@ -86,28 +86,46 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <!-- Poids du Colis -->
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Poids du Colis</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][poids_colis]"
+                                    <input type="text"
+                                           name="colis[{{ $colis_item->id }}][poids_colis]"
                                            id="poids_colis_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->poids_colis ?? '' }}" class="form-control"
-                                           disabled required>
+                                           value="{{ $colis_item->poids_colis ?? '' }}"
+                                           class="form-control"
+                                           disabled
+                                           required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <!-- Dimension -->
+                            <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="prix_transit_colis" class="form-label">Prix du Colis</label>
-                                    <input
-                                        type="number"
-                                        name="colis[{{ $colis_item->id }}][prix_transit_colis]"
-                                        id="prix_transit_colis_{{ $colis_item->id }}"
-                                        value="{{ $colis_item->prix_transit_colis ?? '' }}"
-                                        class="form-control prix_transit_colis"
-                                        placeholder="Somme en CFA"
-                                        required>
+                                    <label class="form-label">Dimension</label>
+                                    <input type="text"
+                                           name="colis[{{ $colis_item->id }}][dimension_result]"
+                                           id="dimension_result_{{ $colis_item->id }}"
+                                           value="{{ $colis_item->dimension_result ?? '' }}"
+                                           class="form-control"
+                                           disabled
+                                           required>
                                 </div>
                             </div>
+                            <!-- Prix du Colis -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="prix_transit_colis_{{ $colis_item->id }}" class="form-label">Prix du Colis</label>
+                                    <input type="number"
+                                           name="colis[{{ $colis_item->id }}][prix_transit_colis]"
+                                           id="prix_transit_colis_{{ $colis_item->id }}"
+                                           value="{{ $colis_item->prix_transit_colis ?? '' }}"
+                                           class="form-control prix_transit_colis"
+                                           placeholder="Somme en CFA"
+                                           required>
+                                </div>
+                            </div>
+                        </div>    
                         </div>
                     </div>
                 </div>

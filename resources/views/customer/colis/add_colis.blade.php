@@ -254,34 +254,23 @@
             <div class="form-section">
                 <div class="row">
                     <div class="col-md-2">
-                        <div class="mb-3">
+                        <div class="mb-2">
                             <label for="quantite_colis" class="form-label">Quantité</label>
                             <input type="number" name="quantite_colis[]" class="form-control" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Produits ou services</label>
+                            <label for="type_embalage" class="form-label">Produits et services</label>
                             <input type="text" name="services[]" class="form-control">
                         </div>
                     </div>
-                    <div class="col-md-6" id="dimension_section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" id="hauteur" name="hauteur[]" class="form-control" placeholder="Hauteur">
-                            <input type="number" id="largeur" name="largeur[]" class="form-control" placeholder="Largeur">
-                            <input type="number" id="longueur" name="longueur[]" class="form-control" placeholder="Longueur">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="valeur_colis" class="form-label">Valeurs du colis</label>
+                            <input type="number" name="valeur_colis[]" class="form-control">
                         </div>
-                        <div id="dimension_result" name="dimension_result" class="mt-2" style="display: none; font-weight: bold;"></div>
-                        {{-- <div id="dimension_result"   class="mt-2" style="display: none; font-weight: bold;"></div> --}}
-                    </div>                    
-                    <div class="col-md-6" id="poids_section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="type_colis" class="form-label">Type de colis</label>
@@ -292,6 +281,75 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-md-6" id="dimension_section" >
+                        <label class="form-label">Dimensions (cm)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" id="hauteur" name="hauteur[]" class="form-control" placeholder="Hauteur">
+                            <input type="number" id="largeur" name="largeur[]" class="form-control" placeholder="Largeur">
+                            <input type="number" id="longueur" name="longueur[]" class="form-control" placeholder="Longueur">
+                        </div>
+                        <div id="dimension_result" name="dimension_result[]" class="mt-2" style="display: none; font-weight: bold;"></div>
+                        {{-- <div id="dimension_result"   class="mt-2" style="display: none; font-weight: bold;"></div> --}}
+                    </div>    
+                    <div id="poids_section" style="display: none;">
+                        <div class="row align-items-end mb-3">
+                            <!-- Poids -->
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Poids (kg)</label>
+                                    <input type="number" name="poids[]" class="form-control" placeholder="Poids" min="0" step="any">
+                                </div>
+                            </div>
+                            <!-- Dimensions -->
+                            <div class="col-md-9" data-dimension-block>
+                                <div class="mb-3" name="dimension_result[]>
+                                    <label class="form-label">Dimensions (cm)</label>
+                                    <div class="row g-2">
+                                        <div class="col">
+                                            <input type="number" class="form-control hauteur" placeholder="Hauteur" min="0" step="any">
+                                        </div>
+                                        <div class="col">
+                                            <input type="number" class="form-control largeur" placeholder="Largeur" min="0" step="any">
+                                        </div>
+                                        <div class="col">
+                                            <input type="number" class="form-control longueur" placeholder="Longueur" min="0" step="any">
+                                        </div>
+                                    </div>
+                                        <div class="mt-2 fw-bold dimension_result" name="dimension_result[]" style="display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+                <script>
+                    document.querySelectorAll('[data-dimension-block]').forEach(block => {
+                        const hauteurInput = block.querySelector('.hauteur');
+                        const largeurInput = block.querySelector('.largeur');
+                        const longueurInput = block.querySelector('.longueur');
+                        const resultDiv = block.querySelector('.dimension_result');
+                    
+                        function updateResult() {
+                            const h = hauteurInput.value;
+                            const l = largeurInput.value;
+                            const L = longueurInput.value;
+                    
+                            if (h && l && L) {
+                                resultDiv.textContent = `${h} x ${l} x ${L} cm`;
+                                resultDiv.style.display = 'block';
+                            } else {
+                                resultDiv.style.display = 'none';
+                                resultDiv.textContent = '';
+                            }
+                        }
+                    
+                        [hauteurInput, largeurInput, longueurInput].forEach(input => {
+                            input.addEventListener('input', updateResult);
+                        });
+                    });
+                    </script>
+                    
+                <div class="row">
+                    
                     <div class="col-8 col-md-10 col-lg-8">
                         <div class="mb-3">
                             <label for="description_colis" class="form-label">Description colis</label>
@@ -359,70 +417,147 @@
         }
     });
 
-    // Ajouter un nouveau colis avec la même logique
-    $(document).on("click", ".add-colis", function (e) {
-        e.preventDefault();
-        const newColis = `
-            <div class="colis-fieldset mb-4">
-                <div class="row">
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Produits ou services</label>
-                            <input type="text" name="services[]" class="form-control">
-                        </div>
-                    </div>
-                    <div class="col-md-6 dimension-section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                        </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
-                    </div>
-                    <div class="col-md-6 poids-section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+ // Ajouter un nouveau colis avec la même logique
+$(document).on("click", ".add-colis", function (e) {
+    e.preventDefault();
+
+    const newColis = `
+        <div class="colis-fieldset mb-4">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">Quantité de colis</label>
+                        <input type="number" name="quantite_colis[]" class="form-control" required>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
-                            <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                                <option value="standard">Standard</option>
-                                <option value="fragile">Fragile</option>
-                            </select>
-                        </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Produits et services</label>
+                        <input type="text" name="services[]" class="form-control">
                     </div>
-                    <div class="col-8 col-md-8 col-lg-8">
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">Valeurs du colis</label>
+                        <input type="number" name="valeur_colis[]" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Type de colis</label>
+                        <select name="type_colis[]" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                            <option value="standard">Standard</option>
+                            <option value="fragile">Fragile</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-9 dimension-section">
+                    <label class="form-label">Dimensions (cm)</label>
+                    <div class="d-flex gap-2">
+                        <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                        <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                        <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                    </div>
+                    <div class="dimension-result mt-2" name="dimension_result[]" style="display: none; font-weight: bold;"></div>
+                </div>
+
+                <div class="col-md-6 poids-section" style="display: none;">
+                    <div class="row align-items-end col-md-12">
+                        <div class="col-md-3">
                             <div class="mb-3">
-                              <label for="description_colis" class="form-label">Description colis</label>
-                              <textarea 
-                                name="description_colis[]" 
-                                id="description_colis" 
-                                class="form-control" 
-                                rows="4"
-                                placeholder="Saisissez la description du colis"></textarea>
+                                <label class="form-label">Poids (kg)</label>
+                                <input type="number" name="poids[]" class="form-control" placeholder="Poids" min="0" step="any">
                             </div>
+                        </div>
+                        <div class="col-md-9" data-dimension-block>
+                            <div class="mb-3" name="dimension_result[]>
+                                <label class="form-label" >Dimensions (cm)</label>
+                                <div class="row g-3">
+                                    <div class="col">
+                                        <input type="number" class="form-control hauteur" placeholder="Hauteur" min="0" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" class="form-control largeur" placeholder="Largeur" min="0" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" class="form-control longueur" placeholder="Longueur" min="0" step="any">
+                                    </div>
+                                </div>
+                                <div class="dimension-result mt-2" name="dimension_result[]" style="display: none;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-8 col-md-8 col-lg-8">
+                        <div class="mb-3">
+                            <label class="form-label">Description colis</label>
+                            <textarea name="description_colis[]" class="form-control" rows="4" placeholder="Saisissez la description du colis"></textarea>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="text-end mt-2">
                     <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
                     <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
                 </div>
             </div>
-        `;
-        $("#colisContainer").append(newColis);
-        toggleFields(); // Appliquer les règles d'affichage pour le nouveau colis
+        </div>
+    `;
+
+    const $newColis = $(newColis);
+    $("#colisContainer").append($newColis);
+    toggleFields();
+    attachDimensionListeners($newColis); // 👈 Active la logique sur les nouveaux champs
+});
+
+// Fonction pour mettre à jour l'affichage des dimensions
+function attachDimensionListeners(context) {
+    $(context).find('.hauteur, .largeur, .longueur').on('input', function () {
+        const parent = $(this).closest('.dimension-section, [data-dimension-block]');
+        const hauteur = parent.find('.hauteur').val();
+        const largeur = parent.find('.largeur').val();
+        const longueur = parent.find('.longueur').val();
+        const result = parent.find('.dimension-result, .dimension_result');
+
+        if (hauteur && largeur && longueur) {
+            result.text(`${hauteur} x ${largeur} x ${longueur} cm`).show();
+        } else {
+            result.hide();
+        }
     });
+}
+
+// Activer les listeners pour les colis existants au chargement de la page
+$(document).ready(function () {
+    $('.colis-fieldset').each(function () {
+        attachDimensionListeners(this);
+    });
+});
+
+
+// Activer la logique au chargement de la page
+$(document).ready(function () {
+    $('.colis-fieldset').each(function () {
+        attachDimensionListeners(this);
+    });
+});
+
+// Lorsqu'on ajoute un nouveau colis
+$(document).on("click", ".add-colis", function (e) {
+    e.preventDefault();
+    const newColis = `...`; // Ton code HTML actuel (tu l'as déjà)
+    const $newElement = $(newColis);
+    $("#colisContainer").append($newElement);
+    toggleFields(); // Règle d'affichage éventuelle
+    attachDimensionListeners($newElement); // 👈 Active les listeners ici
+});
+
+
+
 
     // Supprimer un colis
     $(document).on("click", ".remove-colis", function () {
@@ -759,6 +894,21 @@ fieldset + fieldset {
     color: #ffffff; /* Color of the active step */
 }
 
+.row.align-items-end.mb-3 > .col-md-3,
+    .row.align-items-end.mb-3 > .col-md-9 {
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .col-md-3 .form-label,
+    .col-md-9 .form-label {
+        width: 100%;
+    }
+
+    .col-md-3 .form-control,
+    .col-md-9 .form-control {
+        width: 100%;
+    }
 </style>
 
 @endsection

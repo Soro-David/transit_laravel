@@ -112,7 +112,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label">Référence colis</label>
                                     <input type="text" name="colis[{{ $colisItem->id }}][reference_colis]" id="reference_colis"
@@ -120,7 +120,7 @@
                                      disabled required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <div class="mb-3">
                                     <label class="form-label">Poids du Colis</label>
                                     <input type="text" name="colis[{{ $colisItem->id }}][poids_colis]" id="poids_colis"
@@ -128,7 +128,15 @@
                                     required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Dimension</label>
+                                    <input type="text" name="colis[{{ $colisItem->id }}][poids_colis]" id="poids_colis"
+                                    value="{{ $colisItem->dimension_result ?? '' }}" class="form-control"
+                                    required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="prix_transit_colis" class="form-label">Prix du Colis</label>
                                     <input

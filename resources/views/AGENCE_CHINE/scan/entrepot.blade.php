@@ -30,9 +30,9 @@
                                                 {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
+                                                <th>Agence Destination</th>
                                                 <th>Date</th>
-                                                {{-- <th>Action</th> --}}
+                                                <th>Action</th>
 
                                             </tr>
                                         </thead>
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Vérifier que les deux valeurs ont bien été extraites
         if (!referenceMatch || !idMatch) {
-            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            console.error("Impossible d'extraire la référence ou l'identifiant.",referenceMatch);
             resultElement.innerText = "Erreur : données QR code invalides.";
             return;
         }
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 id: identifiant,          // Envoie l'identifiant extrait
             },
             success: function (response) {
-                console.log("Réponse du serveur :", response);
+                console.log("Réponse du serveur helo :", response);
                 // Affichage des messages retournés par le serveur
                 if (response.messages && Array.isArray(response.messages)) {
                     resultElement.innerText = response.messages.join("\n");
@@ -194,49 +194,44 @@ document.addEventListener("DOMContentLoaded", function () {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
             ajax: '{{ route("chine_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
-            columns: [{
-                        data: 'reference_colis'
-                    },
-                    {
-                        data: 'nombre_de_colis'
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row) {
-                            return row.nom_expediteur + ' ' + row.prenom_expediteur;
-                        }
-                    },
-                    {
-                        data: 'expediteur_tel'
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row) {
-                            return row.nom_destinataire + ' ' + row.prenom_destinataire;
-                        }
-                    },
-                    {
-                        data: 'destinataire_tel'
-                    },
-                    {
-                        data: 'destination_agence'
-                    },
-                    {
-                        data: 'created_at',
-                        render: function(data, type, row) {
-                            // Vérifiez si la date existe et la formater
-                            if (data) {
-                                var date = new Date(data);
-                                // Retourne la date au format aa/mm/jj
-                                var day = ('0' + date.getDate()).slice(-2); // Ajoute un zéro si jour < 10
-                                var month = ('0' + (date.getMonth() + 1)).slice(-2); // +1 car les mois commencent à 0
-                                var year = date.getFullYear().toString().slice(-2); // On garde les deux derniers chiffres de l'année
-                                return day + '/' + month + '/' + year;
-                            }
-                            return data; // Si la date est vide, on retourne la donnée brute
-                        }
-                    },
-                ],
+            columns: [
+                { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) {
+                        return ''; // Retourne une chaîne vide si la date est null
+                    }
+                    var date = new Date(data);
+                    if (isNaN(date.getTime())) {
+                        return ''; // Vérifie si la date est invalide
+                    }
+                    var day = ('0' + date.getDate()).slice(-2);
+                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+
+        ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
                 // Bouton Excel

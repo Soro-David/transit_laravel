@@ -28,6 +28,9 @@ class Colis extends Model
         'status',
         'client_id',
         'dimension_result',
+        'hauteur',
+        'largeur',
+        'longueur',
         'type_colis',
         'recup',
         'service'

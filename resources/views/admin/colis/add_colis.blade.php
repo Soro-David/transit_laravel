@@ -274,7 +274,7 @@
                     </div>
                     <div class="col-6 col-md-6 col-lg-6">
                         <div class="mb-3">
-                            <label for="description_colis" class="form-label">Description colis</label>
+                            <label for="description_colis" class="form-label">Commentaire</label>
                             <textarea 
                             name="description_colis[]" 
                             id="description_colis" 
