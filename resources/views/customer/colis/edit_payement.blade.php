@@ -218,11 +218,9 @@
                         genererQrcodeUrl = response.redirect;
                         window.location.href = genererQrcodeUrl; // Rediriger vers la page de reçu
                     } else {
-                        // Pour les autres modes de paiement, redirection immédiate
-                        alert('Paiement enregistré avec succès !');
                         if (response.redirect) {
                             window.location.href = response.redirect;
-                        } else {
+                        }else {
                             console.error('Aucune URL de redirection fournie');
                         }
                         $('#paymentForm')[0].reset();

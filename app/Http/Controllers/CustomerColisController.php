@@ -530,8 +530,9 @@ class CustomerColisController extends Controller
             // Log l'erreur, mais ne bloque pas le processus principal
         }
 
-        return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
-        return redirect()->route('customer_colis.index'); // Redirection à ajuster si nécessaire
+        return response()->json([
+            'redirect' => route('customer_colis.history')
+        ]);
     }
 
     public function edit_payement($id)

@@ -766,50 +766,6 @@ public function store_colis(Request $request)
     }
 
 
-    // public function update_hold(Request $request) // Suppression de $id ici
-    // {
-    //     // Validation des données (important pour la sécurité)
-    //     $validatedData = $request->validate([
-    //         'colis.*.prix_transit_colis' => 'required|numeric|min:0',
-    //         // Ajoutez d'autres règles de validation pour chaque champ modifiable.
-    //     ]);
-
-    //     $colisData = $request->input('colis');
-
-    //     foreach ($colisData as $colisId => $data) {
-    //         try {
-    //             $colis = Colis::findOrFail($colisId);
-
-    //             // Mise à jour des champs autorisés (sécurité !)
-    //             $colis->prix_transit_colis = $data['prix_transit_colis'];
-    //             $colis->status = 'payé';
-    //             $colis->etat = 'Devis';
-    //             $colis->save();
-
-    //             // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
-    //             $qrData = [
-    //                 'Référence colis' => $colis->reference_colis,
-    //                 'Statut' => $colis->status,
-    //                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-    //                 'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-    //                 'Téléphone Destinataire' => $colis->destinataire->tel,
-    //                 'Agence Destination' => $colis->destinataire->agence ?? '',
-    //                 'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-    //             ];
-
-    //             // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
-    //             Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
-    //         } catch (\Exception $e) {
-    //             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //         }
-    //     }
-
-    //     // Redirection avec un message de succès
-    //     return redirect()->route('aftlb_colis.hold')->with('success', 'Devis faits avec succès !');
-    // }
-
     public function update_hold(Request $request, InfobipService $infobipService)
     {
         $validatedData = $request->validate([
@@ -1016,54 +972,6 @@ public function get_colis_hold(Request $request)
         }
     }
 
-    // public function get_devis_colis(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'colis.reference_colis as reference_colis', 
-    //             'expediteurs.nom as expediteur_nom', 
-    //             'expediteurs.prenom as expediteur_prenom', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as expediteur_agence', 
-    //             'destinataires.nom as destinataire_nom', 
-    //             'destinataires.prenom as destinataire_prenom', 
-    //             'destinataires.agence as destinataire_agence', 
-    //             'destinataires.tel as destinataire_tel',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->whereIn('etat', ['Devis','Validé'])  // Filtre l'état des colis
-    //         ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-    //         ->get(); // Exécute la requête une seule fois
-
-    //         return DataTables::of($colis)
-    //             ->addColumn('etat', function ($row) {
-    //                 if ($row->etat === 'Devis') {
-    //                     return 'Dévis validé'; // Si l'état est "Devis", afficher "Dévis validé"
-    //                 } elseif ($row->etat === 'Validé') {
-    //                     return 'Colis validé'; // Si l'état est "Validé", afficher "Colis validé"
-    //                 }
-    //                 return $row->etat; // Sinon, retourner l'état original
-    //             })
-    //             ->addColumn('action', function ($row) {
-    //                $printUrl = route('aftlb_colis.qrcode.edit', ['id' => $row->id]); // Si vous avez une route d'édition pour chaque colis
-                   
-
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="View">
-    //                             <i class="fas fa-print"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
 
     public function get_devis_colis(Request $request)
     {
@@ -1427,14 +1335,6 @@ public function get_colis_hold(Request $request)
         return redirect()->route('aftlb_colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
     }
 
-    // Fonction edit pour les colis en attente
-
-    // public function edit_colis_valide($id)
-    // {
-    //     $colis = Colis::findOrFail($id);
-    //     // dd($colis);
-    //     return view('AFT_LOUIS_BLERIOT.colis.edit_colis_valide', compact('colis'));
-    // }
 
     public function edit_colis_valide($id)
     {

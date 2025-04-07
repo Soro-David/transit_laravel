@@ -78,7 +78,7 @@
             </div>
         </div>
              
-              <div class="col-md-5">
+              {{-- <div class="col-md-5">
                 <div class="card border-0 rounded shadow-sm">
                     <div>
                         <h4 class="card-title text-center mb-3 fw-bold">Formulaire de Signature</h4><br>
@@ -94,7 +94,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <a href="javascript:history.back()" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2" style="font-size: 18px;"></i> Retour

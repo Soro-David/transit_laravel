@@ -25,7 +25,7 @@
                                                 <th>Téléphone</th>
                                                 <th>Etat du Colis</th>
                                                 <th>Date</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -83,7 +83,7 @@
                             return data;  // Si la date est vide, on retourne la donnée brute
                         }
                     },
-                    { data: 'action', orderable: false, searchable: false }
+                    // { data: 'action', orderable: false, searchable: false }
                 ],
                 dom: 'Bfrtip', // Active les boutons et positionne les contrôles
                 buttons: [

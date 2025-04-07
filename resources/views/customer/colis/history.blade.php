@@ -1,10 +1,16 @@
 @extends('customer.layouts.index')
 
 @section('content-header')
-    <h4 class="text-center">Effectuer le paiement pour le colis</h4>
+    {{-- <h4 class="text-center">Effectuer le paiement pour le colis</h4> --}}
 @endsection
 
 @section('content')
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
 <section class="py-3">
     <form action="" method="POST" class="mt-4">
         @csrf

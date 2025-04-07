@@ -26,7 +26,7 @@
                                                 <th>Agence Destinataire</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         
@@ -83,7 +83,7 @@ $(document).ready(function () {
                     return '';
                 }
             },
-            { data: 'action', orderable: false, searchable: false }
+            // { data: 'action', orderable: false, searchable: false }
         ],
         dom: 'Bfrtip',
         buttons: [

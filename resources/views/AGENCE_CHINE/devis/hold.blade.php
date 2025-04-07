@@ -25,7 +25,7 @@
                                         <th>Agence Destinataire</th>
                                         <th>Etat du Colis</th>
                                         <th>Date de Création</th>
-                                        <th>Action</th>
+                                        {{-- <th>Action</th> --}}
                                     </tr>
                                 </thead>
                             </table>
@@ -81,7 +81,7 @@
                             return data;  // Si la date est vide, on retourne la donnée brute
                         }
                     },
-                    { data: 'action', orderable: false, searchable: false }
+                    // { data: 'action', orderable: false, searchable: false }
             ],
             dom: 'Bfrtip', // Active les boutons et positionne les contrôles
             buttons: [
