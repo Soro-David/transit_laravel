@@ -24,6 +24,7 @@ class Chauffeur extends Authenticatable implements AuthenticatableContract
     */
         protected $casts = [
             'email_verified_at' => 'datetime',
+           
         ];
 
     // Relation avec Colis

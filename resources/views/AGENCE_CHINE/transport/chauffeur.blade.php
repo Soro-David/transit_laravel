@@ -94,29 +94,28 @@
 
                             {{-- Editable Password Fields --}}
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="password">Mot de passe:</label>
-                                        <input type="password" name="password" class="form-control" id="password">
-                                        @error('password')
-                                            <div class="text-danger">
-                                                <p>{{ $message }}</p>
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="password_confirmation">Confirmation Mot de passe:</label>
-                                        <input type="password" name="password_confirmation" class="form-control"
-                                            id="password_confirmation">
-                                        @error('password_confirmation')
-                                            <div class="text-danger">
-                                                <p>{{ $message }}</p>
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
+                            <div class="col-md-6">
+    <div class="form-group">
+        <label for="edit_password">Mot de passe:</label> <!-- Changé id="password" -> "edit_password" -->
+        <input type="password" name="password" class="form-control" id="edit_password">
+        @error('password')
+            <div class="text-danger">
+                <p>{{ $message }}</p>
+            </div>
+        @enderror
+    </div>
+</div>
+<div class="col-md-6">
+    <div class="form-group">
+        <label for="edit_password_confirmation">Confirmation Mot de passe:</label> <!-- Changé id="password_confirmation" -> "edit_password_confirmation" -->
+        <input type="password" name="password_confirmation" class="form-control" id="edit_password_confirmation">
+        @error('password_confirmation')
+            <div class="text-danger">
+                <p>{{ $message }}</p>
+            </div>
+        @enderror
+    </div>
+</div>
                             </div>
 
                             <div class="modal-footer">

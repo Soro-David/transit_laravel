@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Agent;
 use App\Models\Agence;
 use App\Models\Client;
 use App\Models\Les_colis;
@@ -426,30 +427,49 @@ class ChineColisController extends Controller
     
         // Récupérer les données de paiement depuis la session `step2`
         $payementDataSession = session('step2', []);
-    
+      // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
+      $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
+      ? $payementDataSession['montant_reçu']
+      : session('step1.prix.0') ?? null; // Fallback au prix total si non cash
     // **Récupérer cinetpay_transaction_id depuis la requête**
     $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
     $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
-       
-    // Préparer les données de paiement pour la base de données
-        $paiementData = [
-            'colis_id' => null, // Sera mis à jour après la création du colis
-            'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
-            'montant' => session('step1.prix.0') ?? null, // Récupérer le montant depuis la session step1 (ou ajustez selon votre logique)
-            'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
-            'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
-            'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
-            'id_transaction' => $payementDataSession['transaction_id'] ?? null,
-            'statut_paiement' => 'payé', // Statut par défaut, vous pouvez ajuster la logique si nécessaire
-            'date_validation' => now(), // Date de validation du paiement
-            'expediteur_id' => $expediteur->id, // ID de l'expéditeur
-            'agent_id' => Auth::id(), // ID de l'agent connecté
-        ];
-    
+    // **Récupérer l'ID de l'agent connecté VIA LA RELATION**
+    $agentId = null;
+    if (Auth::check()) {
+        $agent = Auth::user()->agent;
+        $agentId = $agent ? $agent->id : null;
+    }
+// Préparer les données de paiement pour la base de données
+    $paiementData = [
+        'colis_id' => null, // Sera mis à jour après la création du colis
+        'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
+        'montant' => $montantPaiement, // Utilisation du montant déterminé ci-dessus
+        'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
+        'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
+        'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
+        'id_transaction' => $payementDataSession['transaction_id'] ?? null,
+        'statut_paiement' => 'payé', // Statut par défaut
+        'date_validation' => now(), // Date de validation du paiement
+        'expediteur_id' => $expediteur->id, // ID de l'expéditeur
+        'agent_id' => $agentId, // ID de l'agent connecté (de la table agents)
+    ];
         // Créer les colis et enregistrer les paiements
         $colis = [];
-        foreach ($colisData as $colisItem) {
+        foreach ($colisData as $colisItem) { $agentId = null; // Initialiser agentId à null par défaut
+            $colisItem['agent_id'] = $agentId; // Assigner l'agent_id au colis aussi
+
+
+            // Vérifier si l'utilisateur est authentifié
+            if (Auth::check()) {
+                $user = Auth::user(); // Récupérer l'utilisateur authentifié (modèle User)
+                $agent = $user->agent; // Accéder à la relation agent() définie dans le modèle User
+                $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe, sinon null
+            }
+    
+            $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
             // Créer le colis
+        
             $colisModel = Colis::create(array_merge($colisItem, [
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
@@ -736,20 +756,28 @@ class ChineColisController extends Controller
             'colis.*.prix_transit_colis' => 'required|numeric|min:0',
             // Ajoutez d'autres règles de validation pour chaque champ modifiable.
         ]);
-
         $colisData = $request->input('colis');
-
+    
         foreach ($colisData as $colisId => $data) {
             try {
                 $colis = Colis::findOrFail($colisId);
-
+    
                 // Mise à jour des champs autorisés (sécurité !)
                 $colis->prix_transit_colis = $data['prix_transit_colis'];
                 $colis->status = 'payé';
                 $colis->etat = 'Devis';
+    
+                // **Récupérer l'ID de l'agent connecté VIA LA RELATION et l'assigner**
+                $agentId = null; // Initialiser agentId à null par défaut
+                if (Auth::check()) {
+                    $agent = Auth::user()->agent; // Accéder à la relation agent()
+                    $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe
+                }
+                $colis->agent_id = $agentId; // Assigner l'agent_id
+    
+    
                 $colis->save();
-
-                             // **Code d'envoi d'email AJOUTÉ ICI :**
+    
                 // Send Email after successful update
                 try {
                     \Mail::to($colis->expediteur->email)->send(new \App\Mail\ColisValidatedMail($colis));
@@ -757,7 +785,8 @@ class ChineColisController extends Controller
                     Log::error('Erreur lors de l\'envoi de l\'email de validation pour le colis ' . $colisId . ': ' . $e->getMessage());
                     // Log the error, but don't break the process. Maybe notify admin about email sending failure.
                 }
-                // **Fin du code d'envoi d'email**
+    
+    
                 // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
                 $qrData = [
                     'Référence colis' => $colis->reference_colis,
@@ -768,19 +797,18 @@ class ChineColisController extends Controller
                     'Agence Destination' => $colis->destinataire->agence ?? '',
                     'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
                 ];
-
+    
                 // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
                 Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
+    
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
             }
         }
-
-        // Redirection avec un message de succès
-        return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
-    }
+            // Redirection avec un message de succès
+            return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
+        }
 
 
     // Fonction update pour les colis en attente

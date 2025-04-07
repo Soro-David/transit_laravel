@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'JShrink' => array($vendorDir . '/tedivm/jshrink/src'),
+    'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
 );
