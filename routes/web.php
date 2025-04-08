@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\BilanController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\customer\HController;
@@ -49,7 +50,6 @@ use App\Http\Controllers\NavAdminController;
 use App\Http\Controllers\NavAftlbController;
 use App\Http\Controllers\ChauffeurAuthController;
 use App\Http\Controllers\NavChineController;
-
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
@@ -1322,3 +1322,9 @@ Route::prefix('chauffeur')->middleware(['auth', 'role:chauffeur'])->group(functi
    Route::patch('/chauffeur/{programme}/update-etat', [ChauffeurColisController::class, 'updateEtatRdv'])->name('chauffeur.programme.updateEtatRdv');
 });
 Route::get('/admin/colis/getColisInfo/{reference_colis}', [ColisController::class, 'getColisInfo']);
+
+//Route Pour le bilan
+
+Route::get('/bilan', [BilanController::class, 'index'])->name('bilan.bilan');
+Route::post('/bilan/export', [BilanController::class, 'exportAgentColisToExcel'])
+    ->name('bilan.export');

@@ -221,8 +221,15 @@
                                 <p>{{ __('Programme') }}</p>
                             </a>
                         </li>
+
+                        <li class="nav-item has-treeview">
                     </ul>
                 </li>
+                <a href="{{ route('bilan.bilan') }}" class="nav-link {{ activeSegment('bilan') }}">
+        <i class="nav-icon fas fa-chart-bar"></i> <p>Bilan Import/Export</p>
+    </a>
+</li>
+
                 {{-- <li class="nav-item has-treeview">
                     <a href="{{ route('setting.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>

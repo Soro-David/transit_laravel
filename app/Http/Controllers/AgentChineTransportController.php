@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
 use Illuminate\Support\Facades\Hash;
@@ -203,32 +203,44 @@ public function reference_auto($query)
 
 
 
-    public function store_chauffeur(Request $request)
-    {
-        // Valider les données du formulaire
-        $request->validate([
-            'nom_chauffeur' => 'required|string|max:255',
-            'prenom_chauffeur' => 'required|string|max:255',
-            'email_chauffeur' => 'required|email|max:255',
-            'tel_chauffeur' => 'required|string|max:255',
-            // 'agence_expedition' => 'required|exists:agences,id', // Assurez-vous que l'agence existe
-            'agence_expedition' => 'required' // Assurez-vous que l'agence existe
+public function store_chauffeur(Request $request)
+{
+    $request->validate([
+        'nom_chauffeur' => 'required|string|max:255',
+        'prenom_chauffeur' => 'required|string|max:255',
+        'email_chauffeur' => 'required|email|max:255|unique:chauffeurs,email', // Ajoutez l'unicité
+        'tel_chauffeur' => 'required|string|max:255',
+        'agence_expedition' => 'required|exists:agences,id',
+        'password' => 'required|min:6|confirmed', // Validation du mot de passe
+    ]);
+
+    return DB::transaction(function () use ($request) {
+        // Créer l'utilisateur (si nécessaire)
+        $user = User::create([
+            'first_name' => $request->prenom_chauffeur,
+            'last_name' => $request->nom_chauffeur,
+            'email' => $request->email_chauffeur,
+            'password' => Hash::make($request->password),
+            'role' => 'chauffeur',
+            'agence_id' => $request->agence_expedition,
         ]);
-        try {
-            Chauffeur::create([
-                'nom' => $request->nom_chauffeur,
-                'prenom' => $request->prenom_chauffeur,
-                'email' => $request->email_chauffeur,
-                'tel' => $request->tel_chauffeur,
-                'agence_id'=>$request->agence_expedition,
-                // 'agence' => $request->agence_expedition,
-                // dd($request->all())
-            ]);
-            return redirect()->back()->with('success', 'Chauffeur ajouté avec succès!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'ajout du chauffeur.');
-        }
-    }
+
+        // Créer le chauffeur
+        $agence = Agence::find($request->agence_expedition);
+
+        Chauffeur::create([
+            'nom' => $request->nom_chauffeur,
+            'prenom' => $request->prenom_chauffeur,
+            'email' => $request->email_chauffeur,
+            'tel' => $request->tel_chauffeur,
+            'agence_id' => $request->agence_expedition,
+            'agence' => $agence->nom_agence,
+            'password' => Hash::make($request->password), // Hachage du mot de passe
+        ]);
+
+        return redirect()->back()->with('success', 'Chauffeur ajouté avec succès!');
+    });
+}
 
     public function store_plannification(Request $request)
     {

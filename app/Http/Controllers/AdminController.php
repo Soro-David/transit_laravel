@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Agent;
 use App\Models\Agence;
 use ConsoleTVs\Charts\Classes\Chartjs\Chart;
 use App\Models\Colis;
@@ -86,22 +87,32 @@ public function index()
 
     public function store(userRequest $request)
     {
-           
-        User::create([
+        // Créer un utilisateur dans la table 'users'
+        $user = User::create([
             'first_name' => $request->nom,
             'last_name' => $request->prenom,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'agence_id' => $request->agence_id,
+            'agence_id' => $request->agence_id, // Conserver agence_id pour la table users si nécessaire
         ]);
-        return redirect()->back()->with('success', 'Gestionnaire ajouté avec succès !');
+    
+        // Créer un agent dans la table 'agents'
+        Agent::create([
+            'nom' => $request->nom, // Utiliser le même nom et prenom
+            'prenom' => $request->prenom,
+            'email' => $request->email, // Utiliser le même email
+            'password' => Hash::make($request->password), // Hacher le mot de passe à nouveau pour la table agents si vous le stockez aussi là. Sinon, vous pouvez ne pas le stocker dans la table agents si vous utilisez uniquement la table users pour l'authentification.
+            'agence_id' => $request->agence_id, // Associer l'agent à l'agence sélectionnée
+        ]);
+    
+        return redirect()->back()->with('success', 'Agent ajouté avec succès !');
     }
 
     public function add_agent()
     {
         $agences = Agence::select('nom_agence', 'id')->get();
-        return view('admin.gestion.agent.index', compact('agences')); 
+        return view('admin.gestion.agent.index', compact('agences'));
     }
 
     public function get_users(Request $request)

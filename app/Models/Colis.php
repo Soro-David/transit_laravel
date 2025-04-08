@@ -33,7 +33,8 @@ class Colis extends Model
         'longueur',
         'type_colis',
         'recup',
-        'service'
+        'service',
+        'agent_id'
         
     ];
 
@@ -85,4 +86,15 @@ class Colis extends Model
     {
         return $this->hasMany(Programme::class);
     }
+    public function validateur() // Nom de la relation, vous pouvez choisir un autre nom
+    {
+        return $this->belongsTo(Agent::class, 'agent_id'); // 'agent_id' est la clé étrangère dans la table 'colis'
+    }
+    public function agentValidateur()
+{
+    return $this->belongsTo(Agent::class, 'agent_id')->withDefault([
+        'nom' => 'N/A',
+        'prenom' => ''
+    ]);
+}
 }

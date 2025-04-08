@@ -9,21 +9,20 @@ class Agent extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['adresse', 'telephone', 'role', 'mot_de_passe', 'user_id', 'agence_id'];
+    protected $fillable = ['nom', 'prenom', 'email', 'password','agence_id']; // Champs fillable mis à jour
 
-    // Relation : Un agent appartient à un utilisateur
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    // ... (vos autres relations existantes, si vous les conservez) ...
 
-    // Relation : Un agent appartient à une agence
-    public function agency()
+
+    /**
+     * Relation : Agent a validé plusieurs colis.
+     */
+    public function colisValides()
     {
-        return $this->belongsTo(Agency::class);
+        return $this->hasMany(Colis::class, 'agent_id')->where('etat', 'Validé');
     }
-    public function invoices()
+    public function agence()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->belongsTo(Agence::class);
     }
 }

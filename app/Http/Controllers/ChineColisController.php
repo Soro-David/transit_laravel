@@ -468,6 +468,36 @@ class ChineColisController extends Controller
      // **Association explicite (important)**
     //  $colisModel->paiement()->associate($paiement);
      $colisModel->save();
+
+     $colisData = $colis;
+    //  dd($colisData);
+     foreach ($colisData as $colisId => $data) {
+         // dd($data);
+         try {
+             $colis = Colis::findOrFail($data->id);
+             $numero_expediteur = +2250546158376;
+             // dd($numero_expediteur);
+            //  dd( $colis->prix_transit_colis);
+             // Mise à jour du colis
+             $colis->prix_transit_colis = $data['prix_transit_colis'];
+             $colis->status = 'payé';
+             $colis->etat = 'Devis';
+             $colis->save();
+ 
+             // Message SMS
+             $message = "Bonjour " . $colis->expediteur->nom . ", votre colis (Réf: " . $colis->reference_colis . ") a été validé avec succès. Le prix est " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. AFT IMPORT/EXPORT vous remercie pour votre confiance.";
+            //  dd($message);
+             // Envoi du SMS
+             $response = $infobipService->sendSms($numero_expediteur, $message);
+             Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
+ 
+         } catch (\Exception $e) {
+             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+         }
+     }
+ // End SMS Data
+ $colis = $colisData;
         // Générer les QR codes pour chaque colis
         foreach ($colis as $colisItem) {
             // Données à encoder dans le QR code

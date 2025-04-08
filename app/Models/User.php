@@ -72,13 +72,16 @@ class User extends Authenticatable
         return 'https://www.gravatar.com/avatar/' . md5($this->email);
     }
     
-    public function agent()
-{
-    return $this->belongsTo(Agent::class, 'agent_id');
-}
+//     public function agent()
+// {
+//     return $this->belongsTo(Agent::class, 'agent_id');
+// }
 
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+    public function agent() {
+        return $this->hasOne(Agent::class, 'email', 'email'); // En supposant que 'email' est la colonne de liaison
     }
 }
