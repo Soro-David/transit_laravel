@@ -221,10 +221,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/colis-facture/{id}/print', [ColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // route suppression edit
-        Route::delete('/colis/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
-        // Route::delete('/colis-valide/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
-        // Route::delete('/colis-valide/{id}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
-
+        Route::delete('/colis/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        
         // route contenaire fermer
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
         Route::post('/vol-fermer',[ColisController::class, 'vol_fermer'])->name('vol.fermer');
@@ -610,7 +608,12 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/list-contenaire-aft-louis-b', [AftlbColisController::class, 'liste_contenaire'])->name('liste.contenaire');
         
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}-aft-louis-b', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        // Route::delete('/test-delete/{reference}', function ($reference) {
+        //     return response()->json(['message' => 'Test DELETE route hit!', 'reference' => $reference]);
+        // })->name('test.delete');
+        Route::delete('/colis-aft-louis-b/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+
+
         Route::post('/bateaux/store-aft-louis-b', [AftlbColisController::class, 'store_bateaux'])->name('bateaux.store');
         // CRUD classique sur colis
         Route::post('/store-aft-louis-b', [AftlbColisController::class, 'store'])->name('store'); 
@@ -809,7 +812,9 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/colis-facture/{id}/print', [ApmsColisController::class, 'print_facture'])->name('facture.colis.print');
   
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+       
+        Route::delete('/colis-simexci/{reference}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+
 
         Route::get('/on-invoice/edit-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
         Route::get('/imprimer/facture-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
@@ -1197,7 +1202,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
 
         // Suppression d'un colis validé
-        Route::delete('/colis/{id}-aft_chine', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::delete('/colis-aft_chine/{reference}', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
         Route::post('/bateaux/store-aft_chine', [ChineColisController::class, 'store_bateaux'])->name('bateaux.store');
         // CRUD classique sur colis
 

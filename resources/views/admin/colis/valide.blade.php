@@ -20,11 +20,11 @@
                                                 <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence Expéditeur</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Statut</th>
+                                                <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
                                             </tr>
@@ -58,7 +58,7 @@ $(document).ready(function () {
                 }
             },
             { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            // { data: 'expediteur_agence' },
             {
                 data: null,
                 render: function (data, type, row) {
@@ -155,38 +155,40 @@ $(document).ready(function () {
     }
 });
 
-$(document).on('click', '.delete-btn', function (event) {
-    event.preventDefault(); // Empêche le comportement par défaut du bouton
-    const url = $(this).data('url'); // Récupère l'URL de suppression
-    Swal.fire({
-        title: 'Confirmer la suppression',
-        text: "Êtes-vous sûr de vouloir supprimer ce colis ?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: url,
-                type: 'DELETE', // Assurez-vous que la méthode est DELETE
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                },
-                success: function(response) {
-                    Swal.fire('Supprimé!', response.success, 'success').then(() => {
-                        location.reload(); // Recharger la page après la suppression
-                    });
-                },
-                error: function(xhr) {
-                    Swal.fire('Erreur!', xhr.responseJSON.error, 'error');
-                }
-            });
-        }
+    $(document).on('click', '.delete-btn', function (event) {
+        event.preventDefault();
+        const deleteUrl = $(this).data('url');
+        console.log(deleteUrl);
+        const reference = $(this).data('reference');
+
+        Swal.fire({
+            title: 'Confirmer l\'archivage',
+            text: `Voulez-vous vraiment archiver tous les colis avec la référence "${reference}" ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, archiver',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Archivé !', response.success, 'success').then(() => {
+                            $('#productTable').DataTable().ajax.reload(null, false);
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Erreur !', xhr.responseJSON.error, 'error');
+                    }
+                });
+            }
+        });
     });
-});
+
     </script>
     
     

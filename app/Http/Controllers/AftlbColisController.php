@@ -1091,11 +1091,10 @@ public function get_colis_hold(Request $request)
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
             ->where('etat', 'Validé')
             ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+            ->whereNull('colis.archived_at')
             ->get();
             
             $colisGrouped = $colis->groupBy('reference_colis');
-
-
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
@@ -1121,7 +1120,8 @@ public function get_colis_hold(Request $request)
                 ->addColumn('action', function ($row) {
                     $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
                     $editUrl = route('aftlb_colis.valide.edit', ['id' => $firstColis->id]);
-                    $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                    // $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                    $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                     $invoiceUrl = route('aftlb_colis.valide.edit.invoice', ['id' => $firstColis->id]);
 
                     return '
@@ -1131,7 +1131,7 @@ public function get_colis_hold(Request $request)
                                 <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                             </a>
                         </div> 
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $firstColis->id . '" data-url="' . $deleteUrl . '">
+                        <button class="btn btn-sm btn-danger delete-btn" data-reference="' . $row['reference_colis'] . '" data-url="' . $deleteUrl . '">
                             <i class="fas fa-trash"></i>
                         </button>
                          <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
@@ -1145,6 +1145,30 @@ public function get_colis_hold(Request $request)
         }
     }
 
+        // function de suppression des colis validés
+    public function destroy_colis_valide($reference)
+    {
+        try {
+            // Récupère tous les colis avec la même référence
+            $colisList = Colis::where('reference_colis', $reference)
+                ->whereNull('archived_at') // éviter de réarchiver
+                ->get();
+                // dd($colisList);
+    
+            if ($colisList->isEmpty()) {
+                return response()->json(['error' => 'Aucun colis trouvé pour cette référence.'], 404);
+            }
+    
+            foreach ($colisList as $colis) {
+                $colis->archived_at = now();
+                $colis->save();
+            }
+    
+            return response()->json(['success' => 'Colis archivés avec succès !']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
+        }
+    }
 
     public function editInvoice($id)
     {
@@ -1460,19 +1484,8 @@ public function get_colis_hold(Request $request)
     {
         return view('AFT_LOUIS_BLERIOT.colis.valide');
     }
-    // function de suppression des colis validés
-    public function destroy_colis_valide($id)
-    {
-        // dd($id);
-        try {
-            $colis = Colis::findOrFail($id);
-            
-            $colis->delete();
-            return redirect()->route('aftlb_colis.hold')->with('success', 'Colis supprimé avec succès !');
-        } catch (\Exception $e) {
-            return redirect()->route('aftlb_colis.hold')->with('error', 'Une erreur est survenue lors de la suppression du colis : ' . $e->getMessage());
-        }
-    }
+
+    
 
 
 

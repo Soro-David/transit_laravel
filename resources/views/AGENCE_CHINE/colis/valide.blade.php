@@ -49,40 +49,40 @@ $(document).ready(function () {
         ajax: '{{ route("chine_colis.get.colis.valide") }}', // Récupération des données via AJAX
         columns: [
             { data: 'reference_colis' },
-                    { data: 'nombre_de_colis' },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            console.log(data);
-                            return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                        }
-                    },
-                    { data: 'expediteur_tel' },
-                    // { data: 'expediteur_agence' },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                        }
-                    },
-                    { data: 'destinataire_agence' },
-                    { data: 'destinataire_tel' },
-                    { data: 'etat' },
-                    { data: 'created_at',
-                        render: function(data, type, row) {
-                            // Vérifiez si la date existe et la formater
-                            if (data) {
-                                var date = new Date(data);
-                                // Retourne la date au format aa/mm/jj
-                                var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                                var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                                var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                                return day + '/' + month + '/' + year;
-                            }
-                            return data;  // Si la date est vide, on retourne la donnée brute
-                        }
-                    },
-                    { data: 'action', orderable: false, searchable: false }
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    console.log(data);
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            // { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
+            { data: 'etat' },
+            {data: 'created_at',
+                render: function(data, type, row) {
+                    // Vérifiez si la date existe et la formater
+                    if (data) {
+                        var date = new Date(data);
+                        // Retourne la date au format aa/mm/jj
+                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+                        return day + '/' + month + '/' + year;
+                    }
+                    return data;  // Si la date est vide, on retourne la donnée brute
+                }
+            },
+            { data: 'action', orderable: false, searchable: false }
         ],
         dom: 'Bfrtip', // Placement des boutons
         buttons: [
@@ -155,38 +155,40 @@ $(document).ready(function () {
     }
 });
 
-$(document).on('click', '.delete-btn', function (event) {
-    event.preventDefault(); // Empêche le comportement par défaut du bouton
-    const url = $(this).data('url'); // Récupère l'URL de suppression
-    Swal.fire({
-        title: 'Confirmer la suppression',
-        text: "Êtes-vous sûr de vouloir supprimer ce colis ?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: url,
-                type: 'DELETE', // Assurez-vous que la méthode est DELETE
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                },
-                success: function(response) {
-                    Swal.fire('Supprimé!', response.success, 'success').then(() => {
-                        location.reload(); // Recharger la page après la suppression
-                    });
-                },
-                error: function(xhr) {
-                    Swal.fire('Erreur!', xhr.responseJSON.error, 'error');
-                }
-            });
-        }
+    $(document).on('click', '.delete-btn', function (event) {
+        event.preventDefault();
+        const deleteUrl = $(this).data('url');
+        console.log(deleteUrl);
+        const reference = $(this).data('reference');
+
+        Swal.fire({
+            title: 'Confirmer l\'archivage',
+            text: `Voulez-vous vraiment archiver tous les colis avec la référence "${reference}" ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, archiver',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Archivé !', response.success, 'success').then(() => {
+                            $('#productTable').DataTable().ajax.reload(null, false);
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Erreur !', xhr.responseJSON.error, 'error');
+                    }
+                });
+            }
+        });
     });
-});
+
     </script>
     
     

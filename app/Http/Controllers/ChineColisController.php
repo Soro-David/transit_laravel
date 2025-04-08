@@ -997,11 +997,10 @@ public function get_colis_valide(Request $request)
         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
         ->where('etat', 'Validé')
         ->where('expediteurs.agence', 'Agence de Chine')
+        ->whereNull('colis.archived_at')
         ->get();
         
         $colisGrouped = $colis->groupBy('reference_colis');
-
-
         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
             return [
                 'reference_colis' => $reference,
@@ -1027,7 +1026,8 @@ public function get_colis_valide(Request $request)
             ->addColumn('action', function ($row) {
                 $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
                 $editUrl = route('chine_colis.valide.edit', ['id' => $firstColis->id]);
-                $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                // $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+                $deleteUrl = route('chine_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                 $invoiceUrl = route('chine_colis.valide.edit.invoice', ['id' => $firstColis->id]);
 
                 return '
@@ -1037,10 +1037,10 @@ public function get_colis_valide(Request $request)
                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                         </a>
                     </div> 
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="' . $firstColis->id . '" data-url="' . $deleteUrl . '">
+                    <button class="btn btn-sm btn-danger delete-btn" data-reference="' . $row['reference_colis'] . '" data-url="' . $deleteUrl . '">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+                     <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
                         <i class="fas fa-file-invoice"></i>
                     </a>
                 </div>
@@ -1050,6 +1050,107 @@ public function get_colis_valide(Request $request)
             ->make(true);
     }
 }
+
+    // function de suppression des colis validés
+public function destroy_colis_valide($reference)
+{
+    try {
+        // Récupère tous les colis avec la même référence
+        $colisList = Colis::where('reference_colis', $reference)
+            ->whereNull('archived_at') // éviter de réarchiver
+            ->get();
+            // dd($colisList);
+
+        if ($colisList->isEmpty()) {
+            return response()->json(['error' => 'Aucun colis trouvé pour cette référence.'], 404);
+        }
+
+        foreach ($colisList as $colis) {
+            $colis->archived_at = now();
+            $colis->save();
+        }
+
+        return response()->json(['success' => 'Colis archivés avec succès !']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
+    }
+}
+
+
+// public function get_colis_valide(Request $request)
+// {
+//     if ($request->ajax()) {
+//         $colis = Colis::select(
+//             'colis.id', // Ajout de l'ID du colis pour être utilisé plus tard
+//             'colis.reference_colis',
+//             'expediteurs.nom as expediteur_nom',
+//             'expediteurs.prenom as expediteur_prenom',
+//             'expediteurs.tel as expediteur_tel',
+//             'expediteurs.agence as expediteur_agence',
+//             'destinataires.nom as destinataire_nom',
+//             'destinataires.prenom as destinataire_prenom',
+//             'destinataires.agence as destinataire_agence',
+//             'destinataires.tel as destinataire_tel',
+//             'colis.etat as etat',
+//             'colis.created_at as created_at'
+//         )
+//         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+//         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+//         ->where('etat', 'Validé')
+//         ->where('expediteurs.agence', 'Agence de Chine')
+//         ->get();
+        
+//         $colisGrouped = $colis->groupBy('reference_colis');
+
+
+//         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+//             return [
+//                 'reference_colis' => $reference,
+//                 'nombre_de_colis' => $group->count(),
+//                 'expediteur_nom' => $group->first()->expediteur_nom,
+//                 'expediteur_prenom' => $group->first()->expediteur_prenom,
+//                 'expediteur_tel' => $group->first()->expediteur_tel,
+//                 'expediteur_agence' => $group->first()->expediteur_agence,
+//                 'destinataire_nom' => $group->first()->destinataire_nom,
+//                 'destinataire_prenom' => $group->first()->destinataire_prenom,
+//                 'destinataire_tel' => $group->first()->destinataire_tel,
+//                 'destinataire_agence' => $group->first()->destinataire_agence,
+//                 'etat' => $group->first()->etat, // conserve l'état d'origine ici
+//                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
+//                 'colis' => $group
+//             ];
+//         })->values();
+
+//         return DataTables::of($colisWithCount)
+//             ->addColumn('etat', function ($row) {
+//                 return $row['etat'] === 'Devis' ? 'Dévis validé' : 'Colis validé';
+//             })
+//             ->addColumn('action', function ($row) {
+//                 $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
+//                 $editUrl = route('chine_colis.valide.edit', ['id' => $firstColis->id]);
+//                 $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+//                 $invoiceUrl = route('chine_colis.valide.edit.invoice', ['id' => $firstColis->id]);
+
+//                 return '
+//                 <div class="d-flex align-items-center gap-2">
+//                     <div class="btn-group">
+//                         <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+//                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+//                         </a>
+//                     </div> 
+//                     <button class="btn btn-sm btn-danger delete-btn" data-id="' . $firstColis->id . '" data-url="' . $deleteUrl . '">
+//                         <i class="fas fa-trash"></i>
+//                     </button>
+//                     <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+//                         <i class="fas fa-file-invoice"></i>
+//                     </a>
+//                 </div>
+//                 ';
+//             })
+//             ->rawColumns(['action'])
+//             ->make(true);
+//     }
+// }
 
 
 
@@ -1523,18 +1624,6 @@ public function get_colis_hold(Request $request)
         return view('AGENCE_CHINE.colis.valide');
     }
     // function de suppression des colis validés
-    public function destroy_colis_valide($id)
-    {
-        // dd($id);
-        try {
-            $colis = Colis::findOrFail($id);
-            
-            $colis->delete();
-            return redirect()->route('chine_colis.hold')->with('success', 'Colis supprimé avec succès !');
-        } catch (\Exception $e) {
-            return redirect()->route('chine_colis.hold')->with('error', 'Une erreur est survenue lors de la suppression du colis : ' . $e->getMessage());
-        }
-    }
 
 
 
