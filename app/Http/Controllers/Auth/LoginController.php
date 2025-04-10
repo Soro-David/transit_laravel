@@ -7,6 +7,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
@@ -56,31 +57,35 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if ($user->role === 'admin') {
-            return redirect()->route('home');
-        } elseif ($user->role === 'user') {
-            return redirect()->route('customer.dashboard');
-        } elseif ($user->role === 'agent') {
-            if (isset($user->agence)) {
-                switch ($user->agence->nom_agence) {
-                    case 'AFT Agence Louis Bleriot':
-                        return redirect()->route('AFT_LOUIS_BLERIOT.dashboard');
-                    case 'IPMS-SIMEX-CI':
-                        return redirect()->route('IPMS_SIMEXCI.dashboard');
-                    case 'IPMS-SIMEX-CI Angre 8ème Tranche':
-                        return redirect()->route('IPMS_SIMEXCI_ANGRE.dashboard');
-                    case 'Agence de Chine':
-                        return redirect()->route('AGENCE_CHINE.dashboard');
-                    default:
-                        return redirect()->route('agent.dashboard');
-                }
-            }
-            return redirect()->route('agent.dashboard');
-        }
-        elseif($user->role === 'chauffeur'){
-            return redirect()->route('chauffeur.dashboard');
-       }
+       // 🔐 Mise à jour de la session active
+    $user->last_session_id = Session::getId();
+    $user->save();
 
-        return redirect('/home');
+    // 🔁 Redirections selon les rôles (inchangé)
+    if ($user->role === 'admin') {
+        return redirect()->route('home');
+    } elseif ($user->role === 'user') {
+        return redirect()->route('customer.dashboard');
+    } elseif ($user->role === 'agent') {
+        if (isset($user->agence)) {
+            switch ($user->agence->nom_agence) {
+                case 'AFT Agence Louis Bleriot':
+                    return redirect()->route('AFT_LOUIS_BLERIOT.dashboard');
+                case 'IPMS-SIMEX-CI':
+                    return redirect()->route('IPMS_SIMEXCI.dashboard');
+                case 'IPMS-SIMEX-CI Angre 8ème Tranche':
+                    return redirect()->route('IPMS_SIMEXCI_ANGRE.dashboard');
+                case 'Agence de Chine':
+                    return redirect()->route('AGENCE_CHINE.dashboard');
+                default:
+                    return redirect()->route('agent.dashboard');
+            }
+        }
+        return redirect()->route('agent.dashboard');
+    } elseif ($user->role === 'chauffeur') {
+        return redirect()->route('chauffeur.dashboard');
     }
+
+    return redirect('/home');
+}
 }
