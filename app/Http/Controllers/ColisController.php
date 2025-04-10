@@ -35,7 +35,7 @@ use Infobip\Configuration;
 use Infobip\Models\SmsAdvancedTextualRequest;
 use Infobip\Models\SmsDestination;
 use Infobip\Models\SmsTextualMessage;
-use App\Services\infobipService;
+use App\Services\InfobipService;
 
 
 class ColisController extends Controller

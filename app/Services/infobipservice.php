@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
-class infobipService
+class InfobipService
 {
     protected $apiKey;
     protected $baseUrl;
