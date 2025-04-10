@@ -32,7 +32,7 @@ return [
     'infobip' => [
     'api_key' => env('INFOBIP_API_KEY'),
     'base_url' => env('INFOBIP_BASE_URL'),
-    // 'from_number' => env('INFOBIP_FROM_NUMBER'),
+    'from_number' => env('INFOBIP_FROM_NUMBER'),
     ],
 
 ];
