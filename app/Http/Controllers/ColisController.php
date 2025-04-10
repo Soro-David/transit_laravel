@@ -387,7 +387,7 @@ private function generateReferenceContenaire()
             'agence' => $data['agence_destination'],
             'adresse' => $data['adresse_destinataire'],
         ];
-    // dd($destinataireData);
+        // dd($destinataireData);
         // Initialisation du tableau pour stocker les données des colis
         $colisData = [];
     
@@ -481,6 +481,7 @@ private function generateReferenceContenaire()
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
             }
         }
+        dd($colisData);
      // End SMS Data
     $colis = $colisData;
      // dd($colis);
