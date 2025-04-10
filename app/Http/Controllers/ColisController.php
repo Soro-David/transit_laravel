@@ -312,6 +312,7 @@ private function generateReferenceContenaire()
     public function store_colis(Request $request)
     {
         try {
+            // dd($request);
             // Sauvegarde des données de la première étape dans la session
             $request->session()->put('step1', $request->all());
     
@@ -623,7 +624,7 @@ $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallba
         'expediteur_id' => $expediteur->id, // ID de l'expéditeur
         'agent_id' => Auth::id(), // ID de l'agent connecté
     ];
-
+dd($paiementData);
     // Créer les colis et enregistrer les paiements
     $colis = [];
     foreach ($colisData as $colisItem) {
