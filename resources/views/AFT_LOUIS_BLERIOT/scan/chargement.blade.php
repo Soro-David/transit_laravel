@@ -1,6 +1,5 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
-
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -194,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: "{{ route('aftlb_scan.get.colis.charge') }}", // Récupération des données via AJAX
+            ajax: '{{ route("aftlb_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
             { data: 'reference_colis' },
             { data: 'nombre_de_colis' },
