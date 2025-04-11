@@ -1733,7 +1733,7 @@ public function get_colis_hold(Request $request)
                     return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
                 })
                 ->addColumn('action', function ($row) {
-                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $row['id']]);
+                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                     return '
                        <div class="d-flex align-items-center gap-2">
                             <div class="btn-group">
@@ -1800,7 +1800,7 @@ public function get_colis_hold(Request $request)
                     return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
                 })
                 ->addColumn('action', function ($row) {
-                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['id' => $row['id']]);
+                    $deleteUrl = route('chine_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                     return '
                        <div class="d-flex align-items-center gap-2">
                             <div class="btn-group">

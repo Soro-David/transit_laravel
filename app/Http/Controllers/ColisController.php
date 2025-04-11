@@ -43,22 +43,51 @@ class ColisController extends Controller
    
     public function store_bateaux(Request $request)
     {
-        // Création du bateau ou du ballon
-        Bateaux::create([
-            'reference_bateau' => $request->reference_bateau,
-            'reference_conteneur' => $request->reference_conteneur,
-            'type' => $request->type,
-            'date_arriver' => $request->date_arrive,
-            'compagnie' => $request->compagnie,
-            'agence_destination' => $request->agence_destination,
-            'nom_bateau' => $request->nom_bateau ?? null,
-            'numero_bateau' => $request->numero_bateau ?? null,
-            'nom_ballon' => $request->nom_ballon ?? null,
-            'numero_ballon' => $request->numero_ballon ?? null,
-        ]);
+        try {
+            // Validation des données
+            $request->validate([
+                'reference_bateau' => 'required|unique:bateaux,reference_bateau',
+                'reference_conteneur' => 'required',
+                'type' => 'required',
+                'date_arrive' => 'required|date',
+                'compagnie' => 'required|string',
+                'agence_destination' => 'required|string',
+            ],
+            [
+                'reference_bateau.required' => 'La référence du bateau est obligatoire.',
+                'reference_bateau.unique' => 'La référence du bateau doit être unique.',
+                'reference_conteneur.required' => 'La référence du conteneur est obligatoire.',
+                'type.required' => 'Le type de véhicule est obligatoire.',
+                'date_arrive.required' => 'La date d\'arrivée est obligatoire.',
+                'date_arrive.date' => 'La date d\'arrivée doit être une date valide.',
+                'compagnie.required' => 'Le nom de la compagnie est obligatoire.',
+                'compagnie.string' => 'Le nom de la compagnie doit être une chaîne de caractères.',
+                'agence_destination.required' => 'L\'agence de destination est obligatoire.',
+                'agence_destination.string' => 'L\'agence de destination doit être une chaîne de caractères.',
+            ]);
 
-        // Redirection avec message de succès
-        return redirect()->back()->with('success', 'Bateau créé avec succès !');
+            // Création du bateau
+            $bateau = Bateaux::create([
+                'reference_bateau' => $request->reference_bateau,
+                'reference_conteneur' => $request->reference_conteneur,
+                'type' => $request->type,
+                'date_arriver' => $request->date_arrive,
+                'compagnie' => $request->compagnie,
+                'agence_destination' => $request->agence_destination,
+                'agence_expedition' => $request->agence_expedition,
+                'nom_bateau' => $request->nom_bateau ?? null,
+                'numero_bateau' => $request->numero_bateau ?? null,
+                'nom_ballon' => $request->nom_ballon ?? null,
+                'numero_ballon' => $request->numero_ballon ?? null,
+            ]);
+
+            return redirect()->back()->with('success', 'Bateau créé avec succès !');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur s\'est produite : ' . $e->getMessage())->withInput();
+        }
     }
 
 
@@ -1930,7 +1959,7 @@ public function get_colis_contenaire(Request $request)
                 return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
             })
             ->addColumn('action', function ($row) {
-                $deleteUrl = route('colis.destroy.colis.valide', ['id' => $row['id']]);
+                $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                 return '
                    <div class="d-flex align-items-center gap-2">
                         <div class="btn-group">
@@ -1995,7 +2024,7 @@ public function get_colis_vol(Request $request)
                 return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
             })
             ->addColumn('action', function ($row) {
-                $deleteUrl = route('colis.destroy.colis.valide', ['id' => $row['id']]);
+                $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                 return '
                    <div class="d-flex align-items-center gap-2">
                         <div class="btn-group">
