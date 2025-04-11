@@ -85,6 +85,7 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <input type="hidden" name="agence_expedition" value="{{ old('agence_expedition', 'AFT Agence Louis Bleriot') }}">
     
                             <!-- Bouton de soumission -->
                             <div class="col-md-12 text-center">

@@ -43,6 +43,7 @@ class ColisController extends Controller
    
     public function store_bateaux(Request $request)
     {
+        dd($request->all());
         try {
             // Validation des données
             $request->validate([
