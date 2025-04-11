@@ -232,7 +232,6 @@ private function generateReferenceColis()
 {
     // Récupérer l'utilisateur connecté
     $user = Auth::user();
-    // dd($user);
     // Vérifier si l'utilisateur est connecté
     if (!$user) {
         throw new \Exception("Utilisateur non connecté.");
@@ -241,7 +240,6 @@ private function generateReferenceColis()
     // Récupérer la première lettre du nom et du prénom
     $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
     $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-    // dd($firstLetterNom, $firstLetterPrenom);
     // Récupérer la première lettre du mois actuel
     $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
 
@@ -341,8 +339,6 @@ private function generateReferenceContenaire()
     public function store_colis(Request $request)
     {
         try {
-            // dd($request);
-            // Sauvegarde des données de la première étape dans la session
             $request->session()->put('step1', $request->all());
     
             session(['step1' => $request->only([
@@ -416,7 +412,6 @@ private function generateReferenceContenaire()
             'agence' => $data['agence_destination'],
             'adresse' => $data['adresse_destinataire'],
         ];
-        // dd($destinataireData);
         // Initialisation du tableau pour stocker les données des colis
         $colisData = [];
     
@@ -432,7 +427,6 @@ private function generateReferenceContenaire()
                 $dimension_result = null;
             }
             
-            // dd($dimension_result);
             
             $colisData[] = [
                 'reference_colis' => $data['reference_colis'],
@@ -451,7 +445,6 @@ private function generateReferenceContenaire()
             ];
         }
         
-    // dd($colisData);
         $nombreQuantiteColis = count($data['quantite_colis']);
     
         // $payementData = [
@@ -464,7 +457,6 @@ private function generateReferenceContenaire()
         //     'numero_tel' => $data['numero_tel'],
         //     'numero_cheque' => $data['numero_cheque'],
         // ];
-    // dd($payementData);
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
@@ -484,14 +476,11 @@ private function generateReferenceContenaire()
         // SMS data
         
         $colisData = $colis;
-        // dd($colisData);
         foreach ($colisData as $colisId => $data) {
             // dd($data);
             try {
                 $colis = Colis::findOrFail($data->id);
                 $numero_expediteur = +2250546158376;
-                // dd($numero_expediteur);
-                // dd( $colis->prix_transit_colis);
                 // Mise à jour du colis
                 $colis->prix_transit_colis = $data['prix_transit_colis'];
                 $colis->status = 'payé';
@@ -510,7 +499,6 @@ private function generateReferenceContenaire()
                 return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
             }
         }
-        dd($colisData);
      // End SMS Data
     $colis = $colisData;
      // dd($colis);
