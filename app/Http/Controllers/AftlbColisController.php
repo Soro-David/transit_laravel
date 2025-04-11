@@ -514,7 +514,7 @@ public function store_colis(Request $request)
              // Mise à jour du colis
              $colis->prix_transit_colis = $data['prix_transit_colis'];
              $colis->status = 'payé';
-             $colis->etat = 'Devis';
+             $colis->etat = 'Validé';
              $colis->save();
  
              // Message SMS
