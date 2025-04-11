@@ -375,7 +375,7 @@ public function store_colis(Request $request)
             session('step1', []),
             session('step2', [])
         );
-    
+    // dd($data);
         // Vérifiez que la clé 'quantite_colis' existe
         if (!isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             return redirect()->back()->with('error', 'La quantité des colis est manquante ou invalide.');

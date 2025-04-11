@@ -107,7 +107,7 @@
                             <select name="agence_expedition" id="agence_expedition" class="form-control">
                                 {{-- <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option> --}}
                                 @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->id }}">{{ $agence->nom_agence }}</option>
+                                    <option value="{{$agence->nom_agence}}">{{ $agence->nom_agence }}</option>
                                 @endforeach
                             </select>
                         </div>
