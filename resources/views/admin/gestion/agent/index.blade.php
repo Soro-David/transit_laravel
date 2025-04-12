@@ -98,7 +98,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- <input type="hidden" name="agence_id" id="agence_id"> --}}
+                <input type="hidden" name="agence_id" id="agence_id">
             </form>
     </section>
     <script>

@@ -85,8 +85,9 @@ public function index()
         return view('accueil');
     }
 
-    public function store(userRequest $request)
+    public function store(Request $request)
     {
+        // dd($request->all());
         // Créer un utilisateur dans la table 'users'
         $user = User::create([
             'first_name' => $request->nom,
@@ -94,16 +95,17 @@ public function index()
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'agence_id' => $request->agence_id, // Conserver agence_id pour la table users si nécessaire
+            'agence_id' => $request->agence_id,
         ]);
-    
-        // Créer un agent dans la table 'agents'
+        // dd($user->id);
+        // Créer un agent et lier au user créé juste avant
         Agent::create([
-            'nom' => $request->nom, // Utiliser le même nom et prenom
+            'nom' => $request->nom,
             'prenom' => $request->prenom,
-            'email' => $request->email, // Utiliser le même email
-            'password' => Hash::make($request->password), // Hacher le mot de passe à nouveau pour la table agents si vous le stockez aussi là. Sinon, vous pouvez ne pas le stocker dans la table agents si vous utilisez uniquement la table users pour l'authentification.
-            'agence_id' => $request->agence_id, // Associer l'agent à l'agence sélectionnée
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'agence_id' => $request->agence_id,
+            'user_id' => $user->id, // ✅ c’est lui le bon
         ]);
     
         return redirect()->back()->with('success', 'Agent ajouté avec succès !');

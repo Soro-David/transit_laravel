@@ -9,7 +9,7 @@ class Agent extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'prenom', 'email', 'password','agence_id']; // Champs fillable mis à jour
+    protected $fillable = ['nom', 'prenom', 'email', 'password','agence_id','user_id']; // Champs fillable mis à jour
 
     // ... (vos autres relations existantes, si vous les conservez) ...
 
