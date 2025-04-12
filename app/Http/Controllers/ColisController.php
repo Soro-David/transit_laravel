@@ -391,7 +391,7 @@ private function generateReferenceContenaire()
                     session('step1', []),
                     session('step2', [])
                 );
-                // dd($data);
+                // dd($data);wha
 
                 // Vérifiez que la clé 'quantite_colis' existe
                 if (!isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
