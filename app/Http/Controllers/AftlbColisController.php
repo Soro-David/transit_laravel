@@ -483,9 +483,9 @@ public function store_colis(Request $request)
             if (Auth::check()) {
                 $user = Auth::user(); // Récupérer l'utilisateur authentifié (modèle User)
                 $agent = $user->agent; // Accéder à la relation agent() définie dans le modèle User
-                $agentId = $agent->id; // Récupérer l'ID de l'agent si la relation existe, sinon null
+                $agentId = $user->id; // Récupérer l'ID de l'agent si la relation existe, sinon null
             }
-            dd($agentId);
+            dd($agent);
     
             $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
             // Créer le colis
