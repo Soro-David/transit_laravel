@@ -81,7 +81,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Invoice::class);
     }
-    public function agent() {
-        return $this->hasOne(Agent::class, 'email', 'email'); // En supposant que 'email' est la colonne de liaison
+    public function agent() 
+    {
+        return $this->belongsTo(Agent::class, 'email', 'email'); // En supposant que 'email' est la colonne de liaison
     }
 }
