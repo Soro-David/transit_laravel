@@ -36,7 +36,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header d-flex justify-content-between align-items-center">
-                            <h5 class="text-center flex-grow-1 m-0">Information de l'Expéditeur</h5>
+                            <h5 class="text-center flex-grow-1 m-0">Information de l'agent</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -98,7 +98,7 @@
                         </div>
                     </div>
                 </div>
-                <input type="hidden" name="agence_id" id="agence_id">
+                {{-- <input type="hidden" name="agence_id" id="agence_id"> --}}
             </form>
     </section>
     <script>

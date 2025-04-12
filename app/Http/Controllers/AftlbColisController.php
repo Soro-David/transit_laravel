@@ -486,7 +486,7 @@ public function store_colis(Request $request)
                 $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe, sinon null
             }
             // $agent = Auth::user();
-            dd($user);
+            // dd($user);
             $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
             // Créer le colis
         
@@ -494,7 +494,7 @@ public function store_colis(Request $request)
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
             ]));
-            dd($colisModel);
+            // dd($colisModel);
             $colis[] = $colisModel; // Ajouter au tableau pour la génération du QR code
     
             // Créer et enregistrer le paiement pour ce colis
