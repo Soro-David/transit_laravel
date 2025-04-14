@@ -44,7 +44,6 @@ class ChineColisController extends Controller
     public function store_bateaux(Request $request)
     {
         try {
-            // dd($request->all());
             // Validation des données
             $request->validate([
                 'reference_bateau' => 'required|unique:bateaux,reference_bateau',
@@ -66,9 +65,19 @@ class ChineColisController extends Controller
                 'agence_destination.required' => 'L\'agence de destination est obligatoire.',
                 'agence_destination.string' => 'L\'agence de destination doit être une chaîne de caractères.',
             ]);
-
+    
+            // Vérification manuelle si le numero_bateau existe déjà (s’il est fourni)
+            if ($request->filled('numero_bateau')) {
+                $exists = Bateaux::where('numero_bateau', $request->numero_bateau)->exists();
+                if ($exists) {
+                    return redirect()->back()
+                        ->with('error', 'Le numéro de bateau "' . $request->numero_bateau . '" existe déjà.')
+                        ->withInput();
+                }
+            }
+    
             // Création du bateau
-            $bateau = Bateaux::create([
+            Bateaux::create([
                 'reference_bateau' => $request->reference_bateau,
                 'reference_conteneur' => $request->reference_conteneur,
                 'type' => $request->type,
@@ -81,15 +90,16 @@ class ChineColisController extends Controller
                 'nom_ballon' => $request->nom_ballon ?? null,
                 'numero_ballon' => $request->numero_ballon ?? null,
             ]);
-
+    
             return redirect()->back()->with('success', 'Bateau créé avec succès !');
-
+    
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Une erreur s\'est produite : ' . $e->getMessage())->withInput();
         }
     }
+    
 
     public function autocompleteProduit(Request $request)
     {
