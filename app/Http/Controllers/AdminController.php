@@ -105,7 +105,7 @@ public function index()
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'agence_id' => $request->agence_id,
-            'user_id' => $user->id, // ✅ c’est lui le bon
+            'user_id' => $user->id,
         ]);
     
         return redirect()->back()->with('success', 'Agent ajouté avec succès !');
