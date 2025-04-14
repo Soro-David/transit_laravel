@@ -1845,8 +1845,7 @@ public function get_colis_hold(Request $request)
                 })
                 ->editColumn('date_arriver', function ($row) {
                     return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
-                })
-                ->addColumn('actions', function ($row) {
+                })->addColumn('actions', function ($row) {
                     $editUrl = route('chine_colis.bateaux.edit', $row->id);
                     $deleteUrl = route('chine_colis.bateaux.destroy', $row->id);
                     $listColisUrl = route('chine_colis.liste.bateau', $row->reference_conteneur);
@@ -1917,26 +1916,6 @@ public function get_colis_hold(Request $request)
         return redirect()->route('chine_colis.cargaison.ferme')->with('success', 'Bateau modifié avec succès.');
     }
 
-    // public function get_cargaison_ferme(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $bateaux = Bateaux::select(
-    //             'reference_bateau',
-    //             'created_at as date_depart',
-    //             'date_arriver'
-    //         ) 
-    //         ->get();
-    
-    //         return DataTables::of($bateaux)
-    //             ->editColumn('date_depart', function ($row) {
-    //                 return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
-    //             })
-    //             ->editColumn('date_arriver', function ($row) {
-    //                 return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
-    //             })
-    //             ->make(true);
-    //     }
-    // }
 
 public function cargaison_ferme(Request $request)
 {
