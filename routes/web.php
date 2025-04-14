@@ -236,6 +236,12 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/list-vol',[ColisController::class, 'liste_vol'])->name('liste.vol');
         Route::post('/bateaux/store', [ColisController::class, 'store_bateaux'])->name('bateaux.store');
 
+        Route::get('/bateaux/{id}/edit', [ColisController::class, 'edit_bateaux'])->name('bateaux.edit');
+        Route::delete('/bateaux/{id}', [ColisController::class, 'destroy_bateaux'])->name('bateaux.destroy');
+        Route::get('/colis/bateau/{reference_conteneur}', [ColisController::class, 'liste_colis_par_bateau'])->name('liste.bateau');
+        Route::put('/bateaux/{id}', [ColisController::class, 'update_bateaux'])->name('bateaux.update');
+
+
         Route::post('/store', [ColisController::class,'store'])->name('store'); 
         Route::get('/{coli}', [ColisController::class,'show'])->name('show'); 
         Route::get('/{coli}/edit', [ColisController::class,'edit'])->name('edit'); 
@@ -615,6 +621,11 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
 
         Route::post('/bateaux/store-aft-louis-b', [AftlbColisController::class, 'store_bateaux'])->name('bateaux.store');
+
+        Route::get('/bateaux/{id}/edit-aft-louis-b', [AftlbColisController::class, 'edit_bateaux'])->name('bateaux.edit');
+        Route::delete('/bateaux/{id}-aft-louis-b', [AftlbColisController::class, 'destroy_bateaux'])->name('bateaux.destroy');
+        Route::get('/colis/bateau/{reference_conteneur}-aft-louis-b', [AftlbColisController::class, 'liste_colis_par_bateau'])->name('liste.bateau');
+        Route::put('/bateaux/{id}-aft-louis-b', [AftlbColisController::class, 'update_bateaux'])->name('bateaux.update');
         // CRUD classique sur colis
         Route::post('/store-aft-louis-b', [AftlbColisController::class, 'store'])->name('store'); 
         Route::get('/{coli}-aft-louis-b', [AftlbColisController::class, 'show'])->name('show'); 
@@ -1204,6 +1215,12 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         // Suppression d'un colis validé
         Route::delete('/colis-aft_chine/{reference}', [ChineColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
         Route::post('/bateaux/store-aft_chine', [ChineColisController::class, 'store_bateaux'])->name('bateaux.store');
+
+        Route::get('/bateaux/{id}/edit-aft_chine', [ChineColisController::class, 'edit_bateaux'])->name('bateaux.edit');
+        Route::delete('/bateaux/{id}-aft_chine', [ChineColisController::class, 'destroy_bateaux'])->name('bateaux.destroy');
+        Route::get('/colis/bateau/{reference_conteneur}-aft_chine', [ChineColisController::class, 'liste_colis_par_bateau'])->name('liste.bateau');
+        Route::put('/bateaux/{id}-aft_chine', [ChineColisController::class, 'update_bateaux'])->name('bateaux.update');
+    
         // CRUD classique sur colis
 
         Route::get('/on-invoice/edit-aft_chine/{id}', [ChineColisController::class, 'editInvoice'])->name('valide.edit.invoice');

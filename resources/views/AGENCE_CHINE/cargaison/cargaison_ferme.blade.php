@@ -4,7 +4,6 @@
 
 @section('content')
 <section class="py-3">
-
     <div class="row d-flex justify-content-center">
         <div class="col-md-12">
             <div class="card border-0 rounded shadow-sm">
@@ -19,12 +18,8 @@
                             <div class="col-md-3">
                                 <label for="reference_bateau" class="form-label fw-bold">Référence du bateau:</label>
                                 <input type="text" name="reference_bateau" id="reference_bateau" class="form-control" readonly>
-                                @error('reference_bateau')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
-                            
-                    
+    
                             <!-- Sélection de la référence du conteneur -->
                             <div class="col-md-3">
                                 <label for="reference_conteneur" class="form-label fw-bold">Référence conteneur:</label>
@@ -34,9 +29,6 @@
                                         <option value="{{ $reference }}">{{ $reference }}</option>
                                     @endforeach
                                 </select>
-                                @error('reference_conteneur')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Type de véhicule -->
@@ -47,61 +39,40 @@
                                     <option value="bateau">BATEAU</option>
                                     <option value="ballon">BALLON</option>
                                 </select>
-                                @error('type')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Date d'arrivée -->
                             <div class="col-md-3">
                                 <label for="date_arrive" class="form-label fw-bold">Date d'arrivée:</label>
                                 <input type="date" name="date_arrive" id="date_arrive" class="form-control">
-                                @error('date_arrive')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Compagnie -->
                             <div class="col-md-3">
                                 <label for="compagnie" class="form-label fw-bold">Compagnie:</label>
                                 <input type="text" name="compagnie" id="compagnie" class="form-control" placeholder="Nom de la compagnie">
-                                @error('compagnie')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Champs du bateau -->
                             <div class="col-md-3 bateau-fields" style="display: none;">
                                 <label for="numero_bateau" class="form-label fw-bold">Numéro du bateau:</label>
                                 <input type="text" name="numero_bateau" id="numero_bateau" class="form-control" placeholder="Ex: B12345">
-                                @error('numero_bateau')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <div class="col-md-3 bateau-fields" style="display: none;">
                                 <label for="nom_bateau" class="form-label fw-bold">Nom du bateau:</label>
                                 <input type="text" name="nom_bateau" id="nom_bateau" class="form-control" placeholder="Ex: Océanic">
-                                @error('nom_bateau')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Champs du ballon -->
                             <div class="col-md-3 ballon-fields" style="display: none;">
                                 <label for="numero_ballon" class="form-label fw-bold">Numéro du ballon:</label>
                                 <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" placeholder="Ex: BA123">
-                                @error('numero_ballon')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <div class="col-md-3 ballon-fields" style="display: none;">
                                 <label for="nom_ballon" class="form-label fw-bold">Nom du ballon:</label>
                                 <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" placeholder="Ex: AirOcean">
-                                @error('nom_ballon')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
     
                             <!-- Agence de destination -->
@@ -113,9 +84,6 @@
                                         <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
                                     @endforeach
                                 </select>
-                                @error('agence_destination')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
                             <input type="hidden" name="agence_expedition" value="{{ old('agence_expedition', 'Agence de Chine') }}">
     
@@ -128,8 +96,46 @@
                 </div>
             </div>
         </div>
-        <form action="" method="POST" class="mt-4">
-            @csrf
+    
+        <!-- Script JavaScript -->
+        <script>
+            function generateReferenceBateau() {
+                const referenceConteneur = document.getElementById("reference_conteneur").value;
+                const mois = "{{ $mois }}";  // Récupération du mois depuis Laravel
+                const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
+    
+                if (referenceConteneur) {
+                    const referenceBateau = `CNT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
+                    document.getElementById("reference_bateau").value = referenceBateau;
+                } else {
+                    document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
+                }
+            }
+    
+            function toggleFields() {
+                const type = document.getElementById("type").value;
+                
+                // Sélectionner tous les éléments concernés
+                const bateauFields = document.querySelectorAll(".bateau-fields");
+                const ballonFields = document.querySelectorAll(".ballon-fields");
+    
+                if (type === "bateau") {
+                    bateauFields.forEach(field => field.style.display = "block");
+                    ballonFields.forEach(field => field.style.display = "none");
+                } else if (type === "ballon") {
+                    bateauFields.forEach(field => field.style.display = "none");
+                    ballonFields.forEach(field => field.style.display = "block");
+                } else {
+                    bateauFields.forEach(field => field.style.display = "none");
+                    ballonFields.forEach(field => field.style.display = "none");
+                }
+            }
+        </script>
+    </div>
+    
+    
+    <form action="" method="POST" class="mt-4">
+        @csrf
             <div class="row">
                 <div class="col-md-12">
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
@@ -142,6 +148,7 @@
                                             <th>Référence Bateau</th>
                                             <th>Date depart</th>
                                             <th>Date arriver</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -151,57 +158,94 @@
                     </div>
                 </div>
             </div>
-        </form>
+    </form>
     <!-- JavaScript for DataTable and Export -->
-<script>
-    $(document).ready(function () {
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-            ajax: '{{ route("chine_colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
+    <script>
+$(document).ready(function () {
+    var table = $("#productTable").DataTable({
+        responsive: true,
+        language: {
+                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+            },
+        ajax: '{{ route("chine_colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_bateau', title: "Référence Bateau" },
                 { data: 'date_depart', title: "Date de Départ" },
-                { data: 'date_arriver', title: "Date d'Arrivée" }
+                { data: 'date_arriver', title: "Date d'Arrivée" },
+                { data: 'actions', title: "Actions", orderable: false, searchable: false }
             ],
-        });
-    });
-      
-    function generateReferenceBateau() {
-        const referenceConteneur = document.getElementById("reference_conteneur").value;
-        const mois = "{{ $mois }}"; 
-        const annee = "{{ $annee }}"; 
+        dom: 'Bfrtip', // Placement des boutons
+        buttons: [
+            // Bouton Excel
+            {
+                extend: 'excelHtml5',
+                text: 'Exporter en Excel',
+                title: 'Liste des Colis en attente',
+                customize: function (xlsx) {
+                    console.log("Exportation Excel réussie sans image.");
+                }
+            },
+            // Bouton PDF
+            {
+                extend: 'pdfHtml5',
+                text: 'Exporter en PDF',
+                title: 'Liste des Colis en attente',
+                orientation: 'landscape', // Mode paysage
+                pageSize: 'A4', // Taille de la page
+                customize: function (doc) {
+                    // Ajout du logo encodé en Base64 dans le PDF
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    toDataURL(logoUrl, function (dataUrl) {
+                        // Ajout de l'image au début du contenu PDF
+                        console.log(dataUrl);
+                        doc.content.unshift({
+                            image: dataUrl,
+                            width: 100, // Taille du logo
+                            alignment: 'center',
+                            margin: [0, 0, 0, 10] // Espacement
+                        });
+                    });
+                }
+            },
+            // Bouton Imprimer
+            {
+                extend: 'print',
+                text: 'Imprimer',
+                title: 'Liste des Colis en attente',
+                customize: function (win) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                    $(win.document.body).find('h1')
+                        .css('text-align', 'center')
+                        .css('margin-top', '10px');
+                    $(win.document.body).find('h1').after(logo);
+                    $(win.document.body).find('table').css('margin-top', '30px');
+                }
+            }
+        ]
+});
 
-        if (referenceConteneur) {
-            const referenceBateau = `CNT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
-            document.getElementById("reference_bateau").value = referenceBateau;
-        } else {
-            document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
-        }
+    /**
+     * Fonction pour convertir une image en Base64
+     * @param {string} url - L'URL de l'image
+     * @param {function} callback - Fonction de retour contenant l'image en Base64
+     */
+    function toDataURL(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                callback(reader.result); // Retourne l'image encodée en Base64
+            };
+            reader.readAsDataURL(xhr.response);
+        };
+        xhr.open('GET', url);
+        xhr.responseType = 'blob'; // Type de réponse : Blob
+        xhr.send();
     }
-    
-    function toggleFields() {
-        const type = document.getElementById("type").value;
-        
-        // Sélectionner tous les éléments concernés
-        const bateauFields = document.querySelectorAll(".bateau-fields");
-        const ballonFields = document.querySelectorAll(".ballon-fields");
+});
 
-        if (type === "bateau") {
-            bateauFields.forEach(field => field.style.display = "block");
-            ballonFields.forEach(field => field.style.display = "none");
-        } else if (type === "ballon") {
-            bateauFields.forEach(field => field.style.display = "none");
-            ballonFields.forEach(field => field.style.display = "block");
-        } else {
-            bateauFields.forEach(field => field.style.display = "none");
-            ballonFields.forEach(field => field.style.display = "none");
-        }
-    }
-
-</script>
+    </script>
     
     
 </section>
@@ -223,15 +267,27 @@
     }
 
     .dt-button {
-        padding: 10px 20px;
-        margin: 5px;
-        border: 1px solid transparent;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-    }
+    width: 100%; /* carré */
+    height: 40px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: none;
+    outline: none;
+}
+
+.dt-button:hover {
+    transform: scale(1.1);
+    background-color: #c82333 !important; /* rouge plus foncé */
+}
+
+.dt-button:active {
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
 </style>
 @endsection

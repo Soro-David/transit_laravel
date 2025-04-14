@@ -4,9 +4,12 @@
 
 @section('content')
     @csrf
+        <p class="no-print" style="color: red; font-weight: bold; text-align: center; margin-top: 20px;">
+            ⚠️ Veuillez sélectionner le format <strong>A6</strong> dans les paramètres de votre imprimante avant d'imprimer.
+        </p>
     <section style="background-color: #fff !important; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
         @foreach($colis as $index => $colisItem)
-            <div id="affiche" style="width: 100%; max-width: 100%; height: auto; padding: 10px; page-break-after: always;">
+            <div class="etiquette-a6" id="affiche" style="width: 100%; max-width: 100%; height: auto; padding: 10px; page-break-after: always;">
                 <div class="header" style="background-color: black; color: white; text-align: center; padding: 10px; font-size: 18px; word-spacing: 30px; letter-spacing: 2px;">
                     AFT IMPORT EXPORT
                 </div>
@@ -70,7 +73,7 @@
 
     <!-- Boutons pour retourner et imprimer -->
     <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
-        <a  href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
+        <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
         <button class="btn btn-primary" onclick="printAffiche()" style="width: 15%; height: 50px; font-size: 24px;">Imprimer</button>
     </div>
 
@@ -109,6 +112,7 @@
                 size: A6 portrait;
                 margin: 0;
             }
+            
 
             .no-print {
                 display: none;
@@ -131,8 +135,15 @@
             }
 
             #affiche {
+                width: 105mm;
+                height: 148mm;
+                padding: 10mm;
                 page-break-after: always;
+                box-sizing: border-box;
+                margin: auto;
             }
+
+
         }
 
         /* Styles pour les écrans de petite taille */
@@ -198,6 +209,16 @@
                 max-height: 150px !important;
             }
         }
+        .etiquette-a6 {
+            width: 105mm;
+            height: 148mm;
+            padding: 10mm;
+            margin: auto;
+            box-sizing: border-box;
+            background-color: white;
+            page-break-after: always;
+        }
+
     </style>
 
     <!-- Script pour l'impression -->

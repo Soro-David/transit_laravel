@@ -134,30 +134,31 @@
     </div>
     
     
-        <form action="" method="POST" class="mt-4">
-            @csrf
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Liste des bateaux</h4><br>
-                            <div id="products-container">
-                                <div class="table-responsive">
-                                    <table id="productTable" class="table table-bordered table-striped display">
-                                        <thead>
-                                            <tr>
-                                                <th>Référence Bateau</th>
-                                                <th>Date depart</th>
-                                                <th>Date arriver</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
+    <form action="" method="POST" class="mt-4">
+        @csrf
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                        <h4 class="text-left mt-4">Liste des bateaux</h4><br>
+                        <div id="products-container">
+                            <div class="table-responsive">
+                                <table id="productTable" class="table table-bordered table-striped display">
+                                    <thead>
+                                        <tr>
+                                            <th>Référence Bateau</th>
+                                            <th>Date depart</th>
+                                            <th>Date arriver</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-        </form>
+            </div>
+    </form>
     <!-- JavaScript for DataTable and Export -->
     <script>
 $(document).ready(function () {
@@ -167,11 +168,12 @@ $(document).ready(function () {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
         ajax: '{{ route("colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
-        columns: [
-            { data: 'reference_bateau', title: "Référence Bateau" },
-            { data: 'date_depart', title: "Date de Départ" },
-            { data: 'date_arriver', title: "Date d'Arrivée" }
-        ],
+            columns: [
+                { data: 'reference_bateau', title: "Référence Bateau" },
+                { data: 'date_depart', title: "Date de Départ" },
+                { data: 'date_arriver', title: "Date d'Arrivée" },
+                { data: 'actions', title: "Actions", orderable: false, searchable: false }
+            ],
         dom: 'Bfrtip', // Placement des boutons
         buttons: [
             // Bouton Excel
@@ -221,7 +223,7 @@ $(document).ready(function () {
                 }
             }
         ]
-    });
+});
 
     /**
      * Fonction pour convertir une image en Base64
@@ -265,15 +267,27 @@ $(document).ready(function () {
     }
 
     .dt-button {
-        padding: 10px 20px;
-        margin: 5px;
-        border: 1px solid transparent;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-    }
+    width: 100%; /* carré */
+    height: 40px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: none;
+    outline: none;
+}
+
+.dt-button:hover {
+    transform: scale(1.1);
+    background-color: #c82333 !important; /* rouge plus foncé */
+}
+
+.dt-button:active {
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
 </style>
 @endsection

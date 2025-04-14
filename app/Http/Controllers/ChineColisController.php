@@ -44,6 +44,7 @@ class ChineColisController extends Controller
     public function store_bateaux(Request $request)
     {
         try {
+            // dd($request->all());
             // Validation des données
             $request->validate([
                 'reference_bateau' => 'required|unique:bateaux,reference_bateau',
@@ -1816,18 +1817,18 @@ public function get_colis_hold(Request $request)
         }
     }
 
-
     public function get_cargaison_ferme(Request $request)
     {
         if ($request->ajax()) {
             $bateaux = Bateaux::select(
+                'id',
                 'reference_bateau',
+                'reference_conteneur',
                 'created_at as date_depart',
                 'date_arriver'
-            ) 
-            ->where('agence_expedition', 'Agence de Chine')
-            ->get();
-    
+                )
+                ->where('agence_expedition', 'Agence de Chine')
+                ->get();
             return DataTables::of($bateaux)
                 ->editColumn('date_depart', function ($row) {
                     return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
@@ -1835,9 +1836,97 @@ public function get_colis_hold(Request $request)
                 ->editColumn('date_arriver', function ($row) {
                     return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
                 })
+                ->addColumn('actions', function ($row) {
+                    $editUrl = route('chine_colis.bateaux.edit', $row->id);
+                    $deleteUrl = route('chine_colis.bateaux.destroy', $row->id);
+                    $listColisUrl = route('chine_colis.liste.bateau', $row->reference_conteneur);
+                
+                    return '
+                        <div class="d-flex justify-content-center gap-1">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning rounded-circle" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="' . $listColisUrl . '" class="btn btn-sm btn-info rounded-circle" title="Voir les colis">
+                                <i class="fas fa-box"></i>
+                            </a>
+                            <form action="' . $deleteUrl . '" method="POST" onsubmit="return confirm(\'Confirmer la suppression ?\')">
+                                ' . csrf_field() . method_field('DELETE') . '
+                                <button type="submit" class="btn dt-button btn-sm btn-danger rounded-circle" title="Annuler">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                
+                            
+                        </div>
+                    ';
+                })            
+                ->rawColumns(['actions'])
                 ->make(true);
         }
     }
+    
+    public function edit_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        return view('AGENCE_CHINE.cargaison.edit_bateau', compact('bateau'));
+    }
+    
+    public function destroy_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        $bateau->delete();
+    
+        return redirect()->back()->with('success', 'Bateau supprimé.');
+    }
+    
+    public function liste_colis_par_bateau($reference_conteneur)
+    {
+        $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
+        // dd($colis);
+    
+        return view('AGENCE_CHINE.cargaison.liste_bateau', compact('colis'));
+    }
+    
+    public function update_bateaux(Request $request, $id)
+    {
+        // dd($id);
+        $request->validate([
+            'reference_bateau' => 'required|string|max:255',
+            'reference_contenaire' => 'required|string|max:255',
+            'date_depart' => 'required|date',
+            'date_arriver' => 'required|date',
+        ]);
+    
+        $bateau = Bateaux::findOrFail($id);
+        $bateau->reference_bateau = $request->reference_bateau;
+        $bateau->reference_conteneur = $request->reference_contenaire;
+        $bateau->created_at = $request->date_depart;
+        $bateau->date_arriver = $request->date_arriver;
+        $bateau->save();
+    
+        return redirect()->route('chine_colis.cargaison.ferme')->with('success', 'Bateau modifié avec succès.');
+    }
+
+    // public function get_cargaison_ferme(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $bateaux = Bateaux::select(
+    //             'reference_bateau',
+    //             'created_at as date_depart',
+    //             'date_arriver'
+    //         ) 
+    //         ->get();
+    
+    //         return DataTables::of($bateaux)
+    //             ->editColumn('date_depart', function ($row) {
+    //                 return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+    //             })
+    //             ->editColumn('date_arriver', function ($row) {
+    //                 return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
+    //             })
+    //             ->make(true);
+    //     }
+    // }
 
 public function cargaison_ferme(Request $request)
 {
