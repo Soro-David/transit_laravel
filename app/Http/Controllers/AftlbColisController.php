@@ -39,6 +39,8 @@ use Infobip\Models\SmsAdvancedTextualRequest;
 use Infobip\Models\SmsDestination;
 use Infobip\Models\SmsTextualMessage;
 use App\Services\InfobipService; 
+use Barryvdh\DomPDF\Facade;
+use PDF;
 
 class AftlbColisController extends Controller
 {
@@ -1205,56 +1207,58 @@ public function get_colis_hold(Request $request)
         return view('AFT_LOUIS_BLERIOT.invoice.edit', compact('colis','colis_info'));
     }
 
-    public function inprimerEtiquette($id)
+    public function inprimerEtiquette($id) 
     {
-            $colis_principal = Colis::find($id);
-
-            if (!$colis_principal) {
-                return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
+        $colis_principal = Colis::find($id);
+    
+        if (!$colis_principal) {
+            return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
+        }
+    
+        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+    
+        if ($colis->isEmpty()) {
+            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }
+    
+        foreach ($colis as $colisItem) {
+            $qrData = [
+                'Identifiant' => $colisItem->id,
+                'Référence colis' => $colisItem->reference_colis,
+                'Statut' => $colisItem->status,
+                'Nom Expéditeur' => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
+                'Nom Destinataire' => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
+                'Téléphone Destinataire' => $colisItem->destinataire->tel,
+                'Agence Destination' => $colisItem->destinataire->agence ?? '',
+                'Lieu de Destination' => $colisItem->destinataire->lieu_destination ?? '',
+            ];
+    
+            $qrCodeContent = '';
+            foreach ($qrData as $key => $value) {
+                $qrCodeContent .= "{$key}: {$value}\n";
             }
-
-            $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-            if ($colis->isEmpty()) {
-                return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }       
-
-            foreach ($colis as $colisItem) {
-                   $qrData = [
-                       'Identifiant' => $colisItem->id,
-                       'Référence colis'       => $colisItem->reference_colis,
-                       'Statut'                => $colisItem->status,
-                       'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
-                       'Nom Destinataire'      => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
-                       'Téléphone Destinataire'=> $colisItem->destinataire->tel,
-                       'Agence Destination'    => $colisItem->destinataire->agence ?? '',
-                       'Lieu de Destination'   => $colisItem->destinataire->lieu_destination ?? '',
-                   ];
-       
-                   $qrCodeContent = '';
-                   foreach ($qrData as $key => $value) {
-                       $qrCodeContent .= "{$key}: {$value}\n";
-                   }
-       
-                   $qrCode = new QrCode($qrCodeContent);
-                   $writer = new PngWriter();
-                   $result = $writer->write($qrCode);
-                   $pngData = $result->getString();
-       
-                   $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-                   $fullPath = public_path($filePath);
-       
-                   $directory = dirname($fullPath);
-                   if (!File::exists($directory)) {
-                       File::makeDirectory($directory, 0755, true);
-                   }
-       
-                   file_put_contents($fullPath, $pngData);
-       
-                   $colisItem->update(['qr_code_path' => $filePath]);
-               }
-       
-        return view('AFT_LOUIS_BLERIOT.invoice.edit_etiquette', compact('colis'));
+    
+            $qrCode = new QrCode($qrCodeContent);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $pngData = $result->getString();
+    
+            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+            $fullPath = public_path($filePath);
+    
+            if (!File::exists(dirname($fullPath))) {
+                File::makeDirectory(dirname($fullPath), 0755, true);
+            }
+    
+            file_put_contents($fullPath, $pngData);
+    
+            $colisItem->update(['qr_code_path' => $filePath]);
+        }
+    
+        $pdf = PDF::loadView('AFT_LOUIS_BLERIOT.invoice.edit_etiquette', compact('colis'))
+          ->setPaper('a6', 'landscape'); 
+    
+        return $pdf->download('etiquette_colis_' . $colis->first()->reference_colis . '.pdf');
     }
 
     public function imprimerFacture($id)

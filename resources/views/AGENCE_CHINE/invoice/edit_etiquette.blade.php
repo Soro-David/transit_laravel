@@ -1,231 +1,309 @@
-@extends('AGENCE_CHINE.layouts.agentprint')
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Étiquettes Colis AFT</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-@section('content-header')
-@endsection
+        html, body {
+             font-family: Arial, Helvetica, sans-serif;
+             font-size: 9pt;
+             line-height: 1.2;
+        }
 
-@section('content')
-    @csrf
-        <p class="no-print" style="color: red; font-weight: bold; text-align: center; margin-top: 20px;">
-            ⚠️ Veuillez sélectionner le format <strong>A6</strong> dans les paramètres de votre imprimante avant d'imprimer.
-        </p>
-    <section style="background-color: #fff !important; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        @page {
+            size: A6 landscape; /* Format et orientation */
+            margin: 0mm 5mm;
+        }
+
+        .with-padding {
+            padding: 5mm 5mm 0 5mm; /* haut droite bas gauche */
+        }
+
+        .etiquette-page {
+            overflow: hidden;
+            display: block; /* éviter flex ici si inutile */
+            page-break-after: always;
+            padding: 5mm; 
+        }
+
+       
+
+        .etiquette-header {
+            background-color: #000 !important;
+            color: #fff !important;
+            text-align: center;
+            padding: 3px 0;
+            font-weight: bold;
+            font-size: 12pt;
+            letter-spacing: 5px;
+            margin-bottom: 4mm; /* Espace réduit */
+            flex-shrink: 0;
+        }
+
+        .etiquette-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Répartit l'espace vertical */
+        }
+
+        .info-header-table,
+        .details-table,
+        .reference-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4mm; /* Espace cohérent */
+            flex-shrink: 0; /* Empêche le rétrécissement */
+        }
+        .reference-table {
+            margin-bottom: 0; /* Pas de marge après le dernier élément */
+            /* flex-grow: 1; */ /* Peut poser problème */
+            min-height: 20mm; /* Hauteur minimale */
+        }
+
+
+        /* Section 1: Logo / Adresse / QR */
+        .info-header-table {
+            border: none;
+            min-height: 20mm;
+        }
+        .info-header-table td {
+            vertical-align: middle;
+            /* padding: 0 1mm; */
+            border: none;
+        }
+        .info-header-table .logo-cell { width: 33%; text-align: left;}
+        .info-header-table .address-cell { width: 34%; text-align: center; }
+        .info-header-table .qr-cell { width: 33%; text-align: right;}
+
+        .custom-logo {
+            max-width: 100%;
+            max-height: 18mm;
+            display: block;
+            margin-right: auto; /* Aligne à gauche */
+        }
+        .address-details {
+            font-size: 8pt;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+        .address-details strong {
+            font-size: 9pt;
+            display: block;
+            margin-bottom: 1mm;
+        }
+        .qr-code-img-header {
+            max-width: 100%;
+            max-height: 22mm;
+            display: block;
+            margin-left: auto; /* Aligne à droite */
+        }
+        .qr-placeholder { font-size: 8pt; color: #666; text-align: center; padding: 5mm 0; }
+
+
+        /* Section 2: Table Détails */
+        .details-table {
+            border: 1.5pt solid #000;
+        }
+        .details-table th {
+            background-color: #E0E0E0 !important;
+            font-weight: bold;
+            font-size: 8.5pt;
+            /* padding: 1.5mm 2mm; */
+            border: 0.5pt solid #000;
+            text-align: center;
+        }
+        .details-table td {
+            border: 0.5pt solid #000;
+            /* padding: 1.5mm 2mm; */
+            vertical-align: top;
+            font-size: 12pt;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+        .details-table .date-cell {
+            width: 22%;
+            text-align: center;
+            font-size: 11pt;
+        }
+        .details-table .dest-cell { width: 48%; }
+        .details-table .exp-cell { width: 30%; }
+
+        .data-value { display: block; }
+        .sub-info {
+            font-size: 10pt;
+            font-weight: normal;
+            margin-top: 1mm;
+         }
+
+        /* Section 3: Référence / Compteur */
+        .reference-table {
+            border: 1.5pt solid #000;
+            display: table; /* Utiliser table pour dompdf est parfois plus stable */
+            table-layout: fixed; /* Largeurs fixes */
+        }
+
+        .reference-table td {
+            vertical-align: middle;
+            /* padding: 1.5mm 2.5mm; */
+            font-size: 12pt; /* Base pour cette table */
+            font-weight: bold;
+            border: 0.5pt solid #000; /* Bordures internes */
+        }
+
+        .reference-table .ref-cell {
+            width: 70%;
+            border-right: 1pt solid #000;
+            text-align: left;
+        }
+        .reference-table .count-cell {
+            width: 30%;
+            text-align: center;
+        }
+
+        .qr-code-img-ref {
+            max-width: 12mm;
+            max-height: 12mm;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 2mm;
+        }
+        .reference-number {
+            font-size: 26pt;
+            font-weight: bold;
+            color: #000;
+            display: inline-block; /* Pour aligner avec QR */
+            vertical-align: middle;
+            line-height: 1;
+            word-wrap: break-word;
+        }
+        .type-colis-info {
+            font-size: 8pt;
+            font-weight: normal;
+            display: block;
+            word-wrap: break-word;
+            margin-top: 1mm; /* Espace après la référence */
+        }
+
+        .counter-text {
+            font-size: 26pt;
+            font-weight: bold;
+            display: block;
+            line-height: 1;
+            margin-bottom: 1mm; /* Espace avant destination */
+        }
+        .destination-text {
+            font-size: 9pt;
+            font-weight: bold;
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+    @if($colis && !$colis->isEmpty())
         @foreach($colis as $index => $colisItem)
-            <div class="etiquette-a6" id="affiche" style="width: 100%; max-width: 100%; height: auto; padding: 10px; page-break-after: always;">
-                <div class="header" style="background-color: black; color: white; text-align: center; padding: 10px; font-size: 18px; word-spacing: 30px; letter-spacing: 2px;">
-                    AFT IMPORT EXPORT
+            @php
+                $destinataire = $colisItem->destinataire ?? null;
+                $expediteur = $colisItem->expediteur ?? null;
+                $expediteurVille = $expediteur->ville ?? 'ABIDJAN';
+                $destinationVille = $colisItem->destination_ville ?? 'ABIDJAN';
+                $typeColisDetail = $colisItem->type_colis_detail ?? ($colisItem->type_colis ?? 'Type N/A');
+                $qrCodePath = $colisItem->qr_code_path ?? null;
+                $qrRefText = 'SA-' . ($colisItem->reference_colis ?? 'REF') . '_1_' . ($colisItem->id ?? '0');
+                $colisReference = $colisItem->reference_colis ?? 'N/A';
+                $colisType = $colisItem->type_colis ?? 'N/A';
+                $isLast = $loop->last;
+            @endphp
+
+            <div class="etiquette-page" @if($isLast) style="page-break-after: avoid;" @endif>
+                <div class="etiquette-header">
+                    A F T   I M P O R T   E X P O R T
                 </div>
 
-                <div class="content">
-                    <!-- Tableau pour le logo, les informations et le QR code -->
-                    <table class="table" style="width: 100%; margin: auto; font-weight: bold; text-align: center; border: 0;">
-                        <tr>
-                            <td rowspan="2" style="width: 30%;">
-                                <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo" style="max-height: 80px; width: auto;">
+                <div class="etiquette-content with-padding">
+
+                    <table class="info-header-table">
+                         <tr>
+                            <td class="logo-cell">
+                                 <img src="{{ public_path('images/LOGOAFT.png') }}" alt="Logo" class="custom-logo">
                             </td>
-                            <td style="width: 40%; font-size: 14px;">
-                                <strong>AFT IMPORT EXPORT<br>
-                                    7 Avenue Louis BLERIOT, 93120 LA COURNEUVE<br>
+                            <td class="address-cell">
+                                <div class="address-details">
+                                    <strong>AFT IMPORT EXPORT</strong>
+                                    7 Avenue Louis BLERIOT<br>
+                                    93120 LA COURNEUVE<br>
                                     Phone: 0186786967
-                                </strong>
+                                </div>
                             </td>
-                            <td class="qr" style="width: 30%; font-size: 12px;">
-                                @if(!empty($colisItem->qr_code_path))
-                                    <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-height: 150px; width: auto;">
+                            <td class="qr-cell">
+                                @if($qrCodePath && file_exists(public_path(ltrim($qrCodePath, '/'))))
+                                    <img class="qr-code-img-header" src="{{ public_path(ltrim($qrCodePath, '/')) }}" alt="QR Code">
+                                    {{-- Texte sous QR retiré selon dernier code HTML fourni --}}
                                 @else
-                                    <p>QR Code non disponible</p>
+                                    <div class="qr-placeholder">QR Code<br>Indisponible</div>
                                 @endif
                             </td>
                         </tr>
                     </table>
 
-                    <!-- Tableau pour les informations du colis -->
-                    <table class="table" style="width: 100%; margin: 20px auto; font-weight: bold; text-align: center; border: 2px solid black; border-collapse: collapse; font-size: 14px;">
-                        <tr>
-                            <th style="border: 2px solid black; padding: 10px;">Date</th>
-                            <th style="border: 2px solid black; padding: 10px;">Destinataire</th>
-                            <th style="border: 2px solid black; padding: 10px;">Expéditeur</th>
-                        </tr>
-                        <tr>
-                            <td style="border: 2px solid black; padding: 10px;">{{ $colisItem->created_at }}</td>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                {{ $colisItem->destinataire->nom }} {{ $colisItem->destinataire->prenom }} <br> {{ $colisItem->destinataire->tel }}
-                            </td>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                {{ $colisItem->expediteur->nom }} {{ $colisItem->expediteur->prenom }} <br> {{ $colisItem->expediteur->tel }}
-                            </td>
-                        </tr>
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 22%;">DATE</th>
+                                <th style="width: 48%;">DESTINATAIRE</th>
+                                <th style="width: 30%;">EXPEDITEUR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="date-cell">
+                                    <span class="data-value">{{ $colisItem->created_at ? $colisItem->created_at->format('Y-m-d') : 'N/A' }}</span>
+                                    <span class="data-value">{{ $colisItem->created_at ? $colisItem->created_at->format('H:i:s') : '' }}</span>
+                                </td>
+                                <td class="dest-cell">
+                                    <span class="data-value">{{ $destinataire->nom ?? 'N/A' }} {{ $destinataire->prenom ?? '' }}</span>
+                                    <span class="data-value">{{ $destinataire->tel ? str_replace([' ', '-'], '', $destinataire->tel) : 'N/A' }}</span>
+                                </td>
+                                <td class="exp-cell">
+                                    <span class="data-value">{{ $expediteur->nom ?? 'N/A' }} {{ $expediteur->prenom ?? '' }}</span>
+                                    <span class="data-value sub-info">{{ $expediteur->tel ? str_replace([' ', '-'], '', $expediteur->tel) : 'N/A' }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
 
-                    <!-- Tableau pour le QR code et les détails supplémentaires -->
-                    <table class="table" style="width: 100%; margin: 20px auto; font-weight: bold; text-align: center; border: 2px solid black; border-collapse: collapse; font-size: 14px;">
+                    <table class="reference-table">
                         <tr>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-width: 100px; width: auto; height: auto; margin-right: 10px; display: inline-block;">
-                                <span style="font-size: 40px; font-weight: bold; color: #333; display: inline-block;">{{ $colisItem->reference_colis }}</span><br><br>
-                                <span>Type de colis: {{ $colisItem->type_colis }}</span> 
+                            <td class="ref-cell"><br>
+                                <div style="display: flex; align-items: center;">
+                                    @if($qrCodePath && file_exists(public_path(ltrim($qrCodePath, '/'))))
+                                        <img class="qr-code-img-ref text-center" src="{{ public_path(ltrim($qrCodePath, '/')) }}" alt="QR Ref">
+                                    @endif
+                                    <span class="reference-number">{{ $colisReference }}</span>
+                                </div>                                
+                                <div style="text-align: center;">
+                                    <span class="type-colis-info">{{ $colisType }}</span>
+                                </div>
                             </td>
-                            <td style="border: 2px solid black; padding: 10px;">{{ $index + 1 }} / {{ count($colis) }}</td>
+                            <td class="count-cell">
+                                <span class="counter-text">{{ $index + 1 }} / {{ count($colis) }}</span>
+                            </td>
                         </tr>
                     </table>
                 </div>
             </div>
         @endforeach
-    </section>
-
-    <!-- Boutons pour retourner et imprimer -->
-    <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
-        <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
-        <button class="btn btn-primary" onclick="printAffiche()" style="width: 15%; height: 50px; font-size: 24px;">Imprimer</button>
-    </div>
-
-    <!-- Styles pour l'impression et le responsive -->
-    <style>
-        body {
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 0;
-        }
-
-        fieldset + fieldset {
-            border-top: 2px solid #ccc;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .form-container {
-            max-width: 95%;
-            margin: auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-section {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        @media print {
-            @page {
-                size: A6 portrait;
-                margin: 0;
-            }
-            
-
-            .no-print {
-                display: none;
-            }
-
-            .header {
-                background-color: black !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            section {
-                box-shadow: none;
-            }
-
-            #affiche {
-                width: 105mm;
-                height: 148mm;
-                padding: 10mm;
-                page-break-after: always;
-                box-sizing: border-box;
-                margin: auto;
-            }
-
-
-        }
-
-        /* Styles pour les écrans de petite taille */
-        @media screen and (max-width: 768px) {
-            .header {
-                font-size: 15px !important;
-                padding: 10px !important;
-                word-spacing: 10px !important;
-                letter-spacing: 1px !important;
-            }
-
-            .content table {
-                font-size: 15px !important;
-            }
-
-            .content td, .content th {
-                padding: 10px !important;
-            }
-
-            .btn {
-                width: 100% !important;
-                margin-bottom: 10px;
-                font-size: 15px !important;
-            }
-
-            .img-fluid.custom-logo, .imageqr {
-                max-height: 120px !important;
-            }
-
-            .table {
-                width: 100% !important;
-                margin: 10px auto !important;
-            }
-
-            .table td, .table th {
-                padding: 10px !important;
-            }
-        }
-
-        /* Styles pour les écrans de taille moyenne */
-        @media screen and (min-width: 769px) and (max-width: 1024px) {
-            .header {
-                font-size: 15px !important;
-                padding: 15px !important;
-                word-spacing: 20px !important;
-                letter-spacing: 2px !important;
-            }
-
-            .content table {
-                font-size: 15px !important;
-            }
-
-            .content td, .content th {
-                padding: 15px !important;
-            }
-
-            .btn {
-                width: 20% !important;
-                font-size: 15px !important;
-            }
-
-            .img-fluid.custom-logo, .imageqr {
-                max-height: 150px !important;
-            }
-        }
-        .etiquette-a6 {
-            width: 105mm;
-            height: 148mm;
-            padding: 10mm;
-            margin: auto;
-            box-sizing: border-box;
-            background-color: white;
-            page-break-after: always;
-        }
-
-    </style>
-
-    <!-- Script pour l'impression -->
-    <script>
-        function printAffiche() {
-            window.print();
-        }
-    </script>
-@endsection
+    @else
+        <div class="etiquette-page">
+             <p style="text-align: center; padding-top: 20mm;">Aucun colis à afficher.</p>
+         </div>
+    @endif
+</body>
+</html>

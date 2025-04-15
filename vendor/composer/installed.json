@@ -7621,12 +7621,12 @@
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "SimpleSoftwareIO\\QrCode\\QrCodeServiceProvider"
-                    ],
                     "aliases": {
                         "QrCode": "SimpleSoftwareIO\\QrCode\\Facades\\QrCode"
-                    }
+                    },
+                    "providers": [
+                        "SimpleSoftwareIO\\QrCode\\QrCodeServiceProvider"
+                    ]
                 }
             },
             "installation-source": "dist",
@@ -10705,13 +10705,13 @@
             "time": "2023-02-20T06:11:01+00:00",
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "9.0-dev"
-                },
                 "laravel": {
                     "providers": [
                         "Yajra\\DataTables\\ButtonsServiceProvider"
                     ]
+                },
+                "branch-alias": {
+                    "dev-master": "9.0-dev"
                 }
             },
             "installation-source": "dist",
@@ -10785,13 +10785,13 @@
             "time": "2023-02-21T06:57:59+00:00",
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0-dev"
-                },
                 "laravel": {
                     "providers": [
                         "Yajra\\DataTables\\EditorServiceProvider"
                     ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
                 }
             },
             "installation-source": "dist",
@@ -10866,13 +10866,13 @@
             "time": "2022-06-20T01:43:31+00:00",
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "9.0-dev"
-                },
                 "laravel": {
                     "providers": [
                         "Yajra\\DataTables\\FractalServiceProvider"
                     ]
+                },
+                "branch-alias": {
+                    "dev-master": "9.0-dev"
                 }
             },
             "installation-source": "dist",
@@ -10932,13 +10932,13 @@
             "time": "2023-02-20T07:44:43+00:00",
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "9.0-dev"
-                },
                 "laravel": {
                     "providers": [
                         "Yajra\\DataTables\\HtmlServiceProvider"
                     ]
+                },
+                "branch-alias": {
+                    "dev-master": "9.0-dev"
                 }
             },
             "installation-source": "dist",
@@ -11026,16 +11026,16 @@
             "time": "2024-02-28T05:00:23+00:00",
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "10.x-dev"
-                },
                 "laravel": {
-                    "providers": [
-                        "Yajra\\DataTables\\DataTablesServiceProvider"
-                    ],
                     "aliases": {
                         "DataTables": "Yajra\\DataTables\\Facades\\DataTables"
-                    }
+                    },
+                    "providers": [
+                        "Yajra\\DataTables\\DataTablesServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "10.x-dev"
                 }
             },
             "installation-source": "dist",

@@ -9,7 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
-        "barryvdh/laravel-dompdf": "^3.0",
+        "barryvdh/laravel-dompdf": "^3.1",
         "consoletvs/charts": "^6.7",
         "doctrine/dbal": "^3.3",
         "endroid/qr-code": "^5.0",
