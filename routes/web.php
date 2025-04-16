@@ -213,6 +213,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/imprimer/facture/{id}', [ColisController::class, 'imprimerFacture'])->name('imprimer.facture');
         Route::get('/imprimer/etiquette/{id}', [ColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
 
+        Route::get('/imprimer-edit/facture/{id}', [ColisController::class, 'editFacture'])->name('edit.facture');
+        Route::get('/imprimer-edit/etiquette/{id}', [ColisController::class, 'editEtiquette'])->name('edit.etiquette');
+
         Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/colis/valide/update', [ColisController::class, 'updateMultipleColis'])->name('valide.update');
         Route::put('/on-hold', [ColisController::class, 'update_hold'])->name('hold.update');
@@ -586,7 +589,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/get-cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
         Route::get('/list-vol-aft-louis-b', [AftlbColisController::class, 'liste_vol'])->name('liste.vol');
 
-        // Routes d'édition et mise à jour
+        Route::get('/imprimer-aft-louis-b/facture/{id}', [AftlbColisController::class, 'editFacture'])->name('edit.facture');
+        Route::get('/imprimer-aft-louis-b/etiquette/{id}', [AftlbColisController::class, 'editEtiquette'])->name('edit.etiquette');
+
 
 
         // Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
@@ -1179,6 +1184,8 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/get-cargaison-ferme-aft_chine', [ChineColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
         Route::get('/list-vol-aft_chine', [ChineColisController::class, 'liste_vol'])->name('liste.vol');
 
+        Route::get('/imprimer-aft_chine/facture/{id}', [ChineColisController::class, 'editFacture'])->name('edit.facture');
+        Route::get('/imprimer-aft_chine/etiquette/{id}', [ChineColisController::class, 'editEtiquette'])->name('edit.etiquette');
 
 
 

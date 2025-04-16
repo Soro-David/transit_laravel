@@ -1,230 +1,171 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agentprint')
 @section('content-header')
+{{-- Vous pouvez garder ou enlever signature_pad si non utilisé sur CETTE page --}}
+{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.0.0/signature_pad.min.js"></script> --}}
 @endsection
 
 @section('content')
-    @csrf
-        <p class="no-print" style="color: red; font-weight: bold; text-align: center; margin-top: 20px;">
-            ⚠️ Veuillez sélectionner le format <strong>A6</strong> dans les paramètres de votre imprimante avant d'imprimer.
-        </p>
-    <section style="background-color: #fff !important; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-        @foreach($colis as $index => $colisItem)
-            <div class="etiquette-a6" id="affiche" style="width: 100%; max-width: 100%; height: auto; padding: 10px; page-break-after: always;">
-                <div class="header" style="background-color: black; color: white; text-align: center; padding: 10px; font-size: 18px; word-spacing: 30px; letter-spacing: 2px;">
-                    AFT IMPORT EXPORT
-                </div>
-
-                <div class="content">
-                    <!-- Tableau pour le logo, les informations et le QR code -->
-                    <table class="table" style="width: 100%; margin: auto; font-weight: bold; text-align: center; border: 0;">
-                        <tr>
-                            <td rowspan="2" style="width: 30%;">
-                                <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo" class="img-fluid custom-logo" style="max-height: 80px; width: auto;">
-                            </td>
-                            <td style="width: 40%; font-size: 14px;">
-                                <strong>AFT IMPORT EXPORT<br>
-                                    7 Avenue Louis BLERIOT, 93120 LA COURNEUVE<br>
-                                    Phone: 0186786967
-                                </strong>
-                            </td>
-                            <td class="qr" style="width: 30%; font-size: 12px;">
-                                @if(!empty($colisItem->qr_code_path))
-                                    <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-height: 150px; width: auto;">
-                                @else
-                                    <p>QR Code non disponible</p>
-                                @endif
-                            </td>
-                        </tr>
-                    </table>
-
-                    <!-- Tableau pour les informations du colis -->
-                    <table class="table" style="width: 100%; margin: 20px auto; font-weight: bold; text-align: center; border: 2px solid black; border-collapse: collapse; font-size: 14px;">
-                        <tr>
-                            <th style="border: 2px solid black; padding: 10px;">Date</th>
-                            <th style="border: 2px solid black; padding: 10px;">Destinataire</th>
-                            <th style="border: 2px solid black; padding: 10px;">Expéditeur</th>
-                        </tr>
-                        <tr>
-                            <td style="border: 2px solid black; padding: 10px;">{{ $colisItem->created_at }}</td>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                {{ $colisItem->destinataire->nom }} {{ $colisItem->destinataire->prenom }} <br> {{ $colisItem->destinataire->tel }}
-                            </td>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                {{ $colisItem->expediteur->nom }} {{ $colisItem->expediteur->prenom }} <br> {{ $colisItem->expediteur->tel }}
-                            </td>
-                        </tr>
-                    </table>
-
-                    <!-- Tableau pour le QR code et les détails supplémentaires -->
-                    <table class="table" style="width: 100%; margin: 20px auto; font-weight: bold; text-align: center; border: 2px solid black; border-collapse: collapse; font-size: 14px;">
-                        <tr>
-                            <td style="border: 2px solid black; padding: 10px;">
-                                <img class="imageqr" src="{{ asset($colisItem->qr_code_path) }}" alt="QR Code" style="max-width: 100px; width: auto; height: auto; margin-right: 10px; display: inline-block;">
-                                <span style="font-size: 40px; font-weight: bold; color: #333; display: inline-block;">{{ $colisItem->reference_colis }}</span><br><br>
-                                <span>Type de colis: {{ $colisItem->type_colis }}</span> 
-                            </td>
-                            <td style="border: 2px solid black; padding: 10px;">{{ $index + 1 }} / {{ count($colis) }}</td>
-                        </tr>
-                    </table>
+<section class="p-4 mx-auto">
+    <div class="form-container text-center">
+        <div class="row d-flex justify-content-between">
+            <!-- Informations Colis -->
+            <div class="col-md-5">
+                <div class="card border-0 rounded shadow-sm mb-3">
+                    <div>
+                        <h4 class="card-title text-center mb-3 fw-bold">Informations des colis</h4><br>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3 d-flex align-items-center">
+                           <h3>REF COLIS: {{ $first['reference_colis'] ?? 'N/A' }}</h3>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Prix Total :</label>
+                            <span class="form-control border-0 bg-light w-50"> {{ $totalPrixTransit ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Payé :</label>
+                            <span class="form-control border-0 bg-light w-50"> {{ $first['montant_paye'] ?? $totalPrixTransit ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Reste :</label>
+                            <span class="form-control border-0 bg-light w-50"> {{ $first['reste'] ?? '0' }} F</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        @endforeach
-    </section>
 
-    <!-- Boutons pour retourner et imprimer -->
-    <div class="mt-4 no-print" style="display: flex; justify-content: space-between;">
-        <a href="javascript:history.back()" class="btn btn-secondary" style="width: 15%; height: 50px; font-size: 24px;">Retour</a>
-        <button class="btn btn-primary" onclick="printAffiche()" style="width: 15%; height: 50px; font-size: 24px;">Imprimer</button>
+             <div class="col-md-5">
+                <div class="card border-0 rounded shadow-sm mb-3"> {{-- Ajout mb-3 --}}
+                    <div>
+                        <h4 class="card-title text-center mb-3 fw-bold">Informations de l'expéditeur</h4><br>
+                    </div>
+                     <div class="card-body p-4">
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Nom :</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['nom_expediteur'] ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Prénom :</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['prenom_expediteur'] ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Téléphone :</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                 <div class="card border-0 rounded shadow-sm mb-3"> {{-- Ajout mb-3 --}}
+                    <div>
+                        <h4 class="card-title text-center mb-3 fw-bold">Informations du destinataire</h4><br>
+                    </div>
+                   <div class="card-body p-4">
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Nom :</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['nom_destinataire'] ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Prénom :</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['prenom_destinataire'] ?? 'N/A' }}</span>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Téléphone:</label>
+                            <span class="form-control border-0 bg-light w-50">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+
+        @if(isset($colis) && !empty($colis) && isset($colis[0]))
+            <input type="hidden" id="id" value="{{ $colis[0]->id }}">
+        @else
+            <p class="text-danger mt-3">Erreur : Impossible de récupérer l'ID du colis pour l'impression.</p>
+        @endif
+
+        <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+            <a href="javascript:history.back()" class="btn btn-secondary d-flex align-items-center">
+                <i class="fas fa-arrow-left me-2" style="font-size: 18px;"></i> Retour
+            </a>
+            @if(isset($colis) && !empty($colis) && isset($colis[0]))
+                <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
+                    Imprimer l'étiquette
+                </a>
+                <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success" style="background-color: #90EE90; border-color: #90EE90; color: #fff;">
+                    Imprimer la facture
+                </a>
+            @endif
+        </div>
     </div>
+</section>
 
-    <!-- Styles pour l'impression et le responsive -->
-    <style>
-        body {
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 0;
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnEtiquette = document.getElementById('imprimer-etiquette');
+        const btnFacture = document.getElementById('imprimer-facture');
+        const colisIdInput = document.getElementById('id'); 
+
+        if (btnEtiquette && colisIdInput) {
+            btnEtiquette.addEventListener('click', function() {
+                const colisId = colisIdInput.value; 
+                if (colisId) {
+                    console.log('ID du colis pour étiquette :', colisId);
+                    window.location.href = `{{ route('aftlb_colis.edit.etiquette', '') }}/${colisId}`;
+                } else {
+                    console.error("ID du colis non trouvé pour l'étiquette.");
+                    alert("Erreur : L'ID du colis est manquant.");
+                }
+            });
         }
 
-        fieldset + fieldset {
-            border-top: 2px solid #ccc;
-            padding-top: 15px;
-            margin-top: 15px;
+        if (btnFacture && colisIdInput) {
+            btnFacture.addEventListener('click', function() {
+                const colisId = colisIdInput.value; 
+                 if (colisId) {
+                    console.log('ID du colis pour facture :', colisId);
+                    window.location.href = `{{ route('aftlb_colis.edit.facture', '') }}/${colisId}`;
+                } else {
+                    console.error("ID du colis non trouvé pour la facture.");
+                    alert("Erreur : L'ID du colis est manquant.");
+                }
+            });
         }
+    });
+</script>
 
-        .form-container {
-            max-width: 95%;
-            margin: auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-section {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        @media print {
-            @page {
-                size: A6 portrait;
-                margin: 0;
-            }
-            
-
-            .no-print {
-                display: none;
-            }
-
-            .header {
-                background-color: black !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            section {
-                box-shadow: none;
-            }
-
-            #affiche {
-                width: 105mm;
-                height: 148mm;
-                padding: 10mm;
-                page-break-after: always;
-                box-sizing: border-box;
-                margin: auto;
-            }
-
-
-        }
-
-        /* Styles pour les écrans de petite taille */
-        @media screen and (max-width: 768px) {
-            .header {
-                font-size: 15px !important;
-                padding: 10px !important;
-                word-spacing: 10px !important;
-                letter-spacing: 1px !important;
-            }
-
-            .content table {
-                font-size: 15px !important;
-            }
-
-            .content td, .content th {
-                padding: 10px !important;
-            }
-
-            .btn {
-                width: 100% !important;
-                margin-bottom: 10px;
-                font-size: 15px !important;
-            }
-
-            .img-fluid.custom-logo, .imageqr {
-                max-height: 120px !important;
-            }
-
-            .table {
-                width: 100% !important;
-                margin: 10px auto !important;
-            }
-
-            .table td, .table th {
-                padding: 10px !important;
-            }
-        }
-
-        /* Styles pour les écrans de taille moyenne */
-        @media screen and (min-width: 769px) and (max-width: 1024px) {
-            .header {
-                font-size: 15px !important;
-                padding: 15px !important;
-                word-spacing: 20px !important;
-                letter-spacing: 2px !important;
-            }
-
-            .content table {
-                font-size: 15px !important;
-            }
-
-            .content td, .content th {
-                padding: 15px !important;
-            }
-
-            .btn {
-                width: 20% !important;
-                font-size: 15px !important;
-            }
-
-            .img-fluid.custom-logo, .imageqr {
-                max-height: 150px !important;
-            }
-        }
-        .etiquette-a6 {
-            width: 105mm;
-            height: 148mm;
-            padding: 10mm;
-            margin: auto;
-            box-sizing: border-box;
-            background-color: white;
-            page-break-after: always;
-        }
-
-    </style>
-
-    <!-- Script pour l'impression -->
-    <script>
-        function printAffiche() {
-            window.print();
-        }
-    </script>
+<style>
+    .form-container {
+        max-width: 95%; 
+        margin: auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    body {
+        background-color: #f7f7f7;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem; 
+    }
+    .form-control {
+        border: none; 
+        background-color: #f8f9fa; 
+        padding: .375rem .75rem; 
+        border-radius: .25rem; 
+    }
+    .form-label {
+        margin-bottom: 0; 
+    }
+    .w-50 {
+        flex-basis: 50%;
+    }
+    .d-flex.align-items-center .form-label {
+        padding-right: 10px; 
+    }
+</style>
 @endsection

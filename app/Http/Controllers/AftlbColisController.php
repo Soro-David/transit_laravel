@@ -579,12 +579,183 @@ public function store_colis(Request $request)
             $colisItem->update(['qr_code_path' => $filePath]);
         }
     
+        $colisInfos = collect($colis)->map(function ($item, $index) {
+            $infos = [
+                'quantite' => $item->quantite_colis,
+                'prix_transit' => $item->prix_transit_colis,
+            ];
+        
+            // Ajouter les infos supplémentaires uniquement pour le premier élément
+            if ($index === 0) {
+                $infos['reference_colis'] = $item->reference_colis;
+                $infos['nom_destinataire'] = $item->destinataire->nom ;
+                $infos['prenom_destinataire'] = $item->destinataire->prenom ;
+                $infos['tel_destinataire'] = $item->destinataire->tel ;
+                $infos['nom_expediteur'] = $item->expediteur->nom ;
+                $infos['prenom_expediteur'] = $item->expediteur->prenom;
+                $infos['tel_expediteur'] = $item->expediteur->tel;
+            }
+        
+            return $infos;
+        });
+        
+
+        $totalQuantite = collect($colis)->sum('quantite_colis');
+        $totalPrixTransit = collect($colis)->sum('prix_transit_colis');
+
+        $first = $colisInfos->first();
         // Réinitialiser les sessions après traitement
         session()->forget(['step1', 'step2']);
     
         // Retourner la vue avec les informations nécessaires
-        return view('AFT_LOUIS_BLERIOT.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
+        return view('AFT_LOUIS_BLERIOT.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result','first', 'totalQuantite', 'totalPrixTransit'));
     } 
+
+    public function editFacture($id)
+    {
+        // dd($id);
+        
+        $colis_principal = Colis::find($id);
+
+            if (!$colis_principal) {
+                return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
+            }
+
+            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+            if ($colisCollection->isEmpty()) {
+                return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+            }   
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+        }
+
+        // Récupération du premier colis
+        $firstColis = $colisCollection->first();
+        
+        $date_facture = now();
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $tel_expediteur = $firstColis->expediteur->tel;
+        $tel_destinataire = $firstColis->destinataire->tel;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $reference_colis = $firstColis->reference_colis;
+        
+        // Calcul du prix total
+        $prix_total = 0;
+        foreach ($colisCollection as $colis) {
+            if (!isset($colis->prix_transit_colis)) {
+                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+            }
+            $prix_total += $colis->prix_transit_colis;
+        }
+
+        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+        $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
+        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+        $reste = $prix_total - $montant_paye;
+
+        $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        // dd($nom_agent);
+
+        // Création de la facture
+        Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
+            'expediteur_id' => $firstColis->expediteur->id,
+            'destinataire_id' => $firstColis->destinataire->id,
+            'agent_id' => $id_agent,
+            'montant' => $prix_total ?? 0,
+            'numero_facture' => $numero_facture,
+        ]);
+        // dd($u);
+        // Préparation des données des colis
+        $colisData = [];
+        foreach ($colisCollection as $colis) {
+            $colisData[] = [
+                'description'         => $colis->description_colis,
+                'quantite'            => $colis->quantite_colis,
+                'poids'               => $colis->poids_colis,
+                'type_colis'          => $colis->type_colis,
+                'prix_transit_colis'  => $colis->prix_transit_colis,
+            ];
+        }
+
+        // Passage des données à la vue
+        return view('AFT_LOUIS_BLERIOT.colis.add.edit_invoice', compact(
+            'date_facture', 
+            'reference_colis', 
+            'expediteur', 
+            'tel_expediteur', 
+            'destinataire', 
+            'prix_total', 
+            'montant_paye', 
+            'reste', 
+            'mode_payement', 
+            'colisData',
+            'numero_facture',
+            'tel_destinataire'
+        ));
+    }
+
+    public function editEtiquette($id) 
+    {
+        $colis_principal = Colis::find($id);
+    
+        if (!$colis_principal) {
+            return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
+        }
+    
+        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+    
+        if ($colis->isEmpty()) {
+            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }
+    
+        foreach ($colis as $colisItem) {
+            $qrData = [
+                'Identifiant' => $colisItem->id,
+                'Référence colis' => $colisItem->reference_colis,
+                'Statut' => $colisItem->status,
+                'Nom Expéditeur' => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
+                'Nom Destinataire' => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
+                'Téléphone Destinataire' => $colisItem->destinataire->tel,
+                'Agence Destination' => $colisItem->destinataire->agence ?? '',
+                'Lieu de Destination' => $colisItem->destinataire->lieu_destination ?? '',
+            ];
+    
+            $qrCodeContent = '';
+            foreach ($qrData as $key => $value) {
+                $qrCodeContent .= "{$key}: {$value}\n";
+            }
+    
+            $qrCode = new QrCode($qrCodeContent);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $pngData = $result->getString();
+    
+            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+            $fullPath = public_path($filePath);
+    
+            if (!File::exists(dirname($fullPath))) {
+                File::makeDirectory(dirname($fullPath), 0755, true);
+            }
+    
+            file_put_contents($fullPath, $pngData);
+    
+            $colisItem->update(['qr_code_path' => $filePath]);
+        }
+    
+        $pdf = PDF::loadView('AFT_LOUIS_BLERIOT.colis.add.edit_etiquette', compact('colis'))
+          ->setPaper('a6', 'landscape'); 
+    
+        return $pdf->download('etiquette_colis_' . $colis->first()->reference_colis . '.pdf');
+    }
+
+
 
     public function storePayement(Request $request)
     {
