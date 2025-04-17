@@ -25,4 +25,9 @@ class Agent extends Model
     {
         return $this->belongsTo(Agence::class);
     }
+     // Relation avec les opérations comptables
+     public function operationsComptables()
+     {
+         return $this->hasMany(OperationComptable::class);
+     }
 }

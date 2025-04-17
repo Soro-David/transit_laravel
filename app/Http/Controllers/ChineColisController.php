@@ -354,6 +354,7 @@ class ChineColisController extends Controller
 
     public function generer_qrcode(Request $request)
     {
+        
         // dd($request);
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
@@ -440,6 +441,7 @@ class ChineColisController extends Controller
         $agent = Auth::user()->agent;
         $agentId = $agent ? $agent->id : null;
     }
+    
 // Préparer les données de paiement pour la base de données
     $paiementData = [
         'colis_id' => null, // Sera mis à jour après la création du colis

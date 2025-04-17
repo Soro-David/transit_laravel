@@ -1,5 +1,4 @@
-@extends('admin.layouts.admin')
-
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content')
 <div class="container-fluid">
     <!-- Statistiques principales -->
@@ -32,7 +31,7 @@
             <div class="card bg-warning text-dark">
                 <div class="card-body">
                     <h5><i class="fas fa-coins"></i> Total Transit</h5>
-                    <h2>{{ number_format($totalPrixTransitColis, 2) }} €</h2>
+                    <h2>{{ number_format($montantBilan, 2) }} €</h2>
                 </div>
             </div>
         </div>
@@ -203,7 +202,7 @@
                     <div class="col-md-6">
                         <h5 class="mb-3"><i class="fas fa-calculator mr-2"></i> Saisir une opération comptable</h5>
                         <p class="text-muted">! Les Opérations d'entrées ou de sorties d'argents seront appliquées au montant de votre bilan actuel !</p>
-                        <form method="POST" action="{{ route('bilan.enregistrerOperation') }}">
+                        <form method="POST" action="{{ route('enregistrer.operation.lb') }}">
                             @csrf
                             <div class="row">
                                 <div class="col-md-6">
@@ -267,153 +266,103 @@
             <div class="card-body">
                 <!-- Formulaire de filtrage -->
                 <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Filtrer par :</h5>
-                        <form>
-                            <div class="row align-items-center">
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Bénéficiaire">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Objet">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select class="form-control">
-                                        <option value="">Type</option>
-                                        <option value="SORTIE D'ARGENT">SORTIE D'ARGENT</option>
-                                        <option value="ENTREE D'ARGENT">ENTREE D'ARGENT</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Montant">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Dates">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select class="form-control">
-                                        <option value="">Conteneur | Frais</option>
-                                        <option value="FRAIS DE FONCTIONNEMENT">FRAIS DE FONCTIONNEMENT</option>
-                                        @foreach($conteneursDisponibles as $conteneur)
-                                            <option value="{{ $conteneur }}">{{ $conteneur }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                          
-                            <div class="card-body">
-                <!-- Formulaire de filtrage -->
-                <div class="card mb-3">
                 <div class="card-body">
     </div>
 
     <!-- **Link for Export (GET Request)** -->
-    <a href="{{ route('export.operations.comptables.bilan') }}" class="btn btn-success btn-sm ml-2">Exporter En Excel</a>
+    <a href="{{ route('export.operations.comptables.lb') }}" class="btn btn-success btn-sm ml-2">Exporter En Excel</a>
 </div>
                 </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
 
+                <!-- Boutons de filtre rapides (à implémenter la logique) -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm">DATES</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">TYPES</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">BÉNÉFICIAIRES</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">OBJETS</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">MONTANTS</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">AGENTS</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1">CONTENEUR</button>
+                </div>
 
                 <!-- Tableau des opérations comptables -->
                 <div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead class="bg-dark text-white">
-            <tr>
-                <th>Date</th>
-                <th>Agent</th> {{-- **NOUVELLE COLONNE "Agent"** --}}
-                <th>Type</th>
-                <th>Bénéficiaire / Fournisseur</th>
-                <th>Objet</th>
-                <th>Montant (€)</th>
-                <th>Conteneur / Frais</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($operationsComptables as $operation)
-                <tr>
-                    <td>{{ $operation->date_operation }}</td>
-                    <td>{{ optional($operation->agent)->nom }}</td> {{-- **AFFICHER LE NOM DE L'AGENT** --}}
-                    <td>{{ $operation->type_operation }}</td>
-                    <td>{{ $operation->beneficiaire_fournisseur }}</td>
-                    <td>{{ $operation->objet }}</td>
-                    <td class="text-right">{{ number_format($operation->montant, 2) }}</td>
-                    <td>{{ $operation->conteneur_frais_fonction }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center">Vous n'avez pas encore d'encaissement enregistré</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                    <table class="table table-bordered table-striped">
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Bénéficiaire / Fournisseur</th>
+                                <th>Objet</th>
+                                <th>Montant (€)</th>
+                                <th>Conteneur / Frais</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($operationsComptables as $operation)
+                                <tr>
+                                    <td>{{ $operation->date_operation }}</td>
+                                    <td>{{ $operation->type_operation }}</td>
+                                    <td>{{ $operation->beneficiaire_fournisseur }}</td>
+                                    <td>{{ $operation->objet }}</td>
+                                    <td class="text-right">{{ number_format($operation->montant, 2) }}</td>
+                                    <td>{{ $operation->conteneur_frais_fonction }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">Vous n'avez pas encore d'encaissement enregistré</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     <!-- Section Agent -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card mb-4"> <!-- Ajout de mb-4 pour l'espacement -->
+        <div class="card-header d-flex justify-content-between align-items-center" id="agentHeader" data-toggle="collapse" data-target="#agentCollapse" aria-expanded="true" aria-controls="agentCollapse" style="cursor: pointer;">
             <h3 class="card-title">Colis par agent</h3>
-            <form method="GET" action="{{ route('bilan.bilan') }}" class="form-inline">
-                <select 
-                    name="agent_id" 
-                    class="form-control mr-2 select2"
-                    onchange="this.form.submit()"
-                >
-                    <option value="">Sélectionner un agent</option>
-                    @foreach($agents as $agent)
-                        <option 
-                            value="{{ $agent->id }}" 
-                            {{ $selectedAgentId == $agent->id ? 'selected' : '' }}
-                        >
-                            {{ $agent->nom }} ({{ $agent->colis_valides_count }} colis)
-                        </option>
-                    @endforeach
-                </select>
-            </form>
         </div>
 
-        @if($selectedAgentId)
-        <div class="card-body">
-            <!-- Bouton Export Excel -->
-            <div class="mb-4">
-                <form action="{{ route('bilan.export') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="agent_id" value="{{ $selectedAgentId }}">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-file-excel"></i> Exporter Excel
-                    </button>
-                </form>
-            </div>
+        <div id="agentCollapse" class="collapse show" aria-labelledby="agentHeader"> <!-- Ajout de id="agentCollapse" et class="collapse show pour ouvrir par défaut -->
+            @if($agentColis)  {{-- Changed condition to check for agentColis --}}
+            <div class="card-body">
+                <!-- Bouton Export Excel -->
+                <div class="mb-4">
+                    <form action="{{ route('export.agent.colis.lb') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="agent_id" value="{{ $agentId }}"> {{-- Use $agentId passed from controller --}}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Exporter Excel
+                        </button>
+                    </form>
+                </div>
 
-            <!-- Tableau des colis -->
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="bg-dark text-white">
-                        <tr>
-                            <th>Référence</th>
-                            <th>Date Paiement</th>
-                            <th>Mode Transport</th>
-                            <th>Prix Total (€)</th>
-                            <th>Montant Payé (€)</th>
-                            <th>Reste à Payer (€)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($agentColis as $colis)
+                <!-- Tableau des colis -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="bg-dark text-white">
                             <tr>
-                                <td>{{ $colis['reference_colis'] }}</td>
-                                <td>{{ $colis['date_paiement'] }}</td>
-                                <td>
-                                    @if($colis['mode_transit'] == 'aérien')
-                                        <span class="badge bg-info">Aérien</span>
-                                    @else
-                                        <span class="badge bg-secondary">Maritime</span>
-                                    @endif
+                                <th>Référence</th>
+                                <th>Date Paiement</th>
+                                <th>Mode Transport</th>
+                                <th>Prix Total (€)</th>
+                                <th>Montant Payé (€)</th>
+                                <th>Reste à Payer (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($agentColis as $colis)
+                                <tr>
+                                    <td>{{ $colis['reference_colis'] }}</td>
+                                    <td>{{ $colis['date_paiement'] }}</td>
+                                    <td>
+                                        @if($colis['mode_transit'] == 'aérien')
+                                            <span class="badge bg-info">Aérien</span>
+                                        @else
+                                            <span class="badge bg-secondary">Maritime</span>
+                                        @endif
                                 </td>
                                 <td class="text-right">{{ $colis['prix_colis'] }}</td>
                                 <td class="text-right">{{ $colis['montant_paye'] }}</td>
@@ -515,11 +464,11 @@
             }
         );
 
-        // Initialisation de Select2
-        $('.select2').select2({
-            placeholder: "Sélectionner un agent",
-            allowClear: true
-        });
+        // Initialisation de Select2 (Removed as no longer needed)
+        // $('.select2').select2({
+        //     placeholder: "Sélectionner un agent",
+        //     allowClear: true
+        // });
     });
 </script>
 @endsection
