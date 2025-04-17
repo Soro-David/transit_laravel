@@ -181,8 +181,15 @@
             <p>{{ __('Planifier') }}</p>
         </a>
     </li>
+    
 </ul>
                 </li>
+                <li class="nav-item">
+            <a href="{{ route('bilan.chine') }}" class="nav-link">
+                <i class="fas fa-flag-checkered mr-2"></i>
+                <p>Bilan Agence Chine</p>
+            </a>
+        </li>
             </ul>
         </nav>
     </div>

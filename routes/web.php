@@ -53,6 +53,8 @@ use App\Http\Controllers\NavChineController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\BilanChineController;
+use App\Http\Controllers\BilanLBController;
 use App\Http\Controllers\RdvController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
@@ -1357,3 +1359,18 @@ Route::get('/admin/colis/getColisInfo/{reference_colis}', [ColisController::clas
 Route::get('/bilan', [BilanController::class, 'index'])->name('bilan.bilan');
 Route::post('/bilan/export', [BilanController::class, 'exportAgentColisToExcel'])
     ->name('bilan.export');
+    Route::post('/bilan/enregistrer-operation', [BilanController::class, 'enregistrerOperation'])->name('bilan.enregistrerOperation');
+    Route::get('/export-operations-comptables-bilan', [BilanController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.bilan');
+
+    // Routes pour BilanChineController
+Route::get('/bilan-chine', [BilanChineController::class, 'index'])->name('bilan.chine');
+Route::post('/enregistrer-operation-chine', [BilanChineController::class, 'enregistrerOperation'])
+->name('enregistrer.operation.chine');
+Route::get('/export-agent-colis-chine', [BilanChineController::class, 'exportAgentColisToExcel'])->name('export.agent.colis.chine');
+Route::get('/export-operations-comptables-chine', [BilanChineController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.chine');
+
+// Routes pour BilanLBController
+Route::get('/bilan-louis-bleriot', [BilanLBController::class, 'index'])->name('bilan.lb');
+Route::post('/enregistrer-operation-lb', [BilanLBController::class, 'enregistrerOperation'])->name('enregistrer.operation.lb');
+Route::post('/export-agent-colis-lb', [BilanLbController::class, 'exportAgentColisToExcel'])->name('export.agent.colis.lb');
+Route::get('/export-operations-comptables-lb', [BilanLbController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.lb');

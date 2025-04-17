@@ -371,8 +371,7 @@ class ChineColisController extends Controller
 
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
-
-                // dd($request);
+        // dd($request);
         // Fusionner toutes les données de session dans un tableau
         $data = array_merge(
             session('step1', []),
@@ -458,6 +457,26 @@ if (Auth::check()) {
     $agent = Auth::user()->agent;
     $agentId = $agent ? $agent->id : null;
 }
+        // Insérer les données dans chaque table
+        $expediteur = Expediteur::create($expediteurData);
+        $destinataire = Destinataire::create($destinataireData);
+    
+        // Récupérer les données de paiement depuis la session `step2`
+        $payementDataSession = session('step2', []);
+      // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
+      $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
+      ? $payementDataSession['montant_reçu']
+      : session('step1.prix.0') ?? null; // Fallback au prix total si non cash
+    // **Récupérer cinetpay_transaction_id depuis la requête**
+    $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
+    $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
+    // **Récupérer l'ID de l'agent connecté VIA LA RELATION**
+    $agentId = null;
+    if (Auth::check()) {
+        $agent = Auth::user()->agent;
+        $agentId = $agent ? $agent->id : null;
+    }
+    
 // Préparer les données de paiement pour la base de données
 $paiementData = [
     'colis_id' => null, // Sera mis à jour après la création du colis

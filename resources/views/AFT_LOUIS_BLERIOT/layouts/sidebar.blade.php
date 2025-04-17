@@ -181,7 +181,14 @@
                                 <p>{{ __('Planifier') }}</p>
                             </a>
                         </li>
+                        
                     </ul>
+                    <li class="nav-item">
+            <a href="{{ route('bilan.lb') }}" class="nav-link">
+                <i class="fas fa-plane-departure mr-2"></i>
+                <p>Bilan AFT Louis Blériot</p>
+            </a>
+        </li>
                 </li>
             </ul>
         </nav>
