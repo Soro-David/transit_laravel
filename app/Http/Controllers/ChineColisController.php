@@ -368,8 +368,9 @@ class ChineColisController extends Controller
         }
     
         // Ajouter le statut au tableau de données
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
-        $data['etat'] = $data['etat'] ?? 'Validé';
+        $paymentMethod = $data['mode_payement'] ?? null;
+        $colisStatus = ($paymentMethod === 'delivery') ? 'Non payé' : 'payé';
+        $etat = 'Validé';
     
         // Vérifiez que les données sont bien réparties pour chaque table
         $expediteurData = [
@@ -414,8 +415,8 @@ class ChineColisController extends Controller
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'dimension_result' => $data['dimension_result'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
-                'status' => $data['status'] ?? null,
-                'etat' => $data['etat'] ?? null,
+                'status' => $colisStatus,
+               'etat' => $etat,
                 'type_colis' => $data['type_colis'][$index] ?? null,
                 'dimension_result' => $dimension_result,
                 'description_colis' => $data['description_colis'][$index] ?? null,
@@ -431,7 +432,11 @@ class ChineColisController extends Controller
       // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
       $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
       ? $payementDataSession['montant_reçu']
-      : session('step1.prix.0') ?? null; // Fallback au prix total si non cash
+      : session('step1.prix.0') ?? null;
+      // Vérification que le montant en espèces ne dépasse pas le prix
+if ($payementDataSession['mode_payement'] === 'cash' && $montantPaiement > session('step1.prix.0')) {
+    return redirect()->back()->with('error', 'Le montant reçu ne peut pas dépasser le prix du colis');
+}
     // **Récupérer cinetpay_transaction_id depuis la requête**
     $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
     $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
@@ -445,13 +450,13 @@ class ChineColisController extends Controller
 // Préparer les données de paiement pour la base de données
     $paiementData = [
         'colis_id' => null, // Sera mis à jour après la création du colis
-        'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
+        'methode_paiement' => $paymentMethod,
         'montant' => $montantPaiement, // Utilisation du montant déterminé ci-dessus
         'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
         'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
         'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
         'id_transaction' => $payementDataSession['transaction_id'] ?? null,
-        'statut_paiement' => 'payé', // Statut par défaut
+       'statut_paiement' => ($paymentMethod === 'delivery') ? 'En Attente' : 'payé',
         'date_validation' => now(), // Date de validation du paiement
         'expediteur_id' => $expediteur->id, // ID de l'expéditeur
         'agent_id' => $agentId, // ID de l'agent connecté (de la table agents)
@@ -489,7 +494,7 @@ class ChineColisController extends Controller
             // Données à encoder dans le QR code
             $qrData = [
                 'Référence colis' => $colisItem->reference_colis,
-                'Statut' => $colisItem->etat,
+                'Statut' => $colisItem->status,
                 'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
                 'Nom Destinataire' => $destinataire->nom . ' ' . $destinataire->prenom,
                 'Téléphone Destinataire' => $destinataire->tel,
@@ -537,7 +542,7 @@ class ChineColisController extends Controller
 {
     try {
         $validatedData = $request->validate([
-        //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+        //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash,delivery',
         //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
         //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
         //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
@@ -563,11 +568,20 @@ class ChineColisController extends Controller
         //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
         //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
         //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-        //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
+        //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à 0',
         ]);
 
         // Stocker les données en session
-
+ // Validation supplémentaire pour le montant en espèces
+ if ($request->mode_payement === 'cash') {
+    $prixColis = session('step1.prix.0');
+    if ($request->montant_reçu > $prixColis) {
+        return response()->json([
+            'success' => false,
+            'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le prix du colis ('.$prixColis.')']]
+        ], 422);
+    }
+}
 
         session(['step2' => $request->only([
             'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 

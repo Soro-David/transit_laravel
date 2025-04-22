@@ -361,250 +361,261 @@ public function store_colis(Request $request)
         }
     }
   
-    public function generer_qrcode(Request $request)
-    {
-        // dd($request);
-        // Fusionner toutes les données de session dans un tableau
-        $data = array_merge(
-            session('step1', []),
-            session('step2', [])
-        );
-    
-        // Vérifiez que la clé 'quantite_colis' existe
-        if (!isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
-            return redirect()->back()->with('error', 'La quantité des colis est manquante ou invalide.');
-        }
-    
-        // Ajouter le statut au tableau de données
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
-        $data['etat'] = $data['etat'] ?? 'Validé';
-    
-        // Vérifiez que les données sont bien réparties pour chaque table
-        $expediteurData = [
-            'nom' => $data['nom_expediteur'] ?? null,
-            'prenom' => $data['prenom_expediteur'] ?? null,
-            'email' => $data['email_expediteur'] ?? null,
-            'tel' => $data['tel_expediteur'] ?? null,
-            'agence' => $data['agence_expedition'] ?? null,
-            'adresse' => $data['adresse_expediteur'] ?? null,
-        ];
-    
-        $destinataireData = [
-            'nom' => $data['nom_destinataire'] ?? null,
-            'prenom' => $data['prenom_destinataire'] ?? null,
-            'email' => $data['email_destinataire'] ?? null,
-            'tel' => $data['tel_destinataire'] ?? null,
-            'agence' => $data['agence_destination'] ?? null,
-            'adresse' => $data['adresse_destinataire'] ?? null,
-        ];
-    
-        // Initialisation du tableau pour stocker les données des colis
-        $colisData = [];
-    
-        // Parcourir les tableaux pour construire $colisData
-        foreach ($data['quantite_colis'] as $index => $quantite) {
-            $hauteur = $data['hauteur'][$index] ?? null;
-            $largeur = $data['largeur'][$index] ?? null;
-            $longueur = $data['longueur'][$index] ?? null;
-    
-            if (isset($hauteur, $largeur, $longueur)) {
-                $dimension_result = "{$hauteur}x{$largeur}x{$longueur}";
-            } else {
-                $dimension_result = null;
-            }
-    
-            $colisData[] = [
-                'reference_colis' => $data['reference_colis'],
-                'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                'quantite_colis' => $quantite,
-                'service' => $data['service'][$index] ?? null,
-                'prix_transit_colis' => $data['prix'][$index] ?? null,
-                'poids_colis' => $data['poids_colis'][$index] ?? null,
-                'dimension_result' => $data['dimension_result'][$index] ?? null,
-                'mode_transit' => $data['mode_transit'] ?? null,
-                'status' => $data['status'] ?? null,
-                'etat' => $data['etat'] ?? null,
-                'type_colis' => $data['type_colis'][$index] ?? null,
-                'dimension_result' => $dimension_result,
-                'description_colis' => $data['description_colis'][$index] ?? null,
-            ];
-        }
-    
-        // Insérer les données dans chaque table
-        $expediteur = Expediteur::create($expediteurData);
-        $destinataire = Destinataire::create($destinataireData);
-    
-        // Récupérer les données de paiement depuis la session `step2`
-        $payementDataSession = session('step2', []);
-
-         // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
-         $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
-         ? $payementDataSession['montant_reçu']
-         : session('step1.prix.0') ?? null; // Fallback au prix total si non cash
-
-    
-    // **Récupérer cinetpay_transaction_id depuis la requête**
-    $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
-    $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
-        // **Récupérer l'ID de l'agent connecté VIA LA RELATION**
-        $agentId = null;
-        if (Auth::check()) {
-            $agent = Auth::user()->agent;
-            $agentId = $agent ? $agent->id : null;
-        }
-    // Préparer les données de paiement pour la base de données
-        $paiementData = [
-            'colis_id' => null, // Sera mis à jour après la création du colis
-            'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
-            'montant' => $montantPaiement, // Utilisation du montant déterminé ci-dessus
-            'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
-            'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
-            'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
-            'id_transaction' => $payementDataSession['transaction_id'] ?? null,
-            'statut_paiement' => 'payé', // Statut par défaut
-            'date_validation' => now(), // Date de validation du paiement
-            'expediteur_id' => $expediteur->id, // ID de l'expéditeur
-          'agent_id' => $agentId, // ID de l'agent connecté (de la table agents)
-        ];
-    
-        // Créer les colis et enregistrer les paiements
-        $colis = [];
-        foreach ($colisData as $colisItem) { $agentId = null; // Initialiser agentId à null par défaut
-            $colisItem['agent_id'] = $agentId; // Assigner l'agent_id au colis aussi
-
-
-            // Vérifier si l'utilisateur est authentifié
-            if (Auth::check()) {
-                $user = Auth::user(); // Récupérer l'utilisateur authentifié (modèle User)
-                $agent = $user->agent; // Accéder à la relation agent() définie dans le modèle User
-                $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe, sinon null
-            }
-    
-            $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
-            // Créer le colis
-        
-            $colisModel = Colis::create(array_merge($colisItem, [
-                'expediteur_id' => $expediteur->id,
-                'destinataire_id' => $destinataire->id,
-            ]));
-            $colis[] = $colisModel; // Ajouter au tableau pour la génération du QR code
-    
-            // Créer et enregistrer le paiement pour ce colis
-            $paiement = Paiement::create(array_merge($paiementData, ['colis_id' => $colisModel->id])); // Associer le paiement au colis
-        }
-     // **Association explicite (important)**
-     $colisModel->paiement()->associate($paiement);
-     $colisModel->save();
-        // Générer les QR codes pour chaque colis
-        foreach ($colis as $colisItem) {
-            // Données à encoder dans le QR code
-            $qrData = [
-                'Référence colis' => $colisItem->reference_colis,
-                'Statut' => $colisItem->etat,
-                'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
-                'Nom Destinataire' => $destinataire->nom . ' ' . $destinataire->prenom,
-                'Téléphone Destinataire' => $destinataire->tel,
-                'Agence Destination' => $destinataire->agence ?? '',
-                'Lieu de Destination' => $destinataire->adresse ?? '',
-            ];
-    
-            // Construire le contenu du QR code
-            $qrCodeContent = '';
-            foreach ($qrData as $key => $value) {
-                $qrCodeContent .= "{$key}: {$value}\n";
-            }
-    
-            // Générer le QR code
-            $qrCode = new QrCode($qrCodeContent);
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
-            $pngData = $result->getString();
-    
-            // Définir le chemin du fichier QR code
-            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-            $fullPath = public_path($filePath);
-    
-            // Vérifier et créer le répertoire cible si nécessaire
-            $directory = dirname($fullPath);
-            if (!File::exists($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
-    
-            // Sauvegarder le fichier QR code dans le storage
-            file_put_contents($fullPath, $pngData);
-    
-            // Mettre à jour le chemin du QR code dans la base de données
-            $colisItem->update(['qr_code_path' => $filePath]);
-        }
-    
-        // Réinitialiser les sessions après traitement
-        session()->forget(['step1', 'step2']);
-    
-        // Retourner la vue avec les informations nécessaires
-        return view('AFT_LOUIS_BLERIOT.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
-    } 
-
-    public function storePayement(Request $request)
-    {
-        try {
-            $validatedData = $request->validate([
-            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-            // ], [
-            //     'required' => 'Le champ :attribute est obligatoire.',
-            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-            //     'numeric' => 'Le champ :attribute doit être un nombre.',
-            //     'min' => 'Le champ :attribute doit être au moins :min.',
-    
-            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
-    
-            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
-            ]);
-    
-            // Stocker les données en session
-    
-    
-            session(['step2' => $request->only([
-                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-                'dimension_result'
-                
-            ])]);
-            return response()->json([
-                'success' => true,
-                'redirect' => route('aftlb_colis.generer.qrcode'),
-            ]);
-    
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-            ], 500);
-        }
-    }
-
+   
+ public function generer_qrcode(Request $request)
+ {
+     
+     // dd($request);
+     // Fusionner toutes les données de session dans un tableau
+     $data = array_merge(
+         session('step1', []),
+         session('step2', [])
+     );
  
+     // Vérifiez que la clé 'quantite_colis' existe
+     if (!isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
+         return redirect()->back()->with('error', 'La quantité des colis est manquante ou invalide.');
+     }
+ 
+     // Ajouter le statut au tableau de données
+     $paymentMethod = $data['mode_payement'] ?? null;
+     $colisStatus = ($paymentMethod === 'delivery') ? 'Non payé' : 'payé';
+     $etat = 'Validé';
+ 
+     // Vérifiez que les données sont bien réparties pour chaque table
+     $expediteurData = [
+         'nom' => $data['nom_expediteur'] ?? null,
+         'prenom' => $data['prenom_expediteur'] ?? null,
+         'email' => $data['email_expediteur'] ?? null,
+         'tel' => $data['tel_expediteur'] ?? null,
+         'agence' => $data['agence_expedition'] ?? null,
+         'adresse' => $data['adresse_expediteur'] ?? null,
+     ];
+ 
+     $destinataireData = [
+         'nom' => $data['nom_destinataire'] ?? null,
+         'prenom' => $data['prenom_destinataire'] ?? null,
+         'email' => $data['email_destinataire'] ?? null,
+         'tel' => $data['tel_destinataire'] ?? null,
+         'agence' => $data['agence_destination'] ?? null,
+         'adresse' => $data['adresse_destinataire'] ?? null,
+     ];
+ 
+     // Initialisation du tableau pour stocker les données des colis
+     $colisData = [];
+ 
+     // Parcourir les tableaux pour construire $colisData
+     foreach ($data['quantite_colis'] as $index => $quantite) {
+         $hauteur = $data['hauteur'][$index] ?? null;
+         $largeur = $data['largeur'][$index] ?? null;
+         $longueur = $data['longueur'][$index] ?? null;
+ 
+         if (isset($hauteur, $largeur, $longueur)) {
+             $dimension_result = "{$hauteur}x{$largeur}x{$longueur}";
+         } else {
+             $dimension_result = null;
+         }
+ 
+         $colisData[] = [
+             'reference_colis' => $data['reference_colis'],
+             'reference_contenaire' => $data['reference_contenaire'] ?? null,
+             'quantite_colis' => $quantite,
+             'service' => $data['service'][$index] ?? null,
+             'prix_transit_colis' => $data['prix'][$index] ?? null,
+             'poids_colis' => $data['poids_colis'][$index] ?? null,
+             'dimension_result' => $data['dimension_result'][$index] ?? null,
+             'mode_transit' => $data['mode_transit'] ?? null,
+             'status' => $colisStatus,
+            'etat' => $etat,
+             'type_colis' => $data['type_colis'][$index] ?? null,
+             'dimension_result' => $dimension_result,
+             'description_colis' => $data['description_colis'][$index] ?? null,
+         ];
+     }
+ 
+     // Insérer les données dans chaque table
+     $expediteur = Expediteur::create($expediteurData);
+     $destinataire = Destinataire::create($destinataireData);
+ 
+     // Récupérer les données de paiement depuis la session `step2`
+     $payementDataSession = session('step2', []);
+   // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
+   $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
+   ? $payementDataSession['montant_reçu']
+   : session('step1.prix.0') ?? null;
+   // Vérification que le montant en espèces ne dépasse pas le prix
+if ($payementDataSession['mode_payement'] === 'cash' && $montantPaiement > session('step1.prix.0')) {
+ return redirect()->back()->with('error', 'Le montant reçu ne peut pas dépasser le prix du colis');
+}
+ // **Récupérer cinetpay_transaction_id depuis la requête**
+ $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
+ $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
+ // **Récupérer l'ID de l'agent connecté VIA LA RELATION**
+ $agentId = null;
+ if (Auth::check()) {
+     $agent = Auth::user()->agent;
+     $agentId = $agent ? $agent->id : null;
+ }
+ 
+// Préparer les données de paiement pour la base de données
+ $paiementData = [
+     'colis_id' => null, // Sera mis à jour après la création du colis
+     'methode_paiement' => $paymentMethod,
+     'montant' => $montantPaiement, // Utilisation du montant déterminé ci-dessus
+     'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
+     'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
+     'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
+     'id_transaction' => $payementDataSession['transaction_id'] ?? null,
+    'statut_paiement' => ($paymentMethod === 'delivery') ? 'En Attente' : 'payé',
+     'date_validation' => now(), // Date de validation du paiement
+     'expediteur_id' => $expediteur->id, // ID de l'expéditeur
+     'agent_id' => $agentId, // ID de l'agent connecté (de la table agents)
+ ];
+     // Créer les colis et enregistrer les paiements
+     $colis = [];
+     foreach ($colisData as $colisItem) { $agentId = null; // Initialiser agentId à null par défaut
+         $colisItem['agent_id'] = $agentId; // Assigner l'agent_id au colis aussi
+
+
+         // Vérifier si l'utilisateur est authentifié
+         if (Auth::check()) {
+             $user = Auth::user(); // Récupérer l'utilisateur authentifié (modèle User)
+             $agent = $user->agent; // Accéder à la relation agent() définie dans le modèle User
+             $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe, sinon null
+         }
+ 
+         $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
+         // Créer le colis
+     
+         $colisModel = Colis::create(array_merge($colisItem, [
+             'expediteur_id' => $expediteur->id,
+             'destinataire_id' => $destinataire->id,
+         ]));
+         $colis[] = $colisModel; // Ajouter au tableau pour la génération du QR code
+ 
+         // Créer et enregistrer le paiement pour ce colis
+         $paiement = Paiement::create(array_merge($paiementData, ['colis_id' => $colisModel->id])); // Associer le paiement au colis
+     }
+  // **Association explicite (important)**
+  $colisModel->paiement()->associate($paiement);
+  $colisModel->save();
+     // Générer les QR codes pour chaque colis
+     foreach ($colis as $colisItem) {
+         // Données à encoder dans le QR code
+         $qrData = [
+             'Référence colis' => $colisItem->reference_colis,
+             'Statut' => $colisItem->status,
+             'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
+             'Nom Destinataire' => $destinataire->nom . ' ' . $destinataire->prenom,
+             'Téléphone Destinataire' => $destinataire->tel,
+             'Agence Destination' => $destinataire->agence ?? '',
+             'Lieu de Destination' => $destinataire->adresse ?? '',
+         ];
+ 
+         // Construire le contenu du QR code
+         $qrCodeContent = '';
+         foreach ($qrData as $key => $value) {
+             $qrCodeContent .= "{$key}: {$value}\n";
+         }
+ 
+         // Générer le QR code
+         $qrCode = new QrCode($qrCodeContent);
+         $writer = new PngWriter();
+         $result = $writer->write($qrCode);
+         $pngData = $result->getString();
+ 
+         // Définir le chemin du fichier QR code
+         $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
+         $fullPath = public_path($filePath);
+ 
+         // Vérifier et créer le répertoire cible si nécessaire
+         $directory = dirname($fullPath);
+         if (!File::exists($directory)) {
+             File::makeDirectory($directory, 0755, true);
+         }
+ 
+         // Sauvegarder le fichier QR code dans le storage
+         file_put_contents($fullPath, $pngData);
+ 
+         // Mettre à jour le chemin du QR code dans la base de données
+         $colisItem->update(['qr_code_path' => $filePath]);
+     }
+ 
+     // Réinitialiser les sessions après traitement
+     session()->forget(['step1', 'step2']);
+ 
+     // Retourner la vue avec les informations nécessaires
+     return view('AFT_LOUIS_BLERIOT.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
+ } 
+
+ public function storePayement(Request $request)
+{
+ try {
+     $validatedData = $request->validate([
+     //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash,delivery',
+     //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
+     //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
+     //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+     //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+     //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+     //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+     //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+     // ], [
+     //     'required' => 'Le champ :attribute est obligatoire.',
+     //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
+     //     'numeric' => 'Le champ :attribute doit être un nombre.',
+     //     'min' => 'Le champ :attribute doit être au moins :min.',
+
+     //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
+     //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+
+     //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
+     //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
+     //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
+     //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
+     //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
+     //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
+     //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
+     //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
+     //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
+     //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à 0',
+     ]);
+
+     // Stocker les données en session
+// Validation supplémentaire pour le montant en espèces
+if ($request->mode_payement === 'cash') {
+ $prixColis = session('step1.prix.0');
+ if ($request->montant_reçu > $prixColis) {
+     return response()->json([
+         'success' => false,
+         'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le prix du colis ('.$prixColis.')']]
+     ], 422);
+ }
+}
+
+     session(['step2' => $request->only([
+         'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+         'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
+         'dimension_result'
+         
+     ])]);
+     return response()->json([
+         'success' => true,
+         'redirect' => route('aftlb_colis.generer.qrcode'),
+     ]);
+
+ } catch (\Illuminate\Validation\ValidationException $e) {
+     return response()->json([
+         'success' => false,
+         'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
+     ], 422);
+ } catch (\Exception $e) {
+     return response()->json([
+         'success' => false,
+         'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
+     ], 500);
+ }
+}
  
     
 
