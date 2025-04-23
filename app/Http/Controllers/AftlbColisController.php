@@ -370,7 +370,7 @@ public function store_colis(Request $request)
             ], 500);
         }
     }
-  
+
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         // Fusionner toutes les données de session dans un tableau
@@ -1025,9 +1025,6 @@ public function store_colis(Request $request)
             ], 500);
         }
     }
-
- 
- 
     
 
 
