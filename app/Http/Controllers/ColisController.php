@@ -342,6 +342,7 @@ private function generateReferenceContenaire()
 
     public function store_colis(Request $request)
     {
+        // dd($request->all());
         try {
             $request->session()->put('step1', $request->all());
     
@@ -385,638 +386,282 @@ private function generateReferenceContenaire()
        
         return view('admin.colis.add.payement');
     }
-    
 
+    public function storePayement(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
+            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
+            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
+            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
+            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
+            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
+            //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+            // ], [
+            //     'required' => 'Le champ :attribute est obligatoire.',
+            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
+            //     'numeric' => 'Le champ :attribute doit être un nombre.',
+            //     'min' => 'Le champ :attribute doit être au moins :min.',
+    
+            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
+            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+    
+            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
+            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
+            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
+            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
+            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
+            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
+            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
+            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
+            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
+            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
+            ]);
+    
+            // Stocker les données en session
+    
+    
+            session(['step2' => $request->only([
+                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
+                'dimension_result'
+                
+            ])]);
+            return response()->json([
+                'success' => true,
+                'redirect' => route('colis.generer.qrcode'),
+            ]);
+    
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
+            ], 500);
+        }
+    }
+    
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
-                // Fusionner toutes les données de session dans un tableau
-                $data = array_merge(
-                    session('step1', []),
-                    session('step2', [])
-                );
-                // dd($data);wha
-
-                // Vérifiez que la clé 'quantite_colis' existe
-                if (!isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
-                    return redirect()->back()->with('error', 'La quantité des colis est manquante ou invalide.');
-                }
-
-                // Ajouter le statut au tableau de données
-                $data['status'] = $data['mode_payement'] ?? 'non payé';
-                $data['etat'] = $data['etat'] ?? 'Validé';
-
-                // Vérifiez que les données sont bien réparties pour chaque table
-                $expediteurData = [
-                    'nom' => $data['nom_expediteur'] ?? null,
-                    'prenom' => $data['prenom_expediteur'] ?? null,
-                    'email' => $data['email_expediteur'] ?? null,
-                    'tel' => $data['tel_expediteur'] ?? null,
-                    'agence' => $data['agence_expedition'] ?? null,
-                    'adresse' => $data['adresse_expediteur'] ?? null,
-                ];
-                $destinataireData = [
-                    'nom' => $data['nom_destinataire'] ?? null,
-                    'prenom' => $data['prenom_destinataire'] ?? null,
-                    'email' => $data['email_destinataire'] ?? null,
-                    'tel' => $data['tel_destinataire'] ?? null,
-                    'agence' => $data['agence_destination'] ?? null,
-                    'adresse' => $data['adresse_destinataire'] ?? null,
-                ];
-
-                // Initialisation du tableau pour stocker les données des colis
-                $colisData = [];
-
-                // Parcourir les tableaux pour construire $colisData
-                foreach ($data['quantite_colis'] as $index => $quantite) {
-                    $hauteur = $data['hauteur'][$index] ?? null;
-                    $largeur = $data['largeur'][$index] ?? null;
-                    $longueur = $data['longueur'][$index] ?? null;
-
-                    if (isset($hauteur, $largeur, $longueur)) {
-                        $dimension_result = "{$hauteur}x{$largeur}x{$longueur}";
-                    } else {
-                        $dimension_result = null;
-                    }
-
-                    $colisData[] = [
-                        'reference_colis' => $data['reference_colis'],
-                        'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                        'quantite_colis' => $quantite,
-                        'service' => $data['service'][$index] ?? null,
-                        'prix_transit_colis' => $data['prix'][$index] ?? null,
-                        'poids_colis' => $data['poids_colis'][$index] ?? null,
-                        'dimension_result' => $data['dimension_result'][$index] ?? null,
-                        'mode_transit' => $data['mode_transit'] ?? null,
-                        'status' => $data['status'] ?? null,
-                        'etat' => $data['etat'] ?? null,
-                        'type_colis' => $data['type_colis'][$index] ?? null,
-                        'dimension_result' => $dimension_result,
-                        'description_colis' => $data['description_colis'][$index] ?? null,
-                    ];
-                }
-
-                // Insérer les données dans chaque table
-                $expediteur = Expediteur::create($expediteurData);
-                $destinataire = Destinataire::create($destinataireData);
-
-                // Récupérer les données de paiement depuis la session step2
-                $payementDataSession = session('step2', []);
-                // Déterminer le montant du paiement. Utiliser montant_reçu pour cash, sinon prix total
-                $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
-                ? $payementDataSession['montant_reçu']
-                : session('step1.prix.0') ?? null; // Fallback au prix total si non cash
-                // *Récupérer cinetpay_transaction_id depuis la requête*
-                $cinetpayTransactionId = $request->input('cinetpay_transaction_id');
-                $manualTransactionId = $payementDataSession['transaction_id'] ?? null; // Fallback for manual transaction ID if CinetPay is not used
-                // *Récupérer l'ID de l'agent connecté VIA LA RELATION*
-                $agentId = null;
-                if (Auth::check()) {
-                $agent = Auth::user()->agent;
-                $agentId = $agent ? $agent->id : null;
-                }
-                // Préparer les données de paiement pour la base de données
-                $paiementData = [
-                'colis_id' => null, // Sera mis à jour après la création du colis
-                'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
-                'montant' => $montantPaiement, // Utilisation du montant déterminé ci-dessus
-                'operateur' => $payementDataSession['operateur_mobile'] ?? null, // Pour Mobile Money
-                'banque' => $payementDataSession['nom_banque'] ?? null, // Pour Virement Bancaire et Chèque
-                'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null, // Numéro de tel pour mobile money, cheque ou compte bancaire
-                'id_transaction' => $payementDataSession['transaction_id'] ?? null,
-                'statut_paiement' => 'payé', // Statut par défaut
-                'date_validation' => now(), // Date de validation du paiement
-                'expediteur_id' => $expediteur->id, // ID de l'expéditeur
-                'agent_id' => $agentId, // ID de l'agent connecté (de la table agents)
-                ];
-                // Créer les colis et enregistrer les paiements
-                $colis = [];
-                foreach ($colisData as $colisItem) { $agentId = null; // Initialiser agentId à null par défaut
-                    $colisItem['agent_id'] = $agentId; // Assigner l'agent_id au colis aussi
-
-
-                    // Vérifier si l'utilisateur est authentifié
-                    if (Auth::check()) {
-                        $user = Auth::user(); // Récupérer l'utilisateur authentifié (modèle User)
-                        $agent = $user->agent; // Accéder à la relation agent() définie dans le modèle User
-                        $agentId = $agent ? $agent->id : null; // Récupérer l'ID de l'agent si la relation existe, sinon null
-                    }
-
-                    $colisItem['agent_id'] = $agentId; // Assigner l'agent_id (peut être null si aucun agent trouvé)
-                    // Créer le colis
-
-                    $colisModel = Colis::create(array_merge($colisItem, [
-                        'expediteur_id' => $expediteur->id,
-                        'destinataire_id' => $destinataire->id,
-                    ]));
-                    $colis[] = $colisModel; // Ajouter au tableau pour la génération du QR code
-                    // dd($colis);
-                    // Créer et enregistrer le paiement pour ce colis
-                    $paiement = Paiement::create(array_merge($paiementData, ['colis_id' => $colisModel->id])); // Associer le paiement au colis
-                }
-                // *Association explicite (important)*
-                $colisModel->paiement()->associate($paiement);
-                $colisModel->save();
-                // Générer les QR codes pour chaque colis
-                foreach ($colis as $colisItem) {
-                    // Données à encoder dans le QR code
-                    $qrData = [
-                        'Référence colis' => $colisItem->reference_colis,
-                        'Statut' => $colisItem->etat,
-                        'Nom Expéditeur' => $expediteur->nom . ' ' . $expediteur->prenom,
-                        'Nom Destinataire' => $destinataire->nom . ' ' . $destinataire->prenom,
-                        'Téléphone Destinataire' => $destinataire->tel,
-                        'Agence Destination' => $destinataire->agence ?? '',
-                        'Lieu de Destination' => $destinataire->adresse ?? '',
-                    ];
-
-                    // Construire le contenu du QR code
-                    $qrCodeContent = '';
-                    foreach ($qrData as $key => $value) {
-                        $qrCodeContent .= "{$key}: {$value}\n";
-                    }
-
-                    // Générer le QR code
-                    $qrCode = new QrCode($qrCodeContent);
-                    $writer = new PngWriter();
-                    $result = $writer->write($qrCode);
-                    $pngData = $result->getString();
-
-                    // Définir le chemin du fichier QR code
-                    $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-                    $fullPath = public_path($filePath);
-
-                    // Vérifier et créer le répertoire cible si nécessaire
-                    $directory = dirname($fullPath);
-                    if (!File::exists($directory)) {
-                        File::makeDirectory($directory, 0755, true);
-                    }
-
-                    // Sauvegarder le fichier QR code dans le storage
-                    file_put_contents($fullPath, $pngData);
-
-                    // Mettre à jour le chemin du QR code dans la base de données
-                    $colisItem->update(['qr_code_path' => $filePath]);
-                }
-                
-              $colisInfos = collect($colis)->map(function ($item, $index) {
-                $infos = [
-                    'quantite' => $item->quantite_colis,
-                    'prix_transit' => $item->prix_transit_colis,
-                ];
-            
-                // Ajouter les infos supplémentaires uniquement pour le premier élément
-                if ($index === 0) {
-                    $infos['reference_colis'] = $item->reference_colis;
-                    $infos['nom_destinataire'] = $item->destinataire->nom ;
-                    $infos['prenom_destinataire'] = $item->destinataire->prenom ;
-                    $infos['tel_destinataire'] = $item->destinataire->tel ;
-                    $infos['nom_expediteur'] = $item->expediteur->nom ;
-                    $infos['prenom_expediteur'] = $item->expediteur->prenom;
-                    $infos['tel_expediteur'] = $item->expediteur->tel;
-                }
-            
-                return $infos;
-            });
-            
-
-            $totalQuantite = collect($colis)->sum('quantite_colis');
-            $totalPrixTransit = collect($colis)->sum('prix_transit_colis');
-
-            $first = $colisInfos->first();
-
-            // dd($first);
-
-                // Réinitialiser les sessions après traitement
-                session()->forget(['step1', 'step2']);
-               // Retourner la vue avec les informations nécessaires
-            return view('admin.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result','first', 'totalQuantite', 'totalPrixTransit'));
-        }
-        public function editFacture($id)
-        {
-            // dd($id);
-            
-            $colis_principal = Colis::find($id);
-    
-                if (!$colis_principal) {
-                    return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-                }
-    
-                $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-    
-                if ($colisCollection->isEmpty()) {
-                    return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-                }   
-    
-            if ($colisCollection->isEmpty()) {
-                return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
-            }
-    
-            // Récupération du premier colis
-            $firstColis = $colisCollection->first();
-            
-            $date_facture = now();
-            $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
-            $tel_expediteur = $firstColis->expediteur->tel;
-            $tel_destinataire = $firstColis->destinataire->tel;
-            $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
-            $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
-            $reference_colis = $firstColis->reference_colis;
-            
-            // Calcul du prix total
-            $prix_total = 0;
-            foreach ($colisCollection as $colis) {
-                if (!isset($colis->prix_transit_colis)) {
-                    throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
-                }
-                $prix_total += $colis->prix_transit_colis;
-            }
-    
-            // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-            $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
-            $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-            $reste = $prix_total - $montant_paye;
-    
-            $id_agent = Auth::user()->id;
-            $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
-            // dd($nom_agent);
-    
-            // Création de la facture
-            Invoice::create([
-                'nom_agent' => $nom_agent,
-                'nom_expediteur' => $expediteur,
-                'nom_destinataire' => $destinataire,
-                'expediteur_id' => $firstColis->expediteur->id,
-                'destinataire_id' => $firstColis->destinataire->id,
-                'agent_id' => $id_agent,
-                'montant' => $prix_total ?? 0,
-                'numero_facture' => $numero_facture,
-            ]);
-            // dd($u);
-            // Préparation des données des colis
-            $colisData = [];
-            foreach ($colisCollection as $colis) {
-                $colisData[] = [
-                    'description'         => $colis->description_colis,
-                    'quantite'            => $colis->quantite_colis,
-                    'poids'               => $colis->poids_colis,
-                    'type_colis'          => $colis->type_colis,
-                    'prix_transit_colis'  => $colis->prix_transit_colis,
-                ];
-            }
-    
-            // Passage des données à la vue
-            return view('admin.colis.add.edit_invoice', compact(
-                'date_facture', 
-                'reference_colis', 
-                'expediteur', 
-                'tel_expediteur', 
-                'destinataire', 
-                'prix_total', 
-                'montant_paye', 
-                'reste', 
-                'mode_payement', 
-                'colisData',
-                'numero_facture',
-                'tel_destinataire'
-            ));
+        // dd($request->all());
+        // Fusionner toutes les données de session dans un tableau
+        $data = array_merge(
+            session('step1', []),
+            session('step2', [])
+        );
+        // dd($data);
+        // Vérifiez que les données de base existent
+        if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
+             // Log l'erreur pour diagnostic
+             \Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
+            return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
         }
 
-        public function editEtiquette($id) 
-        {
-            $colis_principal = Colis::find($id);
-        
-            if (!$colis_principal) {
-                return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-            }
-        
-            $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-        
-            if ($colis->isEmpty()) {
-                return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }
-        
-            foreach ($colis as $colisItem) {
-                $qrData = [
-                    'Identifiant' => $colisItem->id,
-                    'Référence colis' => $colisItem->reference_colis,
-                    'Statut' => $colisItem->status,
-                    'Nom Expéditeur' => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
-                    'Nom Destinataire' => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
-                    'Téléphone Destinataire' => $colisItem->destinataire->tel,
-                    'Agence Destination' => $colisItem->destinataire->agence ?? '',
-                    'Lieu de Destination' => $colisItem->destinataire->lieu_destination ?? '',
-                ];
-        
-                $qrCodeContent = '';
-                foreach ($qrData as $key => $value) {
-                    $qrCodeContent .= "{$key}: {$value}\n";
-                }
-        
-                $qrCode = new QrCode($qrCodeContent);
-                $writer = new PngWriter();
-                $result = $writer->write($qrCode);
-                $pngData = $result->getString();
-        
-                $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-                $fullPath = public_path($filePath);
-        
-                if (!File::exists(dirname($fullPath))) {
-                    File::makeDirectory(dirname($fullPath), 0755, true);
-                }
-        
-                file_put_contents($fullPath, $pngData);
-        
-                $colisItem->update(['qr_code_path' => $filePath]);
-            }
-        
-            $pdf = PDF::loadView('admin.colis.add.edit_etiquette', compact('colis'))
-              ->setPaper('a6', 'landscape'); 
-        
-            return $pdf->download('etiquette_colis_' . $colis->first()->reference_colis . '.pdf');
+        $data['status'] = $data['mode_payement'] ?? 'non payé'; // Status paiement global
+        $data['etat'] = $data['etat'] ?? 'Validé';
+
+        $expediteurData = [
+            'nom' => $data['nom_expediteur'] ?? null,
+            'prenom' => $data['prenom_expediteur'] ?? null,
+            'email' => $data['email_expediteur'] ?? null,
+            'tel' => $data['tel_expediteur'] ?? null,
+            'agence' => $data['agence_expedition'] ?? null,
+            'adresse' => $data['adresse_expediteur'] ?? null,
+        ];
+
+        $destinataireData = [
+            'nom' => $data['nom_destinataire'] ?? null,
+            'prenom' => $data['prenom_destinataire'] ?? null,
+            'email' => $data['email_destinataire'] ?? null,
+            'tel' => $data['tel_destinataire'] ?? null,
+            'agence' => $data['agence_destination'] ?? null,
+            'adresse' => $data['adresse_destinataire'] ?? null,
+        ];
+
+        // --- Création Expediteur & Destinataire (une seule fois) ---
+        try {
+            $expediteur = Expediteur::create($expediteurData);
+            $destinataire = Destinataire::create($destinataireData);
+        } catch (\Exception $e) {
+            \Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
         }
 
 
+        // --- Données de Paiement ---
+        $payementDataSession = session('step2', []);
+        $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
+        $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
+            ? ($payementDataSession['montant_reçu'] ?? 0) // Default to 0 if not set
+            : $montantTotalEstime; // Pour autres modes, on assume paiement total (à ajuster si besoin)
 
-        public function storePayement(Request $request)
-        {
-            try {
-                $validatedData = $request->validate([
-                //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-                //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-                //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-                //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-                //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-                //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-                //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-                //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-                // ], [
-                //     'required' => 'Le champ :attribute est obligatoire.',
-                //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-                //     'numeric' => 'Le champ :attribute doit être un nombre.',
-                //     'min' => 'Le champ :attribute doit être au moins :min.',
+        // Prendre l'ID de transaction de CinetPay en priorité si présent
+        $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
+        $statutPaiement = $montantPaiement >= $montantTotalEstime ? 'payé' : 'partiellement payé'; // Ou 'non payé' si montant = 0 ?
 
-                //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-                //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+        // Agent ID
+        $agentId = Auth::check() ? Auth::user()->agent?->id : null;
 
-                //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-                //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-                //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-                //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-                //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-                //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-                //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-                //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-                //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-                //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
-                ]);
+        // Préparer les données de base pour le paiement (sera lié à chaque colis)
+        $basePaiementData = [
+            'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
+            'montant' => $montantPaiement, // Le montant total payé pour cette transaction
+            'operateur' => $payementDataSession['operateur_mobile'] ?? null,
+            'banque' => $payementDataSession['nom_banque'] ?? null,
+            'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
+            'id_transaction' => $transactionId,
+            'statut_paiement' => $statutPaiement,
+            'date_validation' => now(),
+            'expediteur_id' => $expediteur->id,
+            'agent_id' => $agentId,
+            // 'colis_id' sera ajouté dans la boucle
+        ];
+        // dd($basePaiementData);
 
-                // Stocker les données en session
+        // --- Création des Colis, Paiements et QR Codes ---
+        $colisEnregistres = []; // Pour stocker les modèles Colis sauvegardés
+        $erreursCreation = [];
 
+        foreach ($data['quantite_colis'] as $index => $quantite) {
+            if ($quantite <= 0) continue; // Ignorer si quantité invalide
 
-                session(['step2' => $request->only([
-                    'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-                    'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-                    'dimension_result'
-                    
-                ])]);
-                // dd($request);
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('colis.generer.qrcode'),
-                ]);
-
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
-                ], 422);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-                ], 500);
-            }
-        }
-
+            $hauteur = $data['hauteur'][$index] ?? null;
+            $largeur = $data['largeur'][$index] ?? null;
+            $longueur = $data['longueur'][$index] ?? null;
+            $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
 
         
+             $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
             
-            public function qrcode(Request $request)
-            {
-                // Fusionner toutes les données de session dans un tableau
-                $data = array_merge(
-                    session('step1', []),
-                    session('step2', []),
-                    session('step3', []),
-                    session('step4', []),
-                    session('step5', [])
-                );
-
-                // Ajouter le statut au tableau de données
-                $data['status'] = $data['mode_payement'] ?? 'non payé';
-                $data['etat'] = $data['etat'] ?? 'Validé';
-
-
-                // Vérifiez que les données sont bien réparties pour chaque table
-                $expediteurData = [
-                    'nom' => $data['nom_expediteur'] ,
-                    'prenom' => $data['prenom_expediteur'] ,
-                    'email' => $data['email_expediteur'] ,
-                    'tel' => $data['tel_expediteur'] ,
-                    'agence' => $data['agence_expedition'] ,
-                    'adresse' => $data['adresse_expediteur'] ,
-                ];
-
-
-                $destinataireData = [
-                    'nom' => $data['nom_destinataire'] ,
-                    'prenom' => $data['prenom_destinataire'] ,
-                    'email' => $data['email_destinataire'] ,
-                    'tel' => $data['tel_destinataire'] ,
-                    'agence' => $data['agence_destination'] ,
-                    'adresse' => $data['adresse_destinataire'] ,
-                ];
-
-                // Vérification que les tableaux nécessaires existent et sont synchronisés
-            if (
-                isset($data['description'], $data['quantite'], $data['dimension'], $data['poids']) &&
-                is_array($data['description']) &&
-                is_array($data['quantite']) &&
-                is_array($data['dimension']) &&
-                is_array($data['poids']) &&
-                count($data['description']) === count($data['quantite']) &&
-                count($data['quantite']) === count($data['dimension']) &&
-                count($data['dimension']) === count($data['poids'])
-            ) {
-                // Construction du tableau d'articles
-                $articleData = [];
-                foreach ($data['description'] as $index => $description) {
-                    $articleData[] = [
-                        'description' => $description,
-                        'quantite' => $data['quantite'][$index],
-                        'dimension' => $data['dimension'][$index],
-                        'poids' => $data['poids'][$index],
-                    ];
-                }
-            
-
-                // Afficher ou traiter $articleData
-                // dd($articleData); // Affiche les données sous forme de tableau structuré
-            } else {
-                // Gestion d'erreur
-                throw new \Exception('Les données des articles sont manquantes ou incohérentes.');
-            }
-
-                $colisData = [
-                    'reference_colis' => $data['reference_colis'] ,
-                    'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                    'quantite_colis' => $data['quantite_colis'] ,
-                    'type_embalage' => $data['type_embalage'] ,
-                    'valeur_colis' => $data['valeur_colis'],
-                    'poids_colis' => $data['poids_colis'] ,
-                    'dimension_colis' => $data['dimension_colis'] ,
-                    'mode_transit' => $data['mode_transit'] ,
-                    'status' => $data['status'],
-                    'etat' => $data['etat'],
-                    
-                ];
-                $payementData = [
-                    'mode_de_payement' => $data['mode_payement'] ,
-                    'montant_reçu' => $data['montant_reçu'] ,
-                    'operateur_mobile' => $data['operateur_mobile'] ,
-                    'numero_compte' => $data['numero_compte'],
-                    'nom_banque' => $data['nom_banque'] ,
-                    'id_transaction' => $data['transaction_id'],
-                    'numero_tel' => $data['numero_tel'],
-                    'numero_cheque' => $data['numero_cheque'] ,
-                ];
-
-                // dd($expediteurData, $destinataireData, $articleData, $colisData, $payementData);
-
-
-                // Insérer les données dans chaque table
-                $expediteur = Expediteur::create($expediteurData);
-                $destinataire = Destinataire::create($destinataireData);
-                // $article = Article::create($articleData);
-                $payement = Paiement::create($payementData);
-                $colis = Colis::create(array_merge($colisData, [
-                    'expediteur_id' => $expediteur->id,
-                    'destinataire_id' => $destinataire->id,
-                    'paement_id' => $payement->id,
-                ]));
-                foreach ($articleData as $article) {
-                    $article['colis_id'] = $colis->id;
-                    Article::create($article);
-                }
-                
-                // Format lisible pour le QR code
-                $qrData = [
-                    'Identifiant' => $colisItem->id,
-                    'Référence colis' => $data['reference_colis'],
-                    'Statut' => $colis->status,
-                    'Nom Expéditeur' => $data['nom_expediteur'] . ' ' . $data['prenom_expediteur'],
-                    'Nom Destinataire' => $data['nom_destinataire'] . ' ' . $data['prenom_destinataire'],
-                    'Téléphone Destinataire' => $data['tel_destinataire'],
-                    'Agence Destination' => $data['agence_destination'] ?? '',
-                    'Lieu de Destination' => $data['lieu_destination'] ?? '',
-                ];
-
-                // Construire le contenu du QR code
-                $qrCodeContent = '';
-                foreach ($qrData as $key => $value) {
-                    $qrCodeContent .= "{$key}: {$value}\n";
-                }
-
-                // Générer le QR code
-                $qrCode = new QrCode($qrCodeContent);
-                $writer = new PngWriter();
-                $result = $writer->write($qrCode);
-                $pngData = $result->getString();
-
-                // Définir le chemin du fichier QR code
-                $filePath = 'qrcodes/colis_' . $colis->id . '.png';
-                $fullPath = public_path($filePath);
-
-                // Vérifier et créer le répertoire cible si nécessaire
-                $directory = dirname($fullPath);
-                if (!File::exists($directory)) {
-                    File::makeDirectory($directory, 0755, true);
-                }
-
-                // Sauvegarder le fichier QR code dans le storage
-                file_put_contents($fullPath, $pngData);
-
-                // Mettre à jour le chemin du QR code dans la base de données
-                $colis->update(['qr_code_path' => $filePath]);
-
-                // Réinitialiser les sessions après traitement
-                session()->forget(['step1', 'step2', 'step3', 'step4', 'step5']);
-            // dd($fullPath);
-                // Retourner la vue avec les informations nécessaires
-                // return redirect()->route('colis.create.complete', compact('colis', 'filePath'));
-                return view('admin.colis.add.complete', compact('colis', 'filePath'));
-    }
-
-
-    public function inprimerEtiquette($id) 
-    {
-        $colis_principal = Colis::find($id);
-    
-        if (!$colis_principal) {
-            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-        }
-    
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-    
-        if ($colis->isEmpty()) {
-            return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-        }
-    
-        foreach ($colis as $colisItem) {
-            $qrData = [
-                'Identifiant' => $colisItem->id,
-                'Référence colis' => $colisItem->reference_colis,
-                'Statut' => $colisItem->status,
-                'Nom Expéditeur' => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
-                'Nom Destinataire' => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
-                'Téléphone Destinataire' => $colisItem->destinataire->tel,
-                'Agence Destination' => $colisItem->destinataire->agence ?? '',
-                'Lieu de Destination' => $colisItem->destinataire->lieu_destination ?? '',
+            $colisItemData = [
+                'reference_colis' => $referenceColis,
+                'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                'quantite_colis' => $quantite,
+                'service' => $data['service'][$index] ?? null,
+                'prix_transit_colis' => $data['prix'][$index] ?? 0, // Mettre 0 par défaut
+                'poids_colis' => $data['poids_colis'][$index] ?? null,
+                'mode_transit' => $data['mode_transit'] ?? null,
+                'status' => $data['status'], // Statut paiement global (sera mis à jour par paiement?)
+                'etat' => $data['etat'], // Etat colis global
+                'type_colis' => $data['type_colis'][$index] ?? null,
+                'dimension_result' => $dimension_result, // Calculé ci-dessus
+                'description_colis' => $data['description_colis'][$index] ?? null,
+                'expediteur_id' => $expediteur->id,
+                'destinataire_id' => $destinataire->id,
+                'agent_id' => $agentId,
+                'qr_code_path' => null, // Initialisé à null
+                // 'montant_payé' => $data['etat'], // Initialisé à null
             ];
-    
-            $qrCodeContent = '';
-            foreach ($qrData as $key => $value) {
-                $qrCodeContent .= "{$key}: {$value}\n";
-            }
-    
-            $qrCode = new QrCode($qrCodeContent);
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
-            $pngData = $result->getString();
-    
-            $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-            $fullPath = public_path($filePath);
-    
-            if (!File::exists(dirname($fullPath))) {
-                File::makeDirectory(dirname($fullPath), 0755, true);
-            }
-    
-            file_put_contents($fullPath, $pngData);
-    
-            $colisItem->update(['qr_code_path' => $filePath]);
-        }
-    
-        $pdf = PDF::loadView('admin.invoice.edit_etiquette', compact('colis'))
-          ->setPaper('a6', 'landscape'); 
-    
-        return $pdf->download('etiquette_colis_' . $colis->first()->reference_colis . '.pdf');
-    }
-    
-    
-    
+            try {
+                // Création du colis unique en BDD
+                // dd($colisItemData);
+                $colisModel = Colis::create($colisItemData);
+                // dd($colisModel);
+                $paiementDataPourCeColis = array_merge($basePaiementData, ['montant_paye' => $basePaiementData['montant'],'colis_id' => $colisModel->id, 'montant' => $colisItemData['prix_transit_colis']]); // Montant spécifique?
+                // dd($paiementDataPourCeColis);
+                $paiement = Paiement::create($paiementDataPourCeColis);
+                $qrData = [
+                    'ID' => $colisModel->id, // Utiliser l'ID réel
+                    'Ref' => $colisModel->reference_colis,
+                    'Etat' => $colisModel->etat,
+                    'Exp' => optional($expediteur)->nom,
+                    'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
+                    'Agence' => optional($destinataire)->agence,
+                ];
+                // dd($qrData);
+                $qrCodeContent = implode("\n", array_map(
+                    function ($k, $v) { return "$k: $v"; },
+                    array_keys($qrData),
+                    array_values($qrData)
+                ));
 
-    public function imprimerFacture($id)
+                $qrCode = new QrCode($qrCodeContent);
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+                $pngData = $result->getString();
+
+                // Chemin fichier (utiliser ID et référence pour unicité)
+                $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colisModel->reference_colis);
+                $filePath = 'qrcodes/colis_' . $safeRef . '_' . $colisModel->id . '.png';
+                $fullPath = public_path($filePath);
+                $directory = dirname($fullPath);
+
+                // dd($colisModel);
+
+                if (!File::exists($directory)) {
+                    File::makeDirectory($directory, 0755, true, true); // Ajout du dernier true
+                }
+                file_put_contents($fullPath, $pngData);
+
+                // Mettre à jour le chemin dans la BDD pour ce colis
+                $colisModel->update(['qr_code_path' => $filePath]);
+
+                // Ajouter le modèle sauvegardé et mis à jour à notre collection
+                $colisEnregistres[] = $colisModel->fresh(); // Recharger le modèle avec le qr_path
+            } catch (\Exception $e) {
+                \Log::error("Erreur création colis/paiement/QR pour index {$index}: " . $e->getMessage(), ['data' => $colisItemData]);
+                // dd($e->getMessage());
+                $erreursCreation[] = "Erreur lors de la création du colis avec référence {$referenceColis}.";
+                // Peut-être ajouter une logique de transaction/rollback ici
+            }
+        }
+
+        // S'il y a eu des erreurs, rediriger avec les messages
+        if (!empty($erreursCreation)) {
+            return redirect()->back()->with('error', implode('<br>', $erreursCreation));
+        }
+
+        // Si tout s'est bien passé mais aucun colis créé (ex: quantité 0 partout)
+        if (empty($colisEnregistres)) {
+             return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
+        }
+
+        // --- Préparation données pour la vue 'complete' ---
+         // Utiliser le premier colis enregistré pour les infos générales si pertinent
+        $premierColis = $colisEnregistres[0];
+        $firstInfo = [
+             'id' => $premierColis->id, // ID principal pour les boutons d'impression
+             'reference_colis' => $premierColis->reference_colis,
+             'nom_destinataire' => optional($premierColis->destinataire)->nom,
+             'prenom_destinataire' => optional($premierColis->destinataire)->prenom,
+             'tel_destinataire' => optional($premierColis->destinataire)->tel,
+             'nom_expediteur' => optional($premierColis->expediteur)->nom,
+             'prenom_expediteur' => optional($premierColis->expediteur)->prenom,
+             'tel_expediteur' => optional($premierColis->expediteur)->tel,
+             // Calculer le reste basé sur le paiement total et le prix total des colis créés
+             'montant_paye' => $montantPaiement, // Montant total payé pour la transaction
+         ];
+
+        // Calculer les totaux réels basés sur les colis effectivement créés
+        $totalQuantite = collect($colisEnregistres)->sum('quantite_colis');
+        $totalPrixTransit = collect($colisEnregistres)->sum('prix_transit_colis');
+        $firstInfo['reste'] = max(0, $totalPrixTransit - $montantPaiement); // Reste à payer
+
+        // Réinitialiser les sessions après traitement réussi
+        session()->forget(['step1', 'step2']);
+
+        // Retourner la vue avec les informations nécessaires
+        // Passer la collection des colis enregistrés si la vue doit lister tous les items créés
+        return view('admin.colis.add.complete', [
+            'colisEnregistres' => $colisEnregistres,
+            'first' => $firstInfo,
+            'totalQuantite' => $totalQuantite,
+            'totalPrixTransit' => $totalPrixTransit,
+            'premierColis' => $premierColis,
+        ]);
+
+    }
+
+
+    public function editFacture($id)
     {
+        // dd($id);
         
         $colis_principal = Colis::find($id);
 
@@ -1036,7 +681,8 @@ private function generateReferenceContenaire()
 
         // Récupération du premier colis
         $firstColis = $colisCollection->first();
-        
+        // dd($firstColis->reference_colis);
+        $reference_colis = $firstColis->id;
         $date_facture = now();
         $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
         $tel_expediteur = $firstColis->expediteur->tel;
@@ -1044,8 +690,16 @@ private function generateReferenceContenaire()
         $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
         $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-        
         // Calcul du prix total
+        $ids_colis = $colisCollection->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+        $totalMontant = $paiements->sum('montant');
+        // $totalMontantPaye = $paiements->sum('montant_paye');
+        $totalMontantPaye = $paiements->sum('montant_paye');
+
+        $restePaye = $totalMontant - $totalMontantPaye;
+       
         $prix_total = 0;
         foreach ($colisCollection as $colis) {
             if (!isset($colis->prix_transit_colis)) {
@@ -1055,9 +709,184 @@ private function generateReferenceContenaire()
         }
 
         // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-        $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
+        
         $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-        $reste = $prix_total - $montant_paye;
+        // dd($prix_total);
+        // $restePaye = $prix_total - $montant_paye;   
+
+        $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        // dd($nom_agent);
+
+        // Création de la facture
+        Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
+            'expediteur_id' => $firstColis->expediteur->id,
+            'destinataire_id' => $firstColis->destinataire->id,
+            'agent_id' => $id_agent,
+            'montant' => $prix_total ?? 0,
+            'numero_facture' => $numero_facture,
+            
+        ]);
+        // dd($u);
+        // Préparation des données des colis
+        $colisData = [];
+        foreach ($colisCollection as $colis) {
+            $colisData[] = [
+                'description'         => $colis->description_colis,
+                'quantite'            => $colis->quantite_colis,
+                'poids'               => $colis->poids_colis,
+                'type_colis'          => $colis->type_colis,
+                'prix_transit_colis'  => $colis->prix_transit_colis,
+            ];
+        }
+
+        // Passage des données à la vue
+        return view('admin.colis.add.edit_invoice', compact(
+            'date_facture', 
+            'reference_colis', 
+            'expediteur', 
+            'tel_expediteur', 
+            'destinataire', 
+            'prix_total', 
+            'montant_paye', 
+            'mode_payement', 
+            'colisData',
+            'numero_facture',
+            'tel_destinataire',
+            'totalMontant',
+            'totalMontantPaye',
+            'restePaye'
+
+        ));
+    }
+
+    public function editEtiquette($id)
+    {
+        // 1. Récupérer le colis spécifique par ID avec ses relations
+        try {
+            $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Gérer le cas où l'ID n'existe pas
+            abort(404, 'Colis non trouvé.');
+        }
+
+        // 2. Préparer la collection d'étiquettes (clones)
+        $etiquettes = new Collection(); // Utiliser new Collection()
+        $quantite = $colis->quantite_colis ?? 1; // Utiliser 1 si null ou 0
+        $quantite = max(1, (int)$quantite); // S'assurer que c'est au moins 1
+
+        for ($i = 0; $i < $quantite; $i++) {
+            $etiquettes->push(clone $colis); // Cloner pour chaque étiquette
+        }
+
+        // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
+
+        // 4. Charger la vue PDF avec la collection d'étiquettes et la quantité totale
+        $pdf = PDF::loadView('admin.colis.add.edit_etiquette', [
+                'colis' => $etiquettes, // La collection de clones
+                'totalEtiquettes' => $quantite // Le nombre total d'étiquettes à générer
+            ])
+            ->setPaper('a6', 'landscape')
+            ->setOption('isRemoteEnabled', true); // Important pour les images externes/locales via public_path
+
+        // 5. Retourner le PDF pour téléchargement
+        $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis ?? $colis->id);
+        $fileName = 'etiquettes_' . $safeRef . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    public function inprimerEtiquette($id) 
+    {
+        try {
+            $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Gérer le cas où l'ID n'existe pas
+            abort(404, 'Colis non trouvé.');
+        }
+
+        // 2. Préparer la collection d'étiquettes (clones)
+        $etiquettes = new Collection(); // Utiliser new Collection()
+        $quantite = $colis->quantite_colis ?? 1; // Utiliser 1 si null ou 0
+        $quantite = max(1, (int)$quantite); // S'assurer que c'est au moins 1
+
+        for ($i = 0; $i < $quantite; $i++) {
+            $etiquettes->push(clone $colis); // Cloner pour chaque étiquette
+        }
+
+        // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
+
+        // 4. Charger la vue PDF avec la collection d'étiquettes et la quantité totale
+        $pdf = PDF::loadView('admin.invoice.edit_etiquette', [
+                'colis' => $etiquettes, // La collection de clones
+                'totalEtiquettes' => $quantite // Le nombre total d'étiquettes à générer
+            ])
+            ->setPaper('a6', 'landscape')
+            ->setOption('isRemoteEnabled', true); // Important pour les images externes/locales via public_path
+
+        // 5. Retourner le PDF pour téléchargement
+        $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis ?? $colis->id);
+        $fileName = 'etiquettes_' . $safeRef . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    public function imprimerFacture($id)
+    {
+        // dd($id);
+        
+        $colis_principal = Colis::find($id);
+
+            if (!$colis_principal) {
+                return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
+            }
+
+            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+            if ($colisCollection->isEmpty()) {
+                return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+            }   
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+        }
+
+        // Récupération du premier colis
+        $firstColis = $colisCollection->first();
+        // dd($firstColis->reference_colis);
+        $reference_colis = $firstColis->id;
+        $date_facture = now();
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $tel_expediteur = $firstColis->expediteur->tel;
+        $tel_destinataire = $firstColis->destinataire->tel;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $reference_colis = $firstColis->reference_colis;
+        
+        // Calcul du prix total
+        $ids_colis = $colisCollection->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+        $totalMontant = $paiements->sum('montant');
+        $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
+        $restePaye = $totalMontant - $totalMontantPaye;
+       
+        $prix_total = 0;
+        foreach ($colisCollection as $colis) {
+            if (!isset($colis->prix_transit_colis)) {
+                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+            }
+            $prix_total += $colis->prix_transit_colis;
+        }
+
+        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+        
+        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+        // dd($prix_total);
+        // $reste = $prix_total - $montant_paye;   
 
         $id_agent = Auth::user()->id;
         $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
@@ -1096,12 +925,120 @@ private function generateReferenceContenaire()
             'destinataire', 
             'prix_total', 
             'montant_paye', 
-            'reste', 
             'mode_payement', 
             'colisData',
             'numero_facture',
-            'tel_destinataire'
+            'tel_destinataire',
+            'totalMontant',
+            'totalMontantPaye',
+            'restePaye'
+
         ));
+    }
+
+
+    public function editInvoice($id)
+    {
+        
+        // dd($id);
+        $colis_principal = Colis::find($id);
+        
+        $colis_info = Colis::with(['expediteur', 'destinataire'])
+                                    ->select(
+                                        'colis.reference_colis',
+                                        'expediteurs.nom as expediteur_nom',
+                                        'expediteurs.prenom as expediteur_prenom',
+                                        'expediteurs.tel as expediteur_tel',
+                                        'destinataires.nom as destinataire_nom',
+                                        'destinataires.prenom as destinataire_prenom',
+                                        'destinataires.tel as destinataire_tel'
+                                    )
+                                    ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                                    ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                                    ->find($id);
+                                    // dd($colis_info->reference_colis);
+
+
+
+            $colisEnregistres = Colis::where('reference_colis', $colis_info->reference_colis)->get();
+            // dd($colisEnregistres);
+        //     } catch (\Exception $e) {
+        //         \Log::error("Erreur création colis/paiement/QR pour index {$index}: " . $e->getMessage(), ['data' => $colisItemData]);
+        //         // dd($e->getMessage());
+        //         $erreursCreation[] = "Erreur lors de la création du colis avec référence {$referenceColis}.";
+        //         // Peut-être ajouter une logique de transaction/rollback ici
+        //     }
+        // }
+
+        // S'il y a eu des erreurs, rediriger avec les messages
+        if (!empty($erreursCreation)) {
+            return redirect()->back()->with('error', implode('<br>', $erreursCreation));
+        }
+
+        // Si tout s'est bien passé mais aucun colis créé (ex: quantité 0 partout)
+        if (empty($colisEnregistres)) {
+                return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
+        }
+
+        // --- Préparation données pour la vue 'complete' ---
+            // Utiliser le premier colis enregistré pour les infos générales si pertinent
+        $premierColis = $colisEnregistres[0];
+        $firstInfo = [
+                'id' => $premierColis->id, // ID principal pour les boutons d'impression
+                'reference_colis' => $premierColis->reference_colis,
+                'nom_destinataire' => optional($premierColis->destinataire)->nom,
+                'prenom_destinataire' => optional($premierColis->destinataire)->prenom,
+                'tel_destinataire' => optional($premierColis->destinataire)->tel,
+                'nom_expediteur' => optional($premierColis->expediteur)->nom,
+                'prenom_expediteur' => optional($premierColis->expediteur)->prenom,
+                'tel_expediteur' => optional($premierColis->expediteur)->tel,
+            ];
+
+
+
+        // Calculer les totaux réels basés sur les colis effectivement créés
+        $totalQuantite = collect($colisEnregistres)->sum('quantite_colis');
+        $totalPrixTransit = collect($colisEnregistres)->sum('prix_transit_colis');
+        // $firstInfo['reste'] = max(0, $totalPrixTransit - $montantPaiement); // Reste à payer
+
+        // $firstColis = $colisEnregistres->first();
+        // $reference_colis = $firstColis->reference_colis;
+        // $totalMontantPaye = $paiements->sum('montant_paye');
+        // $restePaye = $totalMontant - $totalMontantPaye;
+        // $montant_paye => $montantPaiement,
+
+        $ids_colis = $colisEnregistres->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+        $totalMontant = $paiements->sum('montant');
+        $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
+        // dd($totalMontantPaye);
+        $restePaye = $totalMontant - $totalMontantPaye;
+            // dd($restePaye);
+            // dd( $totalQuantite, $totalPrixTransit);
+
+        if (!$colis_principal) {
+            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
+        }
+
+        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+
+        if ($colis->isEmpty()) {
+            return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }
+
+        return view('admin.invoice.edit', [
+            'colis'             => $colis,
+            'colisEnregistres'  => $colisEnregistres,
+            'first'             => $firstInfo,
+            'totalQuantite'     => $totalQuantite,
+            'totalPrixTransit'  => $totalPrixTransit,
+            'premierColis'      => $premierColis,
+            'restePaye'         => $restePaye,
+            'mode_payement'     => $mode_payement,
+            'totalMontantPaye'    => $totalMontantPaye,
+        ]);
+        
     }
     
 
@@ -1304,12 +1241,88 @@ private function generateReferenceContenaire()
     }
 
 
-    public function get_colis_valide(Request $request)
+//     public function get_colis_valide(Request $request)
+// {
+//     if ($request->ajax()) {
+//         $colis = Colis::select(
+//             'colis.id', // Ajout de l'ID du colis pour être utilisé plus tard
+//             'colis.reference_colis',
+//             'expediteurs.nom as expediteur_nom',
+//             'expediteurs.prenom as expediteur_prenom',
+//             'expediteurs.tel as expediteur_tel',
+//             'expediteurs.agence as expediteur_agence',
+//             'destinataires.nom as destinataire_nom',
+//             'destinataires.prenom as destinataire_prenom',
+//             'destinataires.agence as destinataire_agence',
+//             'destinataires.tel as destinataire_tel',
+//             'colis.etat as etat',
+//             'colis.created_at as created_at'
+//         )
+//         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+//         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+//         ->where('etat', 'Validé')
+//         ->whereNull('colis.archived_at')
+//         ->get();
+        
+//         $colisGrouped = $colis->groupBy('reference_colis');
+//         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+//             return [
+//                 'reference_colis' => $reference,
+//                 'nombre_de_colis' => $group->count(),
+//                 'expediteur_nom' => $group->first()->expediteur_nom,
+//                 'expediteur_prenom' => $group->first()->expediteur_prenom,
+//                 'expediteur_tel' => $group->first()->expediteur_tel,
+//                 'expediteur_agence' => $group->first()->expediteur_agence,
+//                 'destinataire_nom' => $group->first()->destinataire_nom,
+//                 'destinataire_prenom' => $group->first()->destinataire_prenom,
+//                 'destinataire_tel' => $group->first()->destinataire_tel,
+//                 'destinataire_agence' => $group->first()->destinataire_agence,
+//                 'etat' => $group->first()->etat, // conserve l'état d'origine ici
+//                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
+//                 'colis' => $group
+//             ];
+//         })->values();
+
+//         return DataTables::of($colisWithCount)
+//             ->addColumn('etat', function ($row) {
+//                 return $row['etat'] === 'Devis' ? 'Dévis validé' : 'Colis validé';
+//             })
+//             ->addColumn('action', function ($row) {
+//                 $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
+//                 $editUrl = route('colis.valide.edit', ['id' => $firstColis->id]);
+//                 // $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['id' => $firstColis->id]);
+//                 $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
+//                 $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColis->id]);
+
+//                 return '
+//                 <div class="d-flex align-items-center gap-2">
+//                     <div class="btn-group">
+//                         <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+//                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
+//                         </a>
+//                     </div> 
+//                     <button class="btn btn-sm btn-danger delete-btn" data-reference="' . $row['reference_colis'] . '" data-url="' . $deleteUrl . '">
+//                         <i class="fas fa-trash"></i>
+//                     </button>
+//                      <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+//                         <i class="fas fa-file-invoice"></i>
+//                     </a>
+//                 </div>
+//                 ';
+//             })
+//             ->rawColumns(['action'])
+//             ->make(true);
+//     }
+// }
+
+
+public function get_colis_valide(Request $request)
 {
     if ($request->ajax()) {
         $colis = Colis::select(
-            'colis.id', // Ajout de l'ID du colis pour être utilisé plus tard
+            'colis.id',
             'colis.reference_colis',
+            'colis.quantite_colis', // On récupère la quantité de chaque ligne
             'expediteurs.nom as expediteur_nom',
             'expediteurs.prenom as expediteur_prenom',
             'expediteurs.tel as expediteur_tel',
@@ -1326,12 +1339,18 @@ private function generateReferenceContenaire()
         ->where('etat', 'Validé')
         ->whereNull('colis.archived_at')
         ->get();
-        
+
+        // Grouper les colis par référence
         $colisGrouped = $colis->groupBy('reference_colis');
+
+        // Recalculer les quantités totales par référence
         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+            $quantiteTotale = $group->sum('quantite_colis'); // Additionne toutes les quantités
+
             return [
                 'reference_colis' => $reference,
-                'nombre_de_colis' => $group->count(),
+                'nombre_de_colis' => $quantiteTotale, // Total réel de colis physiques
+                'quantite_par_ligne' => $group->count(), // Nombre d'enregistrements pour info
                 'expediteur_nom' => $group->first()->expediteur_nom,
                 'expediteur_prenom' => $group->first()->expediteur_prenom,
                 'expediteur_tel' => $group->first()->expediteur_tel,
@@ -1340,7 +1359,7 @@ private function generateReferenceContenaire()
                 'destinataire_prenom' => $group->first()->destinataire_prenom,
                 'destinataire_tel' => $group->first()->destinataire_tel,
                 'destinataire_agence' => $group->first()->destinataire_agence,
-                'etat' => $group->first()->etat, // conserve l'état d'origine ici
+                'etat' => $group->first()->etat,
                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
                 'colis' => $group
             ];
@@ -1350,24 +1369,26 @@ private function generateReferenceContenaire()
             ->addColumn('etat', function ($row) {
                 return $row['etat'] === 'Devis' ? 'Dévis validé' : 'Colis validé';
             })
+            ->addColumn('nombre_de_colis', function ($row) {
+                return $row['nombre_de_colis']; // Affiche le total des colis physiques
+            })
             ->addColumn('action', function ($row) {
-                $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
+                $firstColis = $row['colis']->first();
                 $editUrl = route('colis.valide.edit', ['id' => $firstColis->id]);
-                // $deleteUrl = route('aftlb_colis.destroy.colis.valide', ['id' => $firstColis->id]);
                 $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
                 $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColis->id]);
 
                 return '
                 <div class="d-flex align-items-center gap-2">
                     <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier">
                             <i class="fas fa-credit-card" style="font-size: 15px;"></i>
                         </a>
                     </div> 
                     <button class="btn btn-sm btn-danger delete-btn" data-reference="' . $row['reference_colis'] . '" data-url="' . $deleteUrl . '">
                         <i class="fas fa-trash"></i>
                     </button>
-                     <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
+                    <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture">
                         <i class="fas fa-file-invoice"></i>
                     </a>
                 </div>
@@ -1402,114 +1423,6 @@ public function destroy_colis_valide($reference)
         return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
     }
 }
-
-
-
-    // public function get_colis_valide(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.id', // Ajout de l'ID du colis pour être utilisé plus tard
-    //             'colis.reference_colis',
-    //             'expediteurs.nom as expediteur_nom',
-    //             'expediteurs.prenom as expediteur_prenom',
-    //             'expediteurs.tel as expediteur_tel',
-    //             'expediteurs.agence as expediteur_agence',
-    //             'destinataires.nom as destinataire_nom',
-    //             'destinataires.prenom as destinataire_prenom',
-    //             'destinataires.agence as destinataire_agence',
-    //             'destinataires.tel as destinataire_tel',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'Validé')
-    //         ->get();
-            
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-
-
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'expediteur_nom' => $group->first()->expediteur_nom,
-    //                 'expediteur_prenom' => $group->first()->expediteur_prenom,
-    //                 'expediteur_tel' => $group->first()->expediteur_tel,
-    //                 'expediteur_agence' => $group->first()->expediteur_agence,
-    //                 'destinataire_nom' => $group->first()->destinataire_nom,
-    //                 'destinataire_prenom' => $group->first()->destinataire_prenom,
-    //                 'destinataire_tel' => $group->first()->destinataire_tel,
-    //                 'destinataire_agence' => $group->first()->destinataire_agence,
-    //                 'etat' => $group->first()->etat, // conserve l'état d'origine ici
-    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
-    //                 'colis' => $group
-    //             ];
-    //         })->values();
-
-    //         return DataTables::of($colisWithCount)
-    //             ->addColumn('etat', function ($row) {
-    //                 return $row['etat'] === 'Devis' ? 'Dévis validé' : 'Colis validé';
-    //             })
-    //             ->addColumn('action', function ($row) {
-    //                 $firstColis = $row['colis']->first(); // Récupère le premier colis du groupe
-    //                 $editUrl = route('colis.valide.edit', ['id' => $firstColis->id]);
-    //                 $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColis->id]);
-    //                 $deleteUrl = route('colis.destroy.colis.valide', ['id' => $firstColis->id]);
-
-    //                 return '
-    //                    <div class="d-flex align-items-center gap-2">
-    //                         <div class="btn-group">
-    //                             <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modifier" data-bs-target="#modifModal">
-    //                                 <i class="fas fa-credit-card"></i>
-    //                             </a>
-    //                         </div> 
-    //                         <button class="btn btn-sm btn-danger delete-btn" data-id="' . $firstColis->id . '" data-url="' . $deleteUrl . '">
-    //                             <i class="fas fa-trash"></i>
-    //                         </button>
-    //                         <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture" data-bs-target="#modifModal">
-    //                             <i class="fas fa-file-invoice"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action'])
-    //             ->make(true);
-    //     }
-    // }
-
-
-    public function editInvoice($id)
-    {
-        
-        $colis_principal = Colis::find($id);
-
-        $colis_info = Colis::with(['expediteur', 'destinataire'])
-                                ->select(
-                                    'colis.reference_colis',
-                                    'expediteurs.nom as expediteur_nom',
-                                    'expediteurs.prenom as expediteur_prenom',
-                                    'expediteurs.tel as expediteur_tel',
-                                    'destinataires.nom as destinataire_nom',
-                                    'destinataires.prenom as destinataire_prenom',
-                                    'destinataires.tel as destinataire_tel'
-                                )
-                                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                                ->find($id);
-        // dd($colis_principal->reference_colis);
-        if (!$colis_principal) {
-            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-        }
-
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-        if ($colis->isEmpty()) {
-            return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-        }
-
-        return view('admin.invoice.edit', compact('colis','colis_info'));
-    }
 
 
 

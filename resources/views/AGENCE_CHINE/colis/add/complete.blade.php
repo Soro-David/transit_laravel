@@ -1,172 +1,145 @@
+{{-- Dans AGNECE_CHINE/colis/add/complete.blade.php --}}
 @extends('AGENCE_CHINE.layouts.agentprint')
-
-@section('content-header')
-{{-- Vous pouvez garder ou enlever signature_pad si non utilisé sur CETTE page --}}
-{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.0.0/signature_pad.min.js"></script> --}}
-@endsection
 
 @section('content')
 <section class="p-4 mx-auto">
     <div class="form-container text-center">
-        <div class="row d-flex justify-content-between">
-            <!-- Informations Colis -->
-            <div class="col-md-5">
-                <div class="card border-0 rounded shadow-sm mb-3">
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations des colis</h4><br>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                           <h3>REF COLIS: {{ $first['reference_colis'] ?? 'N/A' }}</h3>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prix Total :</label>
-                            <span class="form-control border-0 bg-light w-50"> {{ $totalPrixTransit ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Payé :</label>
-                            <span class="form-control border-0 bg-light w-50"> {{ $first['montant_paye'] ?? $totalPrixTransit ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Reste :</label>
-                            <span class="form-control border-0 bg-light w-50"> {{ $first['reste'] ?? '0' }} F</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-             <div class="col-md-5">
-                <div class="card border-0 rounded shadow-sm mb-3"> {{-- Ajout mb-3 --}}
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations de l'expéditeur</h4><br>
-                    </div>
+        {{-- Affichage résumé (basé sur $first et totaux) --}}
+        <div class="row d-flex justify-content-around mb-4">
+            {{-- Carte Récapitulatif Colis (utilisant $totalPrixTransit, $first['montant_paye'], $first['reste']) --}}
+            <div class="col-md-5 col-lg-4">
+                 <div class="card border-0 rounded shadow-sm">
+                     <div class="card-header bg-light border-0">
+                         <h4 class="card-title text-center mb-0 fw-bold">Récapitulatif Global</h4>
+                     </div>
                      <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['nom_expediteur'] ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['prenom_expediteur'] ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Téléphone :</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                         <div class="mb-3 d-flex align-items-center">
+                            <label class="form-label fw-bold w-50">Réf. Principale:</label> {{-- Référence du premier colis comme réf globale --}}
+                            <span class="form-control-plaintext w-50">{{ $first['reference_colis'] ?? 'N/A' }}</span>
+                         </div>
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-50">Prix Total :</label>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA</span>
+                         </div>
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-50">Montant Payé :</label>
+                             <span class="form-control-plaintext w-50"> {{ number_format($first['montant_paye'] ?? 0, 0, ',', ' ') }} F CFA</span>
+                         </div>
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-50">Reste à Payer:</label>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($first['reste'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($first['reste'] ?? 0, 0, ',', ' ') }} F CFA</span>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             {{-- Carte Expediteur (utilise $first) --}}
+             <div class="col-md-5 col-lg-4">
+                 <div class="card border-0 rounded shadow-sm">
+                     <div class="card-header bg-light border-0">
+                         <h4 class="card-title text-center mb-0 fw-bold">Expéditeur</h4>
+                     </div>
+                     <div class="card-body p-4">
+                         @if(isset($first))
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-40">Nom :</label>
+                             <span class="form-control-plaintext w-60">{{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }}</span>
+                         </div>
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-40">Téléphone :</label>
+                             <span class="form-control-plaintext w-60">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
+                         </div>
+                         @else
+                          <p class="text-muted">Aucune information d'expéditeur.</p>
+                         @endif
+                     </div>
+                 </div>
+             </div>
+            {{-- Carte Destinataire (utilise $first) --}}
+             <div class="col-md-5 col-lg-4">
+                  <div class="card border-0 rounded shadow-sm">
+                     <div class="card-header bg-light border-0">
+                         <h4 class="card-title text-center mb-0 fw-bold">Destinataire</h4>
+                     </div>
+                    <div class="card-body p-4">
+                         @if(isset($first))
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-40">Nom :</label>
+                             <span class="form-control-plaintext w-60">{{ $first['nom_destinataire'] ?? 'N/A' }} {{ $first['prenom_destinataire'] ?? '' }}</span>
+                         </div>
+                         <div class="mb-3 d-flex align-items-center">
+                             <label class="form-label fw-bold w-40">Téléphone:</label>
+                             <span class="form-control-plaintext w-60">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
+                         </div>
+                          @else
+                           <p class="text-muted">Aucune information de destinataire.</p>
+                          @endif
+                     </div>
+                 </div>
+             </div>
+        </div>
 
-            <div class="col-md-5">
-                 <div class="card border-0 rounded shadow-sm mb-3"> {{-- Ajout mb-3 --}}
-                    <div>
-                        <h4 class="card-title text-center mb-3 fw-bold">Informations du destinataire</h4><br>
-                    </div>
-                   <div class="card-body p-4">
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Nom :</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['nom_destinataire'] ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Prénom :</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['prenom_destinataire'] ?? 'N/A' }}</span>
-                        </div>
-                        <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Téléphone:</label>
-                            <span class="form-control border-0 bg-light w-50">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> 
+        <hr> {{-- Séparateur visuel --}}
 
-        @if(isset($colis) && !empty($colis) && isset($colis[0]))
-            <input type="hidden" id="id" value="{{ $colis[0]->id }}">
+        {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
+        <div>
+            {{-- @dd($firstColis->first()->id) --}}
+            <a href="{{ route('chine_colis.edit.facture', ['id' => $premierColis->id ?? 0]) }}" target="_blank" class="btn btn-sm btn-info">
+                <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
+            </a>            
+        </div>
+        {{-- <h4 class="mb-3">Colis Enregistrés dans cette Transaction</h4> --}}
+        @if(!empty($colisEnregistres))
+            <div class="list-group">
+                @foreach($colisEnregistres as $index => $colis)
+                    <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm rounded border-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">
+                                <span class="badge bg-secondary me-2">{{ $index + 1 }}</span>
+                                Colis Réf: {{ $colis->reference_colis }}
+                            </h5>
+                            <small>ID: {{ $colis->id }}</small>
+                        </div>
+                        <p class="mb-1">
+                            Type: {{ $colis->type_colis ?? 'N/A' }} |
+                            Qté: <span class="fw-bold">{{ $colis->quantite_colis }}</span> |
+                            Prix: {{ number_format($colis->prix_transit_colis ?? 0, 0, ',', ' ') }} F CFA |
+                        </p>
+                        <div class="mt-2 text-end"> {{-- Boutons alignés à droite --}}
+                            <a href="{{ route('chine_colis.edit.etiquette', ['id' => $colis->id]) }}" target="_blank" class="btn btn-sm btn-success me-2">
+                                <i class="fas fa-tags me-1"></i> Imprimer {{ $colis->quantite_colis }} Étiquette(s)
+                            </a>
+                        
+                            {{-- Ajouter d'autres boutons si nécessaire (modifier, etc.) --}}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         @else
-            <p class="text-danger mt-3">Erreur : Impossible de récupérer l'ID du colis pour l'impression.</p>
+            <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré lors de cette transaction.</p>
         @endif
 
+        {{-- Boutons d'action généraux --}}
         <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
-            <a href="javascript:history.back()" class="btn btn-secondary d-flex align-items-center">
-                <i class="fas fa-arrow-left me-2" style="font-size: 18px;"></i> Retour
+            <a href="{{ url()->previous() }}" class="btn btn-secondary d-flex align-items-center">
+                <i class="fas fa-arrow-left me-2"></i> Retour
             </a>
-            @if(isset($colis) && !empty($colis) && isset($colis[0]))
-                <a href="javascript:void(0)" id="imprimer-etiquette" class="btn btn-success">
-                    Imprimer l'étiquette
-                </a>
-                <a href="javascript:void(0)" id="imprimer-facture" class="btn btn-success" style="background-color: #90EE90; border-color: #90EE90; color: #fff;">
-                    Imprimer la facture
-                </a>
-            @endif
         </div>
     </div>
 </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const btnEtiquette = document.getElementById('imprimer-etiquette');
-        const btnFacture = document.getElementById('imprimer-facture');
-        const colisIdInput = document.getElementById('id'); 
-
-        if (btnEtiquette && colisIdInput) {
-            btnEtiquette.addEventListener('click', function() {
-                const colisId = colisIdInput.value; 
-                if (colisId) {
-                    console.log('ID du colis pour étiquette :', colisId);
-                    window.location.href = `{{ route('chine_colis.edit.etiquette', '') }}/${colisId}`;
-                } else {
-                    console.error("ID du colis non trouvé pour l'étiquette.");
-                    alert("Erreur : L'ID du colis est manquant.");
-                }
-            });
-        }
-
-        if (btnFacture && colisIdInput) {
-            btnFacture.addEventListener('click', function() {
-                const colisId = colisIdInput.value; 
-                 if (colisId) {
-                    console.log('ID du colis pour facture :', colisId);
-                    window.location.href = `{{ route('chine_colis.edit.facture', '') }}/${colisId}`;
-                } else {
-                    console.error("ID du colis non trouvé pour la facture.");
-                    alert("Erreur : L'ID du colis est manquant.");
-                }
-            });
-        }
-    });
-</script>
+{{-- Pas besoin de script spécifique ici si les liens ont target="_blank" --}}
 
 <style>
-    .form-container {
-        max-width: 95%; 
-        margin: auto;
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    /* ... (garder les styles existants) ... */
+    .list-group-item {
+        background-color: #f8f9fa; /* Fond léger pour les items */
+        border: 1px solid #dee2e6; /* Bordure subtile */
     }
-    body {
-        background-color: #f7f7f7;
+    .list-group-item h5 {
+        color: #0d6efd; /* Couleur titre */
     }
-    .card {
-        border-radius: 10px;
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1.5rem; 
-    }
-    .form-control {
-        border: none; 
-        background-color: #f8f9fa; 
-        padding: .375rem .75rem; 
-        border-radius: .25rem; 
-    }
-    .form-label {
-        margin-bottom: 0; 
-    }
-    .w-50 {
-        flex-basis: 50%;
-    }
-    .d-flex.align-items-center .form-label {
-        padding-right: 10px; 
+    .btn-sm i {
+         font-size: 0.8rem; /* Icones plus petites pour boutons sm */
     }
 </style>
 @endsection

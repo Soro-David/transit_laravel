@@ -66,15 +66,15 @@
                     <tbody>
                         <tr>
                             <td class="td_orange td_total_2">Prix Total :</td>
-                            <td>{{$prix_total}}</td>
+                            <td>{{$totalMontant}}</td>  
                         </tr>
                         <tr>
                             <td class="td_orange td_total_2 ">Montant Payé :</td>
-                            <td>{{$montant_paye}}</td>
+                            <td>{{$totalMontantPaye}}</td>
                         </tr>
                         <tr>
                             <td class="td_orange td_total_2 ">Montant Restant :</td>
-                            <td>{{$reste}}</td>
+                            <td>{{$restePaye}}</td>
                         </tr>
                         <tr>
                             <td  class="td_orange td_total_2 ">Mode de paiement :</td>

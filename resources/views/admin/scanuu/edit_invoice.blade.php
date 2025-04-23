@@ -1,4 +1,4 @@
-@extends('AGENCE_CHINE.layouts.agent')
+@extends('admin.layouts.admin')
 
 @section('content-header')
 @endsection
@@ -21,7 +21,7 @@
                 </td>
                 <td class="border-0"></td>
                 <td class="td_droite border-0 text-start">
-                    <h4>Facture Pour : {{$expediteur}}</h4>
+                    <h4>{{$expediteur}}</h4>
                     <p><strong></strong></p>
                     <p>Téléphone :{{$tel_expediteur}}</p>
                     {{-- <h4 class="mt-4">Détails de la Facture</h4> --}}
@@ -92,8 +92,8 @@
             </tr>
             <tr>
                 <td>Ligne 2, Colonne 1</td>
-                <td>{{$expediteur}}</td>
-                <td>{{$destinataire}}</td>
+                <td>{{$expediteur}} <br> {{$tel_expediteur}}</td>
+                <td>{{$destinataire}} <br> {{$tel_destinataire}}</td>
             </tr>
         </table>
     

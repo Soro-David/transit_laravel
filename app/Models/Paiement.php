@@ -20,7 +20,8 @@ class Paiement extends Model
         'date_validation',
         'colis_id',
         'expediteur_id',
-        'agent_id'
+        'agent_id',
+        'montant_paye'
     ];
 
     protected $casts = [
