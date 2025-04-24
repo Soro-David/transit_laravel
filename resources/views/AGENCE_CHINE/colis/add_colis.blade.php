@@ -53,7 +53,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="reference_colis" class="form-label">Référence</label>
-                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis }}" class="form-control" readonly>
+                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis['reference_colis'] }}" class="form-control" readonly>
                         </div>
                     </div>
                     <div class="text-end mt-4 d-flex justify-content-end gap-2">

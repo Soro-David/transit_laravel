@@ -157,7 +157,7 @@ class AftlbColisController extends Controller
         // Récupérer la première lettre du nom et du prénom
         $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
         $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-    // dd($firstLetterNom, $firstLetterPrenom);
+        // dd($firstLetterNom, $firstLetterPrenom);
         // Récupérer la première lettre du mois actuel
         $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
     
@@ -186,7 +186,7 @@ class AftlbColisController extends Controller
      private function generateReferenceContenaire()
     {
         $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
+        $letterIndex = 0; 
         $increment = 1; // Commencer par 1
 
         do {
@@ -236,6 +236,53 @@ class AftlbColisController extends Controller
     
         return $baseReference;// Retourner la référence finale
     }
+
+    private function generateReferenceColisComplet($colisId)
+    {
+        $user = Auth::user();
+    
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
+    
+        // Initiales
+        $initiales = strtoupper(substr($user->last_name, 0, 1) . substr($user->first_name, 0, 1));
+    
+        // ID du colis formaté sur 3 chiffres
+        $idFormatted = str_pad($colisId, 3, '0', STR_PAD_LEFT);
+    
+        // Génération de la partie contenaire : A1 à Z5
+        $alphabet = range('A', 'Z');
+        $letterIndex = 0;
+        $increment = 1;
+    
+        do {
+            $contenaireRef = $alphabet[$letterIndex] . $increment;
+            $exists = DB::table('colis')->where('reference_contenaire', $contenaireRef)->exists();
+    
+            if ($exists) {
+                $increment++;
+                if ($increment > 5) {
+                    $increment = 1;
+                    $letterIndex++;
+                }
+            }
+        } while ($exists && $letterIndex < count($alphabet));
+    
+        if ($letterIndex >= count($alphabet)) {
+            throw new \Exception("Plus de références de contenaires disponibles.");
+        }
+    
+        // Référence finale
+        $reference = "{$initiales}-{$idFormatted}-{$contenaireRef}";
+    
+        return [
+            'reference_colis' => $reference,
+            'reference_contenaire' => $contenaireRef
+        ];
+    }
+    
+
     /**
      * Étape de paiement.
      */
@@ -248,24 +295,51 @@ class AftlbColisController extends Controller
      * Étape 1 : Formulaire initial.
      */
 
-     public function add_colis(Request $request)
+//      public function add_colis(Request $request)
+// {
+//     // Récupérer les pays sans doublons
+//     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
+//                      ->distinct()
+//                      ->pluck('pays_agence');
+
+
+//     // Récupérer les agences avec leur pays associé
+//     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+//     // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+//     $agencesExpedition = Agence::where('nom_agence', 'AFT Agence Louis Bleriot')->get();
+//     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+
+
+//     $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+//     return view('AFT_LOUIS_BLERIOT.colis.add_colis', compact('agencesExpedition','agencesDestination', 'referenceColis', 'paysUniques'));
+// }
+
+public function add_colis(Request $request)
 {
-    // Récupérer les pays sans doublons
     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
-                     ->distinct()
-                     ->pluck('pays_agence');
+                         ->distinct()
+                         ->pluck('pays_agence');
 
-
-    // Récupérer les agences avec leur pays associé
     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-    // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
     $agencesExpedition = Agence::where('nom_agence', 'AFT Agence Louis Bleriot')->get();
     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
 
+    // Étape 1 : Créer un colis vide (ou avec des valeurs par défaut)
+    $colis = new Colis(); // modèle Eloquent
+    $colis->save(); // on sauve pour avoir l'ID
 
-    $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-    return view('AFT_LOUIS_BLERIOT.colis.add_colis', compact('agencesExpedition','agencesDestination', 'referenceColis', 'paysUniques'));
+    // Étape 2 : Générer la référence à partir de l'ID
+    $referenceColis = $this->generateReferenceColisComplet($colis->id);
+
+    // Étape 3 : Mettre à jour les références
+    $colis->reference_colis = $referenceColis['reference_colis'];
+    $colis->reference_contenaire = $referenceColis['reference_contenaire'];
+    $colis->save();
+
+    return view('AFT_LOUIS_BLERIOT.colis.add_colis', compact('agencesExpedition','agencesDestination', 'paysUniques', 'colis','referenceColis'));
 }
+
+
 
 
 public function store_colis(Request $request)

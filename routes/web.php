@@ -199,6 +199,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-devis-colis',[ColisController::class, 'get_devis_colis'])->name('get.devis.colis');
         Route::get('/get-colis-valide',[ColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::get('/devis/{id}/edit', [ColisController::class, 'edit_qrcode'])->name('qrcode.edit');
+        Route::get('/colis/valide/payer', [ColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
         Route::get('/get-contenaire-colis',[ColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/get-vol-colis',[ColisController::class, 'get_colis_vol'])->name('get.colis.vol');

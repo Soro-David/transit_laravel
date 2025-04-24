@@ -194,21 +194,7 @@
                         data: 'etat'
                     },
                     {
-                        data: 'created_at',
-                        render: function (data) {
-                            if (!data) {
-                                return ''; // Retourne une chaîne vide si la date est null
-                            }
-                            var date = new Date(data);
-                            if (isNaN(date.getTime())) {
-                                return ''; // Vérifie si la date est invalide
-                            }
-                            var day = ('0' + date.getDate()).slice(-2);
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                            var year = date.getFullYear();
-                            return day + '/' + month + '/' + year;
-                        }
-                    }
+                        data: 'created_at'},
 
                     // { data: 'action', orderable: false, searchable: false }
                 ],

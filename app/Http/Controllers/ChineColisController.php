@@ -143,11 +143,9 @@ class ChineColisController extends Controller
     }
 
 
-         /**
-     * Génère une référence de colis unique
-     *
-     * @return string
-     */
+
+
+
     private function generateReferenceColis()
     {
         // Récupérer l'utilisateur connecté
@@ -161,7 +159,7 @@ class ChineColisController extends Controller
         // Récupérer la première lettre du nom et du prénom
         $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
         $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-    // dd($firstLetterNom, $firstLetterPrenom);
+        // dd($firstLetterNom, $firstLetterPrenom);
         // Récupérer la première lettre du mois actuel
         $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
     
@@ -186,10 +184,11 @@ class ChineColisController extends Controller
      *
      * @return string
      */
- private function generateReferenceContenaire()
+
+     private function generateReferenceContenaire()
     {
         $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
+        $letterIndex = 0; 
         $increment = 1; // Commencer par 1
 
         do {
@@ -239,6 +238,147 @@ class ChineColisController extends Controller
     
         return $baseReference;// Retourner la référence finale
     }
+
+    private function generateReferenceColisComplet($colisId)
+    {
+        $user = Auth::user();
+    
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
+    
+        // Initiales
+        $initiales = strtoupper(substr($user->last_name, 0, 1) . substr($user->first_name, 0, 1));
+    
+        // ID du colis formaté sur 3 chiffres
+        $idFormatted = str_pad($colisId, 3, '0', STR_PAD_LEFT);
+    
+        // Génération de la partie contenaire : A1 à Z5
+        $alphabet = range('A', 'Z');
+        $letterIndex = 0;
+        $increment = 1;
+    
+        do {
+            $contenaireRef = $alphabet[$letterIndex] . $increment;
+            $exists = DB::table('colis')->where('reference_contenaire', $contenaireRef)->exists();
+    
+            if ($exists) {
+                $increment++;
+                if ($increment > 5) {
+                    $increment = 1;
+                    $letterIndex++;
+                }
+            }
+        } while ($exists && $letterIndex < count($alphabet));
+    
+        if ($letterIndex >= count($alphabet)) {
+            throw new \Exception("Plus de références de contenaires disponibles.");
+        }
+    
+        // Référence finale
+        $reference = "{$initiales}-{$idFormatted}-{$contenaireRef}";
+    
+        return [
+            'reference_colis' => $reference,
+            'reference_contenaire' => $contenaireRef
+        ];
+    }
+
+
+
+
+
+    // private function generateReferenceColis()
+    // {
+    //     // Récupérer l'utilisateur connecté
+    //     $user = Auth::user();
+    //     // dd($user);
+    //     // Vérifier si l'utilisateur est connecté
+    //     if (!$user) {
+    //         throw new \Exception("Utilisateur non connecté.");
+    //     }
+    
+    //     // Récupérer la première lettre du nom et du prénom
+    //     $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
+    //     $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
+    //     // dd($firstLetterNom, $firstLetterPrenom);
+    //     // Récupérer la première lettre du mois actuel
+    //     $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
+    
+    //     // Initialiser le chiffre à 1
+    //     $increment = 1;
+    
+    //     // Construire la référence de base
+    //     $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+    
+    //     // Vérifier si la référence existe déjà dans la table colis
+    //     while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
+    //         // Incrémenter le chiffre
+    //         $increment++;
+    //         // Mettre à jour la référence avec le nouvel incrément
+    //         $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
+    //     }
+    
+    //     return $baseReference; // Retourner la référence finale
+    // }
+    /**
+     * Génère une référence de Contenaire unique
+     *
+     * @return string
+     */
+//  private function generateReferenceContenaire()
+//     {
+//         $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
+//         $letterIndex = 0; // Commencer par 'A'
+//         $increment = 1; // Commencer par 1
+
+//         do {
+//             $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
+//             $baseReference = "{$currentLetter}{$increment}";
+
+//             // Vérifier si la référence existe dans la table `colis`
+//             $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
+
+//             if ($exists) {
+//                 $increment++; // Incrémenter le numéro
+
+//                 // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
+//                 if ($increment > 5) {
+//                     $increment = 1; // Réinitialiser le numéro
+//                     $letterIndex++; // Passer à la lettre suivante
+//                 }
+//             }
+//         } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
+
+//         return $baseReference; // Retourner la référence générée
+//     }
+    
+    // private function generateReferenceVol()
+    // {
+    //     $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
+    //     $letterIndex = 0; // Commencer par 'A'
+    //     $increment = 1; // Commencer par 1
+    
+    //     do {
+    //         $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
+    //         $baseReference = "{$currentLetter}{$increment}";
+    
+    //         // Vérifier si la référence existe dans la table `colis`
+    //         $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
+    
+    //         if ($exists) {
+    //             $increment++; // Incrémenter le numéro
+    
+    //             // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
+    //             if ($increment > 5) {
+    //                 $increment = 1; // Réinitialiser le numéro
+    //                 $letterIndex++; // Passer à la lettre suivante
+    //             }
+    //         }
+    //     } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
+    
+    //     return $baseReference;// Retourner la référence finale
+    // }
     /**
      * Étape de paiement.
      */
@@ -251,20 +391,46 @@ class ChineColisController extends Controller
      * Étape 1 : Formulaire initial.
      */
 
-     public function add_colis(Request $request)
+    //  public function add_colis(Request $request)
+    // {
+    //     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
+    //     ->distinct()
+    //     ->pluck('pays_agence');
+    //     // Récupérer les agences avec leur pays associé
+    //     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+    //     // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    //     $agencesExpedition = Agence::where('nom_agence', 'Agence de Chine')->get();
+    //     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+    //     $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
+        
+    //     return view('AGENCE_CHINE.colis.add_colis', compact('agencesExpedition','agencesDestination', 'referenceColis', 'paysUniques'));
+    // }
+
+    public function add_colis(Request $request)
     {
         $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
-        ->distinct()
-        ->pluck('pays_agence');
-        // Récupérer les agences avec leur pays associé
+                            ->distinct()
+                            ->pluck('pays_agence');
+
         $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-        // $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
         $agencesExpedition = Agence::where('nom_agence', 'Agence de Chine')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-        $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-        
-        return view('AGENCE_CHINE.colis.add_colis', compact('agencesExpedition','agencesDestination', 'referenceColis', 'paysUniques'));
+
+        // Étape 1 : Créer un colis vide (ou avec des valeurs par défaut)
+        $colis = new Colis(); // modèle Eloquent
+        $colis->save(); // on sauve pour avoir l'ID
+
+        // Étape 2 : Générer la référence à partir de l'ID
+        $referenceColis = $this->generateReferenceColisComplet($colis->id);
+
+        // Étape 3 : Mettre à jour les références
+        $colis->reference_colis = $referenceColis['reference_colis'];
+        $colis->reference_contenaire = $referenceColis['reference_contenaire'];
+        $colis->save();
+
+        return view('AGENCE_CHINE.colis.add_colis', compact('agencesExpedition','agencesDestination', 'paysUniques', 'colis','referenceColis'));
     }
+
 
     public function store_colis(Request $request)
     {

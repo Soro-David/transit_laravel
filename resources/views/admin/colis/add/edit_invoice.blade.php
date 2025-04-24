@@ -1,4 +1,5 @@
 @extends('admin.layouts.admin')
+
 @section('content-header')
 @endsection
 
