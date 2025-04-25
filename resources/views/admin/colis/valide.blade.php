@@ -209,7 +209,7 @@ $(document).ready(function () {
         // Configuration des boutons d'exportation (si utilisés)
         dom: 'Bfrtip', // Afficher les boutons, le filtre, la table, les informations et la pagination
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print' // Boutons standards DataTables
+             'excel', 'pdf', 'print' // Boutons standards DataTables
         ],
          order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
     });
@@ -224,7 +224,7 @@ $(document).ready(function () {
         var reference = button.data('reference');
         var total = parseFloat(button.data('total')).toFixed(2);
         var paid = parseFloat(button.data('paid')).toFixed(2);
-        var colisIds = button.data('colis-ids'); // Récupérer la chaîne JSON des IDs
+        var colisIds = JSON.stringify(button.data('colis-ids'));
 
         console.log("Opening payment modal for reference:", reference);
         console.log("Total:", total, "Paid:", paid, "Colis IDs:", colisIds);
@@ -272,6 +272,7 @@ $(document).ready(function () {
             type: 'POST',
             data: form.serialize(), // Envoyer les données du formulaire (inclut CSRF, reference_colis, colis_ids, montant_a_payer)
             dataType: 'json', // Attendre une réponse JSON
+            // console.log("Submitting payment form:", form.serialize()),
             success: function(response) {
                 $('#paymentModal').modal('hide'); // Fermer la modale
                 Swal.fire({

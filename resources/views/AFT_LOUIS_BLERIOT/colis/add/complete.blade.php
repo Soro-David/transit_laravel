@@ -1,5 +1,5 @@
 {{-- Dans AGNECE_CHINE/colis/add/complete.blade.php --}}
-@extends('AGENCE_CHINE.layouts.agentprint')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 
 @section('content')
 <section class="p-4 mx-auto">

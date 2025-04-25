@@ -346,7 +346,7 @@ public function updateColisCharge(Request $request)
         'messages' => $messages,
         'colis'    => $updatedColis,
     ]);
-    dd( $updatedColis);
+    // dd( $updatedColis);
 
 }
 

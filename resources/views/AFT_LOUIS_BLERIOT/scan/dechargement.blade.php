@@ -80,8 +80,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const onScanSuccess = (decodedText) => {
         // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
-        const referenceMatch = decodedText.match(/Référence colis:\s*(\S+)/);
-        const idMatch = decodedText.match(/Identifiant:\s*(\S+)/);
+        const referenceMatch = decodedText.match(/Ref:\s*(\S+)/i);
+        const idMatch = decodedText.match(/ID:\s*(\S+)/i);
 
         // Vérifier que les deux valeurs ont bien été extraites
         if (!referenceMatch || !idMatch) {
