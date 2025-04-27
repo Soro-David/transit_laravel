@@ -514,15 +514,17 @@ class ColisController extends Controller
     public function storePayement(Request $request)
     {
         try {
+            $prixColis = session('step1.prix.0', 0); // Mettre 0 par défaut si non trouvé
+
             $validatedData = $request->validate([
-            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
+            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash,delivery',
             //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
             //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
             //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
             //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
             //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
             //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+            //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:100',
             // ], [
             //     'required' => 'Le champ :attribute est obligatoire.',
             //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
@@ -541,11 +543,20 @@ class ColisController extends Controller
             //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
             //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
             //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
+            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à 0',
             ]);
     
             // Stocker les données en session
-    
+     // Validation supplémentaire pour le montant en espèces
+     if ($request->mode_payement === 'cash') {
+        $prixColis = session('step1.prix.0');
+        if ($request->montant_reçu > $prixColis) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le prix du colis ('.$prixColis.')']]
+            ], 422);
+        }
+    }
     
             session(['step2' => $request->only([
                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
@@ -571,11 +582,11 @@ class ColisController extends Controller
         }
     }
     
+
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         // dd($request->all());
         // Fusionner toutes les données de session dans un tableau
-        // dd(session('step1'), session('step2'));
         $data = array_merge(
             session('step1', []),
             session('step2', [])
@@ -622,13 +633,45 @@ class ColisController extends Controller
         // --- Données de Paiement ---
         $payementDataSession = session('step2', []);
         $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
-        $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
-            ? ($payementDataSession['montant_reçu'] ?? 0) // Default to 0 if not set
-            : $montantTotalEstime; // Pour autres modes, on assume paiement total (à ajuster si besoin)
+    
+        // *** NOUVELLE LOGIQUE POUR MONTANT PAYÉ ***
+        $modePaiement = $payementDataSession['mode_payement'] ?? null;
+        $montantPaiement = 0; // Initialiser à 0
+    
+        if ($modePaiement === 'cash') {
+            // Prendre le montant reçu pour le paiement en espèces
+            $montantPaiement = $payementDataSession['montant_reçu'] ?? 0;
+        } elseif ($modePaiement === 'delivery') {
+            // Pour paiement à la livraison, le montant payé initialement est 0
+            $montantPaiement = 0;
+        } elseif ($modePaiement) {
+             // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
+             // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
+             // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
+             // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
+            $montantPaiement = $montantTotalEstime;
+        }
 
         // Prendre l'ID de transaction de CinetPay en priorité si présent
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
-        $statutPaiement = $montantPaiement >= $montantTotalEstime ? 'payé' : 'partiellement payé'; // Ou 'non payé' si montant = 0 ?
+        $statutPaiement = 'non payé'; // Statut par défaut
+
+        if ($modePaiement === 'delivery') {
+            $statutPaiement = 'non payé'; // Ou 'en attente de paiement livraison'
+        } elseif ($modePaiement === 'cash') {
+            // Utiliser $montantPaiement déjà calculé
+            if ($montantPaiement <= 0) {
+                $statutPaiement = 'non payé';
+            } elseif ($montantPaiement < $montantTotalEstime) {
+                $statutPaiement = 'partiellement payé';
+            } else { // >= $montantTotalEstime
+                $statutPaiement = 'payé';
+            }
+        } elseif ($modePaiement) { // Pour bank, mobile_money, cheque
+             // Assume 'payé' si une méthode autre que cash ou delivery est choisie
+             // (l'intégration CinetPay devrait idéalement confirmer ce statut via webhook)
+             $statutPaiement = 'payé';
+        }
 
         // Agent ID
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
@@ -773,7 +816,7 @@ class ColisController extends Controller
 
         // Retourner la vue avec les informations nécessaires
         // Passer la collection des colis enregistrés si la vue doit lister tous les items créés
-        return view('admin.colis.add.complete', [
+        return view('admin.colis.add.complete',[
             'colisEnregistres' => $colisEnregistres,
             'first' => $firstInfo,
             'totalQuantite' => $totalQuantite,
