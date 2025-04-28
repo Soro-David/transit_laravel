@@ -664,7 +664,7 @@ class ColisController extends Controller
          
              $statutPaiement = 'payé';
         }
-        dd($statutPaiement);
+        // dd($statutPaiement);
         // Agent ID
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
 
