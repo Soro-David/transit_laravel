@@ -766,7 +766,6 @@ public function store_colis(Request $request)
         }
 
 
-       // --- Données de Paiement ---
     $payementDataSession = session('step2', []);
     $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
 
@@ -778,13 +777,9 @@ public function store_colis(Request $request)
         // Prendre le montant reçu pour le paiement en espèces
         $montantPaiement = $payementDataSession['montant_reçu'] ?? 0;
     } elseif ($modePaiement === 'delivery') {
-        // Pour paiement à la livraison, le montant payé initialement est 0
         $montantPaiement = 0;
     } elseif ($modePaiement) {
-         // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
-         // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
-         // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
-         // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
+        
         $montantPaiement = $montantTotalEstime;
     }
 
@@ -803,16 +798,13 @@ public function store_colis(Request $request)
             } else { // >= $montantTotalEstime
                 $statutPaiement = 'payé';
             }
-        } elseif ($modePaiement) { // Pour bank, mobile_money, cheque
-             // Assume 'payé' si une méthode autre que cash ou delivery est choisie
-             // (l'intégration CinetPay devrait idéalement confirmer ce statut via webhook)
+        } elseif ($modePaiement) { 
+            
              $statutPaiement = 'payé';
         }
 
-        // Agent ID
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
 
-        // Préparer les données de base pour le paiement (sera lié à chaque colis)
         $basePaiementData = [
             'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
             'montant' => $montantPaiement, // Le montant total payé pour cette transaction
@@ -848,19 +840,18 @@ public function store_colis(Request $request)
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
-                'prix_transit_colis' => $data['prix'][$index] ?? 0, // Mettre 0 par défaut
+                'prix_transit_colis' => $data['prix'][$index] ?? 0,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
-                'status' => $data['status'], // Statut paiement global (sera mis à jour par paiement?)
-                'etat' => $data['etat'], // Etat colis global
+                'status' => $data['status'],
+                'etat' => $data['etat'],
                 'type_colis' => $data['type_colis'][$index] ?? null,
-                'dimension_result' => $dimension_result, // Calculé ci-dessus
+                'dimension_result' => $dimension_result,
                 'description_colis' => $data['description_colis'][$index] ?? null,
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
                 'agent_id' => $agentId,
-                'qr_code_path' => null, // Initialisé à null
-                // 'montant_payé' => $data['etat'], // Initialisé à null
+                'qr_code_path' => null,
             ];
             try {
                 // Création du colis unique en BDD

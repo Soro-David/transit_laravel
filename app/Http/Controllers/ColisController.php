@@ -692,7 +692,6 @@ class ColisController extends Controller
         ];
         // dd($basePaiementData);
 
-        // --- Création des Colis, Paiements et QR Codes ---
         $colisEnregistres = []; // Pour stocker les modèles Colis sauvegardés
         $erreursCreation = [];
 
@@ -706,7 +705,7 @@ class ColisController extends Controller
 
         
              $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
-            
+            // dd($referenceColis);
             $colisItemData = [
                 'reference_colis' => $referenceColis,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
