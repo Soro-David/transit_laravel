@@ -114,11 +114,12 @@
     <div class="row">
         <div class="col-md-6">
             <div class="mb-3">
-                <label for="montant_reçu" class="form-label">Montant reçu (max: {{ session('step1.prix.0') ?? 0 }} FCFA)</label>
-                <input type="number" name="montant_reçu" id="montant_reçu" 
-                       class="form-control" 
-                       placeholder="Entrez le montant reçu (max: {{ session('step1.prix.0') ?? 0 }} FCFA)"
-                       max="{{ session('step1.prix.0') ?? '' }}"
+                <label for="montant_reçu" class="form-label">Montant reçu (Montant total: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)</label>
+                <input type="number" name="montant_reçu" id="montant_reçu"
+                       class="form-control"
+                       placeholder="Entrez le montant reçu (max: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)"
+                       max="{{ $totalPrice ?? 0 }}" {{-- Utilisation de la variable $totalPrice --}}
+                       min="100" {{-- Gardez si nécessaire --}}
                        step="1">
             </div>
         </div>
@@ -351,7 +352,7 @@
         hideSections();
     });
 </script>
-<input type="hidden" id="colisPrice" value="{{ session('step1.prix.0') ?? 100 }}">
+<input type="hidden" id="colisPrice" value="{{ $totalPrice ?? 0 }}">
 <style>
     .form-container {
         max-width: 95%;
