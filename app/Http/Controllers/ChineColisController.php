@@ -698,16 +698,48 @@ class ChineColisController extends Controller
         }
 
 
-        // --- Données de Paiement ---
-        $payementDataSession = session('step2', []);
-        $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
-        $montantPaiement = $payementDataSession['mode_payement'] === 'cash'
-            ? ($payementDataSession['montant_reçu'] ?? 0) // Default to 0 if not set
-            : $montantTotalEstime; // Pour autres modes, on assume paiement total (à ajuster si besoin)
+       // --- Données de Paiement ---
+    $payementDataSession = session('step2', []);
+    $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
+
+    // *** NOUVELLE LOGIQUE POUR MONTANT PAYÉ ***
+    $modePaiement = $payementDataSession['mode_payement'] ?? null;
+    $montantPaiement = 0; // Initialiser à 0
+
+    if ($modePaiement === 'cash') {
+        // Prendre le montant reçu pour le paiement en espèces
+        $montantPaiement = $payementDataSession['montant_reçu'] ?? 0;
+    } elseif ($modePaiement === 'delivery') {
+        // Pour paiement à la livraison, le montant payé initialement est 0
+        $montantPaiement = 0;
+    } elseif ($modePaiement) {
+         // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
+         // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
+         // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
+         // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
+        $montantPaiement = $montantTotalEstime;
+    }
 
         // Prendre l'ID de transaction de CinetPay en priorité si présent
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
-        $statutPaiement = $montantPaiement >= $montantTotalEstime ? 'payé' : 'partiellement payé'; // Ou 'non payé' si montant = 0 ?
+        $statutPaiement = 'non payé'; // Statut par défaut
+
+        if ($modePaiement === 'delivery') {
+            $statutPaiement = 'non payé'; // Ou 'en attente de paiement livraison'
+        } elseif ($modePaiement === 'cash') {
+            // Utiliser $montantPaiement déjà calculé
+            if ($montantPaiement <= 0) {
+                $statutPaiement = 'non payé';
+            } elseif ($montantPaiement < $montantTotalEstime) {
+                $statutPaiement = 'partiellement payé';
+            } else { // >= $montantTotalEstime
+                $statutPaiement = 'payé';
+            }
+        } elseif ($modePaiement) { // Pour bank, mobile_money, cheque
+             // Assume 'payé' si une méthode autre que cash ou delivery est choisie
+             // (l'intégration CinetPay devrait idéalement confirmer ce statut via webhook)
+             $statutPaiement = 'payé';
+        }
 
         // Agent ID
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
@@ -1258,7 +1290,7 @@ class ChineColisController extends Controller
         //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
         //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
         //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-        //     'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
+        //      'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:100',
         // ], [
         //     'required' => 'Le champ :attribute est obligatoire.',
         //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',

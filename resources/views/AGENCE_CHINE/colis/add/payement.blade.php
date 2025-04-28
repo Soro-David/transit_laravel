@@ -118,7 +118,7 @@
                        class="form-control" 
                        placeholder="Entrez le montant reçu (max: {{ session('step1.prix.0') ?? 0 }} FCFA)"
                        max="{{ session('step1.prix.0') ?? '' }}"
-                       step="100">
+                       step="1">
             </div>
         </div>
     </div>
@@ -210,14 +210,28 @@
                 formDataJson.mode_payement = 'delivery';
             }
             if (formDataJson.mode_payement === 'cash') {
-    const prixColis = parseFloat($('#colisPrice').val());
-    const montantRecu = parseFloat(formDataJson.montant_reçu);
-    
-    if (isNaN(montantRecu) || montantRecu <= 0 || montantRecu > prixColis) {
-        alert('Le montant reçu doit être supérieur à 0 et inférieur ou égal au prix du colis (' + prixColis + ')');
-        return false;
-    }
-}
+                const prixColis = parseFloat($('#colisPrice').val()) || 0;
+                const montantRecu = parseFloat(formDataJson.montant_reçu);
+
+                if (isNaN(montantRecu)) {
+                    alert('Veuillez entrer un montant numérique valide pour le paiement en espèces.');
+                    return false; // Arrêter la soumission
+                }
+                if (montantRecu < 100) { // <<<<----- Vérification du minimum
+                    alert('Le montant reçu en espèces doit être d\'au moins 100 FCFA.');
+                    $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
+                    return false; // Arrêter la soumission
+                }
+                if (montantRecu > prixColis) { // Vérification du maximum
+                    alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' FCFA).');
+                     $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
+                    return false; // Arrêter la soumission
+                }
+                 // Si tout est OK pour cash, on peut continuer
+                 $('#montant_reçu').removeClass('is-invalid'); // Nettoyer au cas où
+            }
+             // *** Fin Vérification Client-side ***
+
             // Supprimer 'montant_reçu' si mode_payement n'est pas 'cash'
             if (formDataJson.mode_payement !== 'cash') {
                 delete formDataJson.montant_reçu;
@@ -248,17 +262,44 @@
             });
         }
         $('#montant_reçu').on('input', function() {
-    const prixColis = parseFloat($('#colisPrice').val());
-    const montantSaisi = parseFloat($(this).val());
-    
-    if (montantSaisi > prixColis) {
-        $(this).addClass('is-invalid');
-        $('#submit_button_section button').prop('disabled', true);
-    } else {
-        $(this).removeClass('is-invalid');
-        $('#submit_button_section button').prop('disabled', false);
-    }
-});
+            const prixColis = parseFloat($('#colisPrice').val()) || 0; // Valeur par défaut 0
+            const montantSaisi = parseFloat($(this).val());
+            let isValid = true;
+            let errorMessage = ''; // Pour un éventuel affichage d'erreur plus précis
+
+            // Vérifier seulement si le mode est 'cash'
+            if ($('#mode_payement').val() === 'cash') {
+                if (isNaN(montantSaisi)) {
+                    // Permettre la saisie, la validation backend attrapera si c'est vide mais requis
+                    // On ne bloque pas ici pour un champ vide, mais on pourrait si on voulait
+                } else if (montantSaisi < 100) { // <<<<----- Vérification du minimum
+                    isValid = false;
+                    errorMessage = 'Le montant doit être d\'au moins 100 FCFA.';
+                    console.log(errorMessage); // Pour débogage
+                } else if (montantSaisi > prixColis) { // Vérification du maximum
+                    isValid = false;
+                    errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' FCFA.';
+                    console.log(errorMessage); // Pour débogage
+                }
+            }
+
+            // Gérer l'état visuel et le bouton de soumission
+            if (!isValid && $('#mode_payement').val() === 'cash') { // Appliquer seulement si cash et invalide
+                $(this).addClass('is-invalid');
+                // Optionnel : Afficher errorMessage dans un span dédié
+                // $('.montant-recu-error-span').text(errorMessage).show();
+                $('#submit_button_section button[type="submit"]').prop('disabled', true);
+            } else {
+                $(this).removeClass('is-invalid');
+                // Optionnel : Cacher le message d'erreur
+                // $('.montant-recu-error-span').text('').hide();
+                // Réactiver le bouton SEULEMENT si le mode sélectionné est 'cash'
+                // (les autres modes gèrent leur propre état de bouton)
+                if ($('#mode_payement').val() === 'cash') {
+                    $('#submit_button_section button[type="submit"]').prop('disabled', false);
+                }
+            }
+        });
 
         // Listener pour le bouton CinetPay
         cinetpayButton.on('click', function() {
