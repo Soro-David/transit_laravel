@@ -717,12 +717,12 @@ class ColisController extends Controller
                 'qr_code_path' => null, // Initialisé à null
                 // 'montant_payé' => $data['etat'], // Initialisé à null
             ];
-            dd($colisItemData);
+            // dd($colisItemData);
             try {
                 // Création du colis unique en BDD
                 // dd($colisItemData);
                 $colisModel = Colis::create($colisItemData);
-                // dd($colisModel);
+                dd($colisModel);
                 $paiementDataPourCeColis = array_merge($basePaiementData, ['montant_paye' => $basePaiementData['montant'],'colis_id' => $colisModel->id, 'montant' => $colisItemData['prix_transit_colis']]); // Montant spécifique?
                 // dd($paiementDataPourCeColis);
                 $paiement = Paiement::create($paiementDataPourCeColis);
