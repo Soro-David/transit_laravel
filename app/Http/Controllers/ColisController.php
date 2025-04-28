@@ -722,7 +722,7 @@ class ColisController extends Controller
                 // Création du colis unique en BDD
                 // dd($colisItemData);
                 $colisModel = Colis::create($colisItemData);
-                dd($colisModel);
+                // dd($colisModel);
                 $paiementDataPourCeColis = array_merge($basePaiementData, ['montant_paye' => $basePaiementData['montant'],'colis_id' => $colisModel->id, 'montant' => $colisItemData['prix_transit_colis']]); // Montant spécifique?
                 // dd($paiementDataPourCeColis);
                 $paiement = Paiement::create($paiementDataPourCeColis);
@@ -780,7 +780,7 @@ class ColisController extends Controller
         // dd($colisEnregistres);
         // Si $colisEnregistres est un array, le convertir en collection pour utiliser les méthodes
         $colisEnregistres = collect($colisEnregistres);
-
+        dd($colisEnregistres);
         // Récupérer le premier colis
         $firstColis = $colisEnregistres->first();
 
