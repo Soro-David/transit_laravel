@@ -1042,8 +1042,6 @@ class ChineColisController extends Controller
             $etiquettes->push($cloneColis);
         }
         // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
-
-        // 4. Charger la vue PDF avec la collection d'étiquettes et la quantité totale
         $pdf = PDF::loadView('AGENCE_CHINE.colis.add.edit_etiquette', [
                 'colis' => $etiquettes, // La collection de clones
                 'totalEtiquettes' => $quantite // Le nombre total d'étiquettes à générer
