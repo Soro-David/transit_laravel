@@ -450,8 +450,27 @@ public function store_colis(Request $request)
 
     public function stepPayment()
     {
-       
-        return view('AFT_LOUIS_BLERIOT.colis.add.payement');
+       // Récupérer les données de l'étape 1 depuis la session
+    $step1Data = session('step1');
+
+    // Vérifier si les données existent et contiennent les prix
+    if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
+        // Rediriger vers la première étape avec une erreur si les données sont manquantes
+        // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
+        return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+    }
+
+    // Calculer le montant total en additionnant tous les prix du tableau 'prix'
+    $totalPrice = collect($step1Data['prix'])->sum();
+
+    // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
+    session(['step1.total_prix' => $totalPrice]);
+
+    // Retourner la vue de paiement en lui passant le montant total calculé
+    return view('AFT_LOUIS_BLERIOT.colis.add.payement', [
+        'totalPrice' => $totalPrice
+    ]);
+        
     }
     public function storePayment(Request $request)
     {
@@ -1111,64 +1130,101 @@ public function store_colis(Request $request)
 
 
 
-    public function storePayement(Request $request)
+    public function storePayement(Request $request) // Renommée depuis storePayment pour correspondre à la route utilisée dans le JS
     {
-        dd($request->all());
         try {
-            $validatedData = $request->validate([
-            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            //      'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:100',
-            // ], [
-            //     'required' => 'Le champ :attribute est obligatoire.',
-            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-            //     'numeric' => 'Le champ :attribute doit être un nombre.',
-            //     'min' => 'Le champ :attribute doit être au moins :min.',
+            // Récupérer le montant total calculé précédemment et stocké en session
+            $totalPrice = session('step1.total_prix', 0); // Mettre une valeur par défaut sûre
     
-            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+            // Définir les règles de base
+            $rules = [
+                'mode_payement' => 'required|in:bank,mobile_money,cheque,cash,delivery',
+                'numero_compte' => 'required_if:mode_payement,bank|nullable|max:255',
+                'nom_banque' => 'required_if:mode_payement,bank,cheque|nullable|max:255',
+                'transaction_id' => 'required_if:mode_payement,bank|nullable|max:255', // Pas requis pour mobile_money car CinetPay le gère
+                'numero_tel' => 'required_if:mode_payement,mobile_money|nullable|regex:/^\+?\d{10,15}$/', // Regex amélioré
+                'operateur_mobile' => 'required_if:mode_payement,mobile_money|nullable|in:orange_money,wave,mtn_money', // Mettre à jour les valeurs possibles
+                'numero_cheque' => 'required_if:mode_payement,cheque|nullable|max:255',
+            ];
     
-            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
-            ]);
+            // Ajouter la règle pour montant_reçu spécifiquement si le mode est 'cash'
+            if ($request->input('mode_payement') === 'cash') {
+                $rules['montant_reçu'] = [
+                    'required',
+                    'numeric',
+                    'min:100', // Ou votre minimum requis
+                    'max:' . $totalPrice // Validation par rapport au montant total
+                ];
+            } else {
+                 // Rendre montant_reçu non requis et nullable pour les autres modes
+                 $rules['montant_reçu'] = 'nullable|numeric';
+            }
     
-            // Stocker les données en session
+             // Définir les messages d'erreur personnalisés
+             $messages = [
+                 'required' => 'Le champ :attribute est obligatoire.',
+                 'required_if' => 'Le champ :attribute est requis lorsque le mode de paiement est :value.',
+                 'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
+                 'numeric' => 'Le champ :attribute doit être un nombre.',
+                 'min' => 'Le champ :attribute doit être au moins de :min.',
+                 'montant_reçu.max' => 'Le montant reçu ne peut pas dépasser le montant total (' . number_format($totalPrice, 0, ',', ' ') . ' FCFA).',
+                 'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
+                 'numero_tel.regex' => 'Le format du numéro de téléphone est invalide.',
+                 'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
+             ];
+    
+            // Valider la requête
+            $validatedData = $request->validate($rules, $messages);
+    
+            // --- La validation manuelle ci-dessous n'est plus nécessaire ---
+            // // Validation supplémentaire pour le montant en espèces
+            // if ($request->mode_payement === 'cash') {
+            //    // $prixColis = session('step1.prix.0'); // Incorrect
+            //    if ($request->montant_reçu > $totalPrice) { // Utiliser $totalPrice
+            //        return response()->json([
+            //            'success' => false,
+            //            'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le montant total ('.$totalPrice.')']]
+            //        ], 422);
+            //    }
+            // }
+            // --- Fin validation manuelle ---
+    
+            // Stocker uniquement les données validées pertinentes en session step2
+            // Utiliser $validatedData pour s'assurer qu'on ne stocke que ce qui est validé
+            $step2Data = collect($validatedData)->only([
+                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id',
+                 'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu'
+            ])->all();
+    
+            // S'assurer que montant_reçu est null si le mode n'est pas cash
+             if ($step2Data['mode_payement'] !== 'cash') {
+                 $step2Data['montant_reçu'] = null;
+             }
     
     
-            session(['step2' => $request->only([
-                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-                'dimension_result'
-                
-            ])]);
+            session(['step2' => $step2Data]);
+             // Ajouter le montant total attendu à step2 pour référence dans generer_qrcode
+             session(['step2.montant_total_attendu' => $totalPrice]);
+    
+    
             return response()->json([
                 'success' => true,
                 'redirect' => route('aftlb_colis.generer.qrcode'),
             ]);
     
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Retourner les erreurs de validation au format JSON pour AJAX
             return response()->json([
                 'success' => false,
-                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
-            ], 422);
+                'errors' => $e->errors(),
+            ], 422); // Code 422 Unprocessable Entity
         } catch (\Exception $e) {
+            // Log l'erreur serveur pour le débogage
+             \Log::error('Erreur interne dans storePayement: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-            ], 500);
+            ], 500); // Code 500 Internal Server Error
         }
     }
     
