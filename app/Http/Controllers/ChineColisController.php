@@ -858,38 +858,48 @@ class ChineColisController extends Controller
              return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
         }
 
-        // --- Préparation données pour la vue 'complete' ---
-         // Utiliser le premier colis enregistré pour les infos générales si pertinent
-        $premierColis = $colisEnregistres[0];
+
+        $colisEnregistres = collect($colisEnregistres);
+
+        // Récupérer le premier colis
+        $firstColis = $colisEnregistres->first();
+
+        // Vérifier si $firstColis existe avant d'accéder à ses propriétés
         $firstInfo = [
-             'id' => $premierColis->id, // ID principal pour les boutons d'impression
-             'reference_colis' => $premierColis->reference_colis,
-             'nom_destinataire' => optional($premierColis->destinataire)->nom,
-             'prenom_destinataire' => optional($premierColis->destinataire)->prenom,
-             'tel_destinataire' => optional($premierColis->destinataire)->tel,
-             'nom_expediteur' => optional($premierColis->expediteur)->nom,
-             'prenom_expediteur' => optional($premierColis->expediteur)->prenom,
-             'tel_expediteur' => optional($premierColis->expediteur)->tel,
-             // Calculer le reste basé sur le paiement total et le prix total des colis créés
-             'montant_paye' => $montantPaiement, // Montant total payé pour la transaction
-         ];
+            'id' => $firstColis?->id,
+            'reference_colis' => $firstColis?->reference_colis,
+            'nom_destinataire' => optional($firstColis?->destinataire)->nom,
+            'prenom_destinataire' => optional($firstColis?->destinataire)->prenom,
+            'tel_destinataire' => optional($firstColis?->destinataire)->tel,
+            'nom_expediteur' => optional($firstColis?->expediteur)->nom,
+            'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
+            'tel_expediteur' => optional($firstColis?->expediteur)->tel,
+        ];
 
-        // Calculer les totaux réels basés sur les colis effectivement créés
-        $totalQuantite = collect($colisEnregistres)->sum('quantite_colis');
-        $totalPrixTransit = collect($colisEnregistres)->sum('prix_transit_colis');
-        $firstInfo['reste'] = max(0, $totalPrixTransit - $montantPaiement); // Reste à payer
+        $totalQuantite = $colisEnregistres->sum('quantite_colis');
+        $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
 
-        // Réinitialiser les sessions après traitement réussi
+        $ids_colis = $colisEnregistres->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+
+        $totalMontant = $paiements->sum('montant');
+        $totalMontantPaye = $paiements->first()?->montant_paye ?? 0;
+
+        $restePaye = $totalMontant - $totalMontantPaye;
+
         session()->forget(['step1', 'step2']);
 
-        // Retourner la vue avec les informations nécessaires
-        // Passer la collection des colis enregistrés si la vue doit lister tous les items créés
+
         return view('AGENCE_CHINE.colis.add.complete',[
-            'colisEnregistres' => $colisEnregistres,
+            'colis' => $colisEnregistres,
             'first' => $firstInfo,
             'totalQuantite' => $totalQuantite,
             'totalPrixTransit' => $totalPrixTransit,
-            'premierColis' => $premierColis,
+            'restePaye' => $restePaye,
+            'mode_payement' => $mode_payement,
+            'totalMontantPaye' => $totalMontantPaye,
         ]);
 
     }
@@ -1006,16 +1016,31 @@ class ChineColisController extends Controller
             // Gérer le cas où l'ID n'existe pas
             abort(404, 'Colis non trouvé.');
         }
+        $reference_colis = $colis->reference_colis;
 
-        // 2. Préparer la collection d'étiquettes (clones)
-        $etiquettes = new Collection(); // Utiliser new Collection()
-        $quantite = $colis->quantite_colis ?? 1; // Utiliser 1 si null ou 0
-        $quantite = max(1, (int)$quantite); // S'assurer que c'est au moins 1
+        $colisEnregistres = Colis::where('reference_colis', $reference_colis)->get();
 
-        for ($i = 0; $i < $quantite; $i++) {
-            $etiquettes->push(clone $colis); // Cloner pour chaque étiquette
+        $totalQuantite = $colisEnregistres->sum('quantite_colis');
+
+        // dd($totalQuantite); // Affichage de la quantité totale des colis avec la même référence
+
+        $quantite = max(1, (int)$totalQuantite);
+
+
+        $etiquettes = new \Illuminate\Support\Collection();
+
+        // Construire une collection avec pour chaque étiquette un type_colis spécifique
+        foreach ($typeColisList as $typeColis) {
+            $cloneColis = clone $colis;
+            $cloneColis->type_colis = $typeColis; // On assigne le bon type_colis
+            $etiquettes->push($cloneColis);
         }
 
+        while ($etiquettes->count() < $quantite) {
+            $cloneColis = clone $colis;
+            $cloneColis->type_colis = $typeColisList->last(); // répéter le dernier type_colis
+            $etiquettes->push($cloneColis);
+        }
         // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
 
         // 4. Charger la vue PDF avec la collection d'étiquettes et la quantité totale
@@ -1033,6 +1058,7 @@ class ChineColisController extends Controller
         return $pdf->download($fileName);
     }
 
+
     public function inprimerEtiquette($id) 
     {
         try {
@@ -1041,30 +1067,44 @@ class ChineColisController extends Controller
             // Gérer le cas où l'ID n'existe pas
             abort(404, 'Colis non trouvé.');
         }
+        $reference_colis = $colis->reference_colis;
 
-        // 2. Préparer la collection d'étiquettes (clones)
-        $etiquettes = new Collection(); // Utiliser new Collection()
-        $quantite = $colis->quantite_colis ?? 1; // Utiliser 1 si null ou 0
-        $quantite = max(1, (int)$quantite); // S'assurer que c'est au moins 1
+        $colisEnregistres = Colis::where('reference_colis', $reference_colis)->get();
 
-        for ($i = 0; $i < $quantite; $i++) {
-            $etiquettes->push(clone $colis); // Cloner pour chaque étiquette
+        // Récupérer tous les type_colis
+        $typeColisList = $colisEnregistres->pluck('type_colis');
+        
+        $totalQuantite = $colisEnregistres->sum('quantite_colis');
+
+
+        $quantite = max(1, (int)$totalQuantite);
+
+
+        $etiquettes = new \Illuminate\Support\Collection();
+
+        // Construire une collection avec pour chaque étiquette un type_colis spécifique
+        foreach ($typeColisList as $typeColis) {
+            $cloneColis = clone $colis;
+            $cloneColis->type_colis = $typeColis; // On assigne le bon type_colis
+            $etiquettes->push($cloneColis);
         }
 
-        // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
-
-        // 4. Charger la vue PDF avec la collection d'étiquettes et la quantité totale
+        while ($etiquettes->count() < $quantite) {
+            $cloneColis = clone $colis;
+            $cloneColis->type_colis = $typeColisList->last(); // répéter le dernier type_colis
+            $etiquettes->push($cloneColis);
+        }
+    
         $pdf = PDF::loadView('AGENCE_CHINE.invoice.edit_etiquette', [
-                'colis' => $etiquettes, // La collection de clones
-                'totalEtiquettes' => $quantite // Le nombre total d'étiquettes à générer
+                'colis' => $etiquettes,
+                'totalEtiquettes' => $quantite,
             ])
             ->setPaper('a6', 'landscape')
-            ->setOption('isRemoteEnabled', true); // Important pour les images externes/locales via public_path
-
-        // 5. Retourner le PDF pour téléchargement
+            ->setOption('isRemoteEnabled', true);
+    
         $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis ?? $colis->id);
         $fileName = 'etiquettes_' . $safeRef . '.pdf';
-
+    
         return $pdf->download($fileName);
     }
 
@@ -1174,106 +1214,50 @@ class ChineColisController extends Controller
 
     public function editInvoice($id)
     {
-        
-        // dd($id);
-        $colis_principal = Colis::find($id);
-        
-        $colis_info = Colis::with(['expediteur', 'destinataire'])
-                                    ->select(
-                                        'colis.reference_colis',
-                                        'expediteurs.nom as expediteur_nom',
-                                        'expediteurs.prenom as expediteur_prenom',
-                                        'expediteurs.tel as expediteur_tel',
-                                        'destinataires.nom as destinataire_nom',
-                                        'destinataires.prenom as destinataire_prenom',
-                                        'destinataires.tel as destinataire_tel'
-                                    )
-                                    ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                                    ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                                    ->find($id);
-                                    // dd($colis_info->reference_colis);
-
-
-
-            $colisEnregistres = Colis::where('reference_colis', $colis_info->reference_colis)->get();
-            // dd($colisEnregistres);
-        //     } catch (\Exception $e) {
-        //         \Log::error("Erreur création colis/paiement/QR pour index {$index}: " . $e->getMessage(), ['data' => $colisItemData]);
-        //         // dd($e->getMessage());
-        //         $erreursCreation[] = "Erreur lors de la création du colis avec référence {$referenceColis}.";
-        //         // Peut-être ajouter une logique de transaction/rollback ici
-        //     }
-        // }
-
-        // S'il y a eu des erreurs, rediriger avec les messages
-        if (!empty($erreursCreation)) {
-            return redirect()->back()->with('error', implode('<br>', $erreursCreation));
+        // Récupérer le colis principal
+        $colis_principal = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    
+        // Récupérer les colis associés à ce colis principal
+        $colisEnregistres = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+        // dd($colisEnregistres);
+        if ($colisEnregistres->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis n\'a été enregistré avec cette référence.');
         }
-
-        // Si tout s'est bien passé mais aucun colis créé (ex: quantité 0 partout)
-        if (empty($colisEnregistres)) {
-                return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
-        }
-
-        // --- Préparation données pour la vue 'complete' ---
-            // Utiliser le premier colis enregistré pour les infos générales si pertinent
-        $premierColis = $colisEnregistres[0];
+    
+        // Collecter des informations pour afficher les détails
+        $firstColis = $colisEnregistres->first();
         $firstInfo = [
-                'id' => $premierColis->id, // ID principal pour les boutons d'impression
-                'reference_colis' => $premierColis->reference_colis,
-                'nom_destinataire' => optional($premierColis->destinataire)->nom,
-                'prenom_destinataire' => optional($premierColis->destinataire)->prenom,
-                'tel_destinataire' => optional($premierColis->destinataire)->tel,
-                'nom_expediteur' => optional($premierColis->expediteur)->nom,
-                'prenom_expediteur' => optional($premierColis->expediteur)->prenom,
-                'tel_expediteur' => optional($premierColis->expediteur)->tel,
-            ];
-
-
-
-        // Calculer les totaux réels basés sur les colis effectivement créés
-        $totalQuantite = collect($colisEnregistres)->sum('quantite_colis');
-        $totalPrixTransit = collect($colisEnregistres)->sum('prix_transit_colis');
-        // $firstInfo['reste'] = max(0, $totalPrixTransit - $montantPaiement); // Reste à payer
-
-        // $firstColis = $colisEnregistres->first();
-        // $reference_colis = $firstColis->reference_colis;
-        // $totalMontantPaye = $paiements->sum('montant_paye');
-        // $restePaye = $totalMontant - $totalMontantPaye;
-        // $montant_paye => $montantPaiement,
-
+            'id' => $firstColis->id,
+            'reference_colis' => $firstColis->reference_colis,
+            'nom_destinataire' => optional($firstColis->destinataire)->nom,
+            'prenom_destinataire' => optional($firstColis->destinataire)->prenom,
+            'tel_destinataire' => optional($firstColis->destinataire)->tel,
+            'nom_expediteur' => optional($firstColis->expediteur)->nom,
+            'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
+            'tel_expediteur' => optional($firstColis->expediteur)->tel,
+        ];
+    
+        $totalQuantite = $colisEnregistres->sum('quantite_colis');
+        $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
+    
+        // Préparer les paiements associés à ces colis
         $ids_colis = $colisEnregistres->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
         $totalMontant = $paiements->sum('montant');
         $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
-        // dd($totalMontantPaye);
+    
         $restePaye = $totalMontant - $totalMontantPaye;
-            // dd($restePaye);
-            // dd( $totalQuantite, $totalPrixTransit);
-
-        if (!$colis_principal) {
-            return redirect()->route('chine_colis.hold')->with('error', 'Colis non trouvé.');
-        }
-
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-        if ($colis->isEmpty()) {
-            return redirect()->route('chine_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-        }
-
+    
         return view('AGENCE_CHINE.invoice.edit', [
-            'colis'             => $colis,
-            'colisEnregistres'  => $colisEnregistres,
-            'first'             => $firstInfo,
-            'totalQuantite'     => $totalQuantite,
-            'totalPrixTransit'  => $totalPrixTransit,
-            'premierColis'      => $premierColis,
-            'restePaye'         => $restePaye,
-            'mode_payement'     => $mode_payement,
-            'totalMontantPaye'    => $totalMontantPaye,
+            'colis' => $colisEnregistres,
+            'first' => $firstInfo,
+            'totalQuantite' => $totalQuantite,
+            'totalPrixTransit' => $totalPrixTransit,
+            'restePaye' => $restePaye,
+            'mode_payement' => $mode_payement,
+            'totalMontantPaye' => $totalMontantPaye,
         ]);
-        
     }
 
 

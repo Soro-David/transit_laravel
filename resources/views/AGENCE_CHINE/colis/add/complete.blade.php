@@ -1,4 +1,3 @@
-{{-- Dans AGNECE_CHINE/colis/add/complete.blade.php --}}
 @extends('AGENCE_CHINE.layouts.agentprint')
 
 @section('content')
@@ -23,11 +22,11 @@
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Montant Payé :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($first['montant_paye'] ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} F CFA</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Reste à Payer:</label>
-                             <span class="form-control-plaintext w-50 fw-bold {{ ($first['reste'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($first['reste'] ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} F CFA</span>
                          </div>
                      </div>
                  </div>
@@ -83,40 +82,35 @@
         {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
         <div>
             {{-- @dd($firstColis->first()->id) --}}
-            <a href="{{ route('chine_colis.edit.facture', ['id' => $premierColis->id ?? 0]) }}" target="_blank" class="btn btn-sm btn-info">
+            <a href="{{ route('chine_colis.imprimer.facture', ['id' => $premierColis->id ?? 0]) }}" target="_blank" class="btn btn-sm btn-info">
                 <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
             </a>            
         </div>
         {{-- <h4 class="mb-3">Colis Enregistrés dans cette Transaction</h4> --}}
-        @if(!empty($colisEnregistres))
-            <div class="list-group">
-                @foreach($colisEnregistres as $index => $colis)
-                    <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm rounded border-0">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">
-                                <span class="badge bg-secondary me-2">{{ $index + 1 }}</span>
-                                Colis Réf: {{ $colis->reference_colis }}
-                            </h5>
-                            <small>ID: {{ $colis->id }}</small>
-                        </div>
-                        <p class="mb-1">
-                            Type: {{ $colis->type_colis ?? 'N/A' }} |
-                            Qté: <span class="fw-bold">{{ $colis->quantite_colis }}</span> |
-                            Prix: {{ number_format($colis->prix_transit_colis ?? 0, 0, ',', ' ') }} F CFA |
-                        </p>
-                        <div class="mt-2 text-end"> {{-- Boutons alignés à droite --}}
-                            <a href="{{ route('chine_colis.edit.etiquette', ['id' => $colis->id]) }}" target="_blank" class="btn btn-sm btn-success me-2">
-                                <i class="fas fa-tags me-1"></i> Imprimer {{ $colis->quantite_colis }} Étiquette(s)
-                            </a>
-                        
-                            {{-- Ajouter d'autres boutons si nécessaire (modifier, etc.) --}}
-                        </div>
-                    </div>
-                @endforeach
+        @if($colis->isNotEmpty())
+        <div class="list-group">
+            <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm rounded border-0">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                        Colis Réf: {{ $colis[0]->reference_colis }}
+                    </h5>
+                    <small>ID: {{ $colis[0]->id }}</small>
+                </div>
+                <p class="mb-1">
+                    Type: {{ $colis[0]->type_colis ?? 'N/A' }} |
+                    Qté: <span class="fw-bold">{{ $totalQuantite }}</span> |
+                    Prix: {{ number_format($totalPrixTransit, 0, ',', ' ') }} F CFA |
+                </p>
+                <div class="mt-2 text-end">
+                    <a href="{{ route('chine_colis.imprimer.etiquette', ['id' => $colis[0]->id]) }}" target="_blank" class="btn btn-sm btn-success me-2">
+                        <i class="fas fa-tags me-1"></i> Imprimer {{ $totalQuantite }} Étiquette(s)
+                    </a>
+                </div>
             </div>
-        @else
-            <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré lors de cette transaction.</p>
-        @endif
+        </div>
+    @else
+        <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré lors de cette transaction.</p>
+    @endif
 
         {{-- Boutons d'action généraux --}}
         <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
@@ -127,7 +121,6 @@
     </div>
 </section>
 
-{{-- Pas besoin de script spécifique ici si les liens ont target="_blank" --}}
 
 <style>
     /* ... (garder les styles existants) ... */

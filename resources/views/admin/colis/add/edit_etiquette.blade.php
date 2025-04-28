@@ -150,7 +150,6 @@
     {{-- La variable $totalEtiquettes est passée par le contrôleur --}}
     @if($colis && !$colis->isEmpty() && isset($totalEtiquettes))
         @php $currentIndex = 1; @endphp
-
         {{-- La boucle @foreach itère sur chaque clone, générant une page par clone --}}
         @foreach($colis as $colisItem)
             @php
@@ -162,8 +161,15 @@
                 $qrCodePath = $colisItem->qr_code_path ?? null; // Utilise le chemin enregistré
                 $colisReference = $colisItem->reference_colis ?? 'N/A';
                 $colisType = $colisItem->type_colis ?? 'N/A';
+                // $colisType = $colisItem->type_colis ?? 'N/A';
                 // $quantite n'est plus nécessaire ici car on boucle déjà le bon nombre de fois
             @endphp
+             @foreach($colisTypes as $colisType)
+             @php
+                
+                 $colisType = $colisType->type_colis ?? 'N/A';
+                 // $quantite n'est plus nécessaire ici car on boucle déjà le bon nombre de fois
+             @endphp
 
             {{-- Chaque itération de cette boucle génère une étiquette complète --}}
             <div class="etiquette-page">
