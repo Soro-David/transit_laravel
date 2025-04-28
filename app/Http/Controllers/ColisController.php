@@ -780,7 +780,7 @@ class ColisController extends Controller
         // dd($colisEnregistres);
         // Si $colisEnregistres est un array, le convertir en collection pour utiliser les méthodes
         $colisEnregistres = collect($colisEnregistres);
-        dd($colisEnregistres);
+        // dd($colisEnregistres);
         // Récupérer le premier colis
         $firstColis = $colisEnregistres->first();
 
