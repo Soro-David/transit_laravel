@@ -810,7 +810,6 @@ class ColisController extends Controller
         $restePaye = $totalMontant - $totalMontantPaye;
 
         session()->forget(['step1', 'step2']);
-dd
 
         return view('admin.colis.add.complete',[
             'colis' => $colisEnregistres,
