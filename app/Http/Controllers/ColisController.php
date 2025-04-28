@@ -365,7 +365,7 @@ class ColisController extends Controller
     
         // Génère juste les références, sans enregistrer encore dans la base
         $referenceColis = $this->generateReferenceColisComplet();
-    
+        dd($referenceColis);
         return view('admin.colis.add_colis', compact(
             'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis'
         ));
