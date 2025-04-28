@@ -365,7 +365,7 @@ class ColisController extends Controller
     
         // Génère juste les références, sans enregistrer encore dans la base
         $referenceColis = $this->generateReferenceColisComplet();
-        dd($referenceColis);
+        // dd($referenceColis);
         return view('admin.colis.add_colis', compact(
             'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis'
         ));
@@ -717,6 +717,7 @@ class ColisController extends Controller
                 'qr_code_path' => null, // Initialisé à null
                 // 'montant_payé' => $data['etat'], // Initialisé à null
             ];
+            dd($colisItemData);
             try {
                 // Création du colis unique en BDD
                 // dd($colisItemData);
@@ -809,7 +810,7 @@ class ColisController extends Controller
         $restePaye = $totalMontant - $totalMontantPaye;
 
         session()->forget(['step1', 'step2']);
-
+dd
 
         return view('admin.colis.add.complete',[
             'colis' => $colisEnregistres,
