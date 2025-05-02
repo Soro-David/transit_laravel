@@ -80,12 +80,16 @@
         <hr> {{-- Séparateur visuel --}}
 
         {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
-        <div>
-            {{-- @dd($firstColis->first()->id) --}}
-            <a href="{{ route('chine_colis.imprimer.facture', ['id' => $premierColis->id ?? 0]) }}" target="_blank" class="btn btn-sm btn-info">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('chine_colis.imprimer.facture', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info d-flex align-items-center">
                 <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
-            </a>            
+            </a>
+        
+            <a href="{{ route('chine_colis.imprimer.bon_livraison', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-secondary d-flex align-items-center">
+                <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de Livraison
+            </a>
         </div>
+        
         {{-- <h4 class="mb-3">Colis Enregistrés dans cette Transaction</h4> --}}
     @if($colis->isNotEmpty())
         <div class="list-group">

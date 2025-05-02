@@ -869,6 +869,218 @@ class ColisController extends Controller
 
     }
 
+    public function editBon_livraison($id)
+    {
+        // dd($id);
+        
+        try {
+            $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Gérer le cas où l'ID n'existe pas
+            abort(404, 'Colis non trouvé.');
+        }
+
+       
+
+            $colisCollection = Colis::where('reference_colis', $colis->reference_colis)->get();
+
+            if ($colisCollection->isEmpty()) {
+                return redirect()->route('chine_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+            }   
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+        }
+
+        // Récupération du premier colis
+        $firstColis = $colisCollection->first();
+        // dd($firstColis->reference_colis);
+        $reference_colis = $firstColis->id;
+        $date_facture = now();
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $tel_expediteur = $firstColis->expediteur->tel;
+        $tel_destinataire = $firstColis->destinataire->tel;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $reference_colis = $firstColis->reference_colis;
+        // Calcul du prix total
+        $ids_colis = $colisCollection->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+        $totalMontant = $paiements->sum('montant');
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalMontant - $totalMontantPaye;
+       
+        $prix_total = 0;
+        foreach ($colisCollection as $colis) {
+            if (!isset($colis->prix_transit_colis)) {
+                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+            }
+            $prix_total += $colis->prix_transit_colis;
+        }
+
+        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+        
+        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+        // dd($prix_total);
+        $reste = $prix_total - $montant_paye;   
+
+        $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        // dd($nom_agent);
+
+        // Création de la facture
+        Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
+            'expediteur_id' => $firstColis->expediteur->id,
+            'destinataire_id' => $firstColis->destinataire->id,
+            'agent_id' => $id_agent,
+            'montant' => $prix_total ?? 0,
+            'numero_facture' => $numero_facture,
+        ]);
+        // dd($u);
+        // Préparation des données des colis
+        $colisData = [];
+        foreach ($colisCollection as $colis) {
+            $colisData[] = [
+                'description'         => $colis->description_colis,
+                'quantite'            => $colis->quantite_colis,
+                'poids'               => $colis->poids_colis,
+                'type_colis'          => $colis->type_colis,
+                'prix_transit_colis'  => $colis->prix_transit_colis,
+            ];
+        }
+
+        // Passage des données à la vue
+        return view('admin.colis.add.edit_bon_livraison', compact(
+            'date_facture', 
+            'reference_colis', 
+            'expediteur', 
+            'tel_expediteur', 
+            'destinataire', 
+            'prix_total', 
+            'montant_paye', 
+            'reste', 
+            'mode_payement', 
+            'colisData',
+            'numero_facture',
+            'tel_destinataire',
+            'totalMontant',
+            'totalMontantPaye',
+            'restePaye',
+            'colisCollection'
+
+        ));
+    }
+
+    public function imprimerBon_livraison($id)
+    {
+        try {
+            $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Gérer le cas où l'ID n'existe pas
+            abort(404, 'Colis non trouvé.');
+        }
+
+            $colisCollection = Colis::where('reference_colis', $colis->reference_colis)->get();
+
+            if ($colisCollection->isEmpty()) {
+                return redirect()->route('chine_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+            }   
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+        }
+
+        // Récupération du premier colis
+        // dd($colisCollection);
+        $firstColis = $colisCollection->first();
+        $reference_colis = $firstColis->id;
+        $date_facture = now();
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $tel_expediteur = $firstColis->expediteur->tel;
+        $tel_destinataire = $firstColis->destinataire->tel;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $reference_colis = $firstColis->reference_colis;
+        
+        // Calcul du prix total
+        $ids_colis = $colisCollection->pluck('id')->toArray();
+        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+        $totalMontant = $paiements->sum('montant');
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalMontant - $totalMontantPaye;
+       
+        $prix_total = 0;
+        foreach ($colisCollection as $colis) {
+            if (!isset($colis->prix_transit_colis)) {
+                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+            }
+            $prix_total += $colis->prix_transit_colis;
+        }
+
+        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+        
+        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+        // dd($prix_total);
+        $reste = $prix_total - $montant_paye;   
+
+        $id_agent = Auth::user()->id;
+        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+        // dd($nom_agent);
+
+        // Création de la facture
+        Invoice::create([
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
+            'expediteur_id' => $firstColis->expediteur->id,
+            'destinataire_id' => $firstColis->destinataire->id,
+            'agent_id' => $id_agent,
+            'montant' => $prix_total ?? 0,
+            'numero_facture' => $numero_facture,
+            
+
+        ]);
+        // dd($u);
+        // Préparation des données des colis
+        $colisData = [];
+        foreach ($colisCollection as $colis) {
+            $colisData[] = [
+                'description'         => $colis->description_colis,
+                'quantite'            => $colis->quantite_colis,
+                'poids'               => $colis->poids_colis,
+                'type_colis'          => $colis->type_colis,
+                'prix_transit_colis'  => $colis->prix_transit_colis,
+            ];
+        }
+
+        // Passage des données à la vue
+        return view('admin.invoice.edit_bon_livraison', compact(
+            'date_facture', 
+            'reference_colis', 
+            'expediteur', 
+            'tel_expediteur', 
+            'destinataire', 
+            'prix_total', 
+            'montant_paye', 
+            'reste', 
+            'mode_payement', 
+            'colisData',
+            'numero_facture',
+            'tel_destinataire',
+            'totalMontant',
+            'totalMontantPaye',
+            'restePaye',
+            'colisCollection',
+
+        ));
+    }
+
+
 
     public function editFacture($id)
     {

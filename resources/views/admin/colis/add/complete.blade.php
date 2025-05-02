@@ -1,4 +1,4 @@
-@extends('admin.layouts.admin')
+@extends('admin.layouts.adminprint')
 @section('content')
 <section class="p-4 mx-auto">
     <div class="form-container text-center">
@@ -79,11 +79,17 @@
         <hr> {{-- Séparateur visuel --}}
 
         {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
-        <div>
-            {{-- @dd($firstColis->first()->id) --}}
-            <a href="{{ route('colis.imprimer.facture', ['id' => $premierColis->id ?? 0]) }}" target="_blank" class="btn btn-sm btn-info">
-                <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
-            </a>            
+        <div class="d-flex align-items-center gap-2">
+            <div>
+                <a href="{{ route('colis.imprimer.facture', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info">
+                    <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
+                </a>            
+            </div>
+            <div>
+                <a href="{{ route('colis.imprimer.bon_livraison', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info">
+                    <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de facture
+                </a>            
+            </div>
         </div>
         {{-- <h4 class="mb-3">Colis Enregistrés dans cette Transaction</h4> --}}
     @if($colis->isNotEmpty())
