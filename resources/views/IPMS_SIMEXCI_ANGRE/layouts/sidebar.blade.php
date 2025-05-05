@@ -27,7 +27,18 @@
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
-                        
+                        <li class="nav-item">
+                            <a href="{{ route('ipms_angre_colis.create.colis') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Ajouter un colis') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('ipms_angre_colis.colis.valide')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Voir les colis validés') }}</p>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a href="{{route('ipms_angre_colis.suivi')}}" class="nav-link">
                                 <i class="far nav-icon"></i>

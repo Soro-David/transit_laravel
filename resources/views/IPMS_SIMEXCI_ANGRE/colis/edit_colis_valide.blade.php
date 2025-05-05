@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="p-4 mx-auto">
-    <form id="update-form" action="{{ route('agent_colis.valide.update', ['id' => $colis->id]) }}" method="POST" class="form-container">
+    <form id="update-form" action="{{ route('ipms_angre_colis.valide.update', ['id' => $colis->id]) }}" method="POST" class="form-container">
         @csrf
         @method('PUT')
         <div class="form-section">

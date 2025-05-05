@@ -43,94 +43,6 @@ class ChineScanController extends Controller
         return view('AGENCE_CHINE.scan.entrepot');
     }
 
-
-
-
-    // public function get_colis_entrepot(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'En entrepot')  // Filtre l'état des colis
-    //         ->where('expediteurs.agence', 'Agence de Chine')
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
-
-
-    // public function get_colis_entrepot(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',
-    //             'expediteurs.nom as nom_expediteur',
-    //             'expediteurs.prenom as prenom_expediteur',
-    //             'expediteurs.tel as expediteur_tel',
-    //             'destinataires.nom as nom_destinataire',
-    //             'destinataires.prenom as prenom_destinataire',
-    //             'destinataires.tel as destinataire_tel',
-    //             'destinataires.agence as agence_destination',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'En entrepot')
-    //         ->where('expediteurs.agence', 'Agence de Chine')
-    //         ->get();
-    
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-    
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             $firstColis = $group->first(); // Get the first Colis object from the group
-    
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'nom_expediteur' => $firstColis->nom_expediteur,
-    //                 'prenom_expediteur' => $firstColis->prenom_expediteur,
-    //                 'expediteur_tel' => $firstColis->expediteur_tel,
-    //                 'nom_destinataire' => $firstColis->nom_destinataire,
-    //                 'prenom_destinataire' => $firstColis->prenom_destinataire,
-    //                 'destinataire_tel' => $firstColis->destinataire_tel,
-    //                 'destination_agence' => $firstColis->agence_destination,
-    //                 'created_at' => $firstColis->created_at->format('Y-m-d H:i:s'),
-    //             ];
-    //         })->values();
-    
-    //         return DataTables::of($colisWithCount)->make(true);
-    //     }
-    // }
-
     public function get_colis_entrepot(Request $request)
     {
         if ($request->ajax()) {
@@ -265,50 +177,7 @@ class ChineScanController extends Controller
         }
     }
 
-    // public function get_colis_charge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*', 
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as destinataire_tel', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'Chargé') 
-    //         ->where('etat', 'Chargé') 
-    //         ->where('expediteurs.agence', 'Agence de Chine') 
-    
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-    
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'expediteur_nom' => $group->first()->nom_expediteur,
-    //                 'expediteur_prenom' => $group->first()->prenom_expediteur,
-    //                 'expediteur_tel' => $group->first()->expediteur_tel,
-    //                 'expediteur_agence' => $group->first()->agence_expedition, 
-    //                 'destinataire_nom' => $group->first()->nom_destinataire,
-    //                 'destinataire_prenom' => $group->first()->prenom_destinataire,
-    //                 'destinataire_tel' => $group->first()->destinataire_tel,
-    //                 'destinataire_agence' => $group->first()->agence_destination, 
-    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-    //                 'colis' => $group
-    //             ];
-    //         })->values();
-    
-    //         return DataTables::of($colisWithCount)->make(true);
-    //     }
-    // }
-
+ 
 
     public function getColisEntrepot(Request $request)
     {
@@ -355,66 +224,7 @@ class ChineScanController extends Controller
         ]);
     }
     
-    // public function updateColisEntrepot(Request $request)
-    // {
-        
-    //     if (!$request->has('colisId') || !$request->has('id')) {
-    //         $missingParams = [];
-    //         if (!$request->has('colisId')) {
-    //             $missingParams[] = 'colisId';
-    //         }
-    //         if (!$request->has('id')) {
-    //             $missingParams[] = 'id';
-    //         }
-    //         return response()->json([
-    //             'success'  => false,
-    //             'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
-    //         ], 400);
-    //     }
-    
-    
-    //     // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
-    //     $colisList = Colis::where('reference_colis', $request->colisId)
-    //                       ->where('id', $request->id)
-    //                     //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-    //                       ->get();
-    
-    //     // Vérifier si des colis ont été trouvés
-    //     if ($colisList->isEmpty()) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
-    //         ], 404);
-    //     }
-    
-    //     $messages = [];
-    //     $updatedColis = [];
-    
-    //     // Parcourir chaque colis trouvé
-    //     foreach ($colisList as $colis) {
-    //         if ($colis->etat === 'En entrepot') {
-    //             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
-    //         } elseif ($colis->etat === 'Validé') {
-    //             // Modifier l'état du colis en "En entrepot"
-    //             $colis->etat = 'En entrepot';
-    //             $colis->save();
-    //             $updatedColis[] = [
-    //                 'etat'        => $colis->etat,
-    //             ];
-    //             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
-    //         } else {
-    //             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore validé. Impossible de le mettre en entrepôt.";
-    //         }
-    //     }
-    
-    //     return response()->json([
-    //         'success'  => !empty($updatedColis),
-    //         'messages' => $messages,
-    //         'colis'    => $updatedColis,
-    //     ]);
-    //     dd( $updatedColis);
 
-    // }
 
     public function updateColisEntrepot(Request $request)
     {
@@ -454,7 +264,7 @@ class ChineScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'En entrepot') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
             } elseif ($colis->etat === 'Validé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'En entrepot';
@@ -517,7 +327,7 @@ class ChineScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Chargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès";
             } elseif ($colis->etat === 'En entrepot') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'Chargé';
@@ -536,7 +346,7 @@ class ChineScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     
@@ -579,7 +389,7 @@ public function updateColisDecharge(Request $request)
     // Parcourir chaque colis trouvé
     foreach ($colisList as $colis) {
         if ($colis->etat === 'Dechargé') {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Déchargé.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
         } elseif ($colis->etat === 'Fermé') {
             // Modifier l'état du colis en "En entrepot"
             $colis->etat = 'Déchargé';
@@ -598,7 +408,6 @@ public function updateColisDecharge(Request $request)
         'messages' => $messages,
         'colis'    => $updatedColis,
     ]);
-    dd( $updatedColis);
 
 }
 }

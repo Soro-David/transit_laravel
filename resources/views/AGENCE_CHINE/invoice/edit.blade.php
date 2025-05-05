@@ -81,7 +81,7 @@
 
         {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
         <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('chine_colis.imprimer.facture', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info d-flex align-items-center">
+            <a href="{{ route('chine_colis.bon_livraison.pdf', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info d-flex align-items-center">
                 <i class="fas fa-file-invoice me-1"></i> Imprimer Facture
             </a>
         

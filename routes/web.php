@@ -827,6 +827,8 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/imprimer/facture-suivi-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
         Route::get('/imprimer/bon_livraison-simexci/{id}', [ApmsColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
 
+
+
         Route::get('/imprimer/etiquette-suivi-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
 
 
@@ -988,6 +990,18 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::get('/get-devis-colis-IPMS', [ApmsAngreColisController::class, 'get_devis_colis'])->name('get.devis.colis');
         Route::post('/colis/valide/payer-IPMS', [ApmsAngreColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
+
+        Route::get('/create/payement-IPMS', [ApmsAngreColisController::class, 'stepPayment'])->name('create.payement');
+        Route::post('/store/payment-IPMS', [ApmsAngreColisController::class, 'storePayment'])->name('store.payement');
+        Route::get('/generer/qrcode-IPMS', [ApmsAngreColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+        Route::post('/store-produit-ajax',[ApmsAngreColisController::class, 'storeProduit'])->name('store.produit');
+        Route::get('/autocomplete/produit', [ApmsAngreColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        Route::get('/colis-valide-IPMS', [ApmsAngreColisController::class, 'colis_valide'])->name('colis.valide');
+        Route::get('/get-colis-valide-IPMS', [ApmsAngreColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+        Route::get('/create/colis-IPMS', [ApmsAngreColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis-IPMS', [ApmsAngreColisController::class, 'store_colis'])->name('store.colis');
+
+
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_colis_valide'])->name('valide.edit');
@@ -1003,7 +1017,7 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         // Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
 
         // CRUD classique sur colis
-
+        Route::delete('/colis-IPMS/{reference}', [ApmsAngreColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
         Route::get('/on-invoice/edit-IPMS/{id}', [ApmsAngreColisController::class, 'editInvoice'])->name('valide.edit.invoice');
         Route::get('/imprimer/facture-IPMS/{id}', [ApmsAngreColisController::class, 'imprimerFacture'])->name('imprimer.facture');
         Route::get('/imprimer/bon_livraison-IPMS/{id}', [ApmsAngreColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
@@ -1246,7 +1260,12 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
         Route::get('/on-invoice/edit-aft_chine/{id}', [ChineColisController::class, 'editInvoice'])->name('valide.edit.invoice');
         Route::get('/imprimer/facture-aft_chine/{id}', [ChineColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/bon-livraison/{id}/pdf', [ChineColisController::class, 'downloadBonLivraisonPdf'])->name('bon_livraison.pdf');
         Route::get('/imprimer/bon_livraison-aft_chine/{id}', [ChineColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
+
+        // Route::get('/imprimer/facture-aft_chine/{id}', [ChineColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        // Route::get('/imprimer/etiquette-aft_chine/{id}', [ChineColisController::class, 'imprimerEtiquette'])->name('imprimer.etiquette');
+
         Route::get('/imprimer/etiquette-aft_chine/{id}', [ChineColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
 
 

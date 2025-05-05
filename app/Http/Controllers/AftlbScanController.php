@@ -45,51 +45,6 @@ class AftlbScanController extends Controller
 
 
 
-
-    // public function get_colis_entrepot(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'En entrepot')  // Filtre l'état des colis
-    //         ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
-    
-
-
-
     public function get_colis_entrepot(Request $request)
     {
         if ($request->ajax()) {
@@ -180,51 +135,6 @@ class AftlbScanController extends Controller
     }
 
 
-
-    // public function get_colis_charge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*', 
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as destinataire_tel', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'Chargé') 
-    //         ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-    //         ->get(); 
-    
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-    //             // dd($colisGrouped);
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'expediteur_nom' => $group->first()->nom_expediteur,
-    //                 'expediteur_prenom' => $group->first()->prenom_expediteur,
-    //                 'expediteur_tel' => $group->first()->expediteur_tel,
-    //                 'expediteur_agence' => $group->first()->agence_expedition, 
-    //                 'destinataire_nom' => $group->first()->nom_destinataire,
-    //                 'destinataire_prenom' => $group->first()->prenom_destinataire,
-    //                 'destinataire_tel' => $group->first()->destinataire_tel,
-    //                 'destinataire_agence' => $group->first()->agence_destination, 
-    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-    //                 'colis' => $group
-    //             ];
-    //         })->values();
-    
-    //         return DataTables::of($colisWithCount)->make(true);
-    //     }
-    // }
-
     public function get_colis_charge(Request $request)
     {
         if ($request->ajax()) {
@@ -309,7 +219,7 @@ class AftlbScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'En entrepot') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
             } elseif ($colis->etat === 'Validé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'En entrepot';
@@ -372,7 +282,7 @@ class AftlbScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Chargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé avec succès.";
             } elseif ($colis->etat === 'En entrepot') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'Chargé';
@@ -380,7 +290,7 @@ class AftlbScanController extends Controller
                 $updatedColis[] = [
                     'etat'        => $colis->etat,
                 ];
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé avec succès.";
             } else {
                 $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore mis en Entrepot. Impossible de le mettre chargé.";
             }
@@ -391,7 +301,7 @@ class AftlbScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     
@@ -434,7 +344,7 @@ public function updateColisDecharge(Request $request)
     // Parcourir chaque colis trouvé
     foreach ($colisList as $colis) {
         if ($colis->etat === 'Dechargé') {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Déchargé.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
         } elseif ($colis->etat === 'Fermé') {
             // Modifier l'état du colis en "En entrepot"
             $colis->etat = 'Déchargé';
@@ -453,7 +363,7 @@ public function updateColisDecharge(Request $request)
         'messages' => $messages,
         'colis'    => $updatedColis,
     ]);
-    dd( $updatedColis);
+    // dd( $updatedColis);
 
 }
 

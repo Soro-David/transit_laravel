@@ -40,6 +40,7 @@ use App\Services\InfobipService;
 use Barryvdh\DomPDF\Facade;
 use PDF;
 use Illuminate\Support\Collection; 
+// use Barryvdh\DomPDF\Facade\Pdf; 
 
 class ChineColisController extends Controller
 {
@@ -141,178 +142,6 @@ class ChineColisController extends Controller
         // Redirection vers la vue
         return view('AGENCE_CHINE.colis.add', compact('agences', 'client_expediteurs', 'client_destinataires'));
     }
-
-
-
-
-
-    // private function generateReferenceColis()
-    // {
-    //     // Récupérer l'utilisateur connecté
-    //     $user = Auth::user();
-    //     // dd($user);
-    //     // Vérifier si l'utilisateur est connecté
-    //     if (!$user) {
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-    
-    //     // Récupérer la première lettre du nom et du prénom
-    //     $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
-    //     $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-    //     // dd($firstLetterNom, $firstLetterPrenom);
-    //     // Récupérer la première lettre du mois actuel
-    //     $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
-    
-    //     // Initialiser le chiffre à 1
-    //     $increment = 1;
-    
-    //     // Construire la référence de base
-    //     $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-    
-    //     // Vérifier si la référence existe déjà dans la table colis
-    //     while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
-    //         // Incrémenter le chiffre
-    //         $increment++;
-    //         // Mettre à jour la référence avec le nouvel incrément
-    //         $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-    //     }
-    
-    //     return $baseReference; // Retourner la référence finale
-    // }
-    // /**
-    //  * Génère une référence de Contenaire unique
-    //  *
-    //  * @return string
-    //  */
-
-    //  private function generateReferenceContenaire()
-    // {
-    //     $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-    //     $letterIndex = 0; 
-    //     $increment = 1; // Commencer par 1
-
-    //     do {
-    //         $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-    //         $baseReference = "{$currentLetter}{$increment}";
-
-    //         // Vérifier si la référence existe dans la table `colis`
-    //         $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
-
-    //         if ($exists) {
-    //             $increment++; // Incrémenter le numéro
-
-    //             // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
-    //             if ($increment > 5) {
-    //                 $increment = 1; // Réinitialiser le numéro
-    //                 $letterIndex++; // Passer à la lettre suivante
-    //             }
-    //         }
-    //     } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
-
-    //     return $baseReference; // Retourner la référence générée
-    // }
-    
-    // private function generateReferenceVol()
-    // {
-    //     $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-    //     $letterIndex = 0; // Commencer par 'A'
-    //     $increment = 1; // Commencer par 1
-    
-    //     do {
-    //         $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-    //         $baseReference = "{$currentLetter}{$increment}";
-    
-    //         // Vérifier si la référence existe dans la table `colis`
-    //         $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
-    
-    //         if ($exists) {
-    //             $increment++; // Incrémenter le numéro
-    
-    //             // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
-    //             if ($increment > 5) {
-    //                 $increment = 1; // Réinitialiser le numéro
-    //                 $letterIndex++; // Passer à la lettre suivante
-    //             }
-    //         }
-    //     } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
-    
-    //     return $baseReference;// Retourner la référence finale
-    // }
-
-    // private function generateReferenceColisComplet($colisId)
-    // {
-    //     $user = Auth::user();
-    
-    //     if (!$user) {
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-    
-    //     // Initiales
-    //     $initiales = strtoupper(substr($user->last_name, 0, 1) . substr($user->first_name, 0, 1));
-    
-    //     // ID du colis formaté sur 3 chiffres
-    //     $idFormatted = str_pad($colisId, 3, '0', STR_PAD_LEFT);
-    
-    //     // Génération de la partie contenaire : A1 à Z5
-    //     $alphabet = range('A', 'Z');
-    //     $letterIndex = 0;
-    //     $increment = 1;
-    
-    //     do {
-    //         $contenaireRef = $alphabet[$letterIndex] . $increment;
-    //         $exists = DB::table('colis')->where('reference_contenaire', $contenaireRef)->exists();
-    
-    //         if ($exists) {
-    //             $increment++;
-    //             if ($increment > 5) {
-    //                 $increment = 1;
-    //                 $letterIndex++;
-    //             }
-    //         }
-    //     } while ($exists && $letterIndex < count($alphabet));
-    
-    //     if ($letterIndex >= count($alphabet)) {
-    //         throw new \Exception("Plus de références de contenaires disponibles.");
-    //     }
-    
-    //     // Référence finale
-    //     $reference = "{$initiales}-{$idFormatted}-{$contenaireRef}";
-    
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
-
-
-    // public function add_colis(Request $request)
-    // {
-    //     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
-    //                         ->distinct()
-    //                         ->pluck('pays_agence');
-
-    //     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-    //     $agencesExpedition = Agence::where('nom_agence', 'Agence de Chine')->get();
-    //     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-
-    //     // Étape 1 : Créer un colis vide (ou avec des valeurs par défaut)
-    //     $colis = new Colis(); // modèle Eloquent
-    //     $colis->save(); // on sauve pour avoir l'ID
-
-    //     // Étape 2 : Générer la référence à partir de l'ID
-    //     $referenceColis = $this->generateReferenceColisComplet($colis->id);
-
-    //     // Étape 3 : Mettre à jour les références
-    //     $colis->reference_colis = $referenceColis['reference_colis'];
-    //     $colis->reference_contenaire = $referenceColis['reference_contenaire'];
-    //     $colis->save();
-
-    //     return view('AGENCE_CHINE.colis.add_colis', compact('agencesExpedition','agencesDestination', 'paysUniques', 'colis','referenceColis'));
-    // }
-
-
-
-
 
     private function generateParcelReference()
     {
@@ -591,25 +420,25 @@ class ChineColisController extends Controller
     {
        
        // Récupérer les données de l'étape 1 depuis la session
-    $step1Data = session('step1');
+        $step1Data = session('step1');
 
-    // Vérifier si les données existent et contiennent les prix
-    if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
-        // Rediriger vers la première étape avec une erreur si les données sont manquantes
-        // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
-        return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
-    }
+        // Vérifier si les données existent et contiennent les prix
+        if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
+            // Rediriger vers la première étape avec une erreur si les données sont manquantes
+            // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
+            return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+        }
 
-    // Calculer le montant total en additionnant tous les prix du tableau 'prix'
-    $totalPrice = collect($step1Data['prix'])->sum();
+        // Calculer le montant total en additionnant tous les prix du tableau 'prix'
+        $totalPrice = collect($step1Data['prix'])->sum();
 
-    // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
-    session(['step1.total_prix' => $totalPrice]);
+        // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
+        session(['step1.total_prix' => $totalPrice]);
 
-    // Retourner la vue de paiement en lui passant le montant total calculé
-    return view('AGENCE_CHINE.colis.add.payement', [
-        'totalPrice' => $totalPrice
-    ]);
+        // Retourner la vue de paiement en lui passant le montant total calculé
+        return view('AGENCE_CHINE.colis.add.payement', [
+            'totalPrice' => $totalPrice
+        ]);
     }
 
     public function storePayment(Request $request)
@@ -718,26 +547,26 @@ class ChineColisController extends Controller
 
 
        // --- Données de Paiement ---
-    $payementDataSession = session('step2', []);
-    $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
+        $payementDataSession = session('step2', []);
+        $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
 
-    // *** NOUVELLE LOGIQUE POUR MONTANT PAYÉ ***
-    $modePaiement = $payementDataSession['mode_payement'] ?? null;
-    $montantPaiement = 0; // Initialiser à 0
+        // *** NOUVELLE LOGIQUE POUR MONTANT PAYÉ ***
+        $modePaiement = $payementDataSession['mode_payement'] ?? null;
+        $montantPaiement = 0; // Initialiser à 0
 
-    if ($modePaiement === 'cash') {
-        // Prendre le montant reçu pour le paiement en espèces
-        $montantPaiement = $payementDataSession['montant_reçu'] ?? 0;
-    } elseif ($modePaiement === 'delivery') {
-        // Pour paiement à la livraison, le montant payé initialement est 0
-        $montantPaiement = 0;
-    } elseif ($modePaiement) {
-         // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
-         // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
-         // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
-         // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
-        $montantPaiement = $montantTotalEstime;
-    }
+        if ($modePaiement === 'cash') {
+            // Prendre le montant reçu pour le paiement en espèces
+            $montantPaiement = $payementDataSession['montant_reçu'] ?? 0;
+        } elseif ($modePaiement === 'delivery') {
+            // Pour paiement à la livraison, le montant payé initialement est 0
+            $montantPaiement = 0;
+        } elseif ($modePaiement) {
+            // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
+            // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
+            // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
+            // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
+            $montantPaiement = $montantTotalEstime;
+        }
 
         // Prendre l'ID de transaction de CinetPay en priorité si présent
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
@@ -1240,6 +1069,44 @@ class ChineColisController extends Controller
         ));
     }
 
+    public function downloadBonLivraisonPdf($id)
+    {
+        try {
+            $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            abort(404, 'Colis non trouvé.');
+        }
+    
+        $colisCollection = Colis::where('reference_colis', $colis->reference_colis)->get();
+        if ($colisCollection->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+        }
+    
+        $firstColis = $colisCollection->first();
+        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+    
+        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+    
+        $totalPrixTransit = $colisCollection->sum('prix_transit_colis');
+    
+        $paiements = Paiement::whereIn('colis_id', $colisCollection->pluck('id'))->get();
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalPrixTransit - $totalMontantPaye;
+    
+        $pdf = Pdf::loadView('AGENCE_CHINE.invoice.pdf_bon_livraison', [
+            'colisCollection' => $colisCollection,
+            'expediteur' => $expediteur,
+            'destinataire' => $destinataire,
+            'numero_facture' => $numero_facture,
+            'totalPrixTransit' => $totalPrixTransit,
+            'totalMontantPaye' => $totalMontantPaye,
+            'restePaye' => $restePaye,
+        ]);
+    
+        return $pdf->download("bon_livraison_{$numero_facture}.pdf");
+    }
+
     public function editEtiquette($id)
     {
         // 1. Récupérer le colis spécifique par ID avec ses relations
@@ -1254,8 +1121,6 @@ class ChineColisController extends Controller
         $colisEnregistres = Colis::where('reference_colis', $reference_colis)->get();
 
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
-
-        // dd($totalQuantite); // Affichage de la quantité totale des colis avec la même référence
 
         $quantite = max(1, (int)$totalQuantite);
 

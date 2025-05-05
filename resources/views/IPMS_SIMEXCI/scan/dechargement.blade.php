@@ -14,6 +14,11 @@
         <div class="col-md-12">
             <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
                 <h4 class="text-left mt-4">Liste des colis Validés</h4><br>
+                <div class="text-right">
+                                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
+                                        Scanner pour décharger
+                                    </button>
+                                </div><br>
                 <div id="products-container">
                     <div class="table-responsive">
                         <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
@@ -42,6 +47,26 @@
             </div>
         </div>
     </div>
+
+
+        <!-- Modal for editing -->
+        <div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
+            <div class="modal-dialog" style="max-width: 600px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Scanner les colis pour le déchargement</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="reader" ></div>
+                        <p id="result">Résultat : Aucun</p>
+                        <div class="d-flex justify-content-center">
+                            <button id="restartScan" class="btn btn-primary mt-3" style="display: none;">Relancer le scan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     {{-- ===== MODALE DE PAIEMENT ===== --}}
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
@@ -92,7 +117,6 @@
 
 </section>
 
-{{-- Styles (Peuvent être déplacés dans un fichier CSS) --}}
 <style>
     /* Styles généraux pour la table et les boutons */
     #productTable {
@@ -163,10 +187,116 @@
         display: block; /* Affiché quand le champ est invalide */
     }
 
+    #reader {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #c2bdbd; 
+    }
+
 </style>
 
-{{-- Script pour DataTables et les interactions --}}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 <script>
+$(function() {
+  let html5QrCode;
+
+  // Dès que la modale s'affiche, on démarre le scanner
+  $('#scanner_entrepot').on('shown.bs.modal', function () {
+    const $result       = $('#result');
+    const $restartBtn   = $('#restartScan');
+    const $reader       = $('#reader');
+
+    $result.text('Résultat : En attente…');
+    $restartBtn.hide();
+    $reader.show();
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras()
+      .then(cameras => {
+        if (!cameras.length) {
+          return $result.text("Aucune caméra détectée.");
+        }
+
+        html5QrCode.start(
+          cameras[0].id,
+          { fps: 10, qrbox: 250 },
+          decodedText => {
+            // Extraction référence et ID via regex
+            const refMatch = decodedText.match(/Ref:\s*(\S+)/i);
+            const idMatch  = decodedText.match(/ID:\s*(\S+)/i);
+
+            if (!refMatch || !idMatch) {
+              $result.text("⚠️ QR invalide.");
+              return $restartBtn.show(), html5QrCode.stop();
+            }
+            const referenceColis = refMatch[1];
+            const identifiant    = idMatch[1];
+            console.log("Référence colis:", referenceColis, "Identifiant:", identifiant);
+            // Arrêt du scanner
+            html5QrCode.stop().catch(() => {});
+            $reader.hide();
+            $restartBtn.show();
+
+            // Envoi AJAX
+            $.ajax({
+              url: "{{ route('ipms_scan.update.colis.decharge') }}",
+              method: "POST",
+              dataType: "json",
+              headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
+              },
+              data: {
+                colisId: referenceColis,
+                id:      identifiant
+              },
+              success: resp => {
+                console.log("Données envoyées:", { colisId: referenceColis, id: identifiant });
+                if (resp.success) {
+                  $result.text(`✅ Colis ${referenceColis} chargé.`);
+                  setTimeout(() => $('#scanner_entrepot').modal('hide'), 1000);
+                } else {
+                //   $result.text(`⚠️ Erreur : ${resp.message}`);
+                  $result.text(`⚠️ ${resp.messages?.join(' ') || 'Erreur inconnue'}`);
+                }
+              },
+              error: xhr => {
+                let msg = "Erreur serveur.";
+                if (xhr.responseJSON?.message) msg = xhr.responseJSON.message;
+                $result.text(`❌ ${msg}`);
+              }
+            });
+          },
+          errorMsg => {
+            // On ignore les erreurs mineures
+          }
+        ).catch(err => {
+          console.error("Erreur démarrage scanner :", err);
+          $result.text("Impossible de démarrer le scanner.");
+        });
+      })
+      .catch(err => {
+        console.error("Erreur détection caméras :", err);
+        $('#result').text("Erreur détection caméra.");
+      });
+  });
+
+  // À la fermeture, on arrête proprement
+  $('#scanner_entrepot').on('hidden.bs.modal', function () {
+    if (html5QrCode) {
+      html5QrCode.stop().catch(() => {});
+      $('#reader').hide();
+    }
+  });
+
+  // Bouton relancer
+  $('#restartScan').on('click', function() {
+    $('#scanner_entrepot').trigger('shown.bs.modal');
+  });
+});
+
+
 $(document).ready(function () {
     // Configuration du header CSRF pour toutes les requêtes AJAX
     $.ajaxSetup({
@@ -181,7 +311,7 @@ $(document).ready(function () {
         serverSide: true,
         responsive: true,
         language: { url: "{{ asset('js/fr-FR.json') }}" }, // Assurez-vous que ce fichier existe
-        ajax: '{{ route("ipms_colis.get.colis.dump") }}', // Route vers la méthode du contrôleur
+        ajax: '{{ route("ipms_scan.get.colis.decharge") }}', // Route vers la méthode du contrôleur
         columns: [
             // La colonne 'statut_paiement' est générée côté serveur avec HTML
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },

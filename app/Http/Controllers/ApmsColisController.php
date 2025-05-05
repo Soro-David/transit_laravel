@@ -40,6 +40,8 @@ use Exception;
 // use App\Http\Controllers\Exception;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Barryvdh\DomPDF\Facade;
+use PDF;
 
 class ApmsColisController extends Controller
 {
@@ -964,90 +966,19 @@ class ApmsColisController extends Controller
         }
     }
 
-
-public function editInvoice($id)
+public function imprimerBon_livraison($id)
 {
-    
-    // dd($id);
-    $colis_principal = Colis::find($id);
-
-    if (!$colis_principal) {
-        return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
+    try {
+        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Gérer le cas où l'ID n'existe pas
+        abort(404, 'Colis non trouvé.');
     }
 
-    $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-    if ($colis->isEmpty()) {
-        return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-    }
-
-    return view('IPMS_SIMEXCI.invoice.edit', compact('colis'));
-}
-
-public function inprimerEtiquette($id)
-{
-        $colis_principal = Colis::find($id);
-
-        if (!$colis_principal) {
-            return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
-        }
-
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-        if ($colis->isEmpty()) {
-            return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-        }       
-
-        foreach ($colis as $colisItem) {
-               $qrData = [
-                   'Identifiant' => $colisItem->id,
-                   'Référence colis'       => $colisItem->reference_colis,
-                   'Statut'                => $colisItem->status,
-                   'Nom Expéditeur'        => $colisItem->expediteur->nom . ' ' . $colisItem->expediteur->prenom,
-                   'Nom Destinataire'      => $colisItem->destinataire->nom . ' ' . $colisItem->destinataire->prenom,
-                   'Téléphone Destinataire'=> $colisItem->destinataire->tel,
-                   'Agence Destination'    => $colisItem->destinataire->agence ?? '',
-                   'Lieu de Destination'   => $colisItem->destinataire->lieu_destination ?? '',
-               ];
-   
-               $qrCodeContent = '';
-               foreach ($qrData as $key => $value) {
-                   $qrCodeContent .= "{$key}: {$value}\n";
-               }
-   
-               $qrCode = new QrCode($qrCodeContent);
-               $writer = new PngWriter();
-               $result = $writer->write($qrCode);
-               $pngData = $result->getString();
-   
-               $filePath = 'qrcodes/colis_' . $colisItem->id . '.png';
-               $fullPath = public_path($filePath);
-   
-               $directory = dirname($fullPath);
-               if (!File::exists($directory)) {
-                   File::makeDirectory($directory, 0755, true);
-               }
-   
-               file_put_contents($fullPath, $pngData);
-   
-               $colisItem->update(['qr_code_path' => $filePath]);
-           }
-   
-    return view('IPMS_SIMEXCI.invoice.edit_etiquette', compact('colis'));
-}
-
-public function imprimerFacture($id)
-{
-    $colis_principal = Colis::find($id);
-
-        if (!$colis_principal) {
-            return redirect()->route('ipms_colis.dump')->with('error', 'Colis non trouvé.');
-        }
-
-        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+        $colisCollection = Colis::where('reference_colis', $colis->reference_colis)->get();
 
         if ($colisCollection->isEmpty()) {
-            return redirect()->route('ipms_colis.dump')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+            return redirect()->route('ipms_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
         }   
 
     if ($colisCollection->isEmpty()) {
@@ -1055,16 +986,25 @@ public function imprimerFacture($id)
     }
 
     // Récupération du premier colis
+    // dd($colisCollection);
     $firstColis = $colisCollection->first();
-    
+    $reference_colis = $firstColis->id;
     $date_facture = now();
     $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
     $tel_expediteur = $firstColis->expediteur->tel;
+    $tel_destinataire = $firstColis->destinataire->tel;
     $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
     $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
     
     // Calcul du prix total
+    $ids_colis = $colisCollection->pluck('id')->toArray();
+    $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+    $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+    $totalMontant = $paiements->sum('montant');
+    $totalMontantPaye = $paiements->sum('montant_paye');
+    $restePaye = $totalMontant - $totalMontantPaye;
+    
     $prix_total = 0;
     foreach ($colisCollection as $colis) {
         if (!isset($colis->prix_transit_colis)) {
@@ -1074,9 +1014,261 @@ public function imprimerFacture($id)
     }
 
     // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-    $mode_payement = optional($firstColis->paiement)->mode_de_paiement ?? 'N/A';
+    
     $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-    $reste = $prix_total - $montant_paye;
+    // dd($prix_total);
+    $reste = $prix_total - $montant_paye;   
+
+    $id_agent = Auth::user()->id;
+    $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
+    // dd($nom_agent);
+
+    // Création de la facture
+    Invoice::create([
+        'nom_agent' => $nom_agent,
+        'nom_expediteur' => $expediteur,
+        'nom_destinataire' => $destinataire,
+        'expediteur_id' => $firstColis->expediteur->id,
+        'destinataire_id' => $firstColis->destinataire->id,
+        'agent_id' => $id_agent,
+        'montant' => $prix_total ?? 0,
+        'numero_facture' => $numero_facture,
+        
+
+    ]);
+    // dd($u);
+    // Préparation des données des colis
+    $colisData = [];
+    foreach ($colisCollection as $colis) {
+        $colisData[] = [
+            'description'         => $colis->description_colis,
+            'quantite'            => $colis->quantite_colis,
+            'poids'               => $colis->poids_colis,
+            'type_colis'          => $colis->type_colis,
+            'prix_transit_colis'  => $colis->prix_transit_colis,
+        ];
+    }
+
+    // Passage des données à la vue
+    return view('IPMS_SIMEXCI.invoice.edit_bon_livraison', compact(
+        'date_facture', 
+        'reference_colis', 
+        'expediteur', 
+        'tel_expediteur', 
+        'destinataire', 
+        'prix_total', 
+        'montant_paye', 
+        'reste', 
+        'mode_payement', 
+        'colisData',
+        'numero_facture',
+        'tel_destinataire',
+        'totalMontant',
+        'totalMontantPaye',
+        'restePaye',
+        'colisCollection',
+
+    ));
+}
+
+public function editInvoice($id)
+{
+    // Récupérer le colis principal
+    $colis_principal = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+
+    // Récupérer les colis associés à ce colis principal
+    $colisEnregistres = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
+    // dd($colisEnregistres);
+    if ($colisEnregistres->isEmpty()) {
+        return redirect()->back()->with('error', 'Aucun colis n\'a été enregistré avec cette référence.');
+    }
+
+    // Collecter des informations pour afficher les détails
+    $firstColis = $colisEnregistres->first();
+    $firstInfo = [
+        'id' => $firstColis->id,
+        'reference_colis' => $firstColis->reference_colis,
+        'nom_destinataire' => optional($firstColis->destinataire)->nom,
+        'prenom_destinataire' => optional($firstColis->destinataire)->prenom,
+        'tel_destinataire' => optional($firstColis->destinataire)->tel,
+        'nom_expediteur' => optional($firstColis->expediteur)->nom,
+        'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
+        'tel_expediteur' => optional($firstColis->expediteur)->tel,
+    ];
+
+    $totalQuantite = $colisEnregistres->sum('quantite_colis');
+    $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
+
+    // Préparer les paiements associés à ces colis
+    $ids_colis = $colisEnregistres->pluck('id')->toArray();
+    $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+    $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+    $totalMontant = $paiements->sum('montant');
+    $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
+
+    $restePaye = $totalMontant - $totalMontantPaye;
+
+    return view('IPMS_SIMEXCI.invoice.edit', [
+        'colis' => $colisEnregistres,
+        'first' => $firstInfo,
+        'totalQuantite' => $totalQuantite,
+        'totalPrixTransit' => $totalPrixTransit,
+        'restePaye' => $restePaye,
+        'mode_payement' => $mode_payement,
+        'totalMontantPaye' => $totalMontantPaye,
+    ]);
+}
+    
+
+public function editEtiquette($id)
+{
+    // 1. Récupérer le colis spécifique par ID avec ses relations
+    try {
+        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Gérer le cas où l'ID n'existe pas
+        abort(404, 'Colis non trouvé.');
+    }
+    $reference_colis = $colis->reference_colis;
+
+    $colisEnregistres = Colis::where('reference_colis', $reference_colis)->get();
+
+    $totalQuantite = $colisEnregistres->sum('quantite_colis');
+
+    $quantite = max(1, (int)$totalQuantite);
+
+
+    $etiquettes = new \Illuminate\Support\Collection();
+
+    // Construire une collection avec pour chaque étiquette un type_colis spécifique
+    foreach ($typeColisList as $typeColis) {
+        $cloneColis = clone $colis;
+        $cloneColis->type_colis = $typeColis; // On assigne le bon type_colis
+        $etiquettes->push($cloneColis);
+    }
+
+    while ($etiquettes->count() < $quantite) {
+        $cloneColis = clone $colis;
+        $cloneColis->type_colis = $typeColisList->last(); // répéter le dernier type_colis
+        $etiquettes->push($cloneColis);
+    }
+    // 3. Pas besoin de regénérer le QR code ici, on utilise celui déjà généré.
+    $pdf = PDF::loadView('IPMS_SIMEXCI.colis.add.edit_etiquette', [
+            'colis' => $etiquettes, // La collection de clones
+            'totalEtiquettes' => $quantite // Le nombre total d'étiquettes à générer
+        ])
+        ->setPaper('a6', 'landscape')
+        ->setOption('isRemoteEnabled', true); // Important pour les images externes/locales via public_path
+
+    // 5. Retourner le PDF pour téléchargement
+    $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis ?? $colis->id);
+    $fileName = 'etiquettes_' . $safeRef . '.pdf';
+
+    return $pdf->download($fileName);
+}
+
+
+public function inprimerEtiquette($id) 
+{
+    try {
+        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Gérer le cas où l'ID n'existe pas
+        abort(404, 'Colis non trouvé.');
+    }
+    $reference_colis = $colis->reference_colis;
+
+    $colisEnregistres = Colis::where('reference_colis', $reference_colis)->get();
+
+    // Récupérer tous les type_colis
+    $typeColisList = $colisEnregistres->pluck('type_colis');
+    
+    $totalQuantite = $colisEnregistres->sum('quantite_colis');
+
+
+    $quantite = max(1, (int)$totalQuantite);
+
+
+    $etiquettes = new \Illuminate\Support\Collection();
+
+    // Construire une collection avec pour chaque étiquette un type_colis spécifique
+    foreach ($typeColisList as $typeColis) {
+        $cloneColis = clone $colis;
+        $cloneColis->type_colis = $typeColis; // On assigne le bon type_colis
+        $etiquettes->push($cloneColis);
+    }
+
+    while ($etiquettes->count() < $quantite) {
+        $cloneColis = clone $colis;
+        $cloneColis->type_colis = $typeColisList->last(); // répéter le dernier type_colis
+        $etiquettes->push($cloneColis);
+    }
+
+    $pdf = PDF::loadView('IPMS_SIMEXCI.invoice.edit_etiquette', [
+            'colis' => $etiquettes,
+            'totalEtiquettes' => $quantite,
+        ])
+        ->setPaper('a6', 'landscape')
+        ->setOption('isRemoteEnabled', true);
+
+    $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis ?? $colis->id);
+    $fileName = 'etiquettes_' . $safeRef . '.pdf';
+
+    return $pdf->download($fileName);
+}
+
+public function imprimerFacture($id)
+{
+    try {
+        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Gérer le cas où l'ID n'existe pas
+        abort(404, 'Colis non trouvé.');
+    }
+
+        $colisCollection = Colis::where('reference_colis', $colis->reference_colis)->get();
+
+        if ($colisCollection->isEmpty()) {
+            return redirect()->route('ipms_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+        }   
+
+    if ($colisCollection->isEmpty()) {
+        return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+    }
+
+    // Récupération du premier colis
+    $firstColis = $colisCollection->first();
+    // dd($firstColis->reference_colis);
+    $reference_colis = $firstColis->id;
+    $date_facture = now();
+    $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
+    $tel_expediteur = $firstColis->expediteur->tel;
+    $tel_destinataire = $firstColis->destinataire->tel;
+    $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+    $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+    $reference_colis = $firstColis->reference_colis;
+    
+    // Calcul du prix total
+    $ids_colis = $colisCollection->pluck('id')->toArray();
+    $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+    $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
+    $totalMontant = $paiements->sum('montant');
+    $totalMontantPaye = $paiements->sum('montant_paye');
+    $restePaye = $totalMontant - $totalMontantPaye;
+    
+    $prix_total = 0;
+    foreach ($colisCollection as $colis) {
+        if (!isset($colis->prix_transit_colis)) {
+            throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
+        }
+        $prix_total += $colis->prix_transit_colis;
+    }
+
+    // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
+    
+    $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
+    // dd($prix_total);
+    $reste = $prix_total - $montant_paye;   
 
     $id_agent = Auth::user()->id;
     $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
@@ -1105,7 +1297,6 @@ public function imprimerFacture($id)
             'prix_transit_colis'  => $colis->prix_transit_colis,
         ];
     }
-    // dd($colisData);
 
     // Passage des données à la vue
     return view('IPMS_SIMEXCI.invoice.edit_invoice', compact(
@@ -1120,79 +1311,82 @@ public function imprimerFacture($id)
         'mode_payement', 
         'colisData',
         'numero_facture',
+        'tel_destinataire',
+        'totalMontant',
+        'totalMontantPaye',
+        'restePaye'
+
     ));
 }
 
-    // Fonction edit pour les colis en attente
-
-    public function edit_colis_valide($id)
-    {
-        $colis = Colis::findOrFail($id);
-        // dd($colis);
-        return view('IPMS_SIMEXCI.colis.edit_colis_valide', compact('colis'));
-    }
-
-
-    public function update_colis_valide(Request $request, $id)
-    {
-        // Validation des données
-        $request->validate([
-            // 'destinataire_agence' => 'required|string|max:255',
-            // 'destinataire_tel' => 'required|string|max:255',
-            // 'quantite_colis' => 'required|numeric',
-            // 'valeur_colis' => 'required|numeric',
-            // 'mode_transit' => 'required|string|max:255',
-            // 'poids_colis' => 'required|numeric',
-            // 'prix_transit_colis' => 'required|numeric',
-        ]);
-    
-        // Récupération du colis
-        $colis = Colis::findOrFail($id);
-        $request->validate([
-            'nom_expediteur' => 'required|string|max:255',
-            'prenom_expediteur' => 'required|string|max:255',
-            'destinataire_tel' => 'required|string|max:15', // Ajustez la validation selon vos besoins
-            'agence_expediteur' => 'required|string|max:255',
-            'nom_destinataire' => 'required|string|max:255',
-            'prenom_destinataire' => 'required|string|max:255',
-            'destinataire_tel' => 'required|string|max:15',
-            'agence_destinataire' => 'required|string|max:255',
-            'quantite_colis' => 'required|integer|min:1',
-            'valeur_colis' => 'required|numeric|min:0',
-            'mode_transit' => 'nullable|string|max:255',
-            'poids_colis' => 'required|numeric|min:0',
-            'prix_transit_colis' => 'required|numeric|min:0',
-        ]);
-    
-        // Mise à jour des informations du colis
-        $colis->update([
-            'nom_expediteur' => $request->nom_expediteur,
-            'prenom_expediteur' => $request->prenom_expediteur,
-            'tel_expediteur' => $request->destinataire_tel,
-            'agence_expediteur' => $request->agence_expediteur,
-            'nom_destinataire' => $request->nom_destinataire,
-            'prenom_destinataire' => $request->prenom_destinataire,
-            'tel_destinataire' => $request->destinataire_tel,
-            'agence_destinataire' => $request->agence_destinataire,
-            'quantite_colis' => $request->quantite_colis,
-            'valeur_colis' => $request->valeur_colis,
-            'mode_transit' => $request->mode_transit,
-            'poids_colis' => $request->poids_colis,
-            'prix_transit_colis' => $request->prix_transit_colis,
-        ]);
+public function edit_colis_valide($id)
+{
+    $colis = Colis::findOrFail($id);
     // dd($colis);
-        // Redirection avec un message de succès
-        return redirect()->route('ipms_colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
-    }
+    return view('IPMS_SIMEXCI.colis.edit_colis_valide', compact('colis'));
+}
 
 
-    public function print_facture($id)
-    {
-        $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
-        
-        // Retournez une vue pour l'impression
-        return view('IPMS_SIMEXCI.colis.colis_facture', compact('colis'));
-    }
+public function update_colis_valide(Request $request, $id)
+{
+    // Validation des données
+    $request->validate([
+        // 'destinataire_agence' => 'required|string|max:255',
+        // 'destinataire_tel' => 'required|string|max:255',
+        // 'quantite_colis' => 'required|numeric',
+        // 'valeur_colis' => 'required|numeric',
+        // 'mode_transit' => 'required|string|max:255',
+        // 'poids_colis' => 'required|numeric',
+        // 'prix_transit_colis' => 'required|numeric',
+    ]);
+
+    // Récupération du colis
+    $colis = Colis::findOrFail($id);
+    $request->validate([
+        'nom_expediteur' => 'required|string|max:255',
+        'prenom_expediteur' => 'required|string|max:255',
+        'destinataire_tel' => 'required|string|max:15', // Ajustez la validation selon vos besoins
+        'agence_expediteur' => 'required|string|max:255',
+        'nom_destinataire' => 'required|string|max:255',
+        'prenom_destinataire' => 'required|string|max:255',
+        'destinataire_tel' => 'required|string|max:15',
+        'agence_destinataire' => 'required|string|max:255',
+        'quantite_colis' => 'required|integer|min:1',
+        'valeur_colis' => 'required|numeric|min:0',
+        'mode_transit' => 'nullable|string|max:255',
+        'poids_colis' => 'required|numeric|min:0',
+        'prix_transit_colis' => 'required|numeric|min:0',
+    ]);
+
+    // Mise à jour des informations du colis
+    $colis->update([
+        'nom_expediteur' => $request->nom_expediteur,
+        'prenom_expediteur' => $request->prenom_expediteur,
+        'tel_expediteur' => $request->destinataire_tel,
+        'agence_expediteur' => $request->agence_expediteur,
+        'nom_destinataire' => $request->nom_destinataire,
+        'prenom_destinataire' => $request->prenom_destinataire,
+        'tel_destinataire' => $request->destinataire_tel,
+        'agence_destinataire' => $request->agence_destinataire,
+        'quantite_colis' => $request->quantite_colis,
+        'valeur_colis' => $request->valeur_colis,
+        'mode_transit' => $request->mode_transit,
+        'poids_colis' => $request->poids_colis,
+        'prix_transit_colis' => $request->prix_transit_colis,
+    ]);
+    // dd($colis);
+    // Redirection avec un message de succès
+    return redirect()->route('ipms_colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
+}
+
+
+public function print_facture($id)
+{
+    $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
+    
+    // Retournez une vue pour l'impression
+    return view('IPMS_SIMEXCI.colis.colis_facture', compact('colis'));
+}
     
     public function colis_valide(Request $request)
     {

@@ -1,4 +1,4 @@
-@extends('AFT_LOUIS_BLERIOT.layouts.agentprint')
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agentprint')
 
 @section('content-header')
 @endsection
@@ -97,28 +97,28 @@
 <style>
     body {
          background-color: #fff;
-         font-family: Arial, sans-serif;
+         font-family: Arial, sans-serif; /* Common font */
     }
     .form-container {
-        max-width: 800px;
+        max-width: 800px; /* Standard A4-like width */
         margin: auto;
         background-color: #fff;
         padding: 30px;
-        border-radius: 5px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px; /* Subtle rounding */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
     }
     .table {
         width: 100%;
-        margin-bottom: 1rem;
-        color: #212529;
-        border-collapse: collapse;
+        margin-bottom: 1rem; /* Consistent spacing */
+        color: #212529; /* Standard text color */
+        border-collapse: collapse; /* Clean borders */
     }
 
     .table th,
     .table td {
-        padding: 0.5rem;
+        padding: 0.5rem; /* Adjust padding */
         vertical-align: top;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid #dee2e6; /* Standard bootstrap border color */
     }
 
     .table thead th {

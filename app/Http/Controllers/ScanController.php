@@ -263,7 +263,7 @@ public function updateColisEntrepot(Request $request)
     // Parcours des colis trouvés
     foreach ($colisList as $colis) {
         if ($colis->etat === 'En entrepot') {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
         } elseif ($colis->etat === 'Validé') {
             // Modification de l'état du colis en "En entrepot"
             $colis->etat = 'En entrepot';
@@ -327,7 +327,7 @@ public function updateColisCharge(Request $request)
     // Parcourir chaque colis trouvé
     foreach ($colisList as $colis) {
         if ($colis->etat === 'Chargé') {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès.";
         } elseif ($colis->etat === 'En entrepot') {
             // Modifier l'état du colis en "En entrepot"
             $colis->etat = 'Chargé';
@@ -389,7 +389,7 @@ $updatedColis = [];
 // Parcourir chaque colis trouvé
 foreach ($colisList as $colis) {
     if ($colis->etat === 'Dechargé') {
-        $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Déchargé.";
+        $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
     } elseif ($colis->etat === 'Fermé') {
         // Modifier l'état du colis en "En entrepot"
         $colis->etat = 'Déchargé';
