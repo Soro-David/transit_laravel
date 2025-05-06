@@ -98,6 +98,13 @@
                         </li>
                     </ul>
                 </li>
+                 {{-- Gestion des Ballon --}}
+               <li class="nav-item has-treeview">
+                    <a href="{{ route('aftlb_colis.liste_ballon') }}" class="nav-link">
+                        <i class="fas fa-ship"></i>
+                        <p>{{ __('Ballon Arrivés') }}</p>
+                    </a>
+                </li>
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">
@@ -128,6 +135,12 @@
                             <a href="{{route('aftlb_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Dechargement') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('aftlb_scan.livre')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Livré') }}</p>
                             </a>
                         </li>
                     </ul>

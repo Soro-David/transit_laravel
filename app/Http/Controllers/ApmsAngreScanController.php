@@ -54,95 +54,50 @@ class ApmsAngreScanController extends Controller
 
 
 
-
     public function get_colis_entrepot(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.*', 
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
-                'expediteurs.tel as tel_expediteur', 
+                'expediteurs.tel as expediteur_tel', 
                 'expediteurs.agence as agence_expedition', 
                 'destinataires.nom as nom_destinataire', 
                 'destinataires.prenom as prenom_destinataire', 
-                'destinataires.tel as tel_destinataire', 
+                'destinataires.tel as destinataire_tel', 
                 'destinataires.agence as agence_destination',
-                'colis.etat as etat',
                 'colis.created_at as created_at'
             )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-            ->where('etat', 'Chargé')  // Filtre l'état des colis
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('etat', 'En entrepot')
+            ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
             ->get(); 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-                ->make(true);
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->nom_expediteur,
+                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->agence_expedition, 
+                    'destinataire_nom' => $group->first()->nom_destinataire,
+                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)->make(true);
         }
     }
     
-    // Ajax pour récupérer la liste des colis en Decharge
-
-    // public function get_colis_decharge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.reference_colis as reference_colis',
-    //             'expediteurs.nom as expediteur_nom', 
-    //             'expediteurs.prenom as expediteur_prenom', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as expediteur_agence', 
-    //             'destinataires.nom as destinataire_nom', 
-    //             'destinataires.prenom as destinataire_prenom', 
-    //             'destinataires.agence as destinataire_agence', 
-    //             'destinataires.tel as destinataire_tel',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'Dechargé')  // Filtre l'état des colis
-    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-    //         ->where('colis.mode_transit', 'aerien')
-    //         ->get(); 
-    
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-    
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'expediteur_nom' => $group->first()->expediteur_nom,
-    //                 'expediteur_prenom' => $group->first()->expediteur_prenom,
-    //                 'expediteur_tel' => $group->first()->expediteur_tel,
-    //                 'expediteur_agence' => $group->first()->expediteur_agence, 
-    //                 'destinataire_nom' => $group->first()->destinataire_nom,
-    //                 'destinataire_prenom' => $group->first()->destinataire_prenom,
-    //                 'destinataire_tel' => $group->first()->destinataire_tel,
-    //                 'destinataire_agence' => $group->first()->destinataire_agence, 
-    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-    //                 'colis' => $group
-    //             ];
-    //         })->values();
-    
-    //         return DataTables::of($colisWithCount)->make(true);
-    //     }
-    // }
   
     public function get_colis_decharge(Request $request)
     {
@@ -171,14 +126,14 @@ class ApmsAngreScanController extends Controller
                 ->where('colis.etat', 'Dechargé')
                 ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
                 ->where('colis.mode_transit', 'aerien')
-                ->whereNull('colis.archived_at') // Exclure les colis archivés
-                ->orderBy('colis.created_at', 'desc') // Optionnel: trier
+                ->whereNull('colis.archived_at')
+                ->orderBy('colis.created_at', 'desc')
                 ->get();
 
                 $colisIds = $colis->pluck('id')->unique()->toArray();
 
                 $paiements = Paiement::whereIn('colis_id', $colisIds)
-                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye')) // Sommer directement en SQL
+                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
                                     ->groupBy('colis_id')
                                     ->get()
                                     ->keyBy('colis_id'); 
@@ -186,11 +141,11 @@ class ApmsAngreScanController extends Controller
                 $colisGrouped = $colis->groupBy('reference_colis');
 
                 $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
-                    $firstColis = $group->first(); // Prendre le premier colis comme référence pour certaines infos
+                    $firstColis = $group->first();
                     $quantiteTotale = $group->sum('quantite_colis');
                     $prixTotalColis = $group->sum('prix_transit_colis');
                     $montantTotalPaye = 0;
-                    $colisIdsInGroup = $group->pluck('id')->toArray(); // IDs des colis dans ce groupe
+                    $colisIdsInGroup = $group->pluck('id')->toArray();
 
                     foreach ($colisIdsInGroup as $colisId) {
                         if (isset($paiements[$colisId])) {
@@ -199,19 +154,19 @@ class ApmsAngreScanController extends Controller
                     }
 
                     $paymentStatus = 'impaye';
-                    $tolerance = 0.01; // Tolérance pour les comparaisons flottantes
+                    $tolerance = 0.01;
 
                     if ($montantTotalPaye > 0) {
                         if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
                             $paymentStatus = 'paye'; // Totalement payé
                         } elseif ($montantTotalPaye < $prixTotalColis) {
-                            $paymentStatus = 'partiel'; // Partiellement payé
+                            $paymentStatus = 'partiel';
                         }
                     }
 
                     return [
                         'reference_colis' => $reference,
-                        'nombre_de_colis' => $quantiteTotale, // Somme des quantités
+                        'nombre_de_colis' => $quantiteTotale,
                         'expediteur_nom' => $firstColis->expediteur_nom,
                         'expediteur_prenom' => $firstColis->expediteur_prenom,
                         'expediteur_tel' => $firstColis->expediteur_tel,
@@ -220,19 +175,18 @@ class ApmsAngreScanController extends Controller
                         'destinataire_prenom' => $firstColis->destinataire_prenom,
                         'destinataire_tel' => $firstColis->destinataire_tel,
                         'destinataire_agence' => $firstColis->destinataire_agence,
-                        'etat' => $firstColis->etat, // L'état devrait être le même pour tout le groupe
+                        'etat' => $firstColis->etat,
                         'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A', // Formatage de la date
-                        'payment_status' => $paymentStatus, // Statut calculé
-                        'prix_total' => $prixTotalColis, // Prix total du groupe
-                        'montant_paye' => $montantTotalPaye, // Montant total payé pour le groupe
-                        'colis_ids' => json_encode($colisIdsInGroup), // IDs du groupe en JSON pour le bouton Payer
-                        'first_colis_id' => $firstColis->id // ID du premier colis pour Edit/Invoice
+                        'payment_status' => $paymentStatus,
+                        'prix_total' => $prixTotalColis,
+                        'montant_paye' => $montantTotalPaye,
+                        'colis_ids' => json_encode($colisIdsInGroup),
+                        'first_colis_id' => $firstColis->id
                     ];
-                })->values(); // Transformer la collection en tableau indexé numériquement
+                })->values();
 
                 return DataTables::of($processedData)
                     ->addColumn('statut_paiement', function ($row) {
-                        // Générer l'icône de statut de paiement avec tooltip
                         $status = $row['payment_status'];
                         $iconClass = ''; $iconColor = ''; $title = '';
                         $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
@@ -424,7 +378,7 @@ class ApmsAngreScanController extends Controller
                           ->where('id', $request->id)
                         //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
                           ->get();
-    
+        // dd($colisList);
         // Vérifier si des colis ont été trouvés
         if ($colisList->isEmpty()) {
             return response()->json([
@@ -439,7 +393,7 @@ class ApmsAngreScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'En entrepot') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
             } elseif ($colis->etat === 'Validé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'En entrepot';
@@ -458,12 +412,10 @@ class ApmsAngreScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     
-    // Fonction Ajax pour le Scan chargement
-    // {{ route("scan.get.colis.charge") }}
     public function updateColisCharge(Request $request)
     {
         
@@ -502,7 +454,7 @@ class ApmsAngreScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Chargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Chargé succès";
             } elseif ($colis->etat === 'En entrepot') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'Chargé';
@@ -521,7 +473,7 @@ class ApmsAngreScanController extends Controller
             'messages' => $messages,
             'colis'    => $updatedColis,
         ]);
-        dd( $updatedColis);
+        // dd( $updatedColis);
 
     }
     

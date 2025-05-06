@@ -51,6 +51,8 @@ class ScanController extends Controller
         if ($request->ajax()) {
             $colis = Colis::select(
                 'colis.*', 
+                'colis.reference_colis',
+                'colis.quantite_colis',
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
                 'expediteurs.tel as expediteur_tel', 
@@ -69,9 +71,10 @@ class ScanController extends Controller
             $colisGrouped = $colis->groupBy('reference_colis');
     
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
                     'expediteur_nom' => $group->first()->nom_expediteur,
                     'expediteur_prenom' => $group->first()->prenom_expediteur,
                     'expediteur_tel' => $group->first()->expediteur_tel,
@@ -88,6 +91,7 @@ class ScanController extends Controller
             return DataTables::of($colisWithCount)->make(true);
         }
     }
+    
     
 
     public function get_colis_decharge(Request $request)
@@ -115,7 +119,7 @@ class ScanController extends Controller
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
                     'expediteur_nom' => $group->first()->nom_expediteur,
                     'expediteur_prenom' => $group->first()->prenom_expediteur,
                     'expediteur_tel' => $group->first()->expediteur_tel,
@@ -159,7 +163,7 @@ class ScanController extends Controller
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
                     'expediteur_nom' => $group->first()->nom_expediteur,
                     'expediteur_prenom' => $group->first()->prenom_expediteur,
                     'expediteur_tel' => $group->first()->expediteur_tel,

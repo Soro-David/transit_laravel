@@ -20,6 +20,7 @@ use App\Models\Expediteur;
 use App\Models\Destinataire;
 use App\Models\Bateaux;
 use App\Models\Paiement;
+use App\Models\Produit;
 use App\Models\Article;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
@@ -32,6 +33,7 @@ use App\Services\InfobipService;
 use Barryvdh\DomPDF\Facade;
 use PDF;
 use Illuminate\Support\Collection; 
+use Illuminate\Support\Carbon;
 
 class ApmsAngreColisController extends Controller
 {
@@ -554,6 +556,23 @@ class ApmsAngreColisController extends Controller
 
     }
 
+
+    public function storeProduit(Request $request)
+    {
+        $request->validate([
+            'description' => 'required|string|max:255',
+            'categorie' => 'required|string|max:100|in:Colis,Service,Remise',
+            'prix' => 'required|numeric|min:0',
+        ]);
+    
+        Produit::create([
+            'description' => $request->description,
+            'categorie' => $request->categorie,
+            'prix' => $request->prix,
+        ]);
+    
+        return response()->json(['message' => 'Produit ajouté avec succès !'], 201);
+    }
     
     
     public function search(Request $request)
@@ -1164,7 +1183,7 @@ public function get_colis_hold(Request $request)
                 ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
                 ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
                 ->where('colis.etat', 'Validé') // Filtrer par état 'Validé'
-                ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
                 ->whereNull('colis.archived_at') // Exclure les colis archivés
                 ->orderBy('colis.created_at', 'desc') // Optionnel: trier
                 ->get();
@@ -1302,6 +1321,176 @@ public function get_colis_hold(Request $request)
         abort(404); 
     }
 
+    public function get_colis_vol(Request $request)
+    {
+
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.id', // Ajout de l'id pour éviter les erreurs
+                'colis.reference_colis',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat',
+                'colis.created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.mode_transit', 'Aerien')
+            ->where('colis.etat', 'Chargé')
+            ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->get();
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'colis' => $group,
+                    'id' => $group->first()->id 
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
+                })
+                ->addColumn('action', function ($row) {
+                    $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
+                    return '
+                       <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group">
+                                <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div> 
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    public function get_cargaison_ferme(Request $request)
+    {
+        if ($request->ajax()) {
+            $bateaux = Bateaux::select(
+                'id',
+                'reference_bateau',
+                'reference_conteneur',
+                'created_at as date_depart',
+                'date_arriver'
+                )
+                ->where('agence_expedition', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                ->get();
+            return DataTables::of($bateaux)
+                ->editColumn('date_depart', function ($row) {
+                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+                })
+                ->editColumn('date_arriver', function ($row) {
+                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
+                })->addColumn('actions', function ($row) {
+                    $editUrl = route('ipms_angre_colis.bateaux.edit', $row->id);
+                    $deleteUrl = route('ipms_angre_colis.bateaux.destroy', $row->id);
+                    $listColisUrl = route('ipms_angre_colis.liste.bateau', $row->reference_conteneur);
+                
+                    return '
+                        <div class="d-flex justify-content-center gap-1">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning rounded-circle" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="' . $listColisUrl . '" class="btn btn-sm btn-info rounded-circle" title="Voir les colis">
+                                <i class="fas fa-box"></i>
+                            </a>
+                            <form action="' . $deleteUrl . '" method="POST" onsubmit="return confirm(\'Confirmer la suppression ?\')">
+                                ' . csrf_field() . method_field('DELETE') . '
+                                <button type="submit" class="btn dt-button btn-sm btn-danger rounded-circle" title="Annuler">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                
+                            
+                        </div>
+                    ';
+                })            
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
+    }
+
+    public function cargaison_ferme(Request $request)
+    {
+
+        $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+
+        // Récupérer les références de conteneurs fermés, sans doublons
+        $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+
+        // Obtenir le mois et l'année actuels
+        $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
+        $annee = Carbon::now()->year;
+
+        return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
+    }
+
+    public function edit_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        return view('IPMS_SIMEXCI_ANGRE.cargaison.edit_bateau', compact('bateau'));
+    }
+
+    public function destroy_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        $bateau->delete();
+    
+        return redirect()->back()->with('success', 'Bateau supprimé.');
+    }
+
+    public function liste_colis_par_bateau($reference_conteneur)
+    {
+        $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
+        // dd($colis);
+    
+        return view('IPMS_SIMEXCI_ANGRE.cargaison.liste_bateau', compact('colis'));
+    }
+
+    public function update_bateaux(Request $request, $id)
+    {
+        // dd($id);
+        $request->validate([
+            'reference_bateau' => 'required|string|max:255',
+            'reference_contenaire' => 'required|string|max:255',
+            'date_depart' => 'required|date',
+            'date_arriver' => 'required|date',
+        ]);
+    
+        $bateau = Bateaux::findOrFail($id);
+        $bateau->reference_bateau = $request->reference_bateau;
+        $bateau->reference_conteneur = $request->reference_contenaire;
+        $bateau->created_at = $request->date_depart;
+        $bateau->date_arriver = $request->date_arriver;
+        $bateau->save();
+    
+        return redirect()->route('ipms_angre_colis.cargaison.ferme')->with('success', 'Bateau modifié avec succès.');
+    }
     // Fonction edit pour les colis en attente
 
     public function edit_colis_valide($id)
@@ -1378,19 +1567,89 @@ public function get_colis_hold(Request $request)
         return view('IPMS_SIMEXCI_ANGRE.colis.valide');
     }
     // function de suppression des colis validés
-    public function destroy_colis_valide($id)
+    public function destroy_colis_valide($reference)
     {
-        // dd($id);
         try {
-            $colis = Colis::findOrFail($id);
-            
-            $colis->delete();
-            return redirect()->route('ipms_angre_colis.hold')->with('success', 'Colis supprimé avec succès !');
+            // Récupère tous les colis avec la même référence
+            $colisList = Colis::where('reference_colis', $reference)
+                ->whereNull('archived_at') // éviter de réarchiver
+                ->get();
+                // dd($colisList);
+    
+            if ($colisList->isEmpty()) {
+                return response()->json(['error' => 'Aucun colis trouvé pour cette référence.'], 404);
+            }
+    
+            foreach ($colisList as $colis) {
+                $colis->archived_at = now();
+                $colis->save();
+            }
+    
+            return response()->json(['success' => 'Colis archivés avec succès !']);
         } catch (\Exception $e) {
-            return redirect()->route('ipms_angre_colis.hold')->with('error', 'Une erreur est survenue lors de la suppression du colis : ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
         }
     }
 
+    public function store_bateaux(Request $request)
+    {
+        try {
+            // dd($request->all());
+            // Validation des données
+            $request->validate([
+                'reference_bateau' => 'required|unique:bateaux,reference_bateau',
+                'reference_conteneur' => 'required',
+                'type' => 'required',
+                'date_arrive' => 'required|date',
+                'compagnie' => 'required|string',
+                'agence_destination' => 'required|string',
+            ],
+            [
+                'reference_bateau.required' => 'La référence du bateau est obligatoire.',
+                'reference_bateau.unique' => 'La référence du bateau doit être unique.',
+                'reference_conteneur.required' => 'La référence du conteneur est obligatoire.',
+                'type.required' => 'Le type de véhicule est obligatoire.',
+                'date_arrive.required' => 'La date d\'arrivée est obligatoire.',
+                'date_arrive.date' => 'La date d\'arrivée doit être une date valide.',
+                'compagnie.required' => 'Le nom de la compagnie est obligatoire.',
+                'compagnie.string' => 'Le nom de la compagnie doit être une chaîne de caractères.',
+                'agence_destination.required' => 'L\'agence de destination est obligatoire.',
+                'agence_destination.string' => 'L\'agence de destination doit être une chaîne de caractères.',
+            ]);
+    
+            // Vérification manuelle si le numero_bateau existe déjà (s’il est fourni)
+            if ($request->filled('numero_bateau')) {
+                $exists = Bateaux::where('numero_bateau', $request->numero_bateau)->exists();
+                if ($exists) {
+                    return redirect()->back()
+                        ->with('error', 'Le numéro de bateau "' . $request->numero_bateau . '" existe déjà.')
+                        ->withInput();
+                }
+            }
+            // dd($request->all());
+            // Création du bateau
+            Bateaux::create([
+                'reference_bateau' => $request->reference_bateau,
+                'reference_conteneur' => $request->reference_conteneur,
+                'type' => $request->type,
+                'date_arriver' => $request->date_arrive,
+                'compagnie' => $request->compagnie,
+                'agence_destination' => $request->agence_destination,
+                'agence_expedition' => $request->agence_expedition,
+                'nom_bateau' => $request->nom_bateau ?? null,
+                'numero_bateau' => $request->numero_bateau ?? null,
+                'nom_ballon' => $request->nom_ballon ?? null,
+                'numero_ballon' => $request->numero_ballon ?? null,
+            ]);
+    
+            return redirect()->back()->with('success', 'Bateau créé avec succès !');
+    
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur s\'est produite : ' . $e->getMessage())->withInput();
+        }
+    }
 
 
     public function edit_qrcode($id)
@@ -1490,75 +1749,146 @@ public function get_colis_hold(Request $request)
         }
     }
 
-    public function get_colis_vol(Request $request)
+    // public function get_colis_vol(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $colis = Colis::select(
+    //             'colis.*',  // Sélectionne toutes les colonnes de colis
+    //             'colis.reference_colis as reference_colis',
+    //             'expediteurs.nom as expediteur_nom', 
+    //             'expediteurs.prenom as expediteur_prenom', 
+    //             'expediteurs.tel as expediteur_tel', 
+    //             'expediteurs.agence as expediteur_agence', 
+    //             'destinataires.nom as destinataire_nom', 
+    //             'destinataires.prenom as destinataire_prenom', 
+    //             'destinataires.agence as destinataire_agence', 
+    //             'destinataires.tel as destinataire_tel',
+    //             'colis.etat as etat',
+    //             'colis.created_at as created_at'
+    //         )
+    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
+    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
+    //         ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
+    //         ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
+    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+    //         ->get(); // Exécute la requête 
+
+    //         return DataTables::of($colis)
+    //             ->addColumn('action', function ($row) {
+    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+    //                 return '
+    //                     <div class="btn-group">
+    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+    //                             <i class="fas fa-eye"></i>
+    //                         </a>
+    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+    //                             <i class="fas fa-credit-card"></i>
+    //                         </a>
+    //                     </div>
+    //                 ';
+    //             })
+    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+    //             ->make(true);
+    //     }
+    // }
+   
+    public function contenaire_fermer(Request $request)
     {
-        if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
-                'colis.reference_colis as reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
-            ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
-            ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
-            ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-            ->get(); // Exécute la requête 
+    
+        // dd($request);
+        try {
+            // Démarrez une transaction de base de données pour garantir l'atomicité
+            DB::beginTransaction();
+    
+            $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Définir l'agence une seule fois
 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
+            $colis = Colis::where('etat', 'Chargé')
+                ->where('mode_transit', 'aerien')
+                ->whereHas('expediteur', function ($query) use ($agence) {
+                    $query->where('agence', $agence);
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-                ->make(true);
+                ->get();
+    
+            $count = $colis->count();
+            if ($count === 0) {
+                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé et un mode de transit Maritime.');
+            }
+    
+            // Générer une référence unique pour le conteneur
+            $referenceContenaire = $this->generateReferenceContenaire();
+    
+            // Mise à jour des enregistrements
+            $updatedCount = Colis::where('etat', 'Chargé')
+                ->where('mode_transit', 'aerien')
+                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+    
+            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+            if ($updatedCount !== $count) {
+                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+            }
+    
+            // Commit la transaction
+            DB::commit();
+    
+            // Retourner un message de succès avec le nombre de colis traités
+            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+    
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
     }
-   
 
-public function cargaison_ferme(Request $request)
-{
-    return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme');
-}
-public function contenaire_fermer(Request $request)
-{
+    public function vol_fermer(Request $request)
+    {
+        // dd($request);
+        try {
+            // Démarrez une transaction de base de données pour garantir l'atomicité
+            DB::beginTransaction();
+            $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Définir l'agence une seule fois
 
-try {
-    // Compter les enregistrements avant la mise à jour
-    $count = Colis::where('etat', 'Chargé')->count();
-    if ($count === 0) {
-        return redirect()->back()->with('warning', 'Aucun colis avec l’état "validé" trouvé.');
+        $colis = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'aerien')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->get();
+
+        $count = $colis->count();
+    
+            if ($count === 0) {
+                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+            }
+    
+            // Générer une référence unique pour le conteneur
+            $referenceContenaire = $this->generateReferenceContenaire();
+    
+            // Mise à jour des enregistrements
+            $updatedCount = Colis::where('etat', 'Chargé')
+                                ->where('mode_transit', 'aerien')
+                                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+    
+            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+            if ($updatedCount !== $count) {
+                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+            }
+    
+            // Commit la transaction
+            DB::commit();
+    
+            // Retourner un message de succès avec le nombre de colis traités
+            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+    
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+        }
     }
-     // Générer une référence unique pour le conteneur
-     $referenceContenaire = 'CNT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(3));
-    // Mise à jour des enregistrements
-    $colisData = Colis::where('etat', 'Chargé')
-        ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-
-    return redirect()->back()->with('success', "$colisData colis sont enregistrer dans le conteneur $referenceContenaire avec succès.");
-} catch (\Exception $e) {
-    return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
-}
-}
 
 
 
@@ -1581,11 +1911,13 @@ public function liste_vol(Request $request)
     return view('IPMS_SIMEXCI_ANGRE.cargaison.liste_vol',compact('referenceVol'));
 }
 
+
 public function liste_ballon()
 {
     // Récupérer uniquement les bateaux non récupérés
     $ballons = Bateaux::select('id', 'reference_bateau', 'date_arriver', 'reference_conteneur')
-                      ->where('recuperer', '!=', 'oui') // Exclure les bateaux déjà récupérés
+                      ->where('recuperer', '!=', 'oui')
+                      ->where('agence_expedition', 'IPMS-SIMEX-CI Angre 8ème Tranche')
                       ->where('type', '=', 'ballon')
                       ->get();
 
@@ -1643,27 +1975,27 @@ public function validerBallon(Request $request)
 }
 
 
-    public function get_ballon(Request $request)
-    {
-        if ($request->ajax()) {
-            $ballon = Bateaux::select(
-                'reference_bateau',
-                'created_at as date_depart', // Création comme date de départ
-                'date_arriver'
-            )->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-            ->where('recuperer', '=', 'oui')
-            ->get();
-    
-            return DataTables::of($ballon)
-                ->editColumn('date_depart', function ($row) {
-                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
-                })
-                ->editColumn('date_arriver', function ($row) {
-                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
-                })
-                ->make(true);
-        }
+public function get_ballon(Request $request)
+{
+    if ($request->ajax()) {
+        $ballon = Bateaux::select(
+            'reference_bateau',
+            'created_at as date_depart',
+            'date_arriver'
+        )->where('agence_expedition', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+        ->where('recuperer', '=', 'oui')
+        ->get();
+
+        return DataTables::of($ballon)
+            ->editColumn('date_depart', function ($row) {
+                return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+            })
+            ->editColumn('date_arriver', function ($row) {
+                return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
+            })
+            ->make(true);
     }
+}
 
 public function imprimerBon_livraison($id)
 {

@@ -1,10 +1,11 @@
 @extends('admin.layouts.adminprint')
+
 @section('content')
 <section class="p-4 mx-auto">
     <div class="form-container text-center">
         {{-- Affichage résumé (basé sur $first et totaux) --}}
         <div class="row d-flex justify-content-around mb-4">
-            {{-- Carte Récapitulatif Colis (utilisant $totalPrixTransit, $first['montant_paye'], $first['reste']) --}}
+            {{-- Carte Récapitulatif Colis --}}
             <div class="col-md-5 col-lg-4">
                  <div class="card border-0 rounded shadow-sm">
                      <div class="card-header bg-light border-0">
@@ -12,7 +13,7 @@
                      </div>
                      <div class="card-body p-4">
                          <div class="mb-3 d-flex align-items-center">
-                            <label class="form-label fw-bold w-50">Réf. Principale:</label> {{-- Référence du premier colis comme réf globale --}}
+                            <label class="form-label fw-bold w-50">Réf. Principale:</label>
                             <span class="form-control-plaintext w-50">{{ $first['reference_colis'] ?? 'N/A' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
@@ -30,7 +31,7 @@
                      </div>
                  </div>
              </div>
-             {{-- Carte Expediteur (utilise $first) --}}
+             {{-- Carte Expediteur --}}
              <div class="col-md-5 col-lg-4">
                  <div class="card border-0 rounded shadow-sm">
                      <div class="card-header bg-light border-0">
@@ -52,7 +53,7 @@
                      </div>
                  </div>
              </div>
-            {{-- Carte Destinataire (utilise $first) --}}
+            {{-- Carte Destinataire --}}
              <div class="col-md-5 col-lg-4">
                   <div class="card border-0 rounded shadow-sm">
                      <div class="card-header bg-light border-0">
@@ -76,9 +77,8 @@
              </div>
         </div>
 
-        <hr> {{-- Séparateur visuel --}}
+        <hr>
 
-        {{-- Liste détaillée des colis enregistrés avec leurs boutons --}}
         <div class="d-flex align-items-center gap-2">
             <div>
                 <a href="{{ route('colis.imprimer.facture', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info">
@@ -91,35 +91,32 @@
                 </a>            
             </div>
         </div>
-        {{-- <h4 class="mb-3">Colis Enregistrés dans cette Transaction</h4> --}}
-    @if($colis->isNotEmpty())
+            
+        {{-- $colis ici est la collection de colis ayant la même reference_colis, passée par le contrôleur de cette vue de résumé. --}}
+        {{-- $totalQuantite doit être $colis->count() --}}
+        @if(isset($colis) && $colis->isNotEmpty()) 
         <div class="list-group">
             <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm rounded border-0">
                 <div class="d-flex w-100 justify-content-between">
                     <h5 class="mb-1">
                         Colis Réf: {{ $colis[0]->reference_colis }}
                     </h5>
-                    <small>ID: {{ $colis[0]->id }}</small>
                 </div>
                 <p class="mb-1">
-                    Type: {{ $colis[0]->type_colis ?? 'N/A' }} |
-                    Qté: <span class="fw-bold">{{ $totalQuantite }}</span> |
-                    Prix: {{ number_format($totalPrixTransit, 0, ',', ' ') }} F CFA |
+                    Qté d'étiquettes à imprimer: <span class="fw-bold">{{ $totalQuantite ?? $colis->count() }}</span> |
+                    Prix Total Groupe: {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA |
                 </p>
                 <div class="mt-2 text-end">
+                    {{-- Le lien utilise l'ID du premier colis ($colis[0]->id) pour que le contrôleur 'editEtiquette' puisse retrouver la 'reference_colis' commune --}}
                     <a href="{{ route('colis.imprimer.etiquette', ['id' => $colis[0]->id]) }}" target="_blank" class="btn btn-sm btn-success me-2">
-                        <i class="fas fa-tags me-1"></i> Imprimer {{ $totalQuantite }} Étiquette(s)
+                        <i class="fas fa-tags me-1"></i> Imprimer {{ $totalQuantite ?? $colis->count() }} Étiquette(s)
                     </a>
                 </div>
             </div>
         </div>
-    @else
-        <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré lors de cette transaction.</p>
-    @endif
-    
-        
-
-        {{-- Boutons d'action généraux --}}
+        @else
+            <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré pour cette transaction.</p>
+        @endif
         <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <a href="{{ url()->previous() }}" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2"></i> Retour
@@ -128,18 +125,16 @@
     </div>
 </section>
 
-
 <style>
-    /* ... (garder les styles existants) ... */
     .list-group-item {
-        background-color: #f8f9fa; /* Fond léger pour les items */
-        border: 1px solid #dee2e6; /* Bordure subtile */
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
     }
     .list-group-item h5 {
-        color: #0d6efd; /* Couleur titre */
+        color: #0d6efd;
     }
     .btn-sm i {
-         font-size: 0.8rem; /* Icones plus petites pour boutons sm */
+         font-size: 0.8rem;
     }
 </style>
 @endsection

@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Colis déchargés</h4><br>
+                            <h4 class="text-left mt-4">Colis Déchargés</h4><br>
                             <div id="products-container">
                                 <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">

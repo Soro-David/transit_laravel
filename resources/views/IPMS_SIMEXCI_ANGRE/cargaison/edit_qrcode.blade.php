@@ -1,5 +1,4 @@
-@extends('IPMS_SIMEXCI.layouts.agentprint')
-
+@extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 @endsection
 

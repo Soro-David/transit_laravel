@@ -23,13 +23,14 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence</th>
+                                                <th>Reference</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence d'expédition</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence destination</th>
+                                                <th>Agence Destination</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
 
@@ -77,12 +78,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const onScanSuccess = (decodedText) => {
         // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
-        const referenceMatch = decodedText.match(/Référence colis:\s*(\S+)/);
-        const idMatch = decodedText.match(/Identifiant:\s*(\S+)/);
+        const referenceMatch = decodedText.match(/Ref:\s*(\S+)/i);
+        const idMatch = decodedText.match(/ID:\s*(\S+)/i);
 
         // Vérifier que les deux valeurs ont bien été extraites
         if (!referenceMatch || !idMatch) {
-            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            console.error("Impossible d'extraire la référence ou l'identifiant.",referenceMatch);
             resultElement.innerText = "Erreur : données QR code invalides.";
             return;
         }
@@ -108,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 id: identifiant,          // Envoie l'identifiant extrait
             },
             success: function (response) {
-                console.log("Réponse du serveur :", response);
+                console.log("Réponse du serveur helo :", response);
                 // Affichage des messages retournés par le serveur
                 if (response.messages && Array.isArray(response.messages)) {
                     resultElement.innerText = response.messages.join("\n");
@@ -195,38 +196,42 @@ document.addEventListener("DOMContentLoaded", function () {
             ajax: '{{ route("ipms_angre_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
             columns: [
                 { data: 'reference_colis' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) {
+                        return ''; // Retourne une chaîne vide si la date est null
                     }
-                },
-                { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                    var date = new Date(data);
+                    if (isNaN(date.getTime())) {
+                        return ''; // Vérifie si la date est invalide
                     }
-                },
-                { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
-                { data: 'created_at',
-                    render: function(data, type, row) {
-                        // Vérifiez si la date existe et la formater
-                        if (data) {
-                            var date = new Date(data);
-                            // Retourne la date au format aa/mm/jj
-                            var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                            var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                            return day + '/' + month + '/' + year;
-                        }
-                        return data;  // Si la date est vide, on retourne la donnée brute
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
-            ],
+                    var day = ('0' + date.getDate()).slice(-2);
+                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+
+        ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
                 // Bouton Excel
@@ -281,8 +286,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 </script>
-    
-    {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
     
 </section>
 

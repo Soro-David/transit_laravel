@@ -177,6 +177,118 @@ class ChineScanController extends Controller
         }
     }
 
+    public function livre()
+    {
+        return view('AGENCE_CHINE.scan.livre');
+    }
+
+    public function get_colis_livre(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.reference_colis',
+                'colis.quantite_colis',
+                'expediteurs.nom as expediteur_nom',
+                'expediteurs.prenom as expediteur_prenom',
+                'expediteurs.tel as expediteur_tel',
+                'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom',
+                'destinataires.prenom as destinataire_prenom',
+                'destinataires.agence as destinataire_agence',
+                'destinataires.tel as destinataire_tel',
+                'colis.etat',
+                'colis.created_at'
+            )
+            ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.etat', 'Livré')
+            ->where('destinataires.agence', 'Agence de Chine')
+            ->where('colis.mode_transit', 'aerien')
+            ->get();
+    
+            $colisGrouped = $colis->groupBy('reference_colis');
+    
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->sum('quantite_colis'), // Somme ici
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+    
+            return DataTables::of($colisWithCount)->make(true);
+        }
+    }
+
+    public function updateColisLivre(Request $request)
+    {
+            
+        if (!$request->has('colisId') || !$request->has('id')) {
+            $missingParams = [];
+            if (!$request->has('colisId')) {
+                $missingParams[] = 'colisId';
+            }
+            if (!$request->has('id')) {
+                $missingParams[] = 'id';
+            }
+            return response()->json([
+                'success'  => false,
+                'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+            ], 400);
+        }
+
+
+        // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+        $colisList = Colis::where('reference_colis', $request->colisId)
+                        ->where('id', $request->id)
+                        //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                        ->get();
+
+        // Vérifier si des colis ont été trouvés
+        if ($colisList->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+            ], 404);
+        }
+
+        $messages = [];
+        $updatedColis = [];
+
+        // Parcourir chaque colis trouvé
+        foreach ($colisList as $colis) {
+            if ($colis->etat === 'Livré') {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+            } elseif ($colis->etat === 'Dechargé') {
+                // Modifier l'état du colis en "En entrepot"
+                $colis->etat = 'Livré';
+                $colis->save();
+                $updatedColis[] = [
+                    'etat'        => $colis->etat,
+                ];
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+            } else {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Déchargé. Impossible de le mettre Livré.";
+            }
+        }
+
+        return response()->json([
+            'success'  => !empty($updatedColis),
+            'messages' => $messages,
+            'colis'    => $updatedColis,
+        ]);
+        // dd( $updatedColis);
+
+    }
  
 
     public function getColisEntrepot(Request $request)

@@ -1,6 +1,5 @@
 @extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
-
 {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -24,12 +23,13 @@
                                         <thead>
                                             <tr>
                                                 <th>Référence</th>
+                                                <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence d'expédition</th>
+                                                {{-- <th>Agence Expéditeur</th> --}}
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
-                                                <th>Agence de destination</th>
+                                                <th>Agence Destinataire</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
 
@@ -77,70 +77,79 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("scanner_entrepot");
 
     const onScanSuccess = (decodedText) => {
-    const reference_colis = decodedText.match(/Référence colis:\s*(\S+)/);  // Expression régulière pour extraire la référence
-    console.log(`Code détecté : ${decodedText}`);
-    console.log(`Référence : ${reference_colis[1]}`);  // Affiche la référence extraite
+        // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
+        const referenceMatch = decodedText.match(/Ref:\s*(\S+)/i);
+        const idMatch = decodedText.match(/ID:\s*(\S+)/i);
 
-    resultElement.innerText = `Résultat : ${decodedText}`;
-
-    // Requête AJAX pour mettre à jour l'état du colis
-    $.ajax({
-    url: "{{ route('ipms_angre_scan.update.colis.charge') }}",
-    type: "POST",
-    headers: {
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-    },
-    data: {
-        colisId: reference_colis[1], // Envoie la référence extraite
-    },
-    success: function (response) {
-        console.log("Réponse du serveur :", response);
-
-        if (response.success) {
-            // Succès : le colis a été mis à jour
-            resultElement.innerText = `Colis ${reference_colis[1]} à été chargé avec succès`;
-        } else {
-            // Affichage du message d'erreur retourné par le serveur
-            if (response.message === "Le colis est déjà Chargé") {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            } else {
-                resultElement.innerText = `Erreur : ${response.message}`;
-            }
+        // Vérifier que les deux valeurs ont bien été extraites
+        if (!referenceMatch || !idMatch) {
+            console.error("Impossible d'extraire la référence ou l'identifiant.");
+            resultElement.innerText = "Erreur : données QR code invalides.";
+            return;
         }
-    },
-    error: function (error) {
-        console.error("Erreur lors du dechargement :", error);
 
-        // Vérification si l'erreur contient une réponse JSON
-        if (error.responseJSON && error.responseJSON.message) {
-            resultElement.innerText = `Erreur : ${error.responseJSON.message}`;
-        } else {
-            resultElement.innerText = "Erreur de dechargement du colis.";
-        }
-    },
-});
+        // Extraction des valeurs capturées
+        const referenceColis = referenceMatch[1];
+        const identifiant = idMatch[1];
 
+        console.log(`Code détecté : ${decodedText}`);
+        console.log(`Référence : ${referenceColis}`);
+        console.log(`Identifiant : ${identifiant}`);
+        resultElement.innerText = `Résultat : ${decodedText}`;
 
-    // Arrête le scanner et masque l'élément caméra
-    html5QrCode
-        .stop()
-        .then(() => {
-            readerElement.style.display = "none";
-            restartButton.style.display = "block";
-        })
-        .catch((err) => {
-            console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+        // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
+        $.ajax({
+            url: "{{ route('ipms_angre_scan.update.colis.charge') }}",
+            type: "POST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            },
+            data: {
+                colisId: referenceColis, // Envoie la référence extraite
+                id: identifiant,          // Envoie l'identifiant extrait
+            },
+            success: function (response) {
+                console.log("Réponse du serveur :", response);
+                // Affichage des messages retournés par le serveur
+                if (response.messages && Array.isArray(response.messages)) {
+                    resultElement.innerText = response.messages.join("\n");
+                } else {
+                    resultElement.innerText = "Réponse inconnue du serveur.";
+                }
+            },
+            error: function (error) {
+                console.error("Erreur lors du chargement :", error);
+                if (error.responseJSON && error.responseJSON.messages) {
+                    resultElement.innerText = error.responseJSON.messages.join("\n");
+                } else {
+                    resultElement.innerText = "Erreur de chargement du colis.";
+                }
+            },
         });
-};
+
+        // Arrêt du scanner et mise à jour de l'affichage
+        html5QrCode
+            .stop()
+            .then(() => {
+                readerElement.style.display = "none";
+                restartButton.style.display = "block";
+            })
+            .catch((err) => {
+                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
+            });
+    };
 
     const startScanner = () => {
+        // Affiche l'élément du lecteur
         readerElement.style.display = "block";
 
+        // Vérifie que l'élément #reader a des dimensions valides
         if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
             console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
             return;
         }
 
+        // Démarrage du scanner avec les options définies
         html5QrCode
             .start(
                 { facingMode: "environment" },
@@ -156,10 +165,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     };
 
+    // Démarrer le scanner dès que la modale est affichée
     modal.addEventListener("shown.bs.modal", function () {
         setTimeout(startScanner, 500);
     });
 
+    // Arrêter le scanner lorsque la modale est fermée
     modal.addEventListener("hidden.bs.modal", function () {
         html5QrCode
             .stop()
@@ -171,10 +182,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
+    // Bouton de redémarrage du scanner
     restartButton.addEventListener("click", startScanner);
 });
-
-
 
     $(document).ready(function () {
         // Initialisation de la table DataTable
@@ -183,42 +193,44 @@ document.addEventListener("DOMContentLoaded", function () {
             language: {
                     url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
                 },
-            ajax: '{{ route("agent_scan.get.colis.charge") }}', // Récupération des données via AJAX
+            ajax: '{{ route("ipms_angre_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
-                { data: 'reference_colis' },
-                { data: 'reference_colis' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
+            { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_agence' },
+            { data: 'destinataire_tel' },
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) {
+                        return ''; // Retourne une chaîne vide si la date est null
                     }
-                },
-                { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
+                    var date = new Date(data);
+                    if (isNaN(date.getTime())) {
+                        return ''; // Vérifie si la date est invalide
                     }
-                },
-                { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
-                { data: 'created_at',
-                    render: function(data, type, row) {
-                        // Vérifiez si la date existe et la formater
-                        if (data) {
-                            var date = new Date(data);
-                            // Retourne la date au format aa/mm/jj
-                            var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                            var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                            return day + '/' + month + '/' + year;
-                        }
-                        return data;  // Si la date est vide, on retourne la donnée brute
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
-            ],
+                    var day = ('0' + date.getDate()).slice(-2);
+                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            }
+
+        ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
                 // Bouton Excel

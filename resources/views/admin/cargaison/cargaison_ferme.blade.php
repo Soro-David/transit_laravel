@@ -105,7 +105,7 @@
                 const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
     
                 if (referenceConteneur) {
-                    const referenceBateau = `CNT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
+                    const referenceBateau = `BAT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
                     document.getElementById("reference_bateau").value = referenceBateau;
                 } else {
                     document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée

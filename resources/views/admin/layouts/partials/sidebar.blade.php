@@ -143,7 +143,13 @@
                         </li>
                     </ul>
                 </li>
-                
+                     {{-- Gestion des Ballon --}}
+               <li class="nav-item has-treeview">
+                    <a href="{{ route('colis.liste_ballon') }}" class="nav-link">
+                        <i class="fas fa-ship"></i>
+                        <p>{{ __('Ballon Arrivés') }}</p>
+                    </a>
+                </li>
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">

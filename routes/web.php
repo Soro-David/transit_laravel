@@ -228,7 +228,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/colis-facture/{id}/print', [ColisController::class, 'print_facture'])->name('facture.colis.print');
 
         // route suppression edit
-        Route::delete('/colis/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::get('/get-ballon-suivi', [ColisController::class, 'get_ballon'])->name('get.ballon');
+        Route::get('/on-ballon', [ColisController::class, 'liste_ballon'])->name('liste_ballon');
+        Route::delete('/colis/{reference}', [ColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
         
         // route contenaire fermer
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
@@ -582,8 +584,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/get-colis-valide-aft-louis-b', [AftlbColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-louis-b', [AftlbColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
-
-
+        Route::post('/valider/ballon-louis-b', [AftlbColisController::class, 'validerBallon'])->name('valider.ballon');
         // Routes pour autocompletion et store produit
         Route::post('/store-produit-ajax-aftlb',[AftlbColisController::class, 'storeProduit'])->name('store.produit');
         Route::get('/autocomplete/produit-aftlb', [AftlbColisController::class, 'autocompleteProduit'])->name('recherche.auto');
@@ -664,6 +665,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/en-entrepot-aft-louis-b', [AftlbScanController::class, 'entrepot'])->name('entrepot'); 
         Route::get('/en-chargement-aft-louis-b', [AftlbScanController::class, 'chargement'])->name('chargement'); 
         Route::get('/en-dechargement-aft-louis-b', [AftlbScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/en-livre-aft-louis-b', [AftlbScanController::class, 'livre'])->name('livre'); 
         Route::get('/get-colis-entrepot-aft-louis-b', [AftlbScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
         Route::get('/get-colis-dechargement-aft-louis-b', [AftlbScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
         Route::get('/get-colis-chargement-aft-louis-b', [AftlbScanController::class, 'get_colis_charge'])->name('get.colis.charge');
@@ -1009,10 +1011,28 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::put('/on-valide/{id}', [ApmsAngreColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-IPMS', [ApmsAngreColisController::class, 'print_facture'])->name('facture.colis.print');
 
+        // Routes pour les cargaisons
+        Route::get('/get-vol-colis-IPMS', [ApmsAngreColisController::class, 'get_colis_vol'])->name('get.colis.vol');
+        Route::get('/cargaison-ferme-IPMS', [ApmsAngreColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
+        Route::get('/get-cargaison-ferme-IPMS', [ApmsAngreColisController::class, 'get_cargaison_ferme'])->name('get.cargaison.ferme');
+        Route::get('/list-vol-IPMS', [ApmsAngreColisController::class, 'liste_vol'])->name('liste.vol');
+
+        Route::get('/bateaux/{id}/edit-IPMS', [ApmsAngreColisController::class, 'edit_bateaux'])->name('bateaux.edit');
+        Route::delete('/bateaux/{id}-IPMS', [ApmsAngreColisController::class, 'destroy_bateaux'])->name('bateaux.destroy');
+        Route::get('/colis/bateau/{reference_conteneur}-IPMS', [ApmsAngreColisController::class, 'liste_colis_par_bateau'])->name('liste.bateau');
+        Route::put('/bateaux/{id}-IPMS', [ApmsAngreColisController::class, 'update_bateaux'])->name('bateaux.update');
+    
+        Route::post('/contenaire-fermer-IPMS', [ApmsAngreColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
+        Route::post('/vol-fermer-IPMS',[ApmsAngreColisController::class, 'vol_fermer'])->name('vol.fermer');
+
         Route::get('/get-ballon-suivi-IPMS', [ApmsAngreColisController::class, 'get_ballon'])->name('get.ballon');
         Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
 
         Route::post('/valider/ballon-IPMS', [ApmsAngreColisController::class, 'validerBallon'])->name('valider.ballon');
+
+        // Suppression d'un colis validé
+        // Route::delete('/colis-IPMS/{reference}', [ApmsAngreColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::post('/bateaux/store-IPMS', [ApmsAngreColisController::class, 'store_bateaux'])->name('bateaux.store');
 
         // Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
 
@@ -1215,8 +1235,8 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/imprimer-aft_chine/facture/{id}', [ChineColisController::class, 'editFacture'])->name('edit.facture');
         Route::get('/imprimer-aft_chine/etiquette/{id}', [ChineColisController::class, 'editEtiquette'])->name('edit.etiquette');
 
-
-
+        Route::post('/valider/ballon-aft_chine', [ChineColisController::class, 'validerBallon'])->name('valider.ballon');
+        Route::get('/on-ballon-aft_chine', [ChineColisController::class, 'liste_ballon'])->name('liste_ballon');
          // Routes pour autocompletion et store produit
          Route::post('/store-produit-ajax-chine',[ChineColisController::class, 'storeProduit'])->name('store.produit');
          Route::get('/autocomplete/produit-chine', [ChineColisController::class, 'autocompleteProduit'])->name('recherche.auto');
@@ -1296,6 +1316,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/en-entrepot-aft_chine', [ChineScanController::class, 'entrepot'])->name('entrepot'); 
         Route::get('/en-chargement-aft_chine', [ChineScanController::class, 'chargement'])->name('chargement'); 
         Route::get('/en-dechargement-aft_chine', [ChineScanController::class, 'dechargement'])->name('dechargement'); 
+        Route::get('/en-livre-aft_chine', [ChineScanController::class, 'livre'])->name('livre'); 
         Route::get('/get-colis-entrepot-aft_chine', [ChineScanController::class, 'get_colis_entrepot'])->name('get.colis.entrepot');
         Route::get('/get-colis-dechargement-aft_chine', [ChineScanController::class, 'get_colis_decharge'])->name('get.colis.decharge');
         Route::get('/get-colis-chargement-aft_chine', [ChineScanController::class, 'get_colis_charge'])->name('get.colis.charge');

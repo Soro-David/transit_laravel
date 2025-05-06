@@ -5708,8 +5708,8 @@ input[type="submit"].btn-block {
 }
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link {
-    color: #fff;
-    background-color: #007bff;
+    /* color: #fff;
+    background-color: #007bff; */
 }
 .nav-fill .nav-item,
 .nav-fill > .nav-link {
@@ -6127,10 +6127,10 @@ input[type="submit"].btn-block {
 }
 .navbar-light .navbar-brand:focus,
 .navbar-light .navbar-brand:hover {
-    color: rgba(0, 0, 0, 0.9);
+    /* color: rgba(0, 0, 0, 0.9); */
 }
 .navbar-light .navbar-nav .nav-link {
-    color: rgba(0, 0, 0, 0.5);
+    /* color: rgba(0, 0, 0, 0.5); */
 }
 .navbar-light .navbar-nav .nav-link:focus,
 .navbar-light .navbar-nav .nav-link:hover {
@@ -6143,7 +6143,7 @@ input[type="submit"].btn-block {
 .navbar-light .navbar-nav .nav-link.active,
 .navbar-light .navbar-nav .nav-link.show,
 .navbar-light .navbar-nav .show > .nav-link {
-    color: rgba(0, 0, 0, 0.9);
+    /* color: rgba(0, 0, 0, 0.9); */
 }
 .navbar-light .navbar-toggler {
     color: rgba(0, 0, 0, 0.5);
@@ -6170,7 +6170,7 @@ input[type="submit"].btn-block {
     color: #fff;
 }
 .navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.75);
+    /* color: rgba(255, 255, 255, 0.75); */
 }
 .navbar-dark .navbar-nav .nav-link:focus,
 .navbar-dark .navbar-nav .nav-link:hover {
@@ -6183,7 +6183,7 @@ input[type="submit"].btn-block {
 .navbar-dark .navbar-nav .nav-link.active,
 .navbar-dark .navbar-nav .nav-link.show,
 .navbar-dark .navbar-nav .show > .nav-link {
-    color: #fff;
+    /* color: #fff; */
 }
 .navbar-dark .navbar-toggler {
     color: rgba(255, 255, 255, 0.75);
@@ -14585,8 +14585,8 @@ body:not(.layout-fixed) .main-sidebar .sidebar {
 }
 [class*="sidebar-light-"] .nav-sidebar > .nav-item.menu-open > .nav-link,
 [class*="sidebar-light-"] .nav-sidebar > .nav-item:hover > .nav-link {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #212529;
+    /* background-color: rgba(0, 0, 0, 0.1);
+    color: #212529; */
 }
 [class*="sidebar-light-"] .nav-sidebar > .nav-item > .nav-link.active {
     color: #000;
@@ -14606,7 +14606,7 @@ body:not(.layout-fixed) .main-sidebar .sidebar {
     text-decoration: none;
 }
 [class*="sidebar-light-"] .nav-treeview > .nav-item > .nav-link {
-    color: #777;
+    /* color: #777; */
 }
 [class*="sidebar-light-"] .nav-treeview > .nav-item > .nav-link:focus,
 [class*="sidebar-light-"] .nav-treeview > .nav-item > .nav-link:hover {
@@ -71187,7 +71187,7 @@ input[type="button"].btn-block {
 }
 
 .navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.5);
+    /* color: rgba(255, 255, 255, 0.5); */
 }
 
 .navbar-dark .navbar-nav .nav-link:hover,
