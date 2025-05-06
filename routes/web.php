@@ -584,6 +584,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/get-colis-valide-aft-louis-b', [AftlbColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-louis-b', [AftlbColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
+        Route::get('/on-ballonlouis-b', [AftlbColisController::class, 'liste_ballon'])->name('liste_ballon');
         Route::post('/valider/ballon-louis-b', [AftlbColisController::class, 'validerBallon'])->name('valider.ballon');
         // Routes pour autocompletion et store produit
         Route::post('/store-produit-ajax-aftlb',[AftlbColisController::class, 'storeProduit'])->name('store.produit');
