@@ -373,6 +373,13 @@
                 color-adjust: exact !important;
                 font-size: 10.5pt; /* NOUVEAU/MODIFIÉ: Légère réduction pour tout faire tenir */
             }
+            body > footer,              /* Si le footer est un enfant direct de body */
+            .main-footer,             /* Classe commune pour les footers (ex: AdminLTE) */
+            #site-footer,             /* ID commun */
+            #footer,                  /* Autre ID commun */
+            [role="contentinfo"] {    /* Rôle ARIA souvent utilisé pour les footers */
+                display: none !important;
+            }
             .invoice-box-container {
                 margin: 0 !important;
                 padding: 0 !important;
