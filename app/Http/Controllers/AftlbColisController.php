@@ -986,105 +986,105 @@ public function store_colis(Request $request)
 
     public function editFacture($id)
     {
-        // dd($id);
-        
         $colis_principal = Colis::find($id);
-
-            if (!$colis_principal) {
-                return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
-            }
-
-            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-            if ($colisCollection->isEmpty()) {
-                return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }   
-
-        if ($colisCollection->isEmpty()) {
-            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+    
+        if (!$colis_principal) {
+            return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
         }
-
-        // Récupération du premier colis
+    
+        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
+                                ->with(['expediteur', 'destinataire', 'paiement'])
+                                ->get();
+    
+        if ($colisCollection->isEmpty()) {
+            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
+        }
+    
         $firstColis = $colisCollection->first();
-        // dd($firstColis->reference_colis);
-        $reference_colis = $firstColis->id;
+    
         $date_facture = now();
-        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
-        $tel_expediteur = $firstColis->expediteur->tel;
-        $tel_destinataire = $firstColis->destinataire->tel;
-        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
-        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
+        $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+        $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-        // Calcul du prix total
+    
+        $groupedItems = [];
+        $prix_total_invoice = 0;
+    
+        foreach ($colisCollection as $colis) {
+            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
+            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
+            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+    
+          
+            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
+    
+            $groupKey = $serviceDescription;
+            // dd($groupKey);
+            if (!isset($groupedItems[$groupKey])) {
+                $groupedItems[$groupKey] = [
+                    'service'           => $serviceDescription,
+                    'quantite_totale'   => 0, 
+                    'montant_total_ligne' => 0, 
+                    'prix_unitaire'     => $prixUnitaire, 
+                    'type_colis'        => $colis->type_colis ?? 'N/A',
+                ];
+            } else {
+                 
+            }
+    
+    
+            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
+            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
+    
+            $prix_total_invoice += $prixLigne;
+        }
+        // dd($groupedItems);
+        $invoiceItems = array_values($groupedItems);
+    
         $ids_colis = $colisCollection->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+    
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontant = $paiements->sum('montant');
-        // $totalMontantPaye = $paiements->sum('montant_paye');
+        $totalMontantDue = $prix_total_invoice;
         $totalMontantPaye = $paiements->sum('montant_paye');
-
-        $restePaye = $totalMontant - $totalMontantPaye;
-       
-        $prix_total = 0;
-        foreach ($colisCollection as $colis) {
-            if (!isset($colis->prix_transit_colis)) {
-                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
-            }
-            $prix_total += $colis->prix_transit_colis;
+        $restePaye = $totalMontantDue - $totalMontantPaye;
+    
+        $agent = Auth::user();
+        $id_agent = $agent->id;
+        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
+    
+        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
+        if (!$existingInvoice) {
+             Invoice::create([
+                 'nom_agent' => $nom_agent,
+                 'nom_expediteur' => $expediteur,
+                 'nom_destinataire' => $destinataire,
+                 'expediteur_id' => optional($firstColis->expediteur)->id,
+                 'destinataire_id' => optional($firstColis->destinataire)->id,
+                 'agent_id' => $id_agent,
+                 'montant' => $prix_total_invoice ?? 0,
+                 'numero_facture' => $numero_facture,
+             ]);
         }
-
-        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-        
-        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-        // dd($prix_total);
-        // $restePaye = $prix_total - $montant_paye;   
-
-        $id_agent = Auth::user()->id;
-        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
-        // dd($nom_agent);
-
-        // Création de la facture
-        Invoice::create([
-            'nom_agent' => $nom_agent,
-            'nom_expediteur' => $expediteur,
-            'nom_destinataire' => $destinataire,
-            'expediteur_id' => $firstColis->expediteur->id,
-            'destinataire_id' => $firstColis->destinataire->id,
-            'agent_id' => $id_agent,
-            'montant' => $prix_total ?? 0,
-            'numero_facture' => $numero_facture,
-            
-        ]);
-        // dd($u);
-        // Préparation des données des colis
-        $colisData = [];
-        foreach ($colisCollection as $colis) {
-            $colisData[] = [
-                'description'         => $colis->description_colis,
-                'quantite'            => $colis->quantite_colis,
-                'poids'               => $colis->poids_colis,
-                'type_colis'          => $colis->type_colis,
-                'prix_transit_colis'  => $colis->prix_transit_colis,
-            ];
-        }
-
-        // Passage des données à la vue
+    
+        $prix_total = $prix_total_invoice;
+    
         return view('AFT_LOUIS_BLERIOT.colis.add.edit_invoice', compact(
-            'date_facture', 
-            'reference_colis', 
-            'expediteur', 
-            'tel_expediteur', 
-            'destinataire', 
-            'prix_total', 
-            'montant_paye', 
-            'mode_payement', 
-            'colisData',
-            'numero_facture',
+            'date_facture',
+            'reference_colis',
+            'expediteur',
+            'tel_expediteur',
+            'destinataire',
             'tel_destinataire',
-            'totalMontant',
+            'prix_total',
+            'mode_payement',
+            'invoiceItems', 
+            'numero_facture',
             'totalMontantPaye',
             'restePaye'
-
         ));
     }
 
@@ -1168,103 +1168,104 @@ public function store_colis(Request $request)
 
     public function imprimerFacture($id)
     {
-        // dd($id);
-        
         $colis_principal = Colis::find($id);
-
-            if (!$colis_principal) {
-                return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
-            }
-
-            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-            if ($colisCollection->isEmpty()) {
-                return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }   
-
-        if ($colisCollection->isEmpty()) {
-            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+    
+        if (!$colis_principal) {
+            return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
         }
-
-        // Récupération du premier colis
+    
+        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
+                                ->with(['expediteur', 'destinataire', 'paiement'])
+                                ->get();
+    
+        if ($colisCollection->isEmpty()) {
+            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
+        }
+    
         $firstColis = $colisCollection->first();
-        // dd($firstColis->reference_colis);
-        $reference_colis = $firstColis->id;
+    
         $date_facture = now();
-        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
-        $tel_expediteur = $firstColis->expediteur->tel;
-        $tel_destinataire = $firstColis->destinataire->tel;
-        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
-        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
+        $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+        $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
+    
+        $groupedItems = [];
+        $prix_total_invoice = 0; 
+    
+        foreach ($colisCollection as $colis) {
+            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
+            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
+            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+    
+            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
+    
+            $groupKey = $serviceDescription;
+            if (!isset($groupedItems[$groupKey])) {
+                $groupedItems[$groupKey] = [
+                    'service'           => $serviceDescription,
+                    'quantite_totale'   => 0, 
+                    'montant_total_ligne' => 0,
+                    'prix_unitaire'     => $prixUnitaire, 
+                    'type_colis'        => $colis->type_colis ?? 'N/A',
+                ];
+            } else {
+                
+            }
+    
+    
+            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
+            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
+    
+            $prix_total_invoice += $prixLigne;
+        }
         
-        // Calcul du prix total
+        $invoiceItems = array_values($groupedItems);
+    
         $ids_colis = $colisCollection->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+    
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontant = $paiements->sum('montant');
-        $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
-        $restePaye = $totalMontant - $totalMontantPaye;
-       
-        $prix_total = 0;
-        foreach ($colisCollection as $colis) {
-            if (!isset($colis->prix_transit_colis)) {
-                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
-            }
-            $prix_total += $colis->prix_transit_colis;
+        $totalMontantDue = $prix_total_invoice;
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalMontantDue - $totalMontantPaye;
+    
+        // --- Agent and Invoice Record ---
+        $agent = Auth::user();
+        $id_agent = $agent->id;
+        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
+    
+        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
+        if (!$existingInvoice) {
+             Invoice::create([
+                 'nom_agent' => $nom_agent,
+                 'nom_expediteur' => $expediteur,
+                 'nom_destinataire' => $destinataire,
+                 'expediteur_id' => optional($firstColis->expediteur)->id,
+                 'destinataire_id' => optional($firstColis->destinataire)->id,
+                 'agent_id' => $id_agent,
+                 'montant' => $prix_total_invoice ?? 0,
+                 'numero_facture' => $numero_facture,
+             ]);
         }
-
-        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-        
-        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-        // dd($prix_total);
-        // $reste = $prix_total - $montant_paye;   
-
-        $id_agent = Auth::user()->id;
-        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
-        // dd($nom_agent);
-
-        // Création de la facture
-        Invoice::create([
-            'nom_agent' => $nom_agent,
-            'nom_expediteur' => $expediteur,
-            'nom_destinataire' => $destinataire,
-            'expediteur_id' => $firstColis->expediteur->id,
-            'destinataire_id' => $firstColis->destinataire->id,
-            'agent_id' => $id_agent,
-            'montant' => $prix_total ?? 0,
-            'numero_facture' => $numero_facture,
-        ]);
-        // dd($u);
-        // Préparation des données des colis
-        $colisData = [];
-        foreach ($colisCollection as $colis) {
-            $colisData[] = [
-                'description'         => $colis->description_colis,
-                'quantite'            => $colis->quantite_colis,
-                'poids'               => $colis->poids_colis,
-                'type_colis'          => $colis->type_colis,
-                'prix_transit_colis'  => $colis->prix_transit_colis,
-            ];
-        }
-
-        // Passage des données à la vue
+    
+        $prix_total = $prix_total_invoice;
+    
         return view('AFT_LOUIS_BLERIOT.invoice.edit_invoice', compact(
-            'date_facture', 
-            'reference_colis', 
-            'expediteur', 
-            'tel_expediteur', 
-            'destinataire', 
-            'prix_total', 
-            'montant_paye', 
-            'mode_payement', 
-            'colisData',
-            'numero_facture',
+            'date_facture',
+            'reference_colis',
+            'expediteur',
+            'tel_expediteur',
+            'destinataire',
             'tel_destinataire',
-            'totalMontant',
+            'prix_total', 
+            'mode_payement',
+            'invoiceItems',
+            'numero_facture',
             'totalMontantPaye',
             'restePaye'
-
         ));
     }
 

@@ -201,7 +201,7 @@
                         <tr>
                             <td class="logo-cell">
                                 @if(file_exists(public_path('images/LOGOAFT2.png')))
-                                <img src="{{ public_path('images/LOGOAFT2.png') }}" style="filter: grayscale(100%) contrast(150%);" class="custom-logo" alt="Logo">
+                                    <img src="{{ public_path('images/LOGOAFT2.png') }}" style="filter: grayscale(100%) contrast(150%);" class="custom-logo" alt="Logo">
                                 @else
                                     <p style="font-size:7pt;color:red;">Logo absent</p>
                                 @endif

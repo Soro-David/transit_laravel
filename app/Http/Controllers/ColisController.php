@@ -1093,107 +1093,126 @@ class ColisController extends Controller
 
     public function editFacture($id)
     {
-        // dd($id);
-        
         $colis_principal = Colis::find($id);
 
-            if (!$colis_principal) {
-                return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-            }
+        if (!$colis_principal) {
+            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
+        }
 
-            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-            if ($colisCollection->isEmpty()) {
-                return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }   
+        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
+                                ->with(['expediteur', 'destinataire', 'paiement'])
+                                ->get();
 
         if ($colisCollection->isEmpty()) {
-            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+            return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
         }
 
-        // Récupération du premier colis
         $firstColis = $colisCollection->first();
-        // dd($firstColis->reference_colis);
-        $reference_colis = $firstColis->id;
+
+        // --- Prepare base invoice data ---
         $date_facture = now();
-        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
-        $tel_expediteur = $firstColis->expediteur->tel;
-        $tel_destinataire = $firstColis->destinataire->tel;
-        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
-        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
+        $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+        $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-        // Calcul du prix total
+
+        // --- Group and Aggregate Colis Data by Service/Description ---
+        $groupedItems = [];
+        $prix_total_invoice = 0; // Initialize total for the entire invoice
+
+        foreach ($colisCollection as $colis) {
+            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
+            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
+            // Use description as the main grouping key (service)
+            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+
+            // Calculate Unit Price - Crucial: Assumes items with the same description have the same unit price for this invoice.
+            // We'll take the unit price from the first item encountered for this service description.
+            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
+
+            // Define the group key based on the service description
+            $groupKey = $serviceDescription;
+            dd($groupKey);
+            if (!isset($groupedItems[$groupKey])) {
+                // Initialize the group if it's the first time we see this service
+                $groupedItems[$groupKey] = [
+                    'service'           => $serviceDescription,
+                    'quantite_totale'   => 0, // Will be summed
+                    'montant_total_ligne' => 0, // Will be summed
+                    'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
+                    // Optionally store other details from the first item if needed (like type_colis)
+                    'type_colis'        => $colis->type_colis ?? 'N/A',
+                ];
+            } else {
+                 // Optional: You might want to check if the unit price is consistent here.
+                 // If $prixUnitaire is different from $groupedItems[$groupKey]['prix_unitaire'],
+                 // you have items with the same description but different prices, which might need specific handling.
+                 // For now, we assume the first unit price encountered is the correct one for the group.
+            }
+
+
+            // Aggregate quantity and total amount for the group
+            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
+            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
+
+            // Accumulate the overall invoice total
+            $prix_total_invoice += $prixLigne;
+        }
+        dd($groupedItems);
+        // Convert the grouped items associative array to a simple indexed array for the view
+        $invoiceItems = array_values($groupedItems);
+
+        // --- Payment Information ---
         $ids_colis = $colisCollection->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontant = $paiements->sum('montant');
-        // $totalMontantPaye = $paiements->sum('montant_paye');
+        $totalMontantDue = $prix_total_invoice;
         $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalMontantDue - $totalMontantPaye;
 
-        $restePaye = $totalMontant - $totalMontantPaye;
-       
-        $prix_total = 0;
-        foreach ($colisCollection as $colis) {
-            if (!isset($colis->prix_transit_colis)) {
-                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
-            }
-            $prix_total += $colis->prix_transit_colis;
+        // --- Agent and Invoice Record ---
+        $agent = Auth::user();
+        $id_agent = $agent->id;
+        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
+
+        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
+        if (!$existingInvoice) {
+             Invoice::create([
+                 'nom_agent' => $nom_agent,
+                 'nom_expediteur' => $expediteur,
+                 'nom_destinataire' => $destinataire,
+                 'expediteur_id' => optional($firstColis->expediteur)->id,
+                 'destinataire_id' => optional($firstColis->destinataire)->id,
+                 'agent_id' => $id_agent,
+                 'montant' => $prix_total_invoice ?? 0,
+                 'numero_facture' => $numero_facture,
+             ]);
         }
 
-        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-        
-        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-        // dd($prix_total);
-        // $restePaye = $prix_total - $montant_paye;   
+        // --- Pass data to the view ---
+        // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
+        $prix_total = $prix_total_invoice;
 
-        $id_agent = Auth::user()->id;
-        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
-        // dd($nom_agent);
-
-        // Création de la facture
-        Invoice::create([
-            'nom_agent' => $nom_agent,
-            'nom_expediteur' => $expediteur,
-            'nom_destinataire' => $destinataire,
-            'expediteur_id' => $firstColis->expediteur->id,
-            'destinataire_id' => $firstColis->destinataire->id,
-            'agent_id' => $id_agent,
-            'montant' => $prix_total ?? 0,
-            'numero_facture' => $numero_facture,
-            
-        ]);
-        // dd($u);
-        // Préparation des données des colis
-        $colisData = [];
-        foreach ($colisCollection as $colis) {
-            $colisData[] = [
-                'description'         => $colis->description_colis,
-                'quantite'            => $colis->quantite_colis,
-                'poids'               => $colis->poids_colis,
-                'type_colis'          => $colis->type_colis,
-                'prix_transit_colis'  => $colis->prix_transit_colis,
-            ];
-        }
-
-        // Passage des données à la vue
         return view('admin.colis.add.edit_invoice', compact(
-            'date_facture', 
-            'reference_colis', 
-            'expediteur', 
-            'tel_expediteur', 
-            'destinataire', 
-            'prix_total', 
-            'montant_paye', 
-            'mode_payement', 
-            'colisData',
-            'numero_facture',
+            'date_facture',
+            'reference_colis',
+            'expediteur',
+            'tel_expediteur',
+            'destinataire',
             'tel_destinataire',
-            'totalMontant',
+            'prix_total', // Grand total for the invoice
+            'mode_payement',
+            'invoiceItems', // The grouped data
+            'numero_facture',
+            // 'totalMontant' is redundant if it's the same as 'prix_total'
             'totalMontantPaye',
             'restePaye'
-
         ));
     }
+
 
     public function editEtiquette($id)
     {
@@ -1274,106 +1293,125 @@ class ColisController extends Controller
 
     public function imprimerFacture($id)
     {
-        // dd($id);
-        
         $colis_principal = Colis::find($id);
 
-            if (!$colis_principal) {
-                return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-            }
+        if (!$colis_principal) {
+            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
+        }
 
-            $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-            if ($colisCollection->isEmpty()) {
-                return redirect()->route('colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-            }   
+        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
+                                ->with(['expediteur', 'destinataire', 'paiement'])
+                                ->get();
 
         if ($colisCollection->isEmpty()) {
-            return redirect()->back()->with('error', 'Aucun colis trouvé avec cette référence.');
+            return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
         }
 
-        // Récupération du premier colis
         $firstColis = $colisCollection->first();
-        // dd($firstColis->reference_colis);
-        $reference_colis = $firstColis->id;
+
+        // --- Prepare base invoice data ---
         $date_facture = now();
-        $expediteur = $firstColis->expediteur->nom . ' ' . $firstColis->expediteur->prenom;
-        $tel_expediteur = $firstColis->expediteur->tel;
-        $tel_destinataire = $firstColis->destinataire->tel;
-        $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
-        $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
+        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
+        $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+        $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-        
-        // Calcul du prix total
+
+        // --- Group and Aggregate Colis Data by Service/Description ---
+        $groupedItems = [];
+        $prix_total_invoice = 0; // Initialize total for the entire invoice
+
+        foreach ($colisCollection as $colis) {
+            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
+            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
+            // Use description as the main grouping key (service)
+            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+
+            // Calculate Unit Price - Crucial: Assumes items with the same description have the same unit price for this invoice.
+            // We'll take the unit price from the first item encountered for this service description.
+            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
+
+            // Define the group key based on the service description
+            $groupKey = $serviceDescription;
+            // dd($groupKey);
+            if (!isset($groupedItems[$groupKey])) {
+                // Initialize the group if it's the first time we see this service
+                $groupedItems[$groupKey] = [
+                    'service'           => $serviceDescription,
+                    'quantite_totale'   => 0, // Will be summed
+                    'montant_total_ligne' => 0, // Will be summed
+                    'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
+                    // Optionally store other details from the first item if needed (like type_colis)
+                    'type_colis'        => $colis->type_colis ?? 'N/A',
+                ];
+            } else {
+                 // Optional: You might want to check if the unit price is consistent here.
+                 // If $prixUnitaire is different from $groupedItems[$groupKey]['prix_unitaire'],
+                 // you have items with the same description but different prices, which might need specific handling.
+                 // For now, we assume the first unit price encountered is the correct one for the group.
+            }
+
+
+            // Aggregate quantity and total amount for the group
+            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
+            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
+
+            // Accumulate the overall invoice total
+            $prix_total_invoice += $prixLigne;
+        }
+        // dd($groupedItems);
+        // Convert the grouped items associative array to a simple indexed array for the view
+        $invoiceItems = array_values($groupedItems);
+
+        // --- Payment Information ---
         $ids_colis = $colisCollection->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontant = $paiements->sum('montant');
-        $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
-        $restePaye = $totalMontant - $totalMontantPaye;
-       
-        $prix_total = 0;
-        foreach ($colisCollection as $colis) {
-            if (!isset($colis->prix_transit_colis)) {
-                throw new \Exception("Le champ prix_transit_colis est manquant pour un colis.");
-            }
-            $prix_total += $colis->prix_transit_colis;
+        $totalMontantDue = $prix_total_invoice;
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $restePaye = $totalMontantDue - $totalMontantPaye;
+
+        // --- Agent and Invoice Record ---
+        $agent = Auth::user();
+        $id_agent = $agent->id;
+        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
+
+        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
+        if (!$existingInvoice) {
+             Invoice::create([
+                 'nom_agent' => $nom_agent,
+                 'nom_expediteur' => $expediteur,
+                 'nom_destinataire' => $destinataire,
+                 'expediteur_id' => optional($firstColis->expediteur)->id,
+                 'destinataire_id' => optional($firstColis->destinataire)->id,
+                 'agent_id' => $id_agent,
+                 'montant' => $prix_total_invoice ?? 0,
+                 'numero_facture' => $numero_facture,
+             ]);
         }
 
-        // Utilisation de optional() pour éviter les erreurs si la relation paiement est nulle
-        
-        $montant_paye = optional($firstColis->paiement)->montant_reçu ?? 0;
-        // dd($prix_total);
-        // $reste = $prix_total - $montant_paye;   
+        // --- Pass data to the view ---
+        // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
+        $prix_total = $prix_total_invoice;
 
-        $id_agent = Auth::user()->id;
-        $nom_agent = Auth::user()->first_name . ' ' . Auth::user()->last_name;
-        // dd($nom_agent);
-
-        // Création de la facture
-        Invoice::create([
-            'nom_agent' => $nom_agent,
-            'nom_expediteur' => $expediteur,
-            'nom_destinataire' => $destinataire,
-            'expediteur_id' => $firstColis->expediteur->id,
-            'destinataire_id' => $firstColis->destinataire->id,
-            'agent_id' => $id_agent,
-            'montant' => $prix_total ?? 0,
-            'numero_facture' => $numero_facture,
-        ]);
-        // dd($u);
-        // Préparation des données des colis
-        $colisData = [];
-        foreach ($colisCollection as $colis) {
-            $colisData[] = [
-                'description'         => $colis->description_colis,
-                'quantite'            => $colis->quantite_colis,
-                'poids'               => $colis->poids_colis,
-                'type_colis'          => $colis->type_colis,
-                'prix_transit_colis'  => $colis->prix_transit_colis,
-            ];
-        }
-
-        // Passage des données à la vue
         return view('admin.invoice.edit_invoice', compact(
-            'date_facture', 
-            'reference_colis', 
-            'expediteur', 
-            'tel_expediteur', 
-            'destinataire', 
-            'prix_total', 
-            'montant_paye', 
-            'mode_payement', 
-            'colisData',
-            'numero_facture',
+            'date_facture',
+            'reference_colis',
+            'expediteur',
+            'tel_expediteur',
+            'destinataire',
             'tel_destinataire',
-            'totalMontant',
+            'prix_total', // Grand total for the invoice
+            'mode_payement',
+            'invoiceItems', // The grouped data
+            'numero_facture',
+            // 'totalMontant' is redundant if it's the same as 'prix_total'
             'totalMontantPaye',
             'restePaye'
-
         ));
     }
-
 
     public function editInvoice($id)
     {
