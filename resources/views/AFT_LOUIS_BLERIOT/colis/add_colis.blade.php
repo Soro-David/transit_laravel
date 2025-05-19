@@ -415,7 +415,7 @@ $(document).ready(function() {
                     <div class="col-md-4">
                         <label class="form-label">Produit(s) ou Service(s)</label>
                         <div class="input-group">
-                            <input type="text" name="type_embalage[]" class="form-control produit-input">
+                            <input type="text" name="service[]" class="form-control produit-input">
                             <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
                         <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>

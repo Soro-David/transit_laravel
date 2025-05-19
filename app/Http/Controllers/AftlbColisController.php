@@ -1194,11 +1194,11 @@ public function store_colis(Request $request)
     
         $groupedItems = [];
         $prix_total_invoice = 0; 
-    
+        
         foreach ($colisCollection as $colis) {
             $prixLigne = (float)($colis->prix_transit_colis ?? 0);
             $quantiteLigne = (int)($colis->quantite_colis ?: 1);
-            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+            $serviceDescription = trim($colis->service);
     
             $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
     

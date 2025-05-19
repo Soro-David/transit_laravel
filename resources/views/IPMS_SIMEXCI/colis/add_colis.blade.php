@@ -198,29 +198,32 @@
                 <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité</label>
-                            <input type="number" name="quantite_colis[]" class="form-control" required>
+                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
+                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                        <label class="form-label">Produit(s) ou Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="service[]" class="form-control produit-input">
+                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
                         </div>
+                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
                     </div>
-                    <div class="col-md-6" id="dimension_section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" id="hauteur" name="hauteur[]" class="form-control" placeholder="Hauteur">
-                            <input type="number" id="largeur" name="largeur[]" class="form-control" placeholder="Largeur">
-                            <input type="number" id="longueur" name="longueur[]" class="form-control" placeholder="Longueur">
+                    <div class="col-md-2">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="type_colis" class="form-label">Type de colis</label>
+                            <select name="type_colis[]" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                                <option value="standard">Standard</option>
+                                <option value="fragile">Fragile</option>
+                            </select>
                         </div>
-                        <div id="dimension_result" name="dimension_result" class="mt-2" style="display: none; font-weight: bold;"></div>
-                        {{-- <div id="dimension_result"   class="mt-2" style="display: none; font-weight: bold;"></div> --}}
-                    </div>                    
-                    <div class="col-md-6" id="poids_section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
                     </div>
                 </div>
                 <div class="row">
@@ -303,7 +306,7 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="type_embalage" class="form-label">Type d'emballage</label>
-                            <input type="text" name="type_embalage[]" class="form-control">
+                            <input type="text" name="service[]" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6 dimension-section">
