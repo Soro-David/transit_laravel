@@ -34,6 +34,7 @@ class Colis extends Model
         'type_colis',
         'recup',
         'service',
+        'devise',
         'agent_id'
         
     ];

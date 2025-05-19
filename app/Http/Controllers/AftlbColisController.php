@@ -652,7 +652,8 @@ public function store_colis(Request $request)
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
-                    'reference_colis' => $referenceColisPrincipale, // Référence commune
+                    'devise' => 'EUR',
+                    'reference_colis' => $referenceColisPrincipale, 
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
                     'service' => $data['service'][$index] ?? null,
@@ -669,7 +670,7 @@ public function store_colis(Request $request)
                     'agent_id' => $agentId,
                     'qr_code_path' => null,
                 ];
-
+            
                 try {
                     $colisModel = Colis::create($colisItemData);
 
@@ -743,6 +744,7 @@ public function store_colis(Request $request)
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
+            'devise' => optional($firstColis?->expediteur)->devise,
         ];
 
         // totalQuantite est maintenant simplement le nombre de colis enregistrés
@@ -1009,6 +1011,8 @@ public function store_colis(Request $request)
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
+        $devise = $firstColis->devise;
+        // dd($devise);
     
         $groupedItems = [];
         $prix_total_invoice = 0;
@@ -1084,7 +1088,8 @@ public function store_colis(Request $request)
             'invoiceItems', 
             'numero_facture',
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise',
         ));
     }
 
@@ -1191,6 +1196,8 @@ public function store_colis(Request $request)
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
+        $devise = $firstColis->devise;
+        // dd($devise);
     
         $groupedItems = [];
         $prix_total_invoice = 0; 
@@ -1265,7 +1272,8 @@ public function store_colis(Request $request)
             'invoiceItems',
             'numero_facture',
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise',
         ));
     }
 
@@ -1293,6 +1301,7 @@ public function store_colis(Request $request)
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
+            'devise' => optional($firstColis->expediteur)->devise,
         ];
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');

@@ -595,6 +595,7 @@ class ChineColisController extends Controller
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
+                    'devise' => 'YUAN',
                     'reference_colis' => $referenceColisPrincipale, // Référence commune
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
@@ -686,6 +687,7 @@ class ChineColisController extends Controller
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
+            'devise' => optional($firstColis?->expediteur)->devise,
         ];
 
         // totalQuantite est maintenant simplement le nombre de colis enregistrés
@@ -779,6 +781,7 @@ class ChineColisController extends Controller
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
+        $devise = $firstColis->devise;
     
         $groupedItems = [];
         $prix_total_invoice = 0;
@@ -854,7 +857,8 @@ class ChineColisController extends Controller
             'invoiceItems', 
             'numero_facture',
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise',
         ));
     }
 
@@ -1173,6 +1177,7 @@ class ChineColisController extends Controller
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
+        $devise = $firstColis->devise;
     
         $groupedItems = [];
         $prix_total_invoice = 0; 
@@ -1247,7 +1252,8 @@ class ChineColisController extends Controller
             'invoiceItems',
             'numero_facture',
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise',
         ));
     }
 
@@ -1274,6 +1280,7 @@ class ChineColisController extends Controller
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
+            'devise' => optional($firstColis->expediteur)->devise,
         ];
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
@@ -1296,6 +1303,7 @@ class ChineColisController extends Controller
             'restePaye' => $restePaye,
             'mode_payement' => $mode_payement,
             'totalMontantPaye' => $totalMontantPaye,
+            // 'devise' => $firstColis->devise,
         ]);
     }
 

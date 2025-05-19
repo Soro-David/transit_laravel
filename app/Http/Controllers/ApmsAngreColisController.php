@@ -429,6 +429,7 @@ class ApmsAngreColisController extends Controller
              $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
             
             $colisItemData = [
+                'devise' => 'FCFA', // Devise par défaut
                 'reference_colis' => $referenceColis,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
@@ -527,6 +528,7 @@ class ApmsAngreColisController extends Controller
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
+            'devise' => optional($firstColis?->expediteur)->devise,
         ];
 
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
@@ -2104,17 +2106,13 @@ public function imprimerBon_livraison($id)
 
 public function editInvoice($id)
 {
-    // Récupérer le colis principal
     $colis_principal = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
 
-    // Récupérer les colis associés à ce colis principal
     $colisEnregistres = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-    // dd($colisEnregistres);
     if ($colisEnregistres->isEmpty()) {
         return redirect()->back()->with('error', 'Aucun colis n\'a été enregistré avec cette référence.');
     }
 
-    // Collecter des informations pour afficher les détails
     $firstColis = $colisEnregistres->first();
     $firstInfo = [
         'id' => $firstColis->id,
@@ -2125,6 +2123,7 @@ public function editInvoice($id)
         'nom_expediteur' => optional($firstColis->expediteur)->nom,
         'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
         'tel_expediteur' => optional($firstColis->expediteur)->tel,
+        'devise' => optional($firstColis->expediteur)->devise,
     ];
 
     $totalQuantite = $colisEnregistres->sum('quantite_colis');
@@ -2223,6 +2222,7 @@ public function editFacture($id)
     $tel_destinataire = optional($firstColis->destinataire)->tel;
     $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
+    $devise = $firstColis->devise;
 
     $groupedItems = [];
     $prix_total_invoice = 0;
@@ -2298,7 +2298,8 @@ public function editFacture($id)
         'invoiceItems', 
         'numero_facture',
         'totalMontantPaye',
-        'restePaye'
+        'restePaye',
+        'devise',
     ));
 }
 
@@ -2376,6 +2377,7 @@ public function imprimerFacture($id)
     $tel_destinataire = optional($firstColis->destinataire)->tel;
     $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
+    $devise = $firstColis->devise;
 
     $groupedItems = [];
     $prix_total_invoice = 0; 
@@ -2450,7 +2452,8 @@ public function imprimerFacture($id)
         'invoiceItems',
         'numero_facture',
         'totalMontantPaye',
-        'restePaye'
+        'restePaye',
+        'devise'
     ));
 }
 

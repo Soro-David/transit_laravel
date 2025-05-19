@@ -730,19 +730,16 @@ class ColisController extends Controller
             'banque' => $payementDataSession['nom_banque'] ?? null,
             'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
             'id_transaction' => $transactionId,
-            'statut_paiement' => $statutPaiementGlobal, // Statut global de la transaction
+            'statut_paiement' => $statutPaiementGlobal,
             'date_validation' => now(),
             'expediteur_id' => $expediteur->id,
             'agent_id' => $agentId,
-            'montant_paye' => $montantPaiementTransaction, // Montant total payé pour la transaction
+            'montant_paye' => $montantPaiementTransaction,
         ];
 
         $colisEnregistres = [];
         $erreursCreation = [];
-        
-        // Référence principale pour l'ensemble des colis de cette soumission si fournie, sinon générée.
-        // Si chaque "ligne d'article" peut avoir sa propre référence, cette logique doit être DANS la boucle.
-        // D'après l'exemple "SD-6-A1 somme des quantité_colis =4", la référence est commune.
+
         $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
 
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
@@ -758,14 +755,15 @@ class ColisController extends Controller
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
-                    'reference_colis' => $referenceColisPrincipale, // Référence commune
+                    'devise' => $data['devise'] ?? null,
+                    'reference_colis' => $referenceColisPrincipale,
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                    'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
+                    'quantite_colis' => 1,
                     'service' => $data['service'][$index] ?? null,
-                    'prix_transit_colis' => $prixUnitairePourCetteLigne, // Prix pour ce colis individuel
+                    'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids_colis'][$index] ?? null,
                     'mode_transit' => $data['mode_transit'] ?? null,
-                    'status' => $data['status'], // Statut paiement (sera mis à jour par paiement?)
+                    'status' => $data['status'], 
                     'etat' => $data['etat'],
                     'type_colis' => $data['type_colis'][$index] ?? null,
                     'dimension_result' => $dimension_result,
@@ -775,21 +773,19 @@ class ColisController extends Controller
                     'agent_id' => $agentId,
                     'qr_code_path' => null,
                 ];
-
+                // dd($colisItemData);
                 try {
                     $colisModel = Colis::create($colisItemData);
 
-                    // Associer un paiement à ce colis spécifique
                     $paiementDataPourCeColis = array_merge($basePaiementData, [
                         'colis_id' => $colisModel->id,
-                        'montant' => $colisModel->prix_transit_colis, // Montant dû pour ce colis spécifique
-                        // 'montant_paye' est déjà dans $basePaiementData et représente le total payé pour la transaction
+                        'montant' => $colisModel->prix_transit_colis,
                     ]);
                     Paiement::create($paiementDataPourCeColis);
 
                     $qrData = [
                         'ID' => $colisModel->id,
-                        'qr' => $i, // Numéro séquentiel pour cette ligne d'article
+                        'qr' => $i,
                         'Ref' => $colisModel->reference_colis,
                         'Etat' => $colisModel->etat,
                         'Exp' => optional($expediteur)->nom,
@@ -808,7 +804,6 @@ class ColisController extends Controller
                     $result = $writer->write($qrCode);
                     $pngData = $result->getString();
 
-                    // Utiliser l'ID du colis pour garantir l'unicité du nom de fichier QR
                     $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colisModel->reference_colis);
                     $filePath = 'qrcodes/colis_' . $safeRef . '_id' . $colisModel->id . '_item' . $i . '.png';
                     $fullPath = public_path($filePath);
@@ -838,43 +833,39 @@ class ColisController extends Controller
         }
 
         $colisEnregistresCollection = collect($colisEnregistres);
-        $firstColis = $colisEnregistresCollection->first(); // Le premier colis créé
+        $firstColis = $colisEnregistresCollection->first(); 
 
         $firstInfo = [
-            'id' => $firstColis?->id, // ID du premier colis physique
-            'reference_colis' => $firstColis?->reference_colis, // Référence commune
+            'id' => $firstColis?->id,
+            'reference_colis' => $firstColis?->reference_colis,
             'nom_destinataire' => optional($firstColis?->destinataire)->nom,
             'prenom_destinataire' => optional($firstColis?->destinataire)->prenom,
             'tel_destinataire' => optional($firstColis?->destinataire)->tel,
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
+            'devise' => optional($firstColis?->expediteur)->devise,
         ];
 
-        // totalQuantite est maintenant simplement le nombre de colis enregistrés
         $totalQuantitePhysique = $colisEnregistresCollection->count();
-        // totalPrixTransit est la somme des prix de chaque colis individuel
         $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
 
-        // Informations de paiement pour le résumé
-        // Le $montantPaiementTransaction est le montant total payé pour tous les colis de cette transaction.
-        // $totalPrixTransit est le montant total dû pour tous les colis.
         $restePaye = $totalPrixTransit - $montantPaiementTransaction;
         if ($modePaiement === 'delivery') {
-            $restePaye = $totalPrixTransit; // Pour paiement à la livraison, tout est à payer
+            $restePaye = $totalPrixTransit;
         }
 
 
         session()->forget(['step1', 'step2']);
 
         return view('admin.colis.add.complete', [
-            'colis' => $colisEnregistresCollection, // Collection de tous les colis physiques créés
-            'first' => $firstInfo, // Info basée sur le premier colis
+            'colis' => $colisEnregistresCollection,
+            'first' => $firstInfo,
             'totalQuantite' => $totalQuantitePhysique,
             'totalPrixTransit' => $totalPrixTransit,
             'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
-            'totalMontantPaye' => $montantPaiementTransaction, // Montant effectivement payé pour la transaction
+            'totalMontantPaye' => $montantPaiementTransaction,
         ]);
     }
 
@@ -1117,7 +1108,8 @@ class ColisController extends Controller
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-
+        $devise = $firstColis->devise;
+        // dd($devise);
         // --- Group and Aggregate Colis Data by Service/Description ---
         $groupedItems = [];
         $prix_total_invoice = 0; // Initialize total for the entire invoice
@@ -1134,7 +1126,7 @@ class ColisController extends Controller
 
             // Define the group key based on the service description
             $groupKey = $serviceDescription;
-            dd($groupKey);
+            // dd($groupKey);
             if (!isset($groupedItems[$groupKey])) {
                 // Initialize the group if it's the first time we see this service
                 $groupedItems[$groupKey] = [
@@ -1160,7 +1152,7 @@ class ColisController extends Controller
             // Accumulate the overall invoice total
             $prix_total_invoice += $prixLigne;
         }
-        dd($groupedItems);
+        // dd($groupedItems);
         // Convert the grouped items associative array to a simple indexed array for the view
         $invoiceItems = array_values($groupedItems);
 
@@ -1203,13 +1195,13 @@ class ColisController extends Controller
             'tel_expediteur',
             'destinataire',
             'tel_destinataire',
-            'prix_total', // Grand total for the invoice
+            'prix_total',
             'mode_payement',
-            'invoiceItems', // The grouped data
+            'invoiceItems',
             'numero_facture',
-            // 'totalMontant' is redundant if it's the same as 'prix_total'
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise'
         ));
     }
 
@@ -1317,7 +1309,8 @@ class ColisController extends Controller
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
-
+        $devise = $firstColis->devise;
+        dd($devise);
         // --- Group and Aggregate Colis Data by Service/Description ---
         $groupedItems = [];
         $prix_total_invoice = 0; // Initialize total for the entire invoice
@@ -1436,6 +1429,7 @@ class ColisController extends Controller
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
+            'devise' => optional($firstColis->expediteur)->devise,
         ];
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');

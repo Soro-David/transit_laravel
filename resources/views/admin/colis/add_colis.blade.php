@@ -246,13 +246,24 @@
                         <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
                         <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
+                            <label for="type_colis" class="form-label">Type colis</label>
                             <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                                <option value="" disabled selected>-- Type de colis --</option>
                                 <option value="standard">Standard</option>
                                 <option value="fragile">Fragile</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2 col-md-2 col-lg-2">
+                        <div class="mb-3">
+                            <label for="devise" class="form-label">Devise</label>
+                            <select name="devise" id="devise" class="form-control">
+                                <option value="" disabled selected>-- Devise --</option>
+                                <option value="EUR">EUR</option>
+                                <option value="YUAN">YUAN</option>
+                                <option value="FCFA">FCFA</option>
                             </select>
                         </div>
                     </div>
@@ -282,6 +293,7 @@
                             placeholder="Saisissez la description du colis"></textarea>
                         </div>
                     </div>
+                
                 </div>
             </div>
             <div class="text-end mt-2">
@@ -463,13 +475,24 @@ $(document).ready(function() {
                         <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
                         <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="mb-3">
                             <label for="type_colis" class="form-label">Type de colis</label>
                             <select name="type_colis[]" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
                                 <option value="standard">Standard</option>
                                 <option value="fragile">Fragile</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2 col-md-2 col-lg-2">
+                        <div class="mb-3">
+                            <label for="devise" class="form-label">Devise</label>
+                            <select name="devise" id="devise" class="form-control">
+                                <option value="" disabled selected>-- Devise --</option>
+                                <option value="EUR">EUR</option>
+                                <option value="YUAN">YUAN</option>
+                                <option value="FCFA">FCFA</option>
                             </select>
                         </div>
                     </div>
@@ -499,6 +522,7 @@ $(document).ready(function() {
                             placeholder="Saisissez la description du colis"></textarea>
                         </div>
                     </div>
+                    
                 </div>
                 <div class="text-end mt-2">
                     <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>

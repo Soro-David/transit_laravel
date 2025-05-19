@@ -527,8 +527,8 @@
                     <tr>
                         <th class="col-produit">Produit / Service</th>
                         <th class="col-qty">Qté</th>
-                        <th class="col-price">P.U. (FCFA)</th>
-                        <th class="col-montant">Montant (FCFA)</th>
+                        <th class="col-price">P.U. ({{ $devise ?? ' ' }})</th>
+                        <th class="col-montant">Montant ({{ $devise ?? ' ' }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -555,7 +555,7 @@
             <div class="totals-summary">
                 <table>
                     <tr><td>Sous total</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
-                    <tr><td>Montant total (FCFA)</td><td class="grand-total-header">{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
+                    <tr><td>Montant total ({{ $devise ?? ' ' }})</td><td class="grand-total-header">{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
                 </table>
             </div>
 
@@ -576,9 +576,9 @@
             <!-- Final Totals -->
              <div class="final-totals">
                  <table>
-                     <tr><td>Total (FCFA)</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
-                     <tr><td>Total Payé (FCFA)</td><td>{{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }}</td></tr>
-                     <tr class="reste-a-payer"><td>Reste à payer (FCFA)</td><td>{{ number_format($restePaye ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr><td>Total ({{ $devise ?? ' ' }})</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr><td>Total Payé ({{ $devise ?? ' ' }})</td><td>{{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr class="reste-a-payer"><td>Reste à payer ({{ $devise ?? ' ' }})</td><td>{{ number_format($restePaye ?? 0, 0, ',', ' ') }}</td></tr>
                  </table>
                  <div class="simulated-barcode-small"></div>
              </div>

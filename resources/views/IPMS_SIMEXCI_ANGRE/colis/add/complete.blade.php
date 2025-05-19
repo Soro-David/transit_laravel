@@ -17,15 +17,15 @@
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Prix Total :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Montant Payé :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Reste à Payer:</label>
-                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                      </div>
                  </div>
@@ -104,7 +104,7 @@
                 <p class="mb-1">
                     Type: {{ $colis[0]->type_colis ?? 'N/A' }} |
                     Qté: <span class="fw-bold">{{ $totalQuantite }}</span> |
-                    Prix: {{ number_format($totalPrixTransit, 0, ',', ' ') }} F CFA |
+                    Prix: {{ number_format($totalPrixTransit, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }} |
                 </p>
                 <div class="mt-2 text-end">
                     <a href="{{ route('chine_colis.imprimer.etiquette', ['id' => $colis[0]->id]) }}" target="_blank" class="btn btn-sm btn-success me-2">

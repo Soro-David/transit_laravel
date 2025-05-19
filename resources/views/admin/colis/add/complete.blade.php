@@ -18,15 +18,15 @@
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Prix Total :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Montant Payé :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Reste à Payer:</label>
-                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
                          </div>
                      </div>
                  </div>
@@ -104,7 +104,7 @@
                 </div>
                 <p class="mb-1">
                     Qté d'étiquettes à imprimer: <span class="fw-bold">{{ $totalQuantite ?? $colis->count() }}</span> |
-                    Prix Total Groupe: {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA |
+                    Prix Total Groupe: {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }} |
                 </p>
                 <div class="mt-2 text-end">
                     {{-- Le lien utilise l'ID du premier colis ($colis[0]->id) pour que le contrôleur 'editEtiquette' puisse retrouver la 'reference_colis' commune --}}
