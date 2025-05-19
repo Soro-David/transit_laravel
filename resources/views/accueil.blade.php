@@ -300,10 +300,10 @@
             </div>
             <div class="carousel-inner">
                 <div class="carousel-item active" data-bs-interval="5000">
-                    <img src="{{ asset('images/slide1.jpg') }}" class="d-block w-100 carousel-image" alt="Import & Export Solutions">
+                    <img src="{{ asset('images/slide1.jpeg') }}" class="d-block w-100 carousel-image" alt="Import & Export Solutions">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold">Global Trade Services</h5>
-                        <p class="text-white fw-bold">Efficient solutions for your import and export needs.</p>
+                        <h5 class="text-white fw-bold"></h5>
+                        <p class="text-white fw-bold"></p>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -313,8 +313,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide2.jpg') }}" class="d-block w-100 carousel-image" alt="Reliable Logistics">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold">Seamless Logistics</h5>
-                        <p class="text-white fw-bold">Your trusted partner for reliable logistics services.</p>
+                        <h5 class="text-white fw-bold"></h5>
+                        <p class="text-white fw-bold"></p>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -324,8 +324,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide3.jpg') }}" class="d-block w-100 carousel-image" alt="Customs Clearance">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold">Expert Customs Clearance</h5>
-                        <p class="text-white fw-bold">Navigate customs regulations with our expert assistance.</p>
+                        <h5 class="text-white fw-bold"></h5>
+                        <p class="text-white fw-bold"></p>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -335,8 +335,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide4.jpg') }}" class="d-block w-100 carousel-image" alt="Global Network">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold">Worldwide Network</h5>
-                        <p class="text-white fw-bold">Connecting your business to a global network of opportunities.</p>
+                        <h5 class="text-white fw-bold"></h5>
+                        <p class="text-white fw-bold"></p>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
