@@ -1,13 +1,18 @@
 @extends('customer.layouts.index')
 
 @section('content-header')
-    {{-- <h4 class="text-center">Effectuer le paiement pour le colis</h4> --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
 @if (session('success'))
     <div class="alert alert-success">
         {{ session('success') }}
+    </div>
+@endif
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
     </div>
 @endif
 
@@ -17,21 +22,20 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                    <h4 class="text-left mt-4">Historique des colis</h4><br>
+                    <h4 class="text-left mt-4">Historique des devis validés</h4><br>
                     <div id="products-container">
                         <div class="table-responsive">
-                            <table id="productTable" class="display">
+                            <table id="productTable" class="display table table-striped table-bordered" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th>Référence</th>
-                                        {{-- <th>Expéditeur</th> --}}
-                                        {{-- <th>Email</th> --}}
-                                        <th>Agence d'expédition</th>
+                                        <th>Référence Devis</th>
+                                        <th>Nombre de Colis</th>
+                                        <th>Agence Expédition</th>
                                         <th>Destinataire</th>
-                                        <th>Téléphone</th>
+                                        <th>Contact Dest.</th>
                                         <th>Agence Destination</th>
-                                        <th>Prix</th>
-                                        <th>Status</th>
+                                        <th>Prix Total Devis</th> 
+                                        <th>Statut</th>
                                         <th>Date</th>
                                         <th>Action</th>
                                     </tr>
@@ -47,64 +51,43 @@
     </form>
 </section>
 
-{{-- Les Modals --}}
-{{-- <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Les informations du colis validé</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm" action="/users/{id}/edit" method="GET">
-                    <div class="mb-3">
-                        <label for="nom" class="form-label">Nom destinataire</label>
-                        <input type="text" class="form-control" id="nom" name="nom" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="prenom" class="form-label">Prénom</label>
-                        <input type="text" class="form-control" id="prenom" name="prenom" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div> --}}
-
-<!-- Script JavaScript -->
 <script>
 $(document).ready(function() {
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
     var table = $("#productTable").DataTable({
-        responsive: true, // Rend la table responsive
+        responsive: true,
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier de traduction
-            },
+            url: "{{ asset('js/fr-FR.json') }}"
+        },
+        processing: true,
+        serverSide: true,
         ajax: {
             url: '{{ route("customer_colis.get.colis.valide") }}',
+            type: 'GET' 
         },
         columns: [
-            { data: 'reference_colis' },
-            // {
-            //     data: null,
-            //     render: function(data, type, row) {
-            //         return row.expediteur_nom + ' ' + row.expediteur_prenom;
-            //     }
-            // },
-            // { data: 'expediteur_email' },
-            { data: 'expediteur_agence' },
+            { data: 'reference_colis', name: 'reference_colis' },
+            { data: 'nombre_colis_par_reference', name: 'nombre_colis_par_reference' },
+            { data: 'expediteur_agence', name: 'expediteurs.agence' },
             {
                 data: null,
+                name: 'destinataire_nom_complet',
                 render: function(data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                    return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
                 }
             },
-            { data: 'destinataire_email' },
-            { data: 'destinataire_agence' },
-            { data: 'prix_transit_colis' },
-            { data: 'etat' }, // Assurez-vous que ce champ existe dans votre réponse
-            { 
-                data: 'updated_at',
+            { data: 'destinataire_contact', name: 'destinataires.email' },
+            { data: 'destinataire_agence', name: 'destinataires.agence' },
+            { data: 'total_prix_devis', name: 'total_prix_devis', render: function(data, type, row){ return parseFloat(data).toFixed(2) + ' €'; } }, // Affichage du prix formaté
+            { data: 'etat_display', name: 'colis.etat' },
+            {
+                data: 'last_updated_at',
+                name: 'last_updated_at',
                 render: function(data, type, row) {
                     if (data) {
                         var date = new Date(data);
@@ -113,24 +96,21 @@ $(document).ready(function() {
                         var year = date.getFullYear();
                         var hours = ('0' + date.getHours()).slice(-2);
                         var minutes = ('0' + date.getMinutes()).slice(-2);
-                        
                         return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
                     }
                     return data;
                 }
             },
-            { data: 'action', orderable: false, searchable: false }
+            { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
     });
 });
 </script>
 
-{{-- CSS Personnalisé --}}
 <style>
     body {
         background-color: #f7f7f7;
     }
-
     .form-container {
         max-width: 95%;
         margin: auto;
@@ -138,6 +118,9 @@ $(document).ready(function() {
         padding: 30px;
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    #productTable_wrapper .row:first-child > div {
+        margin-bottom: 10px;
     }
 </style>
 @endsection

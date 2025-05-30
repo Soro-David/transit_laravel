@@ -71,6 +71,8 @@ use Carbon\Carbon;
 
 Route::get('/', function () { return redirect('/accueil'); });
 Route::get('/login', function () { return redirect('/login'); });
+// Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
 // Route::get('/accueil', function () { return redirect('/login_admin'); });
 
 Route::get('/', function () {
@@ -425,6 +427,7 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('invoices/print/', [CustomerColisController::class, 'invoice'])->name('edit.invoice');
 
             Route::get('/get-colis',[CustomerColisController::class, 'get_colis'])->name('get.colis');
+            Route::delete('/delete-group/{reference_colis}', [CustomerColisController::class, 'delete_colis_group'])->name('delete');
             Route::get('/get-colis-suivi-customer',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
             Route::get('/get-colis-valide',[CustomerColisController::class, 'get_colis_valide'])->name('get.colis.valide');
             Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');

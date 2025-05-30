@@ -1,82 +1,93 @@
 @extends('customer.layouts.index')
+
 @section('content-header')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('content')
 <section class="py-3">
     <form action="" method="POST" class="mt-4">
         @csrf
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                        <h4 class="text-left mt-4">Suivi des colis</h4><br>
-                        <div id="products-container">
-                            <div id="products-container">
-                                <table id="productTable" class="display">
-                                    <thead>
-                                        <tr>
-                                            <th>Référence</th>
-                                            <th>Agence d'expédition</th>
-                                            <th>Destinataire</th>
-                                            <th>Téléplone</th>
-                                            <th>Agence Destination</th>
-                                            <th> Status</th>
-                                            <th> Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="container">
-                            </div>
-                        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                    <h4 class="text-left mt-4">Suivi des colis</h4><br>
+                    <div id="products-container">
+                            <table id="productTable" class="display table table-striped table-bordered" style="width:100%"> {{-- Ajout de classes Bootstrap --}}
+                                <thead>
+                                    <tr>
+                                        <th>Référence Colis</th>
+                                        <th>Nb. Colis</th> 
+                                        <th>Agence Expédition</th>
+                                        <th>Destinataire</th>
+                                        <th>Téléphone Dest.</th>
+                                        <th>Agence Destination</th>
+                                        <th>Statut Actuel</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                     </div>
                 </div>
             </div>
+        </div>
     </form>
-</div>
+</section>
+
 <!-- Script JavaScript -->
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
+    // S'assurer que le token CSRF est disponible pour toutes les requêtes AJAX si nécessaire (pas pour GET DataTables)
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-            },
+            url: "{{ asset('js/fr-FR.json') }}"
+        },
+        processing: true,
+        serverSide: true,
         ajax: {
             url: '{{ route("customer_colis.get.colis.suivi") }}',
-
+            type: 'GET' 
         },
         columns: [
-            { data: 'reference_colis' },
-            { data: 'expediteur_agence' },
+            { data: 'reference_colis', name: 'reference_colis' },
+            { data: 'nombre_colis_par_reference', name: 'nombre_colis_par_reference' },
+            { data: 'expediteur_agence', name: 'expediteur_agence' }, 
             {
-                data: null,
+                data: 'destinataire_complet',
+                name: 'destinataires.nom', 
                 render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                    return data;
+
                 }
             },
-            { data: 'destinataire_tel' },
-            { data: 'destinataire_agence' },
-            { data: 'etat' },
-            { 
-                data: 'updated_at',
+            { data: 'destinataire_tel', name: 'destinataires.tel' },
+            { data: 'destinataire_agence', name: 'destinataires.agence' },
+            { data: 'etat', name: 'colis.etat' },
+            {
+                data: 'last_updated_at',
+                name: 'last_updated_at',
                 render: function(data, type, row) {
-                    // Vérifiez si la date existe et la formater
                     if (data) {
                         var date = new Date(data);
-                        // Retourne la date au format jj/mm/aa hh:mm
-                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                        var year = date.getFullYear();  // On garde l'année complète
-                        var hours = ('0' + date.getHours()).slice(-2);  // Ajoute un zéro si heure < 10
-                        var minutes = ('0' + date.getMinutes()).slice(-2);  // Ajoute un zéro si minute < 10
-                        
-                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;  // Format final
+                        var day = ('0' + date.getDate()).slice(-2);
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                        var year = date.getFullYear();
+                        var hours = ('0' + date.getHours()).slice(-2);
+                        var minutes = ('0' + date.getMinutes()).slice(-2);
+                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
                     }
-                    return data;  // Si la date est vide, on retourne la donnée brute
+                    return '';
                 }
-            },
-            // { data: 'action', orderable: false, searchable: false }
+            }
         ],
     });
 });
