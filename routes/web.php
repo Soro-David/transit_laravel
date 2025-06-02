@@ -33,6 +33,7 @@ use App\Http\Controllers\ProgrammeChineController;
 use App\Http\Controllers\RdvchineController;
 use App\Http\Controllers\RdvipmxangreController;
 use App\Http\Controllers\RdvlbController;
+use App\Http\Controllers\Auth\LoginController;
 
 
 use App\Models\Colis;
@@ -93,6 +94,7 @@ Auth::routes();
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('home');
+    Route::post('/logout', [LoginController::class, 'showLoginForm'])->name('logout');
      //DataTable route
 
     Route::get('/colis-admin/count', function () {

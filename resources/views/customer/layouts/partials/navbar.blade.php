@@ -7,10 +7,8 @@
     </li>
   </ul>
   <ul class="navbar-nav ml-auto">
-   
-
     <!-- User Profile -->
-    <li class="nav-item dropdown">
+ <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
         <img src="{{ Auth::user()->profile_photo_url ?? asset('images/poslg.png') }}" class="img-circle"  style="width: 30px; height: 30px;">
             <span>{{ auth()->user()->getFullname() }}</span>
@@ -20,8 +18,10 @@
           <i class="fas fa-user-circle mr-2"></i> Changer la photo de profil
         </a>
         <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item"
-          onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+        <a href="#" class="dropdown-item">
+          <i class="fa fa-edit"></i> Modifier le compte
+        </a>
+        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit()">
           <i class="fas fa-sign-out-alt mr-2"></i> Se déconnecter
         </a>
         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -31,7 +31,6 @@
     </li>
   </ul>
 </nav>
-
 <!-- Modal for Changing Profile Photo -->
 <div class="modal fade" id="changeProfilePhotoModal" tabindex="-1" role="dialog" aria-labelledby="changeProfilePhotoModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -59,8 +58,6 @@
     </div>
   </div>
 </div>
-
-
 {{-- stylee  --}}
 <style>
     body{

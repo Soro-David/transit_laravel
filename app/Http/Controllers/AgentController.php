@@ -241,61 +241,61 @@ class AgentController extends Controller
              // dd($colisData);        
  
          return view('IPMS_SIMEXCI_ANGRE.dashboard', compact('orders','colisData', 'moisNoms','colisParMois', 'customers_count', 'products_count','colisCount','totalPrixTransit','volCargaisonCount','conteneurCount'));
-     }
-
-    public function AGENCE_CHINE_INDEX()
-{
-    // Fetch necessary data
-    $orders = Order::with(['items', 'payments'])->get();
-    $customers_count = Customer::count();
-    $products_count = Product::count();
-    $colisCount = Colis::where('etat', 'Validé')
-                        ->whereHas('expediteur', function ($query) {
-                            $query->where('agence', 'Agence de Chine');
-                        })->count();
-
-    $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
-                             ->whereHas('expediteur', function ($query) {
-                                 $query->where('agence', 'Agence de Chine');
-                             })->sum('prix_transit_colis');
-
-    $volCargaisonCount = Colis::where('mode_transit', 'aérien')
-                              ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
-                              ->whereHas('expediteur', function ($query) {
-                                  $query->where('agence', 'Agence de Chine');
-                              })->count();
-
-    $conteneurCount = Colis::where('mode_transit', 'maritime')
-                           ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
-                           ->whereHas('expediteur', function ($query) {
-                               $query->where('agence', 'Agence de Chine');
-                           })->count();
-
-    $currentYear = Carbon::now()->year;
-
-    // Fetch data grouped by month
-    $colisParMois = Colis::select(
-                    DB::raw('MONTH(created_at) as mois'),
-                    DB::raw('COUNT(*) as total')
-                )->whereHas('expediteur', function ($query) {
-                    $query->where('agence', 'Agence de Chine');})
-                ->whereYear('created_at', $currentYear)
-                ->groupBy(DB::raw('MONTH(created_at)'))
-                ->orderBy(DB::raw('MONTH(created_at)'))
-                ->pluck('total', 'mois')
-                ->toArray();
-
-    // Initialize an array for months with data
-    $colisData = [];
-    for ($i = 1; $i <= 12; $i++) {
-        $colisData[] = $colisParMois[$i] ?? 0;
     }
 
-    // Pass data to the view
-    return view('AGENCE_CHINE.dashboard', compact(
-        'orders', 'colisData', 'customers_count', 'products_count', 
-        'colisCount', 'totalPrixTransit', 'volCargaisonCount', 'conteneurCount'
-    ));
-}
+    public function AGENCE_CHINE_INDEX()
+    {
+        // Fetch necessary data
+        $orders = Order::with(['items', 'payments'])->get();
+        $customers_count = Customer::count();
+        $products_count = Product::count();
+        $colisCount = Colis::where('etat', 'Validé')
+                            ->whereHas('expediteur', function ($query) {
+                                $query->where('agence', 'Agence de Chine');
+                            })->count();
+
+        $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+                                ->whereHas('expediteur', function ($query) {
+                                    $query->where('agence', 'Agence de Chine');
+                                })->sum('prix_transit_colis');
+
+        $volCargaisonCount = Colis::where('mode_transit', 'aérien')
+                                ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                                ->whereHas('expediteur', function ($query) {
+                                    $query->where('agence', 'Agence de Chine');
+                                })->count();
+
+        $conteneurCount = Colis::where('mode_transit', 'maritime')
+                            ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
+                            ->whereHas('expediteur', function ($query) {
+                                $query->where('agence', 'Agence de Chine');
+                            })->count();
+
+        $currentYear = Carbon::now()->year;
+
+        // Fetch data grouped by month
+        $colisParMois = Colis::select(
+                        DB::raw('MONTH(created_at) as mois'),
+                        DB::raw('COUNT(*) as total')
+                    )->whereHas('expediteur', function ($query) {
+                        $query->where('agence', 'Agence de Chine');})
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->orderBy(DB::raw('MONTH(created_at)'))
+                    ->pluck('total', 'mois')
+                    ->toArray();
+
+        // Initialize an array for months with data
+        $colisData = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $colisData[] = $colisParMois[$i] ?? 0;
+        }
+
+        // Pass data to the view
+        return view('AGENCE_CHINE.dashboard', compact(
+            'orders', 'colisData', 'customers_count', 'products_count', 
+            'colisCount', 'totalPrixTransit', 'volCargaisonCount', 'conteneurCount'
+        ));
+    }
 
 }

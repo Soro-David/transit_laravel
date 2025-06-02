@@ -119,16 +119,16 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Success, The customer has been updated.');
     }
 
-    public function destroy(Customer $customer)
-    {
-        if ($customer->avatar) {
-            Storage::delete($customer->avatar);
-        }
+    // public function destroy(Customer $customer)
+    // {
+    //     if ($customer->avatar) {
+    //         Storage::delete($customer->avatar);
+    //     }
 
-        $customer->delete();
+    //     $customer->delete();
 
-       return response()->json([
-           'success' => true
-       ]);
-    }
+    //    return response()->json([
+    //        'success' => true
+    //    ]);
+    // }
 }
