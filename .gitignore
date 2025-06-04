@@ -1,1 +1,19 @@
 vendor
+.env
+public/storage
+# Laravel specific
+Homestead.yaml
+Homestead.json
+# Laravel Mix
+npm-debug.log
+# Composer
+composer.lock
+# IDE specific
+.idea
+# MacOS specific
+.DS_Store
+# Windows specific
+Thumbs.db
+# Logs
+*.log
+# Cache

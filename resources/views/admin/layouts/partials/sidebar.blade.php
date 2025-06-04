@@ -248,21 +248,64 @@
 </aside>
 
 <style>
-    .main-sidebar {
-        background-color: #ffffff; /* fond blanc */
-        color: #000000; /* texte noir */
-        top: 0;
-        left: 0;
-        height: 100vh;
-        position: fixed;
-    }
-    /* Appliquer la couleur sur les liens de la sidebar */
-    .main-sidebar a.nav-link {
-        color: #000000; /* texte noir */
-        transition: transform 0.2s ease, color 0.2s ease;
-    }
-    /* Effet de survol : décalage vers la droite pour simuler un enfoncement */
-    .main-sidebar a.nav-link:hover {
-        transform: translateX(5px);
-    }
+ .main-sidebar {
+    background-color: #ffffff; /* Fond blanc */
+    color: #000000;           /* Texte noir */
+    top: 0;
+    left: 0;
+    height: 100vh; /* Assure que la sidebar prend toute la hauteur de la fenêtre */
+    position: fixed; /* Fixe la sidebar par rapport à la fenêtre */
+
+    /* AJOUTÉ : Indispensable pour que flex-grow et flex-shrink fonctionnent sur les enfants */
+    display: flex;
+    flex-direction: column; /* Les enfants (logo, menu) s'empileront verticalement */
+}
+
+/* Zone du logo : s'assure qu'elle ne rétrécit pas */
+.main-sidebar > .d-flex.align-items-center.justify-content-center {
+    flex-shrink: 0; /* Empêche cette zone de rétrécir si le contenu du menu est grand */
+}
+
+/* Zone du menu scrollable */
+.sidebar {
+    flex-grow: 1; /* Permet à cette section de prendre tout l'espace vertical restant */
+    overflow-y: auto; /* Active le défilement vertical si le contenu dépasse */
+    min-height: 0; /* Important pour que overflow fonctionne correctement dans un parent flex */
+}
+
+/* Styles pour les liens dans la sidebar */
+.main-sidebar a.nav-link {
+    color: #000000; /* Texte noir */
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Effet de survol pour les liens */
+.main-sidebar a.nav-link:hover {
+    transform: translateX(5px); /* Petit décalage vers la droite */
+}
+
+/* Style pour le logo personnalisé */
+.custom-logo {
+    max-height: 90px;
+    padding: 1px;
+    margin: 0 auto;
+}
+
+/* Styles optionnels pour personnaliser la barre de défilement (pour les navigateurs WebKit) */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1); /* Couleur de fond de la piste */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.3); /* Couleur du curseur de la barre de défilement */
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.5); /* Couleur du curseur au survol */
+}
 </style>

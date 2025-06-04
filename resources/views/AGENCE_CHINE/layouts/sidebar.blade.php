@@ -227,4 +227,59 @@
     .main-sidebar a.nav-link:hover {
         transform: translateX(5px);
     }
+
+
+    .main-sidebar {
+    background-color: #b7bfdb; /* Fond */
+    color: #000000;           /* Texte */
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-sidebar > .d-flex.align-items-center.justify-content-center {
+    flex-shrink: 0; 
+}
+
+
+.sidebar {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Styles existants pour les liens, etc. (gardez-les) */
+.main-sidebar a.nav-link {
+    color: #000000; /* Texte noir */
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.main-sidebar a.nav-link:hover {
+    transform: translateX(5px);
+}
+
+.custom-logo {
+    max-height: 90px;
+    padding: 1px;
+    margin: 0 auto;
+}
+
+/* Si vous souhaitez personnaliser la barre de défilement (optionnel) */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.5);
+}
 </style>

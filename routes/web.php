@@ -414,6 +414,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
 Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('customer.dashboard');
+        // Route::post('/logout', [LoginController::class, 'showLoginForm'])->name('logout'); 
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
         Route::get('/dashboard/profile', [DashboardController::class, 'profile'])->name('dashboard.profile');
         Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
