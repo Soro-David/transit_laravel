@@ -817,10 +817,20 @@ class ColisController extends Controller
                     $colisModel->update(['qr_code_path' => $filePath]);
                     $colisEnregistres[] = $colisModel->fresh();
 
-                } catch (\Exception $e) {
-                    Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
-                    $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
-                }
+                    } catch (\Exception $e) {
+                        Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), [
+                            'data' => $colisItemData,
+                            'exception' => $e
+                        ]);
+
+                        $erreursCreation[] = $e->getMessage(); // On stocke l'erreur dans le tableau sans bloquer
+                    }
+
+                // } catch (\Exception $e) {
+                //     Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
+                //     $erreursCreation[] = dd($e->getMessage());
+                //     // $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
+                // }
             }
         }
 
