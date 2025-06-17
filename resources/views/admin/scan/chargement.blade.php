@@ -26,13 +26,12 @@
                                                 <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Date</th>
-                                                <th>Action</th>
-
+                                                <th>Action</th> <!-- ✅ NE PAS COMMENTER -->
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -211,24 +210,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
             {
                 data: 'created_at',
                 render: function (data) {
-                    if (!data) {
-                        return ''; // Retourne une chaîne vide si la date est null
-                    }
-                    var date = new Date(data);
-                    if (isNaN(date.getTime())) {
-                        return ''; // Vérifie si la date est invalide
-                    }
-                    var day = ('0' + date.getDate()).slice(-2);
-                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    var year = date.getFullYear();
+                    if (!data) return '';
+                    const date = new Date(data);
+                    if (isNaN(date.getTime())) return '';
+                    const day = ('0' + date.getDate()).slice(-2);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    const year = date.getFullYear();
                     return day + '/' + month + '/' + year;
                 }
-            }
+            },
+            { data: 'action', orderable: false, searchable: false }
 
         ],
             dom: 'Bfrtip', // Placement des boutons

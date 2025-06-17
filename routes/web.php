@@ -379,6 +379,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/update-colis-status/charge', [ScanController::class, 'updateColisCharge'])->name('update.colis.charge');
         Route::post('/update-colis-status/decharge', [ScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
+        Route::get('/modifier/{reference_colis}', [ScanController::class, 'modifier_colis'])->name('colis.modifier');
+
+        Route::post('/update-etat', [ScanController::class, 'update_colis_etat'])->name('update.etat');
+
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
 

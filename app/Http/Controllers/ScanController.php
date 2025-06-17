@@ -138,6 +138,34 @@ class ScanController extends Controller
     }
 
 
+    // Affichage du formulaire
+    public function modifier_colis($reference_colis)
+    {
+        $colis = Colis::where('reference_colis', $reference_colis)->get();
+
+        if ($colis->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé pour cette référence.');
+        }
+
+        return view('admin.scan.edit_scan', compact('colis', 'reference_colis'));
+    }
+
+    public function update_colis_etat(Request $request)
+    {
+        $request->validate([
+            'reference_colis' => 'required|string',
+            'etat' => 'required|string',
+        ]);
+
+        // Mise à jour des colis ayant la même référence
+        Colis::where('reference_colis', $request->reference_colis)
+            ->update(['etat' => $request->etat]);
+
+        return redirect()->route('scan.chargement')->with('success', 'État des colis mis à jour avec succès.');
+    }
+
+
+
     public function get_colis_charge(Request $request)
     {
         if ($request->ajax()) {
@@ -157,9 +185,9 @@ class ScanController extends Controller
             ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
             ->where('etat', 'Chargé') 
             ->get(); 
-    
+
             $colisGrouped = $colis->groupBy('reference_colis');
-    
+
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
@@ -176,10 +204,20 @@ class ScanController extends Controller
                     'colis' => $group
                 ];
             })->values();
-    
-            return DataTables::of($colisWithCount)->make(true);
+
+            return DataTables::of($colisWithCount)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    return '<a href="' . route('scan.colis.modifier', $row['reference_colis']) . '" 
+                                class="btn btn-warning btn-sm" title="Modifier état du colis">
+                                <i class="fas fa-edit"></i>
+                            </a>';
+                    })
+                ->rawColumns(['action'])
+                ->make(true);
         }
     }
+
 
     public function getColisEntrepot(Request $request)
     {
