@@ -184,10 +184,10 @@ class ColisController extends Controller
         $request->session()->put('step1', $request->all());
         // Validation des données
         $request->validate([
-            // Ajouter les règles de validation si nécessaires
+            // Ajouter les règles de validation si nécessaires 
         ]);
 
-        // Stockage des données en session
+        // Stockage des données en session 
         session(['step1' => $request->only([
             'nom_expediteur',
             'prenom_expediteur', 
@@ -773,7 +773,7 @@ class ColisController extends Controller
                     'agent_id' => $agentId,
                     'qr_code_path' => null,
                 ];
-                // dd($colisItemData);
+                dd($colisItemData);
                 try {
                     $colisModel = Colis::create($colisItemData);
 
@@ -831,7 +831,7 @@ class ColisController extends Controller
         if (empty($colisEnregistres)) {
             return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
         }
-
+ 
         $colisEnregistresCollection = collect($colisEnregistres);
         $firstColis = $colisEnregistresCollection->first(); 
 
