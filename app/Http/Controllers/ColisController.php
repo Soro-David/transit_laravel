@@ -773,7 +773,7 @@ class ColisController extends Controller
                     'agent_id' => $agentId,
                     'qr_code_path' => null,
                 ];
-                dd($colisItemData);
+                // dd($colisItemData);
                 try {
                     $colisModel = Colis::create($colisItemData);
 
