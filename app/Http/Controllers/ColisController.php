@@ -1320,7 +1320,7 @@ class ColisController extends Controller
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
-        dd($devise);
+        // dd($devise);
         // --- Group and Aggregate Colis Data by Service/Description ---
         $groupedItems = [];
         $prix_total_invoice = 0; // Initialize total for the entire invoice
