@@ -34,6 +34,8 @@ use Barryvdh\DomPDF\Facade;
 use PDF;
 use Illuminate\Support\Collection; 
 use Illuminate\Support\Carbon;
+use Exception;
+
 
 class ApmsAngreColisController extends Controller
 {
@@ -1919,7 +1921,7 @@ public function liste_ballon()
     // Récupérer uniquement les bateaux non récupérés
     $ballons = Bateaux::select('id', 'reference_bateau', 'date_arriver', 'reference_conteneur')
                       ->where('recuperer', '!=', 'oui')
-                      ->where('agence_expedition', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                      ->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
                       ->where('type', '=', 'ballon')
                       ->get();
 

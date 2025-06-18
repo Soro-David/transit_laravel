@@ -684,6 +684,10 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::post('/update-colis-status/charge-aft-louis-b', [AftlbScanController::class, 'updateColisCharge'])->name('update.colis.charge');
         Route::post('/update-colis-status/decharge-aft-louis-b', [AftlbScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
 
+        Route::get('/modifier/{reference_colis}', [AftlbScanController::class, 'modifier_colis'])->name('colis.modifier');
+
+        Route::post('/update-etat', [AftlbScanController::class, 'update_colis_etat'])->name('update.etat');
+
         Route::get('/chauffeur/data-aft-louis-b', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post-aft-louis-b'], '/store', [AgentTransportController::class, 'store'])->name('store');
     });
@@ -886,6 +890,10 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
             Route::get('/get-colis-livre-simexci', [ApmsScanController::class, 'get_colis_livre'])->name('get.colis.livre');
             Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
             Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
+
+            Route::get('/modifier/{reference_colis}', [ApmsScanController::class, 'modifier_colis'])->name('colis.modifier');
+
+            Route::post('/update-etat', [ApmsScanController::class, 'update_colis_etat'])->name('update.etat');
         });
 
         // Groupe de routes pour la gestion du transport
@@ -1083,6 +1091,11 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::post('/update-colis-status/charge-IPMS', [ApmsAngreScanController::class, 'updateColisCharge'])->name('update.colis.charge');
         Route::post('/update-colis-status/decharge-IPMS', [ApmsAngreScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
         Route::post('/update-colis-status/livre-IPMS', [ApmsAngreScanController::class, 'updateColisLivre'])->name('update.colis.livre');
+
+
+        Route::get('/modifier/{reference_colis}', [ApmsAngreScanController::class, 'modifier_colis'])->name('colis.modifier');
+
+        Route::post('/update-etat', [ApmsAngreScanController::class, 'update_colis_etat'])->name('update.etat');
 
         Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');
@@ -1334,6 +1347,10 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::post('/update-colis-status/entrepot-aft_chine', [ChineScanController::class, 'updateColisEntrepot'])->name('update.colis.entrepot');
         Route::post('/update-colis-status/charge-aft_chine', [ChineScanController::class, 'updateColisCharge'])->name('update.colis.charge');
         Route::post('/update-colis-status/decharge-aft_chine', [ChineScanController::class, 'updateColisDecharge'])->name('update.colis.decharge');
+
+        Route::get('/modifier/{reference_colis}', [ChineScanController::class, 'modifier_colis'])->name('colis.modifier');
+
+        Route::post('/update-etat', [ChineScanController::class, 'update_colis_etat'])->name('update.etat');
 
         Route::get('/chauffeur/data', [AgentTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::match(['get', 'post'], '/store', [AgentTransportController::class, 'store'])->name('store');

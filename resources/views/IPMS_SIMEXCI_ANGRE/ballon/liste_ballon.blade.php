@@ -155,37 +155,37 @@
     }
 
     .btn-valider {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: #28a745; /* Vert Bootstrap */
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 50px; /* Forme bien arrondie */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease-in-out;
-    cursor: pointer;
-    text-transform: uppercase;
-}
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background-color: #28a745; /* Vert Bootstrap */
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 50px; /* Forme bien arrondie */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        text-transform: uppercase;
+    }
 
-.btn-valider:hover {
-    background-color: #218838; /* Légèrement plus foncé au survol */
-    transform: scale(1.05);
-    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-}
+    .btn-valider:hover {
+        background-color: #218838; /* Légèrement plus foncé au survol */
+        transform: scale(1.05);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    }
 
-.btn-valider:active {
-    transform: scale(0.95);
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-}
+    .btn-valider:active {
+        transform: scale(0.95);
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-.btn-valider i {
-    font-size: 20px;
-}
+    .btn-valider i {
+        font-size: 20px;
+    }
 
 </style>
 

@@ -314,63 +314,68 @@ class ChineColisController extends Controller
     }
 
 
-    public function contenaire_fermer(Request $request)
+  public function contenaire_fermer(Request $request)
     {
-    
-        // dd($request);
         try {
-            // Démarrez une transaction de base de données pour garantir l'atomicité
             DB::beginTransaction();
-    
-            $agence = 'Agence de Chine'; // Définir l'agence une seule fois
 
+            $agence = 'Agence de Chine'; // Définir une seule fois l’agence
+
+            // Récupérer les colis correspondant
             $colis = Colis::where('etat', 'Chargé')
                 ->where('mode_transit', 'maritime')
                 ->whereHas('expediteur', function ($query) use ($agence) {
                     $query->where('agence', $agence);
                 })
                 ->get();
-    
+
             $count = $colis->count();
+
             if ($count === 0) {
-                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé et un mode de transit Maritime.');
+                return redirect()->back()->with('warning', 'Aucun colis avec l’état "Chargé" et le mode de transit "Maritime" pour cette agence.');
             }
-    
-            // Générer une référence unique pour le conteneur
+
+            // Génération de la référence du conteneur
             $referenceContenaire = $this->generateReferenceContenaire();
-    
-            // Mise à jour des enregistrements
+
+            // Mise à jour des colis
             $updatedCount = Colis::where('etat', 'Chargé')
                 ->where('mode_transit', 'maritime')
-                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-    
-            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+                ->whereHas('expediteur', function ($query) use ($agence) {
+                    $query->where('agence', $agence);
+                })
+                ->update([
+                    'etat' => 'Fermé',
+                    'reference_contenaire' => $referenceContenaire
+                ]);
+
+            // Vérifier si tous les colis ont été bien mis à jour
             if ($updatedCount !== $count) {
-                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
-                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+                DB::rollBack();
+                // Debug plus propre au lieu de dd()
+                return redirect()->back()->with('error', "Erreur de mise à jour : attendus = $count, mis à jour = $updatedCount.");
             }
-    
-            // Commit la transaction
+
             DB::commit();
-    
-            // Retourner un message de succès avec le nombre de colis traités
-            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
-    
+
+            return redirect()->back()->with('success', "$updatedCount colis ont été ajoutés au conteneur avec succès (Réf: $referenceContenaire).");
+
         } catch (\Exception $e) {
-            // En cas d'erreur, annuler la transaction
             DB::rollBack();
             return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
     }
-    
-    public function vol_fermer(Request $request)
-    {
-        // dd($request);
-        try {
-            // Démarrez une transaction de base de données pour garantir l'atomicité
-            DB::beginTransaction();
-            $agence = 'Agence de Chine'; // Définir l'agence une seule fois
 
+    
+public function vol_fermer(Request $request)
+{
+    try {
+        // Démarrer la transaction
+        DB::beginTransaction();
+
+        $agence = 'Agence de Chine';
+
+        // Récupérer les colis concernés
         $colis = Colis::where('etat', 'Chargé')
             ->where('mode_transit', 'aerien')
             ->whereHas('expediteur', function ($query) use ($agence) {
@@ -379,37 +384,41 @@ class ChineColisController extends Controller
             ->get();
 
         $count = $colis->count();
-    
-            if ($count === 0) {
-                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
-            }
-    
-            // Générer une référence unique pour le conteneur
-            $referenceContenaire = $this->generateReferenceContenaire();
-    
-            // Mise à jour des enregistrements
-            $updatedCount = Colis::where('etat', 'Chargé')
-                                ->where('mode_transit', 'aerien')
-                                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-    
-            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
-            if ($updatedCount !== $count) {
-                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
-                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
-            }
-    
-            // Commit la transaction
-            DB::commit();
-    
-            // Retourner un message de succès avec le nombre de colis traités
-            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
-    
-        } catch (\Exception $e) {
-            // En cas d'erreur, annuler la transaction
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
+
+        if ($count === 0) {
+            return redirect()->back()->with('warning', 'Aucun colis avec l’état "Chargé" pour le mode "aérien".');
         }
+
+        // Générer une référence unique pour le vol
+        $referenceVol = $this->generateReferenceVol();
+
+        // Mettre à jour uniquement les colis sélectionnés
+        $updatedCount = Colis::where('etat', 'Chargé')
+            ->where('mode_transit', 'aerien')
+            ->whereHas('expediteur', function ($query) use ($agence) {
+                $query->where('agence', $agence);
+            })
+            ->update([
+                'etat' => 'Fermé',
+                'reference_contenaire' => $referenceVol // même champ que conteneur, mais nommé différemment
+            ]);
+
+        // Vérifier si tous les colis ont bien été mis à jour
+        if ($updatedCount !== $count) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Erreur : certains colis n\'ont pas pu être mis à jour.');
+        }
+
+        DB::commit();
+
+        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le vol avec la référence $referenceVol.");
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
     }
+}
+
 
 
     public function store_colis(Request $request)
