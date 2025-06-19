@@ -458,80 +458,79 @@ public function store_colis(Request $request)
     }
 }
 
-    public function stepPayment()
-    {
-       // Récupérer les données de l'étape 1 depuis la session
+public function stepPayment()
+{
     $step1Data = session('step1');
-
-    // Vérifier si les données existent et contiennent les prix
-    if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
-        // Rediriger vers la première étape avec une erreur si les données sont manquantes
-        // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
-        return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+    if (
+        !$step1Data
+        || !isset($step1Data['prix'], $step1Data['quantite_colis'])
+        || !is_array($step1Data['prix'])
+        || !is_array($step1Data['quantite_colis'])
+    ) {
+        return redirect()->route('chine_colis.add')
+                         ->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
     }
 
-    // Calculer le montant total en additionnant tous les prix du tableau 'prix'
-    $totalPrice = collect($step1Data['prix'])->sum();
+    // 1) Somme pondérée : prix unitaire × quantité
+    $totalFcfa = collect($step1Data['prix'])
+        ->map(function ($prixUnitaire, $index) use ($step1Data) {
+            $qte = isset($step1Data['quantite_colis'][$index])
+                ? (int) $step1Data['quantite_colis'][$index]
+                : 1;
+            return $prixUnitaire * $qte;
+        })
+        ->sum();
 
-    // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
-    session(['step1.total_prix' => $totalPrice]);
+    // 2) Récupération du taux depuis la config
+    $rate = config('services.currency.fcfa_to_eur');
 
-    // Retourner la vue de paiement en lui passant le montant total calculé
-    return view('AFT_LOUIS_BLERIOT.colis.add.payement', [
-        'totalPrice' => $totalPrice
+    // 3) Conversion en EUR (arrondi à 2 décimales)
+    $totalEur = round($totalFcfa / $rate, 2);
+
+    // 4) Stocker en session pour les étapes suivantes
+    session([
+        'step1.total_prix_fcfa' => $totalFcfa,
+        'step1.total_prix_eur'  => $totalEur,
     ]);
-        
-    }
+
+    // 5) Passer à la vue de paiement
+    return view('AFT_LOUIS_BLERIOT.colis.add.payement', [
+        'totalPriceFcfa' => $totalFcfa,
+        'totalPriceEur'  => $totalEur,
+    ]);
+}
+
     public function storePayment(Request $request)
     {
         try {
-            $validatedData = $request->validate([
-            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            //    'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-            // ], [
-            //     'required' => 'Le champ :attribute est obligatoire.',
-            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-            //     'numeric' => 'Le champ :attribute doit être un nombre.',
-            //     'min' => 'Le champ :attribute doit être au moins :min.',
-    
-            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
-    
-            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
+            // 1) Validation simple
+            $data = $request->validate([
+                
+                'mode_payement' => 'required|in:cash,delivery',
+                'montant_reçu'  => 'required_if:mode_payement,cash|numeric|min:0.01',
             ]);
     
-            // Stocker les données en session
-            
-            session(['step2' => $request->only([
-                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-            ])]);
+            // 2) Si paiement en espèces, on stocke la devise et le montant
+            if ($data['mode_payement'] === 'cash') {
+                session()->put('step2.montant_reçu', $data['montant_reçu']);
+                session()->put('step2.devise', 'EUR');
+            }
+    
+            // 3) On stocke le mode de paiement
+            session()->put('step2.mode_payement', $data['mode_payement']);
+    
             return response()->json([
-                'success' => true,
+                'success'  => true,
                 'redirect' => route('aftlb_colis.generer.qrcode'),
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        }
+        catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
+                'errors'  => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
@@ -539,14 +538,13 @@ public function store_colis(Request $request)
         }
     }
 
-
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         $data = array_merge(
             session('step1', []),
             session('step2', [])
         );
-
+     
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -582,6 +580,7 @@ public function store_colis(Request $request)
         }
 
         $payementDataSession = session('step2', []);
+        $devise = $payementDataSession['devise'] ?? 'EUR';
         $montantTotalEstime = collect($data['prix'] ?? [])->map(function ($prixItem, $index) use ($data) {
             $quantite_ligne = $data['quantite_colis'][$index] ?? 0;
         return (float)($prixItem ?? 0) * (int)$quantite_ligne;
@@ -619,21 +618,26 @@ public function store_colis(Request $request)
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
 
         $basePaiementData = [
-            'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
-            'operateur' => $payementDataSession['operateur_mobile'] ?? null,
-            'banque' => $payementDataSession['nom_banque'] ?? null,
-            'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
-            'id_transaction' => $transactionId,
-            'statut_paiement' => $statutPaiementGlobal, // Statut global de la transaction
-            'date_validation' => now(),
-            'expediteur_id' => $expediteur->id,
-            'agent_id' => $agentId,
-            'montant_paye' => $montantPaiementTransaction, // Montant total payé pour la transaction
+            'methode_paiement' => $modePaiement,
+            'devise'           => $devise,
+            'operateur'        => $payementDataSession['operateur_mobile'] ?? null,
+            'banque'           => $payementDataSession['nom_banque'] ?? null,
+            'NumeroPaiement'   => $payementDataSession['numero_tel'] 
+                                 ?? $payementDataSession['numero_cheque'] 
+                                 ?? $payementDataSession['numero_compte'] 
+                                 ?? null,
+            'id_transaction'   => $transactionId,
+            'statut_paiement'  => $statutPaiementGlobal,
+            'date_validation'  => now(),
+            'expediteur_id'    => $expediteur->id,
+            'agent_id'         => $agentId,
+            'montant_paye'     => $montantPaiementTransaction,
         ];
+        
 
         $colisEnregistres = [];
         $erreursCreation = [];
-        
+        $rate = config('services.currency.fcfa_to_eur');
         // Référence principale pour l'ensemble des colis de cette soumission si fournie, sinon générée.
         // Si chaque "ligne d'article" peut avoir sa propre référence, cette logique doit être DANS la boucle.
         // D'après l'exemple "SD-6-A1 somme des quantité_colis =4", la référence est commune.
@@ -648,11 +652,12 @@ public function store_colis(Request $request)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
-            $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
+            $prixFcfa = $data['prix'][$index] ?? 0;
+            $prixUnitairePourCetteLigne = round($prixFcfa / $rate, 2);
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
-                    'devise' => 'EUR',
+                    'devise'            => $devise,
                     'reference_colis' => $referenceColisPrincipale, 
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
