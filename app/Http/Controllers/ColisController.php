@@ -1439,8 +1439,9 @@ class ColisController extends Controller
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
-            'devise' => optional($firstColis->expediteur)->devise,
+            'devise' => optional($firstColis)->devise,
         ];
+        // dd($firstInfo);
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
         $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
@@ -2272,6 +2273,7 @@ public function get_colis_hold(Request $request)
         ]);
     
         $colisData = $request->input('colis');
+        // dd($colisData);
     
         foreach ($colisData as $colisId => $data) {
             try {
@@ -2297,7 +2299,7 @@ public function get_colis_hold(Request $request)
     
             } catch (\Exception $e) {
                 Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-                return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
+                return back()->with('error', dd($e));
             }
         }
     

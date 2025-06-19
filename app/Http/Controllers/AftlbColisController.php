@@ -1301,7 +1301,7 @@ public function store_colis(Request $request)
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
-            'devise' => optional($firstColis->expediteur)->devise,
+            'devise' => optional($firstColis)->devise,
         ];
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
