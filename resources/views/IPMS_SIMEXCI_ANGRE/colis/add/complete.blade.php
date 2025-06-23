@@ -87,7 +87,7 @@
             </div>
             <div>
                 <a href="{{ route('ipms_angre_colis.imprimer.bon_livraison', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info">
-                    <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de facture
+                    <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de Livraison
                 </a>            
             </div>
         </div>
