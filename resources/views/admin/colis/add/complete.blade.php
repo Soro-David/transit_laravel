@@ -40,12 +40,12 @@
                      <div class="card-body p-4">
                          @if(isset($first))
                          <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }}</span>
+                             <label class="form-label fw-bold w-50">Nom :</label>
+                             <span class="form-control-plaintext w-50">{{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Téléphone :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
+                             <label class="form-label fw-bold w-50">Téléphone :</label>
+                             <span class="form-control-plaintext w-50">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
                          </div>
                          @else
                           <p class="text-muted">Aucune information d'expéditeur.</p>
@@ -62,12 +62,12 @@
                     <div class="card-body p-4">
                          @if(isset($first))
                          <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_destinataire'] ?? 'N/A' }} {{ $first['prenom_destinataire'] ?? '' }}</span>
+                             <label class="form-label fw-bold w-50">Nom :</label>
+                             <span class="form-control-plaintext w-50">{{ $first['nom_destinataire'] ?? 'N/A' }} {{ $first['prenom_destinataire'] ?? '' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Téléphone:</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
+                             <label class="form-label fw-bold w-50">Téléphone:</label>
+                             <span class="form-control-plaintext w-50">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
                          </div>
                           @else
                            <p class="text-muted">Aucune information de destinataire.</p>
