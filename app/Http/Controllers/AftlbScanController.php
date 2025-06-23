@@ -135,6 +135,50 @@ class AftlbScanController extends Controller
     }
 
 
+    // public function get_colis_charge(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $colis = Colis::select(
+    //             'colis.*', 
+    //             'expediteurs.nom as nom_expediteur', 
+    //             'expediteurs.prenom as prenom_expediteur', 
+    //             'expediteurs.tel as expediteur_tel', 
+    //             'expediteurs.agence as agence_expedition', 
+    //             'destinataires.nom as nom_destinataire', 
+    //             'destinataires.prenom as prenom_destinataire', 
+    //             'destinataires.tel as destinataire_tel', 
+    //             'destinataires.agence as agence_destination',
+    //             'colis.created_at as created_at'
+    //         )
+    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+    //         ->where('etat', 'Chargé') 
+    //         ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+    //         ->get(); 
+    
+    //         $colisGrouped = $colis->groupBy('reference_colis');
+    
+    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+    //             return [
+    //                 'reference_colis' => $reference,
+    //                 'nombre_de_colis' => $group->count(),
+    //                 'expediteur_nom' => $group->first()->nom_expediteur,
+    //                 'expediteur_prenom' => $group->first()->prenom_expediteur,
+    //                 'expediteur_tel' => $group->first()->expediteur_tel,
+    //                 'expediteur_agence' => $group->first()->agence_expedition, 
+    //                 'destinataire_nom' => $group->first()->nom_destinataire,
+    //                 'destinataire_prenom' => $group->first()->prenom_destinataire,
+    //                 'destinataire_tel' => $group->first()->destinataire_tel,
+    //                 'destinataire_agence' => $group->first()->agence_destination, 
+    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+    //                 'colis' => $group
+    //             ];
+    //         })->values();
+    
+    //         return DataTables::of($colisWithCount)->make(true);
+    //     }
+    // }
+
     public function get_colis_charge(Request $request)
     {
         if ($request->ajax()) {
@@ -155,13 +199,13 @@ class AftlbScanController extends Controller
             ->where('etat', 'Chargé') 
             ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
             ->get(); 
-    
+
             $colisGrouped = $colis->groupBy('reference_colis');
-    
+
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
                     'expediteur_nom' => $group->first()->nom_expediteur,
                     'expediteur_prenom' => $group->first()->prenom_expediteur,
                     'expediteur_tel' => $group->first()->expediteur_tel,
@@ -174,10 +218,47 @@ class AftlbScanController extends Controller
                     'colis' => $group
                 ];
             })->values();
-    
-            return DataTables::of($colisWithCount)->make(true);
+
+            return DataTables::of($colisWithCount)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    return '<a href="' . route('aftlb_scan.colis.modifier', $row['reference_colis']) . '" 
+                                class="btn btn-warning btn-sm" title="Modifier état du colis">
+                                <i class="fas fa-edit"></i>
+                            </a>';
+                    })
+                ->rawColumns(['action'])
+                ->make(true);
         }
     }
+
+
+        // Affichage du formulaire
+    public function modifier_colis($reference_colis)
+    {
+        $colis = Colis::where('reference_colis', $reference_colis)->get();
+
+        if ($colis->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé pour cette référence.');
+        }
+
+        return view('AFT_LOUIS_BLERIOT.scan.edit_scan', compact('colis', 'reference_colis'));
+    }
+
+    public function update_colis_etat(Request $request)
+    {
+        $request->validate([
+            'reference_colis' => 'required|string',
+            'etat' => 'required|string',
+        ]);
+
+        // Mise à jour des colis ayant la même référence
+        Colis::where('reference_colis', $request->reference_colis)
+            ->update(['etat' => $request->etat]);
+
+        return redirect()->route('aftlb_scan.chargement')->with('success', 'État des colis mis à jour avec succès.');
+    }
+
 
     public function livre()
     {

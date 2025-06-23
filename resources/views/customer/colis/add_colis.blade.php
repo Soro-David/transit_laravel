@@ -141,7 +141,7 @@
                             const selectedPays = this.value;
 
                             // Réinitialiser les options
-                            agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
+                            agenceSelect.innerHTML = '';
 
                             // Ajouter uniquement les options correspondant au pays sélectionné
                             agenceOptions.forEach(option => {

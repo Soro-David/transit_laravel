@@ -19,15 +19,15 @@
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Prix Total :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'N/A' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Montant Payé :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'N/A' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Reste à Payer:</label>
-                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} F CFA</span>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'N/A' }}</span>
                          </div>
                      </div>
                  </div>
@@ -88,7 +88,7 @@
             </div>
             <div>
                 <a href="{{ route('chine_colis.imprimer.bon_livraison', ['id' => $first['id']]) }}" target="_blank" class="btn btn-sm btn-info">
-                    <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de facture
+                    <i class="fas fa-file-invoice me-1"></i> Imprimer Bon de Livraison
                 </a>            
             </div>
         </div>

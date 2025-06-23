@@ -69,7 +69,7 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="{{ route('ipms_angre_colis.liste.vol') }}" class="nav-link {{ isActiveRoute('ipms_angre_colis.liste.vol') }}">
-                                <p>{{ __('Vol de cargaison') }}</p>
+                                <p>{{ __('Vol') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

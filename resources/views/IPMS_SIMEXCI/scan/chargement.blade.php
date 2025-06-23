@@ -30,7 +30,8 @@
                                                 <th>Nom Destinataire</th>
                                                 <th>Contact Destinataire</th>
                                                 <th>Agence Destinataire</th>
-                                                <th>Date de Création</th>
+                                                <th>Date</th>
+                                                <th>Téléphone</th>
                                                 <th>Action</th>
 
                                             </tr>
@@ -176,6 +177,106 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+    // $(document).ready(function () {
+    //     // Initialisation de la table DataTable
+    //     var table = $("#productTable").DataTable({
+    //         responsive: true,
+    //         language: {
+    //                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+    //             },
+    //         ajax: '{{ route("ipms_scan.get.colis.charge") }}', // Récupération des données via AJAX
+    //         columns: [
+    //             { data: 'reference_colis' },
+    //             { data: 'reference_colis' },
+    //             {
+    //                 data: null,
+    //                 render: function (data, type, row) {
+    //                     return row.nom_expediteur + ' ' + row.prenom_expediteur;
+    //                 }
+    //             },
+    //             { data: 'tel_expediteur' },
+    //             { data: 'agence_expedition' },
+    //             {
+    //                 data: null,
+    //                 render: function (data, type, row) {
+    //                     return row.nom_destinataire + ' ' + row.prenom_destinataire;
+    //                 }
+    //             },
+    //             { data: 'tel_destinataire' },
+    //             { data: 'agence_destination' },
+    //             { data: 'created_at',
+    //                 render: function(data, type, row) {
+    //                     // Vérifiez si la date existe et la formater
+    //                     if (data) {
+    //                         var date = new Date(data);
+    //                         // Retourne la date au format aa/mm/jj
+    //                         var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
+    //                         var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
+    //                         var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
+    //                         return day + '/' + month + '/' + year;
+    //                     }
+    //                     return data;  // Si la date est vide, on retourne la donnée brute
+    //                 }
+    //             },
+    //             { data: 'action', orderable: false, searchable: false }
+    //         ],
+    //         dom: 'Bfrtip', // Placement des boutons
+    //         buttons: [
+    //             // Bouton Excel
+    //             {
+    //                 extend: 'excelHtml5',
+    //                 text: 'Exporter en Excel',
+    //                 title: 'Liste des Colis en attente',
+    //                 customize: function (xlsx) {
+    //                     console.log("Exportation Excel réussie sans image.");
+    //                 }
+    //             },
+    //             // Bouton PDF
+    //             {
+    //                 extend: 'pdfHtml5',
+    //                 text: 'Exporter en PDF',
+    //                 title: 'Liste des Colis en attente',
+    //                 orientation: 'landscape', // Mode paysage
+    //                 pageSize: 'A4', // Taille de la page
+    //                 customize: function (doc) {
+    //                     // Ajout du logo encodé en Base64 dans le PDF
+    //                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+    //                     toDataURL(logoUrl, function (dataUrl) {
+    //                         // Ajout de l'image au début du contenu PDF
+    //                         console.log(dataUrl);
+    //                         doc.content.unshift({
+    //                             image: dataUrl,
+    //                             width: 100, // Taille du logo
+    //                             alignment: 'center',
+    //                             margin: [0, 0, 0, 10] // Espacement
+    //                         });
+    //                     });
+    //                 }
+    //             },
+    //             // Bouton Imprimer
+    //             {
+    //                 extend: 'print',
+    //                 text: 'Imprimer',
+    //                 title: 'Liste des Colis en attente',
+    //                 customize: function (win) {
+    //                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+    //                     var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+    //                     $(win.document.body).find('h1')
+    //                         .css('text-align', 'center')
+    //                         .css('margin-top', '10px');
+    //                     $(win.document.body).find('h1').after(logo);
+    //                     $(win.document.body).find('table').css('margin-top', '30px');
+    //                 }
+    //             }
+    //         ]
+    //     });
+    //      // Rafraîchissement de la table toutes les 4 secondes
+    //     setInterval(function() {
+    //         table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
+    //     }, 4000);
+
+    // });
+
     $(document).ready(function () {
         // Initialisation de la table DataTable
         var table = $("#productTable").DataTable({
@@ -185,40 +286,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
             ajax: '{{ route("ipms_scan.get.colis.charge") }}', // Récupération des données via AJAX
             columns: [
-                { data: 'reference_colis' },
-                { data: 'reference_colis' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_expediteur + ' ' + row.prenom_expediteur;
-                    }
-                },
-                { data: 'tel_expediteur' },
-                { data: 'agence_expedition' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        return row.nom_destinataire + ' ' + row.prenom_destinataire;
-                    }
-                },
-                { data: 'tel_destinataire' },
-                { data: 'agence_destination' },
-                { data: 'created_at',
-                    render: function(data, type, row) {
-                        // Vérifiez si la date existe et la formater
-                        if (data) {
-                            var date = new Date(data);
-                            // Retourne la date au format aa/mm/jj
-                            var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                            var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                            return day + '/' + month + '/' + year;
-                        }
-                        return data;  // Si la date est vide, on retourne la donnée brute
-                    }
-                },
-                { data: 'action', orderable: false, searchable: false }
-            ],
+            { data: 'reference_colis' },
+            { data: 'nombre_de_colis' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            { data: 'expediteur_tel' },
+            { data: 'expediteur_agence' },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
+            {
+                data: 'created_at',
+                render: function (data) {
+                    if (!data) return '';
+                    const date = new Date(data);
+                    if (isNaN(date.getTime())) return '';
+                    const day = ('0' + date.getDate()).slice(-2);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    const year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+            },
+            { data: 'action', orderable: false, searchable: false }
+
+        ],
             dom: 'Bfrtip', // Placement des boutons
             buttons: [
                 // Bouton Excel
@@ -269,10 +369,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             ]
         });
-         // Rafraîchissement de la table toutes les 4 secondes
-    setInterval(function() {
-        table.ajax.reload(null, false); // 'false' pour conserver la pagination actuelle
-    }, 4000);
 
     });
 

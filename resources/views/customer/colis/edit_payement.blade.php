@@ -26,7 +26,6 @@
                             <option value="bank">Virement Banquaire</option>
                             <option value="mobile_money">Mobile Money</option>
                             <option value="cheque">Chèque</option>
-                            <option value="cash">Espèces</option>
                             <!-- <option value="cinetpay">Mobile Money</option> --> {{-- Removed CinetPay from main dropdown--}}
                         </select>
                     </div>

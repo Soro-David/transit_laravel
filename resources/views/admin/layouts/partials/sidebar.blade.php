@@ -132,7 +132,7 @@
                         <li class="nav-item">
                             <a href="{{ route('colis.liste.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Vol de cargaisons') }}</p>
+                                <p>{{ __('Vol') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

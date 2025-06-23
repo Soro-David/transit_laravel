@@ -30,6 +30,7 @@
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
 
@@ -186,7 +187,105 @@ document.addEventListener("DOMContentLoaded", function () {
     restartButton.addEventListener("click", startScanner);
 });
 
-    $(document).ready(function () {
+    // $(document).ready(function () {
+    //     // Initialisation de la table DataTable
+    //     var table = $("#productTable").DataTable({
+    //         responsive: true,
+    //         language: {
+    //                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+    //             },
+    //         ajax: '{{ route("aftlb_scan.get.colis.charge") }}', // Récupération des données via AJAX
+    //         columns: [
+    //         { data: 'reference_colis' },
+    //         { data: 'nombre_de_colis' },
+    //         {
+    //             data: null,
+    //             render: function (data, type, row) {
+    //                 return row.expediteur_nom + ' ' + row.expediteur_prenom;
+    //             }
+    //         },
+    //         { data: 'expediteur_tel' },
+    //         { data: 'expediteur_agence' },
+    //         {
+    //             data: null,
+    //             render: function (data, type, row) {
+    //                 return row.destinataire_nom + ' ' + row.destinataire_prenom;
+    //             }
+    //         },
+    //         { data: 'destinataire_agence' },
+    //         { data: 'destinataire_tel' },
+    //         {
+    //             data: 'created_at',
+    //             render: function (data) {
+    //                 if (!data) {
+    //                     return ''; // Retourne une chaîne vide si la date est null
+    //                 }
+    //                 var date = new Date(data);
+    //                 if (isNaN(date.getTime())) {
+    //                     return ''; // Vérifie si la date est invalide
+    //                 }
+    //                 var day = ('0' + date.getDate()).slice(-2);
+    //                 var month = ('0' + (date.getMonth() + 1)).slice(-2);
+    //                 var year = date.getFullYear();
+    //                 return day + '/' + month + '/' + year;
+    //             }
+    //         }
+
+    //     ],
+    //         dom: 'Bfrtip', // Placement des boutons
+    //         buttons: [
+    //             // Bouton Excel
+    //             {
+    //                 extend: 'excelHtml5',
+    //                 text: 'Exporter en Excel',
+    //                 title: 'Liste des Colis en attente',
+    //                 customize: function (xlsx) {
+    //                     console.log("Exportation Excel réussie sans image.");
+    //                 }
+    //             },
+    //             // Bouton PDF
+    //             {
+    //                 extend: 'pdfHtml5',
+    //                 text: 'Exporter en PDF',
+    //                 title: 'Liste des Colis en attente',
+    //                 orientation: 'landscape', // Mode paysage
+    //                 pageSize: 'A4', // Taille de la page
+    //                 customize: function (doc) {
+    //                     // Ajout du logo encodé en Base64 dans le PDF
+    //                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+    //                     toDataURL(logoUrl, function (dataUrl) {
+    //                         // Ajout de l'image au début du contenu PDF
+    //                         console.log(dataUrl);
+    //                         doc.content.unshift({
+    //                             image: dataUrl,
+    //                             width: 100, // Taille du logo
+    //                             alignment: 'center',
+    //                             margin: [0, 0, 0, 10] // Espacement
+    //                         });
+    //                     });
+    //                 }
+    //             },
+    //             // Bouton Imprimer
+    //             {
+    //                 extend: 'print',
+    //                 text: 'Imprimer',
+    //                 title: 'Liste des Colis en attente',
+    //                 customize: function (win) {
+    //                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+    //                     var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+    //                     $(win.document.body).find('h1')
+    //                         .css('text-align', 'center')
+    //                         .css('margin-top', '10px');
+    //                     $(win.document.body).find('h1').after(logo);
+    //                     $(win.document.body).find('table').css('margin-top', '30px');
+    //                 }
+    //             }
+    //         ]
+    //     });
+
+    // });
+
+       $(document).ready(function () {
         // Initialisation de la table DataTable
         var table = $("#productTable").DataTable({
             responsive: true,
@@ -211,24 +310,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
             { data: 'destinataire_tel' },
+            { data: 'destinataire_agence' },
             {
                 data: 'created_at',
                 render: function (data) {
-                    if (!data) {
-                        return ''; // Retourne une chaîne vide si la date est null
-                    }
-                    var date = new Date(data);
-                    if (isNaN(date.getTime())) {
-                        return ''; // Vérifie si la date est invalide
-                    }
-                    var day = ('0' + date.getDate()).slice(-2);
-                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    var year = date.getFullYear();
+                    if (!data) return '';
+                    const date = new Date(data);
+                    if (isNaN(date.getTime())) return '';
+                    const day = ('0' + date.getDate()).slice(-2);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    const year = date.getFullYear();
                     return day + '/' + month + '/' + year;
                 }
-            }
+            },
+            { data: 'action', orderable: false, searchable: false }
 
         ],
             dom: 'Bfrtip', // Placement des boutons

@@ -313,20 +313,60 @@ class ApmsAngreScanController extends Controller
     }
 
     // Ajax pour récupérer la liste des colis en Charge
+    // public function get_colis_charge(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $colis = Colis::select(
+    //             'colis.*',  // Sélectionne toutes les colonnes de colis
+    //             'expediteurs.nom as nom_expediteur', 
+    //             'expediteurs.prenom as prenom_expediteur', 
+    //             'expediteurs.tel as tel_expediteur', 
+    //             'expediteurs.agence as agence_expedition', 
+    //             'destinataires.nom as nom_destinataire', 
+    //             'destinataires.prenom as prenom_destinataire', 
+    //             'destinataires.tel as tel_destinataire', 
+    //             'destinataires.agence as agence_destination',
+    //             'colis.etat as etat',
+    //             'colis.created_at as created_at'
+    //         )
+    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
+    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
+    //         ->where('etat', 'Chargé')  // Filtre l'état des colis
+    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+    //         ->get(); 
+    //         return DataTables::of($colis)
+    //             ->addColumn('action', function ($row) {
+    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
+
+    //                 return '
+    //                     <div class="btn-group">
+    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
+    //                             <i class="fas fa-eye"></i>
+    //                         </a>
+    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
+    //                             <i class="fas fa-credit-card"></i>
+    //                         </a>
+    //                     </div>
+    //                 ';
+    //             })
+    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+    //             ->make(true);
+    //     }
+    // }
+
     public function get_colis_charge(Request $request)
     {
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.*',  // Sélectionne toutes les colonnes de colis
+                'colis.*', 
                 'expediteurs.nom as nom_expediteur', 
                 'expediteurs.prenom as prenom_expediteur', 
-                'expediteurs.tel as tel_expediteur', 
+                'expediteurs.tel as expediteur_tel', 
                 'expediteurs.agence as agence_expedition', 
                 'destinataires.nom as nom_destinataire', 
                 'destinataires.prenom as prenom_destinataire', 
-                'destinataires.tel as tel_destinataire', 
+                'destinataires.tel as destinataire_tel', 
                 'destinataires.agence as agence_destination',
-                'colis.etat as etat',
                 'colis.created_at as created_at'
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
@@ -334,24 +374,63 @@ class ApmsAngreScanController extends Controller
             ->where('etat', 'Chargé')  // Filtre l'état des colis
             ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
             ->get(); 
-            return DataTables::of($colis)
-                ->addColumn('action', function ($row) {
-                    $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
 
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                                <i class="fas fa-credit-card"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
+                    'expediteur_nom' => $group->first()->nom_expediteur,
+                    'expediteur_prenom' => $group->first()->prenom_expediteur,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->agence_expedition, 
+                    'destinataire_nom' => $group->first()->nom_destinataire,
+                    'destinataire_prenom' => $group->first()->prenom_destinataire,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->agence_destination, 
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                    'colis' => $group
+                ];
+            })->values();
+
+            return DataTables::of($colisWithCount)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    return '<a href="' . route('ipms_angre_scan.colis.modifier', $row['reference_colis']) . '" 
+                                class="btn btn-warning btn-sm" title="Modifier état du colis">
+                                <i class="fas fa-edit"></i>
+                            </a>';
+                    })
+                ->rawColumns(['action'])
                 ->make(true);
         }
+    }
+
+            // Affichage du formulaire
+    public function modifier_colis($reference_colis)
+    {
+        $colis = Colis::where('reference_colis', $reference_colis)->get();
+
+        if ($colis->isEmpty()) {
+            return redirect()->back()->with('error', 'Aucun colis trouvé pour cette référence.');
+        }
+
+        return view('IPMS_SIMEXCI_ANGRE.scan.edit_scan', compact('colis', 'reference_colis'));
+    }
+
+    public function update_colis_etat(Request $request)
+    {
+        $request->validate([
+            'reference_colis' => 'required|string',
+            'etat' => 'required|string',
+        ]);
+
+        // Mise à jour des colis ayant la même référence
+        Colis::where('reference_colis', $request->reference_colis)
+            ->update(['etat' => $request->etat]);
+
+        return redirect()->route('ipms_angre_scan.chargement')->with('success', 'État des colis mis à jour avec succès.');
     }
 
     

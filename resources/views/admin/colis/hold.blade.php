@@ -21,8 +21,8 @@
                                                 <th>Téléphone</th>
                                                 <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
-                                                <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
+                                                <th>Téléphone</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
                                                 <th>Action</th>
@@ -142,8 +142,8 @@ $(document).ready(function () {
 });
 
     </script>
-    
-    
+
+
 </section>
 
 <style>

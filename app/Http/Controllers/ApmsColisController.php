@@ -1094,6 +1094,7 @@ public function editInvoice($id)
         'nom_expediteur' => optional($firstColis->expediteur)->nom,
         'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
         'tel_expediteur' => optional($firstColis->expediteur)->tel,
+        'devise' => optional($firstColis)->devise,
     ];
 
     $totalQuantite = $colisEnregistres->sum('quantite_colis');
