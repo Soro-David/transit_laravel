@@ -1,4 +1,3 @@
-{{-- Fichier: Votre vue de résumé où se trouve le bouton "Imprimer Étiquettes" --}}
 @extends('AGENCE_CHINE.layouts.agentprint')
 
 @section('content')

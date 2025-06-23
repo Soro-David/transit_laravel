@@ -604,7 +604,7 @@ public function vol_fermer(Request $request)
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
-                    'devise' => 'YUAN',
+                    'devise' => 'FCFA',
                     'reference_colis' => $referenceColisPrincipale, // Référence commune
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
