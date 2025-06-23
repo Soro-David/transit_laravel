@@ -335,6 +335,15 @@
                         <label for="prix_unitaire" class="form-label">Prix Unitaire</label>
                         <input type="number" name="prix" id="prix_unitaire" class="form-control" min="0" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="agence" class="form-label">Agence de destination</label>
+                        <select name="agence" id="agence" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">IPMS-SIMEX-CI Angre 8ème Tranche</option>
+                            <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
+                            <option value="Agence de Chine">Agence de Chine</option>
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -591,12 +600,15 @@ $(document).ready(function() {
     $(".btn-save").on("click", function () {
         let description = $("#description_produit").val().trim();
         let categorie = $("#categorie_produit").val();
+        let agence = $("#agence").val();
         let prix = parseFloat($("#prix_unitaire").val().trim()) || 0;
-        let url = $(this).data("url"); // Récupération de l'URL depuis data-url
+        let url = $(this).data("url"); // Récupération de l'URL depuis data-url  agence_destination
 
         console.log("Description:", description);
         console.log("Catégorie:", categorie);
         console.log("Prix:", prix);
+        console.log("agence:", agence);
+    
 
         // Vérification des champs
         if (!description) {
@@ -625,6 +637,7 @@ $(document).ready(function() {
             data: JSON.stringify({
                 description: description,
                 categorie: categorie,
+                agence: agence,
                 prix: prix,
             }),
             success: function (response) {
@@ -863,147 +876,147 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
 </script>
 <style>
 
-.autocomplete-results {
-    position: absolute; /* Important pour le positionnement */
-    top: 100%; /* Affiche les résultats sous l'input */
-    left: 0;
-    right: 0;
-    z-index: 1000; /* Pour être au-dessus des autres éléments */
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px;
-    display: none; /* Caché par défaut */
-}
+    .autocomplete-results {
+        position: absolute; /* Important pour le positionnement */
+        top: 100%; /* Affiche les résultats sous l'input */
+        left: 0;
+        right: 0;
+        z-index: 1000; /* Pour être au-dessus des autres éléments */
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px;
+        display: none; /* Caché par défaut */
+    }
 
-.autocomplete-item {
-    padding: 5px 10px;
-    cursor: pointer;
-}
+    .autocomplete-item {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
 
-.autocomplete-item:hover {
-    background-color: #f0f0f0;
-}
+    .autocomplete-item:hover {
+        background-color: #f0f0f0;
+    }
 
-body {
-    background-color: #f7f7f7;
-}
+    body {
+        background-color: #f7f7f7;
+    }
 
-fieldset + fieldset {
-    border-top: 2px solid #ccc;
-    padding-top: 15px;
-    margin-top: 15px;
-}
+    fieldset + fieldset {
+        border-top: 2px solid #ccc;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
 
-.form-container {
-    max-width: 95%;
-    margin: auto;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
+    .form-container {
+        max-width: 95%;
+        margin: auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
 
-.form-section {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
+    .form-section {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
 
-.progress-bar {
-    display: flex; /* Utilise flexbox pour aligner les éléments */
-    justify-content: space-between; /* Espace égal entre les étapes */
-    list-style: none; /* Supprime les puces de la liste */
-    background: #fff; /* Couleur de fond */
-    padding: 0; 
-    margin: 50px; /* Supprime les marges */
-}
-.progress-bar-container {
-    margin-bottom: 20px;
-    display: flex; /* Use flexbox for centering */
-    justify-content: center; /* Center the progress bar */
-    width: 100%; /* Prend toute la largeur disponible */
-}
+    .progress-bar {
+        display: flex; /* Utilise flexbox pour aligner les éléments */
+        justify-content: space-between; /* Espace égal entre les étapes */
+        list-style: none; /* Supprime les puces de la liste */
+        background: #fff; /* Couleur de fond */
+        padding: 0; 
+        margin: 50px; /* Supprime les marges */
+    }
+    .progress-bar-container {
+        margin-bottom: 20px;
+        display: flex; /* Use flexbox for centering */
+        justify-content: center; /* Center the progress bar */
+        width: 100%; /* Prend toute la largeur disponible */
+    }
 
-/* Permettre le défilement horizontal si nécessaire */
-.progress-bar-container {
-  overflow-x: auto;
-}
+    /* Permettre le défilement horizontal si nécessaire */
+    .progress-bar-container {
+    overflow-x: auto;
+    }
 
-/* Les listes de progression sont déjà en flex via Bootstrap ;
-   on peut ajouter quelques réglages pour améliorer l’affichage */
-.progress-bar {
-  flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
-  margin: 0 auto;  /* centrer */
-}
+    /* Les listes de progression sont déjà en flex via Bootstrap ;
+    on peut ajouter quelques réglages pour améliorer l’affichage */
+    .progress-bar {
+    flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
+    margin: 0 auto;  /* centrer */
+    }
 
-/* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
-.progress-bar li.step {
-  flex: 1;              /* prend une part égale de l’espace disponible */
-  min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
-  text-align: center;   /* centrer le contenu */
-  font-size: 1rem;      /* taille de police par défaut */
-}
+    /* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
+    .progress-bar li.step {
+    flex: 1;              /* prend une part égale de l’espace disponible */
+    min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
+    text-align: center;   /* centrer le contenu */
+    font-size: 1rem;      /* taille de police par défaut */
+    }
 
-/* Sur écrans moyens à grands, on peut augmenter la taille de police */
-@media (min-width: 768px) {
-  .progress-bar li.step {
-    font-size: 1.25rem;
-  }
-}
+    /* Sur écrans moyens à grands, on peut augmenter la taille de police */
+    @media (min-width: 768px) {
+    .progress-bar li.step {
+        font-size: 1.25rem;
+    }
+    }
 
-.progress-bar::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: #ddd;
-    z-index: -1;
-    transform: translateY(-50%);
-}
+    .progress-bar::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: #ddd;
+        z-index: -1;
+        transform: translateY(-50%);
+    }
 
-.step {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    background: #ddd;
-    color: #333;
-    text-align: center;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
-    position: relative;
-    /* z-index: 1; */
-}
+    .step {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background: #ddd;
+        color: #333;
+        text-align: center;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        position: relative;
+        /* z-index: 1; */
+    }
 
-.step.active {
-    background: #05a805;
-    color: #fff;
-}
+    .step.active {
+        background: #05a805;
+        color: #fff;
+    }
 
 
-.step::after {
-    content: ''; /* Create a line after each step */
-    position: absolute; /* Position the line absolutely */
-    top: 50%; /* Center vertically */
-    left: 100%; /* Position to the right of the step */
-    width: 100%; /* Width of the line */
-    height: 4px; /* Height of the line */
-    background-color: #ddd; /* Color of the line */
-    z-index: -1; /* Send the line behind the text */
-}
+    .step::after {
+        content: ''; /* Create a line after each step */
+        position: absolute; /* Position the line absolutely */
+        top: 50%; /* Center vertically */
+        left: 100%; /* Position to the right of the step */
+        width: 100%; /* Width of the line */
+        height: 4px; /* Height of the line */
+        background-color: #ddd; /* Color of the line */
+        z-index: -1; /* Send the line behind the text */
+    }
 
-.step:last-child::after {
-    content: none; /* Remove the line after the last step */
-}
+    .step:last-child::after {
+        content: none; /* Remove the line after the last step */
+    }
 
-.step.active {
-    font-weight: bold; /* Bold the active step */
-    color: #ffffff; /* Color of the active step */
-}
+    .step.active {
+        font-weight: bold; /* Bold the active step */
+        color: #ffffff; /* Color of the active step */
+    }
 
 </style>
 

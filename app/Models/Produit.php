@@ -10,7 +10,7 @@ class Produit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'prix', 'categorie', 'description'
+        'prix', 'categorie', 'description', 'agence'
     ];
 
     public function colis()

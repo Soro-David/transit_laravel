@@ -121,8 +121,10 @@ class ChineColisController extends Controller
     {
         $query = $request->get('query');
         $produits = Produit::where('description', 'like', '%' . $query . '%')
-                        ->limit(15)
-                        ->get(['id', 'description', 'prix']); // Sélectionner les champs à renvoyer
+                            ->where('agence', 'Agence de chine')
+                            ->limit(15)
+                            ->get(['id', 'description', 'prix']);
+                        // Sélectionner les champs à renvoyer
         return response()->json($produits);
     }
 
@@ -132,12 +134,14 @@ class ChineColisController extends Controller
             'description' => 'required|string|max:255',
             'categorie' => 'required|string|max:100|in:Colis,Service,Remise',
             'prix' => 'required|numeric|min:0',
+            'agence' => 'required|string|max:255',
         ]);
     
         Produit::create([
             'description' => $request->description,
             'categorie' => $request->categorie,
             'prix' => $request->prix,
+            'agence' => $request->agence,
         ]);
     
         return response()->json(['message' => 'Produit ajouté avec succès !'], 201);

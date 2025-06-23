@@ -114,8 +114,9 @@ class AftlbColisController extends Controller
     {
         $query = $request->get('query');
         $produits = Produit::where('description', 'like', '%' . $query . '%')
+                        ->where('agence', 'AFT Agence Louis Bleriot')
                         ->limit(15)
-                        ->get(['id', 'description', 'prix']); // Sélectionner les champs à renvoyer
+                        ->get(['id', 'description', 'prix']);
         return response()->json($produits);
     }
 
@@ -125,12 +126,15 @@ class AftlbColisController extends Controller
             'description' => 'required|string|max:255',
             'categorie' => 'required|string|max:100|in:Colis,Service,Remise',
             'prix' => 'required|numeric|min:0',
+            'agence' => 'required|string|max:255',
+
         ]);
     
         Produit::create([
             'description' => $request->description,
             'categorie' => $request->categorie,
             'prix' => $request->prix,
+            'agence' => $request->agence,
         ]);
     
         return response()->json(['message' => 'Produit ajouté avec succès !'], 201);
@@ -171,7 +175,7 @@ class AftlbColisController extends Controller
             $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
         }
 
-        return $baseReference; // Retourne la référence unique pour ce colis
+        return $baseReference; 
     }
    
     private function generateReferenceContenaire()

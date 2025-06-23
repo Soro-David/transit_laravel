@@ -18,15 +18,15 @@
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Prix Total :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalPrixTransit ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'EUR' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Montant Payé :</label>
-                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
+                             <span class="form-control-plaintext w-50"> {{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'EUR ' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Reste à Payer:</label>
-                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? ' ' }}</span>
+                             <span class="form-control-plaintext w-50 fw-bold {{ ($restePaye ?? 0) > 0 ? 'text-danger' : 'text-success' }}"> {{ number_format($restePaye ?? 0, 0, ',', ' ') }} {{ $first['devise'] ?? 'EUR ' }}</span>
                          </div>
                      </div>
                  </div>
