@@ -1,5 +1,6 @@
 @extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 
+
 @section('content-header')
 {{-- CSRF Token pour les requêtes AJAX --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -43,52 +44,62 @@
         </div>
     </div>
 
-    {{-- ===== MODALE DE PAIEMENT ===== --}}
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Enregistrer un Paiement</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="paymentForm">
-                    @csrf 
-                    <div class="modal-body">
-                        <input type="hidden" id="modalReferenceColis" name="reference_colis">
-                        <input type="hidden" id="modalColisIds" name="colis_ids"> {{-- Pour passer les IDs (chaîne JSON) --}}
-
-                        <div class="mb-3">
-                            <label for="modalDisplayReference" class="form-label">Référence Colis</label>
-                            <input type="text" class="form-control" id="modalDisplayReference" readonly>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="modalTotalAmount" class="form-label">Montant Total Dû</label>
-                            <input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;">
-                        </div>
-
-                         <div class="mb-3">
-                            <label for="modalAmountAlreadyPaid" class="form-label">Montant Déjà Payé</label>
-                            <input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="modalNewPaymentAmount" class="form-label">Montant du Nouveau Paiement <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmount" name="montant_a_payer" required placeholder="0.00">
-                             {{-- Pour afficher les erreurs de validation du backend --}}
-                            <div class="invalid-feedback" id="paymentAmountError"></div>
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button>
-                    </div>
-                </form>
+   {{-- ===== MODALE DE PAIEMENT ===== --}}
+   <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Enregistrer un Paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form id="paymentForm">
+                @csrf 
+                <div class="modal-body">
+                    <input type="hidden" id="modalReferenceColis" name="reference_colis">
+                    <input type="hidden" id="modalColisIds" name="colis_ids">
+                   
+                    <input type="hidden" id="modalColisId" name="colis_id" value="">
+                    <div class="mb-3">
+                        <label for="modalDisplayReference" class="form-label">Référence Colis</label>
+                        <input type="text" class="form-control" id="modalDisplayReference" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalTotalAmount" class="form-label">Montant Total Dû</label>
+                        <input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;">
+                    </div>
+
+                     <div class="mb-3">
+                        <label for="modalAmountAlreadyPaid" class="form-label">Montant Déjà Payé</label>
+                        <input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;">
+                    </div>
+
+                    <!-- NOUVEAU : Champ pour afficher le montant restant à payer -->
+                    <div class="mb-3">
+                        <label class="form-label">Montant Restant à Payer</label>
+                        <div id="modalRemainingAmountDisplay" class="form-control" style="font-weight: bold; color: #dc3545; background-color: #f8f9fa;">
+                            <!-- Le montant sera inséré ici par JS -->
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalNewPaymentAmount" class="form-label">Montant du Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label>
+                        <!-- MODIFIÉ : Le step est maintenant "1" pour les FCFA et le placeholder est adapté -->
+                        <input type="number" step="1" class="form-control" id="modalNewPaymentAmount" required placeholder="0" name="montant_a_payer">
+                         {{-- Pour afficher les erreurs de validation du backend --}}
+                        <div class="invalid-feedback" id="paymentAmountError"></div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button>
+                </div>
+            </form>
         </div>
     </div>
-    {{-- ===== FIN MODALE DE PAIEMENT ===== --}}
+</div>
+{{-- ===== FIN MODALE DE PAIEMENT ===== --}}
 
 </section>
 
@@ -168,6 +179,9 @@
 {{-- Script pour DataTables et les interactions --}}
 <script>
 $(document).ready(function () {
+    // NOUVEAU : Récupérer le taux de conversion depuis PHP pour l'utiliser en JS
+    const FCFA_RATE = {{ App\Services\CurrencyConverterService::FCFA_TO_EUR_RATE }};
+
     // Configuration du header CSRF pour toutes les requêtes AJAX
     $.ajaxSetup({
         headers: {
@@ -213,111 +227,107 @@ $(document).ready(function () {
         ],
          order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
     });
+  // Initialisation de DataTables
+  var table = $("#productTable").DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("ipms_colis.get.colis.dump") }}',
+        columns: [
+            { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'reference_colis', name: 'reference_colis' },
+            { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
+            { data: null, name: 'expediteur_nom', render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); } },
+            { data: 'expediteur_tel', name: 'expediteurs.tel' },
+            { data: null, name: 'destinataire_nom', render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); } },
+            { data: 'destinataire_tel', name: 'destinataires.tel' },
+            { data: 'destinataire_agence', name: 'destinataires.agence' },
+            { data: 'etat', name: 'colis.etat' },
+            { data: 'created_at', name: 'colis.created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
+        ],
+        dom: 'Bfrtip',
+        buttons: ['excel', 'pdf', 'print'],
+        order: [[ 1, 'desc' ]]
+    });
 
     // --- Logique pour la Modale de Paiement ---
-
-    // 1. Ouvrir la modale et pré-remplir les champs quand on clique sur le bouton Payer (.pay-btn)
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
-        e.preventDefault(); // Empêcher le comportement par défaut du bouton
+        e.preventDefault();
 
         var button = $(this);
+        var total = parseFloat(button.data('total')) || 0;
+        var paid = parseFloat(button.data('paid')) || 0;
+        var remaining = total - paid;
+        
+        // Si le montant restant est nul ou négatif, ne pas ouvrir la modale
+        if (remaining <= 0) {
+            Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info');
+            return; // Stoppe l'exécution
+        }
+        
+        var colisId = button.data('colis-id'); 
+        var colisIds = button.data('colis-ids');
         var reference = button.data('reference');
-        var total = parseFloat(button.data('total')).toFixed(2);
-        var paid = parseFloat(button.data('paid')).toFixed(2);
-        var colisIds = JSON.stringify(button.data('colis-ids'));
-
-        console.log("Opening payment modal for reference:", reference);
-        console.log("Total:", total, "Paid:", paid, "Colis IDs:", colisIds);
-
-        // Fonction pour formater les nombres en devise (exemple EUR, ajuster si besoin XOF, etc.)
-        function formatCurrency(value) {
-            // Vérifier si la valeur est un nombre valide
-            const num = Number(value);
-            if (isNaN(num)) {
-                return 'N/A'; // Ou une autre valeur par défaut
-            }
-            return num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }); // Ajuster 'EUR'
+        
+        function formatCfa(value) {
+            return Number(value).toLocaleString('fr-FR') + ' FCFA';
         }
 
-        // Remplir les champs de la modale
         $('#modalDisplayReference').val(reference);
-        $('#modalTotalAmount').val(formatCurrency(total));
-        $('#modalAmountAlreadyPaid').val(formatCurrency(paid));
-        $('#modalReferenceColis').val(reference);    // Champ caché pour la soumission
-        $('#modalColisIds').val(colisIds);           // Champ caché pour la soumission (JSON string)
+        $('#modalTotalAmount').val(formatCfa(total));
+        $('#modalAmountAlreadyPaid').val(formatCfa(paid));
+        $('#modalRemainingAmountDisplay').text(formatCfa(remaining)); 
+        
+        // Pré-remplir le champ de paiement avec le montant restant et le limiter
+        $('#modalNewPaymentAmount').val(Math.round(remaining));
+        $('#modalNewPaymentAmount').attr('max', Math.round(remaining));
 
-        // Réinitialiser le champ du nouveau montant et les erreurs
-        $('#modalNewPaymentAmount').val('').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide(); // Cacher le message d'erreur
+        // Remplir les champs cachés du formulaire
+        $('#modalColisId').val(colisId);
+        $('#modalColisIds').val(JSON.stringify(colisIds)); 
 
-        // Afficher la modale (Bootstrap 5)
+        $('#modalNewPaymentAmount').removeClass('is-invalid');
+        $('#paymentAmountError').text('').hide();
+        
         $('#paymentModal').modal('show');
     });
 
-    // 2. Soumettre le formulaire de paiement via AJAX
+    // --- Logique de soumission du formulaire ---
     $('#paymentForm').on('submit', function(e) {
-        e.preventDefault(); // Empêcher la soumission standard du formulaire
+        e.preventDefault(); 
 
         var form = $(this);
         var submitButton = $('#submitPaymentBtn');
         var originalButtonText = submitButton.html();
-        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'); // Indicateur de chargement
+        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
 
-        // Vider les erreurs précédentes
-        $('#modalNewPaymentAmount').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide();
+        var formData = form.serialize();
 
         $.ajax({
-            url: '{{ route("ipms_angre_colis.valide.payer") }}', // Utiliser la route nommée pour l'enregistrement du paiement
+            url: '{{ route("ipms_angre_colis.valide.payer") }}',
             type: 'POST',
-            data: form.serialize(), // Envoyer les données du formulaire (inclut CSRF, reference_colis, colis_ids, montant_a_payer)
-            dataType: 'json', // Attendre une réponse JSON
-            // console.log("Submitting payment form:", form.serialize()),
+            data: formData,
+            dataType: 'json',
             success: function(response) {
-                $('#paymentModal').modal('hide'); // Fermer la modale
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Succès!',
-                    text: response.success || 'Paiement enregistré avec succès.',
-                    timer: 2500, // Fermer automatiquement après 2.5 secondes
-                    showConfirmButton: false
-                });
-                table.ajax.reload(null, false); // Recharger DataTables sans réinitialiser la pagination/recherche
+                $('#paymentModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Succès!', text: response.success, timer: 2500, showConfirmButton: false });
+                // Recharger la table pour mettre à jour tous les éléments (icône, bouton, etc.)
+                table.ajax.reload(null, false); 
             },
-            error: function(xhr, status, error) {
-                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement du paiement.';
-                // Vérifier si la réponse contient des erreurs JSON
-                if (xhr.responseJSON) {
-                    if (xhr.responseJSON.error) { // Erreur générale envoyée par le serveur
-                        errorMessage = xhr.responseJSON.error;
-                    }
-                    // Gérer les erreurs de validation spécifiques (422)
-                    if (xhr.status === 422 && xhr.responseJSON.details) {
-                         if (xhr.responseJSON.details.montant_a_payer) {
-                             $('#modalNewPaymentAmount').addClass('is-invalid');
-                             $('#paymentAmountError').text(xhr.responseJSON.details.montant_a_payer[0]).show();
-                             errorMessage = 'Veuillez corriger les erreurs dans le formulaire.'; // Message plus général pour Swal
-                         }
-                    }
-                } else {
-                    // Loguer l'erreur complète pour le débogage si pas de JSON
-                    console.error("Erreur AJAX:", status, error, xhr.responseText);
+            error: function(xhr) {
+                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
                 }
-
-                // Afficher une alerte d'erreur générique ou spécifique
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur!',
-                    text: errorMessage
-                });
+                Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMessage });
             },
             complete: function () {
-                // Réactiver le bouton et restaurer son texte initial, que la requête réussisse ou échoue
-                 submitButton.prop('disabled', false).html(originalButtonText);
+                submitButton.prop('disabled', false).html(originalButtonText);
             }
         });
     });
-
     // --- Logique pour le bouton Supprimer/Archiver ---
 
     // Utilisation de la délégation d'événement sur le tbody pour les boutons ajoutés dynamiquement

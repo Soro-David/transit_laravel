@@ -640,7 +640,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         // Route::delete('/test-delete/{reference}', function ($reference) {
         //     return response()->json(['message' => 'Test DELETE route hit!', 'reference' => $reference]);
         // })->name('test.delete');
-        Route::delete('/colis-aft-louis-b/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+        Route::delete('/colis-aft-louis-b/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy');
 
 
         Route::post('/bateaux/store-aft-louis-b', [AftlbColisController::class, 'store_bateaux'])->name('bateaux.store');
@@ -823,56 +823,83 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
     })->name('ipms_colis.valides-par-mois');;
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
+        
+        // --- ROUTES SPÉCIFIQUES D'ABORD ---
         Route::get('/', [ApmsColisController::class, 'index'])->name('index'); 
         Route::get('/on-dump-simexci', [ApmsColisController::class, 'dump'])->name('dump'); 
         Route::get('/on-suivi-simexci', [ApmsColisController::class, 'suivi'])->name('suivi'); 
-        Route::get('/get-colis-hold-simexci', [ApmsColisController::class, 'get_colis_hold'])->name('get.colis.hold');
         Route::get('/get-colis-dump/simexci', [ApmsColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-colis-suivi-simexci', [ApmsColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
         Route::get('/get-bateau-suivi-simexci', [ApmsColisController::class, 'get_bateau'])->name('get.bateau');
         Route::get('/on-bateau-simexci', [ApmsColisController::class, 'liste_bateau'])->name('liste_bateau'); 
-        Route::post('/colis/valide/payer-simexci', [ApmsColisController::class, 'enregistrerPaiement'])->name('valide.payer');
-       
         Route::post('/valider/bateau-simexci', [ApmsColisController::class, 'validerBateau'])->name('valider.bateau');
-
         Route::get('/create/colis-simexci', [ApmsColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-simexci', [ApmsColisController::class, 'store_colis'])->name('store.colis');
      
-        // Routes d'édition et mise à jour
+        // ROUTE DE PAIEMENT CORRIGÉE ET SIMPLIFIÉE
+        // On ne garde qu'une seule définition claire. Le nom 'valide.payer' est plus simple.
+        Route::post('/payer', [ApmsColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
+        // --- ROUTES AVEC PARAMÈTRES ENSUITE ---
         Route::get('/on-invoice/edit-suivi-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
         Route::get('/imprimer/facture-suivi-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
         Route::get('/imprimer/bon_livraison-simexci/{id}', [ApmsColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
-
-
-
         Route::get('/imprimer/etiquette-suivi-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
-
-
         Route::get('/on-hold/{id}/edit', [ApmsColisController::class, 'edit_hold'])->name('hold.edit');
         Route::get('/on-valide/{id}/edit', [ApmsColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/on-hold/{id}', [ApmsColisController::class, 'update_hold'])->name('hold.update');
         Route::put('/on-valide/{id}', [ApmsColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print', [ApmsColisController::class, 'print_facture'])->name('facture.colis.print');
-  
-        // Suppression d'un colis validé
-       
         Route::delete('/colis-simexci/{reference}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
-
-        Route::get('/on-invoice/edit-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
-        Route::get('/imprimer/facture-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
-        Route::get('/imprimer/bon_livraison-simexci/{id}', [ApmsColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
-        Route::get('/imprimer/etiquette-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
-
-        // CRUD classique sur colis
-        Route::post('/store', [ApmsColisController::class, 'store'])->name('store'); 
-        Route::get('/{coli}', [ApmsColisController::class, 'show'])->name('show'); 
+        // Les routes génériques "CRUD" que vous aviez tout à la fin
+        // Il est possible que '/{coli}/edit' soit le vrai coupable.
+        // Mettez-les en dernier, et si possible, rendez-les plus spécifiques.
+        Route::get('/{coli}/show', [ApmsColisController::class, 'show'])->name('show'); 
         Route::get('/{coli}/edit', [ApmsColisController::class, 'edit'])->name('edit'); 
-        Route::put('/{coli}', [ApmsColisController::class, 'update'])->name('update'); 
-        Route::delete('/{coli}', [ApmsColisController::class, 'destroy'])->name('destroy');
-
+        Route::put('/{coli}/update', [ApmsColisController::class, 'update'])->name('update'); 
+        Route::delete('/{coli}/destroy', [ApmsColisController::class, 'destroy'])->name('destroy');
     });
+    Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
+        
+        // --- ROUTES SPÉCIFIQUES D'ABORD ---
+        Route::get('/', [ApmsColisController::class, 'index'])->name('index'); 
+        Route::get('/on-dump-simexci', [ApmsColisController::class, 'dump'])->name('dump'); 
+        Route::get('/on-suivi-simexci', [ApmsColisController::class, 'suivi'])->name('suivi'); 
+        Route::get('/get-colis-dump/simexci', [ApmsColisController::class, 'get_colis_dump'])->name('get.colis.dump');
+        Route::get('/get-colis-suivi-simexci', [ApmsColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
+        Route::get('/get-bateau-suivi-simexci', [ApmsColisController::class, 'get_bateau'])->name('get.bateau');
+        Route::get('/on-bateau-simexci', [ApmsColisController::class, 'liste_bateau'])->name('liste_bateau'); 
+        Route::post('/valider/bateau-simexci', [ApmsColisController::class, 'validerBateau'])->name('valider.bateau');
+        Route::get('/create/colis-simexci', [ApmsColisController::class, 'add_colis'])->name('create.colis');
+        Route::post('/store/colis-simexci', [ApmsColisController::class, 'store_colis'])->name('store.colis');
+     
+        // ROUTE DE PAIEMENT CORRIGÉE ET SIMPLIFIÉE
+        // On ne garde qu'une seule définition claire. Le nom 'valide.payer' est plus simple.
+        Route::post('/payer', [ApmsColisController::class, 'enregistrerPaiement'])->name('valide.payer');
+
+        // --- ROUTES AVEC PARAMÈTRES ENSUITE ---
+        Route::get('/on-invoice/edit-suivi-simexci/{id}', [ApmsColisController::class, 'editInvoice'])->name('valide.edit.invoice');
+        Route::get('/imprimer/facture-suivi-simexci/{id}', [ApmsColisController::class, 'imprimerFacture'])->name('imprimer.facture');
+        Route::get('/imprimer/bon_livraison-simexci/{id}', [ApmsColisController::class, 'imprimerBon_Livraison'])->name('imprimer.bon_livraison');
+        Route::get('/imprimer/etiquette-suivi-simexci/{id}', [ApmsColisController::class, 'inprimerEtiquette'])->name('imprimer.etiquette');
+        Route::get('/on-hold/{id}/edit', [ApmsColisController::class, 'edit_hold'])->name('hold.edit');
+        Route::get('/on-valide/{id}/edit', [ApmsColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::put('/on-hold/{id}', [ApmsColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-valide/{id}', [ApmsColisController::class, 'update_colis_valide'])->name('valide.update');
+        Route::get('/colis-facture/{id}/print', [ApmsColisController::class, 'print_facture'])->name('facture.colis.print');
+        Route::delete('/colis-simexci/{reference}', [ApmsColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
+ // AJOUTEZ CETTE ROUTE ICI
+ Route::get('/on-hold-simexci', [ApmsColisController::class, 'hold'])->name('hold'); 
+        // Les routes génériques "CRUD" que vous aviez tout à la fin
+        // Il est possible que '/{coli}/edit' soit le vrai coupable.
+        // Mettez-les en dernier, et si possible, rendez-les plus spécifiques.
+        Route::get('/{coli}/show', [ApmsColisController::class, 'show'])->name('show'); 
+        Route::get('/{coli}/edit', [ApmsColisController::class, 'edit'])->name('edit'); 
+        Route::put('/{coli}/update', [ApmsColisController::class, 'update'])->name('update'); 
+        Route::delete('/{coli}/destroy', [ApmsColisController::class, 'destroy'])->name('destroy');
+    });
+    
 
         // Groupe de routes pour la gestion du scan
         Route::prefix('ipms_scan')->name('ipms_scan.')->group(function(){
@@ -1029,7 +1056,8 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::put('/on-hold/{id}', [ApmsAngreColisController::class, 'update_hold'])->name('hold.update');
         Route::put('/on-valide/{id}', [ApmsAngreColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-IPMS', [ApmsAngreColisController::class, 'print_facture'])->name('facture.colis.print');
-
+  // La route pour enregistrer le paiement
+  Route::post('/colis/valide/payer-IPMS', [ApmsAngreColisController::class, 'enregistrerPaiement'])->name('valide.payer');
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-IPMS', [ApmsAngreColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-IPMS', [ApmsAngreColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');

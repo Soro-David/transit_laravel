@@ -31,4 +31,5 @@ class Agent extends Model
      {
          return $this->hasMany(OperationComptable::class);
      }
+     
 }

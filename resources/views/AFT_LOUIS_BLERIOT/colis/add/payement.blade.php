@@ -5,7 +5,6 @@
 <section class="p-4 mx-auto">
     <form id="paymentForm" action="#" method="POST" class="form-container">
         @csrf
-
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul>
@@ -15,20 +14,6 @@
                 </ul>
             </div>
         @endif
-
-        {{-- Affichage des montants FCFA et EUR
-        <div class="form-section">
-            <div class="mb-3">
-                <label class="form-label">
-                    Montant total :
-                    <strong>{{ number_format($totalPriceFcfa, 0, ',', ' ') }} FCFA</strong>
-                    (soit <strong>{{ number_format($totalPriceEur, 2, ',', ' ') }} €</strong>)
-                </label>
-                {{-- Champs cachés pour transmission au controller --}}
-                {{-- <input type="hidden" name="total_fcfa" value="{{ $totalPriceFcfa }}">
-                <input type="hidden" name="total_eur"  value="{{ $totalPriceEur }}">
-            </div>
-        </div> --}} 
 
         <div class="form-section">
             <div class="row">
@@ -122,8 +107,8 @@
                 </div>
             </div>
 
-         <!-- Section Espèces -->
-<div id="cash_payment" class="payment-section" style="display: none;">
+            <!-- Section Espèces -->
+            <div id="cash_payment" class="payment-section" style="display: none;">
     <h5 class="mb-3">Détails Espèces</h5>
     <div class="row">
         <div class="col-md-6">
@@ -140,7 +125,6 @@
     </div>
 </div>
 
-
             <!-- Section Paiement à la livraison -->
             <div id="delivery_payment" class="payment-section" style="display: none;">
                 <h5 class="mb-3">Paiement à la Livraison</h5>
@@ -149,7 +133,7 @@
             </div>
         </div>
 
-        {{-- Bouton de soumission fallback --}}
+        {{-- Bouton de soumission fallback pour les autres modes de paiement (hors CinetPay et Livraison) --}}
         <div class="text-end mt-4" id="submit_button_section">
             <button type="submit" class="btn btn-primary">Confirmer le paiement</button>
         </div>
@@ -182,30 +166,23 @@
                 notify_url: '{{ route('colis.cinetpay.notify') }}',
                 mode: 'PRODUCTION'
             });
-              // Choix du montant et de la devise
-        const mode     = $('#mode_payement').val();
-      //  const fcfa     = parseFloat($('#colisPriceFcfa').val());
-        const eur      = parseFloat($('#colisPriceEur').val());
-        const amount   = (mode === 'bank' || mode === 'mobile_money') ? eur : fcfa;
-        const currency = (mode === 'bank' || mode === 'mobile_money') ? 'EUR' : 'XOF';
-
-        CinetPay.getCheckout({
-            transaction_id: Math.floor(Math.random() * 1e8).toString(),
-            amount,
-            currency,
-            channels: 'ALL',
-            operator: operateurMobileSelect.val(),
-            description: 'Paiement de colis',
-            customer_name: "Wayne",
-            customer_surname: "The",
-            customer_email: "redfieldluise@gmail.com",
-            customer_phone_number: "0708325027",
-            customer_address: "BP 0024",
-            customer_city: "Abidjan",
-            customer_country: "CI",
-            customer_state: "CI",
-            customer_zip_code: "225",
-        });
+            CinetPay.getCheckout({
+                transaction_id: Math.floor(Math.random() * 100000000).toString(),
+                amount: parseFloat(document.getElementById('colisPrice').value),
+                currency: 'XOF',
+                channels: 'ALL',
+                operator: operateurMobileSelect.val(),
+                description: 'Paiement de colis',
+                customer_name: "Wayne",
+                customer_surname: "The",
+                customer_email: "redfieldluise@gmail.com",
+                customer_phone_number: "0708325027",
+                customer_address: "BP 0024",
+                customer_city: "Abidjan",
+                customer_country: "CI",
+                customer_state: "CI",
+                customer_zip_code: "225",
+            });
             CinetPay.waitResponse(function(data) {
                 if (data.status == "REFUSED") {
                     alert("Votre paiement a échoué. Veuillez réessayer.");
@@ -234,7 +211,7 @@
                 formDataJson.mode_payement = 'delivery';
             }
             if (formDataJson.mode_payement === 'cash') {
-                const prixColis = parseFloat($('#colisPriceEur').val()) || 0;
+                const prixColis = parseFloat($('#colisPrice').val()) || 0;
                 const montantRecu = parseFloat(formDataJson.montant_reçu);
 
                 if (isNaN(montantRecu)) {
@@ -286,7 +263,7 @@
             });
         }
         $('#montant_reçu').on('input', function() {
-            const prixColis = parseFloat($('#colisPriceEur').val()) || 0; // Valeur par défaut 0
+            const prixColis = parseFloat($('#colisPrice').val()) || 0; // Valeur par défaut 0
             const montantSaisi = parseFloat($(this).val());
             let isValid = true;
             let errorMessage = ''; // Pour un éventuel affichage d'erreur plus précis
@@ -374,11 +351,7 @@
         hideSections();
     });
 </script>
-{{-- <input type="hidden" id="colisPrice" value="{{ $totalPriceFcfa }}">
-<input type="hidden" id="colisPriceFcfa" value="{{ $totalPriceFcfa }}">
-<input type="hidden" id="colisPriceEur"  value="{{ $totalPriceEur }}"> --}}
-<input type="hidden" id="colisPriceEur"  value="{{ $totalPriceEur }}">
-
+<input type="hidden" id="colisPrice" value="{{ $totalPrice ?? 0 }}">
 <style>
     .form-container {
         max-width: 95%;

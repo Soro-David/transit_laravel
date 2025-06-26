@@ -45,4 +45,9 @@ class Paiement extends Model
     {
         return $this->belongsTo(Agent::class);
     }
+      // NOUVEAU : Un dossier de paiement peut avoir plusieurs versements.
+      public function versements()
+      {
+          return $this->hasMany(Versement::class);
+      }
 }

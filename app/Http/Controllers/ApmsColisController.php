@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\User;
+use App\Models\Versement;
 use App\Models\Product;
 use App\Models\Agence;
 use App\Models\Client;
@@ -37,10 +38,12 @@ use Infobip\Models\SmsDestination;
 use Infobip\Models\SmsTextualMessage;
 use App\Services\InfobipService;
 use Exception;
+use Illuminate\Support\Facades\Log;
 // use App\Http\Controllers\Exception;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Barryvdh\DomPDF\Facade;
+use App\Services\CurrencyConverterService;
 use PDF;
 
 class ApmsColisController extends Controller
@@ -700,169 +703,104 @@ class ApmsColisController extends Controller
     }
 
 
-    public function get_colis_dump(Request $request)
-    {
-        if ($request->ajax()) {
-            try {
-    
-                $colis = Colis::select(
-                    'colis.id',
-                    'colis.reference_colis',
-                    'colis.quantite_colis',
-                    'colis.prix_transit_colis',
-                    'colis.expediteur_id', // Garder les IDs si besoin pour les relations
-                    'colis.destinataire_id',
-                    'colis.etat',
-                    'colis.created_at',
-                    'expediteurs.nom as expediteur_nom',
-                    'expediteurs.prenom as expediteur_prenom',
-                    'expediteurs.tel as expediteur_tel',
-                    'expediteurs.agence as expediteur_agence',
-                    'destinataires.nom as destinataire_nom',
-                    'destinataires.prenom as destinataire_prenom',
-                    'destinataires.agence as destinataire_agence',
-                    'destinataires.tel as destinataire_tel'
-                )
-                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+  // Dans ApmsColisController.php
+
+public function get_colis_dump(Request $request)
+{
+    if ($request->ajax()) {
+        try {
+            // Requête pour récupérer les colis et leur paiement associé
+            $colis = Colis::with('expediteur', 'destinataire', 'paiement')
                 ->where('etat', 'Dechargé')
-                ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-                ->where('colis.mode_transit', 'maritime')
-                ->where('colis.recup', 'oui')
+                ->whereHas('destinataire', function ($query) {
+                    $query->where('agence', 'IPMS-SIMEX-CI');
+                })
+                ->where('recup', 'oui')
                 ->get();
-    
-    
-                $colisIds = $colis->pluck('id')->unique()->toArray();
-    
-                $paiements = Paiement::whereIn('colis_id', $colisIds)
-                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye')) // Sommer directement en SQL
-                                    ->groupBy('colis_id')
-                                    ->get()
-                                    ->keyBy('colis_id'); 
-    
-                $colisGrouped = $colis->groupBy('reference_colis');
-    
-                $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
-                    $firstColis = $group->first(); // Prendre le premier colis comme référence pour certaines infos
-                    $quantiteTotale = $group->sum('quantite_colis');
-                    $prixTotalColis = $group->sum('prix_transit_colis');
-                    $montantTotalPaye = 0;
-                    $colisIdsInGroup = $group->pluck('id')->toArray(); // IDs des colis dans ce groupe
-    
-                    foreach ($colisIdsInGroup as $colisId) {
-                        if (isset($paiements[$colisId])) {
-                            $montantTotalPaye += $paiements[$colisId]->total_paye;
-                        }
+            
+            // On groupe les colis par référence
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $processedData = $colisGrouped->map(function ($group) {
+                $firstColis = $group->first();
+                $prixTotalColis = $group->sum('prix_transit_colis');
+                
+                // On récupère le montant payé et le statut directement du paiement lié
+                $montantTotalPaye = $firstColis->paiement ? (float)$firstColis->paiement->montant_paye : 0;
+                $paymentStatus = $firstColis->paiement ? $firstColis->paiement->statut_paiement : 'non payé';
+
+                return [
+                    'reference_colis' => $firstColis->reference_colis,
+                    'nombre_de_colis' => $group->sum('quantite_colis'),
+                    'expediteur_nom' => optional($firstColis->expediteur)->nom,
+                    'expediteur_prenom' => optional($firstColis->expediteur)->prenom,
+                    'expediteur_tel' => optional($firstColis->expediteur)->tel,
+                    'destinataire_nom' => optional($firstColis->destinataire)->nom,
+                    'destinataire_prenom' => optional($firstColis->destinataire)->prenom,
+                    'destinataire_tel' => optional($firstColis->destinataire)->tel,
+                    'destinataire_agence' => optional($firstColis->destinataire)->agence,
+                    'etat' => $firstColis->etat,
+                    'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A',
+                    'payment_status' => $paymentStatus,
+                    'prix_total' => $prixTotalColis,
+                    'montant_paye' => $montantTotalPaye,
+                    'colis_ids' => json_encode($group->pluck('id')->toArray()),
+                    'first_colis_id' => $firstColis->id,
+                ];
+            })->values();
+
+            return DataTables::of($processedData)
+                ->addColumn('statut_paiement', function ($row) {
+                    $status = $row['payment_status'];
+                    $iconClass = 'fas fa-times-circle'; $iconColor = 'red'; $title = 'Impayé';
+
+                    if ($status === 'payé') {
+                        $iconClass = 'fas fa-check-circle'; $iconColor = 'green'; $title = 'Payé';
+                    } elseif ($status === 'partiellement payé') {
+                        $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange'; $title = 'Paiement Partiel';
                     }
-    
-                    $paymentStatus = 'impaye';
-                    $tolerance = 0.01; // Tolérance pour les comparaisons flottantes
-    
-                    if ($montantTotalPaye > 0) {
-                        if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
-                            $paymentStatus = 'paye'; // Totalement payé
-                        } elseif ($montantTotalPaye < $prixTotalColis) {
-                            $paymentStatus = 'partiel'; // Partiellement payé
-                        }
-                    }
-    
-                    return [
-                        'reference_colis' => $reference,
-                        'nombre_de_colis' => $quantiteTotale, // Somme des quantités
-                        'expediteur_nom' => $firstColis->expediteur_nom,
-                        'expediteur_prenom' => $firstColis->expediteur_prenom,
-                        'expediteur_tel' => $firstColis->expediteur_tel,
-                        'expediteur_agence' => $firstColis->expediteur_agence,
-                        'destinataire_nom' => $firstColis->destinataire_nom,
-                        'destinataire_prenom' => $firstColis->destinataire_prenom,
-                        'destinataire_tel' => $firstColis->destinataire_tel,
-                        'destinataire_agence' => $firstColis->destinataire_agence,
-                        'etat' => $firstColis->etat, // L'état devrait être le même pour tout le groupe
-                        'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A', // Formatage de la date
-                        'payment_status' => $paymentStatus, // Statut calculé
-                        'prix_total' => $prixTotalColis, // Prix total du groupe
-                        'montant_paye' => $montantTotalPaye, // Montant total payé pour le groupe
-                        'colis_ids' => json_encode($colisIdsInGroup), // IDs du groupe en JSON pour le bouton Payer
-                        'first_colis_id' => $firstColis->id // ID du premier colis pour Edit/Invoice
-                    ];
-                })->values(); // Transformer la collection en tableau indexé numériquement
-    
-                return DataTables::of($processedData)
-                    ->addColumn('statut_paiement', function ($row) {
-                        // Générer l'icône de statut de paiement avec tooltip
-                        $status = $row['payment_status'];
-                        $iconClass = ''; $iconColor = ''; $title = '';
-                        $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
-                        $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
-                        switch ($status) {
-                            case 'paye':
-                                $iconClass = 'fas fa-check-circle'; $iconColor = 'green';
-                                $title = 'Payé (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
-                                break;
-                            case 'partiel':
-                                $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange';
-                                $title = 'Paiement Partiel (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
-                                break;
-                            case 'impaye':
-                            default:
-                                $iconClass = 'fas fa-times-circle'; $iconColor = 'red';
-                                $title = 'Impayé (0 / ' . $prixTotalFormatted . ')';
-                                break;
-                        }
-                        return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
-                    })
-                    ->addColumn('action', function ($row) {
-                        // Générer les boutons d'action
-                        $reference = $row['reference_colis'];
-                        $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
-    
-                        $editUrl = route('ipms_colis.valide.edit', ['id' => $firstColisId]); // Route pour modifier (utilise l'ID)
-                        $invoiceUrl = route('ipms_colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
-                        $deleteUrl = route('ipms_colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
-    
-                        $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
-                                        <i class="fas fa-edit"></i>
-                                    </a>';
-    
+                    
+                    return '<span title="' . $title . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
+                })
+                ->addColumn('action', function ($row) {
+                    $firstColisId = $row['first_colis_id'];
+                    $editUrl = route('ipms_colis.valide.edit', ['id' => $firstColisId]);
+                    $invoiceUrl = route('ipms_colis.valide.edit.invoice', ['id' => $firstColisId]);
+                    $deleteUrl = route('ipms_colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
+
+                    $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-edit"></i></a>';
+                    
+                    $payBtn = ''; // Par défaut, pas de bouton
+                    if ($row['payment_status'] !== 'payé') {
                         $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
-                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                            data-total="' . $row['prix_total'] . '"
-                                            data-paid="' . $row['montant_paye'] . '"
-                                            data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
-                                            title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                        <i class="fas fa-dollar-sign"></i>
-                                    </button>';
-    
-                        $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
-                                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                                data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                            <i class="fas fa-trash"></i>
-                                        </button>';
-    
-                        $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
-                                        <i class="fas fa-file-invoice"></i>
-                                       </a>';
-    
-                        return '<div class="action-buttons-container">'
-                               . $editBtn
-                               . $payBtn
-                               . $deleteBtn
-                               . $invoiceBtn
-                               . '</div>';
-                    })
-                    ->rawColumns(['action', 'statut_paiement'])
-                    ->make(true); 
-    
-            } catch (\Exception $e) {
-                Log::error('Erreur dans get_colis_valide: ' . $e->getMessage());
-                return response()->json(['error' => 'Une erreur interne est survenue.'], 500);
-            }
+                                    data-reference="' . htmlspecialchars($row['reference_colis'], ENT_QUOTES, 'UTF-8') . '"
+                                    data-total="' . $row['prix_total'] . '"
+                                    data-paid="' . $row['montant_paye'] . '"
+                                    data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                                    data-colis-id="' . $row['first_colis_id'] . '"
+                                    title="Enregistrer un Paiement">
+                                <i class="fas fa-dollar-sign"></i>
+                            </button>';
+                    } else {
+                        $payBtn = '<button type="button" class="btn btn-sm btn-secondary" disabled title="Paiement complet">
+                                <i class="fas fa-dollar-sign"></i>
+                            </button>';
+                    }
+
+                    $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '"><i class="fas fa-trash"></i></button>';
+                    $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture"><i class="fas fa-file-invoice"></i></a>';
+
+                    return '<div class="action-buttons-container">' . $editBtn . $payBtn . $deleteBtn . $invoiceBtn . '</div>';
+                })
+                ->rawColumns(['action', 'statut_paiement'])
+                ->make(true);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur dans get_colis_dump: ' . $e->getMessage());
+            return response()->json(['error' => 'Une erreur interne est survenue.'], 500);
         }
-    
-        Log::warning("Requête non-AJAX reçue sur get_colis_valide");
-        abort(404); 
     }
+}
 
     public function get_devis_colis(Request $request)
     {
@@ -1785,5 +1723,84 @@ public function liste_vol(Request $request)
 {
     $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
     return view('IPMS_SIMEXCI.cargaison.liste_vol',compact('referenceVol'));
+}
+public function enregistrerPaiement(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'colis_id'        => 'required|integer|exists:colis,id',
+            'montant_a_payer' => 'required|numeric|min:0.01',
+            'colis_ids'       => 'required|json'
+        ]);
+    } catch (ValidationException $e) {
+        return response()->json(['error' => 'Les données fournies sont invalides.', 'details' => $e->errors()], 422);
+    }
+
+    $colisIdReference = $validated['colis_id'];
+    $nouveauVersementMontant = (float) $validated['montant_a_payer'];
+    $colisIdsDuGroupe = json_decode($validated['colis_ids'], true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($colisIdsDuGroupe)) {
+        return response()->json(['error' => 'Format des IDs de colis invalide.'], 400);
+    }
+
+    DB::beginTransaction();
+    try {
+        $colisDeReference = Colis::with('paiement')->findOrFail($colisIdReference);
+        $paiement = $colisDeReference->paiement;
+
+        if (!$paiement) {
+            throw new \Exception("Dossier de paiement introuvable pour le colis ID {$colisIdReference}.");
+        }
+
+        $agent = Auth::user()->agent;
+        if (!$agent) {
+            throw new \Exception("Utilisateur connecté n'est pas un agent valide.");
+        }
+        
+        // Calcul des montants
+        $montantTotalDu = Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
+        $montantDejaPaye = (float) $paiement->montant_paye;
+        $montantRestant = $montantTotalDu - $montantDejaPaye;
+
+        // VALIDATION : Vérifier que le paiement ne dépasse pas le montant restant (avec une tolérance)
+        if ($nouveauVersementMontant > ($montantRestant + 0.01)) {
+            throw new \Exception('Le montant du versement (' . $nouveauVersementMontant . ') ne peut pas dépasser le montant restant à payer (' . $montantRestant . ').');
+        }
+
+        // Créer le versement
+        Versement::create([
+            'paiement_id'       => $paiement->id,
+            'montant_versement' => $nouveauVersementMontant,
+            'agent_id'          => $agent->id,
+            'colis_id'          => $colisIdReference,
+        ]);
+        
+        // Mettre à jour le dossier de paiement principal.
+        $totalPaye = $montantDejaPaye + $nouveauVersementMontant;
+        
+        $paiement->montant = $montantTotalDu;
+        $paiement->montant_paye = $totalPaye;
+
+        // Mettre à jour le statut.
+        $tolerance = 0.01;
+        if ($totalPaye >= ($montantTotalDu - $tolerance)) {
+            $paiement->statut_paiement = 'payé';
+        } elseif ($totalPaye > 0) {
+            $paiement->statut_paiement = 'partiellement payé';
+        } else {
+            $paiement->statut_paiement = 'non payé';
+        }
+        
+        $paiement->save();
+        DB::commit();
+
+        return response()->json(['success' => 'Paiement enregistré avec succès !']);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erreur enregistrement versement: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return response()->json(['error' => 'Une erreur interne est survenue: ' . $e->getMessage()], 500);
+    }
 }
 }
