@@ -19,6 +19,11 @@ return [
         'secret' => env('MAILGUN_SECRET'),
         'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
     ],
+'currency' => [
+    // 1 EUR = 655,957 FCFA
+    'fcfa_to_eur' => env('FCFA_TO_EUR_RATE', 655.957),
+    'fcfa_to_cny' => env('FCFA_TO_CNY', 87),      // 1 CNY = 87 FCFA
+],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

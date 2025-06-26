@@ -85,4 +85,5 @@ class User extends Authenticatable
     {
         return $this->hasOne(Agent::class, 'email', 'email'); // En supposant que 'email' est la colonne de liaison
     }
+    
 }
