@@ -1729,7 +1729,7 @@ public function enregistrerPaiement(Request $request)
     try {
         $validated = $request->validate([
             'colis_id'        => 'required|integer|exists:colis,id',
-            'montant_a_payer' => 'required|numeric|min:0.01',
+            'montant_a_payer' => 'required|numeric|min:1', // C'est en FCFA, donc min:1 est raisonnable
             'colis_ids'       => 'required|json'
         ]);
     } catch (ValidationException $e) {
@@ -1737,7 +1737,7 @@ public function enregistrerPaiement(Request $request)
     }
 
     $colisIdReference = $validated['colis_id'];
-    $nouveauVersementMontant = (float) $validated['montant_a_payer'];
+    $nouveauVersementFCFA = (float) $validated['montant_a_payer']; // La valeur reçue est en FCFA
     $colisIdsDuGroupe = json_decode($validated['colis_ids'], true);
 
     if (json_last_error() !== JSON_ERROR_NONE || !is_array($colisIdsDuGroupe)) {
@@ -1746,6 +1746,11 @@ public function enregistrerPaiement(Request $request)
 
     DB::beginTransaction();
     try {
+        // --- LOGIQUE CORRIGÉE ---
+
+        // ÉTAPE 1: Convertir le paiement reçu (FCFA) en EURO pour être cohérent avec la BDD
+        $nouveauVersementEUR = round($nouveauVersementFCFA / CurrencyConverterService::FCFA_TO_EUR_RATE, 2);
+
         $colisDeReference = Colis::with('paiement')->findOrFail($colisIdReference);
         $paiement = $colisDeReference->paiement;
 
@@ -1758,35 +1763,36 @@ public function enregistrerPaiement(Request $request)
             throw new \Exception("Utilisateur connecté n'est pas un agent valide.");
         }
         
-        // Calcul des montants
-        $montantTotalDu = Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
-        $montantDejaPaye = (float) $paiement->montant_paye;
-        $montantRestant = $montantTotalDu - $montantDejaPaye;
+        // ÉTAPE 2: Tous les calculs sont faits en EURO
+        $montantTotalDuEUR = (float) Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
+        $montantDejaPayeEUR = (float) $paiement->montant_paye;
+        $montantRestantEUR = $montantTotalDuEUR - $montantDejaPayeEUR;
 
-        // VALIDATION : Vérifier que le paiement ne dépasse pas le montant restant (avec une tolérance)
-        if ($nouveauVersementMontant > ($montantRestant + 0.01)) {
-            throw new \Exception('Le montant du versement (' . $nouveauVersementMontant . ') ne peut pas dépasser le montant restant à payer (' . $montantRestant . ').');
+        // ÉTAPE 3: La validation compare maintenant des EURO avec des EURO
+        // On ajoute une petite tolérance pour les erreurs d'arrondi
+        if ($nouveauVersementEUR > ($montantRestantEUR + 0.01)) { 
+            throw new \Exception('Le montant du versement (' . $nouveauVersementEUR . ' EUR) ne peut pas dépasser le montant restant à payer (' . round($montantRestantEUR, 2) . ' EUR).');
         }
 
-        // Créer le versement
+        // ÉTAPE 4: On enregistre les montants en EURO dans la base de données
         Versement::create([
             'paiement_id'       => $paiement->id,
-            'montant_versement' => $nouveauVersementMontant,
+            'montant_versement' => $nouveauVersementEUR, // Enregistrer en EUR
             'agent_id'          => $agent->id,
             'colis_id'          => $colisIdReference,
         ]);
         
-        // Mettre à jour le dossier de paiement principal.
-        $totalPaye = $montantDejaPaye + $nouveauVersementMontant;
+        // Mettre à jour le dossier de paiement principal avec des EURO
+        $totalPayeEUR = $montantDejaPayeEUR + $nouveauVersementEUR;
         
-        $paiement->montant = $montantTotalDu;
-        $paiement->montant_paye = $totalPaye;
+        $paiement->montant = $montantTotalDuEUR;
+        $paiement->montant_paye = $totalPayeEUR;
 
-        // Mettre à jour le statut.
+        // Mettre à jour le statut en se basant sur les montants en EURO
         $tolerance = 0.01;
-        if ($totalPaye >= ($montantTotalDu - $tolerance)) {
+        if ($totalPayeEUR >= ($montantTotalDuEUR - $tolerance)) {
             $paiement->statut_paiement = 'payé';
-        } elseif ($totalPaye > 0) {
+        } elseif ($totalPayeEUR > 0) {
             $paiement->statut_paiement = 'partiellement payé';
         } else {
             $paiement->statut_paiement = 'non payé';

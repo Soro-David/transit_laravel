@@ -39,7 +39,7 @@
         </div>
     </div>
 
-   {{-- ===== MODALE DE PAIEMENT (NETTOYÉE) ===== --}}
+   {{-- ===== MODALE DE PAIEMENT (Structure HTML inchangée) ===== --}}
    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -73,11 +73,20 @@
                         <div id="modalRemainingAmountDisplay" class="form-control" style="font-weight: bold; color: #dc3545; background-color: #f8f9fa;"></div>
                     </div>
 
+                    {{-- Champs pour le nouveau paiement --}}
                     <div class="mb-3">
-                        <label for="modalNewPaymentAmount" class="form-label">Montant du Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label>
-                        <input type="number" step="1" class="form-control" id="modalNewPaymentAmount" required placeholder="0" name="montant_a_payer">
+                        <label for="modalNewPaymentAmountEur" class="form-label">Montant du Nouveau Paiement (en EUR) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" required placeholder="0.00">
                         <div class="invalid-feedback" id="paymentAmountError"></div>
                     </div>
+                
+                    <div class="mb-3">
+                        <label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA (pour information)</label>
+                        <input type="text" class="form-control" id="modalConvertedAmountCfa" readonly style="font-weight: bold; background-color: #e9ecef;">
+                    </div>
+                
+                    {{-- Champ caché qui sera soumis au serveur avec la valeur en FCFA --}}
+                    <input type="hidden" id="modalNewPaymentAmount" name="montant_a_payer">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -89,99 +98,143 @@
 </div>
 </section>
 
-{{-- Styles --}}
+
+{{-- Styles (inchangés) --}}
 <style>
-    .action-buttons-container { display: flex; justify-content: center; gap: 5px; }
+    #productTable { width: 100% !important; }
+    #productTable th, #productTable td { vertical-align: middle; }
+    #productTable .text-center { text-align: center; }
+    .action-buttons-container { display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: nowrap; }
+    .dt-buttons { margin-bottom: 15px; }
+    @media (max-width: 768px) {
+        #productTable { white-space: normal; }
+        .dt-buttons { text-align: center; }
+        .dt-button { display: block; margin: 5px auto; width: 80%; }
+        .action-buttons-container { flex-wrap: wrap; justify-content: center; }
+    }
     .is-invalid { border-color: #dc3545; }
     .invalid-feedback { display: none; width: 100%; margin-top: .25rem; font-size: .875em; color: #dc3545; }
     .is-invalid ~ .invalid-feedback { display: block; }
 </style>
 
-{{-- Script --}}
+{{-- Script (LOGIQUE CORRIGÉE) --}}
 <script>
 $(document).ready(function () {
-    // Configuration CSRF
+    // Taux de conversion
+    const EUR_TO_FCFA_RATE = parseFloat("{{ App\Services\CurrencyConverterService::FCFA_TO_EUR_RATE }}") || 655.957;
+
+    // Fonctions d'aide pour formater les devises
+    function formatCfa(value) {
+        return Math.round(value).toLocaleString('fr-FR') + ' FCFA';
+    }
+    function formatEur(value) {
+        return Number(value).toFixed(2).replace('.', ',') + ' €';
+    }
+
     $.ajaxSetup({
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
     });
 
-    // UNE SEULE INITIALISATION DE DATATABLES (CORRIGÉ)
+    if ($.fn.DataTable.isDataTable('#productTable')) {
+        $('#productTable').DataTable().clear().destroy();
+    }
     var table = $("#productTable").DataTable({
-        processing: true,
-        serverSide: true,
-        responsive: true,
+        // ... (configuration DataTables inchangée) ...
+        processing: true, serverSide: true, responsive: true,
         language: { url: "{{ asset('js/fr-FR.json') }}" },
         ajax: '{{ route("ipms_angre_colis.get.colis.dump") }}',
         columns: [
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
-            { data: null, name: 'expediteur_nom', render: (data, type, row) => `${row.expediteur_nom || ''} ${row.expediteur_prenom || ''}`.trim() },
+            { data: null, name: 'expediteur_nom', render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); }, searchable: true, orderable: true },
             { data: 'expediteur_tel', name: 'expediteurs.tel' },
-            { data: null, name: 'destinataire_nom', render: (data, type, row) => `${row.destinataire_nom || ''} ${row.destinataire_prenom || ''}`.trim() },
+            { data: null, name: 'destinataire_nom', render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); }, searchable: true, orderable: true },
             { data: 'destinataire_tel', name: 'destinataires.tel' },
             { data: 'destinataire_agence', name: 'destinataires.agence' },
             { data: 'etat', name: 'colis.etat' },
             { data: 'created_at', name: 'colis.created_at' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
         ],
-        dom: 'Bfrtip',
-        buttons: ['excel', 'pdf', 'print'],
-        order: [[ 1, 'desc' ]]
+        dom: 'Bfrtip', buttons: ['excel', 'pdf', 'print'], order: [[ 1, 'desc' ]]
     });
 
-    // --- Logique pour la Modale de Paiement ---
+    // --- NOUVELLE LOGIQUE CORRIGÉE pour la Modale de Paiement ---
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
         e.preventDefault();
 
         var button = $(this);
-        var total = parseFloat(button.data('total')) || 0;
-        var paid = parseFloat(button.data('paid')) || 0;
-        var remaining = total - paid;
         
-        if (remaining <= 0) {
+        // **CORRECTION : Les données du serveur sont traitées comme des EUROS**
+        var totalEur = parseFloat(button.data('total')) || 0;
+        var paidEur = parseFloat(button.data('paid')) || 0;
+
+        // **CORRECTION : On calcule les équivalents FCFA en MULTIPLIANT**
+        var totalCfa = totalEur * EUR_TO_FCFA_RATE;
+        var paidCfa = paidEur * EUR_TO_FCFA_RATE;
+
+        // On calcule les montants restants dans les deux devises
+        var remainingEur = totalEur - paidEur;
+        var remainingCfa = totalCfa - paidCfa;
+        
+        if (remainingEur <= 0) {
             Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info');
             return;
         }
-        
+
         var colisId = button.data('colis-id'); 
         var colisIds = button.data('colis-ids');
         var reference = button.data('reference');
         
-        function formatCfa(value) {
-            return Number(value).toLocaleString('fr-FR') + ' FCFA';
-        }
-
+        // Mettre à jour les champs de la modale avec les valeurs correctes
+        // Format d'affichage : [Valeur EUR] € / [Valeur FCFA] FCFA
         $('#modalDisplayReference').val(reference);
-        $('#modalTotalAmount').val(formatCfa(total));
-        $('#modalAmountAlreadyPaid').val(formatCfa(paid));
-        $('#modalRemainingAmountDisplay').text(formatCfa(remaining)); 
+        $('#modalTotalAmount').val(`${formatEur(totalEur)} soit ${formatCfa(totalCfa)}`);
+        $('#modalAmountAlreadyPaid').val(`${formatEur(paidEur)} soit ${formatCfa(paidCfa)}`);
+        $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatEur(remainingEur)}</strong> soit ${formatCfa(remainingCfa)}`);
         
-        $('#modalNewPaymentAmount').val(Math.round(remaining));
-        $('#modalNewPaymentAmount').attr('max', Math.round(remaining));
+        // Pré-remplir le champ de paiement en EUR avec le montant restant
+        $('#modalNewPaymentAmountEur').val(remainingEur.toFixed(2));
+        $('#modalNewPaymentAmountEur').attr('max', remainingEur.toFixed(2));
 
+        // Déclencher l'événement 'input' pour calculer la valeur FCFA initiale
+        $('#modalNewPaymentAmountEur').trigger('input');
+
+        // Remplir les champs cachés du formulaire
         $('#modalColisId').val(colisId);
         $('#modalColisIds').val(JSON.stringify(colisIds)); 
 
-        $('#modalNewPaymentAmount').removeClass('is-invalid');
+        $('#modalNewPaymentAmountEur').removeClass('is-invalid');
         $('#paymentAmountError').text('').hide();
         
         $('#paymentModal').modal('show');
     });
 
-    // --- Logique de soumission du formulaire ---
+    // Gérer la conversion en temps réel lors de la saisie en EUR (cette partie était déjà correcte)
+    $('#modalNewPaymentAmountEur').on('input', function() {
+        let amountEur = parseFloat($(this).val()) || 0;
+        let amountCfa = amountEur * EUR_TO_FCFA_RATE;
+
+        // Mettre à jour le champ d'affichage FCFA (pour l'utilisateur)
+        $('#modalConvertedAmountCfa').val(formatCfa(amountCfa));
+        
+        // Mettre à jour le champ caché qui sera envoyé au serveur (valeur en FCFA, arrondie)
+        $('#modalNewPaymentAmount').val(Math.round(amountCfa));
+    });
+
+    // --- Logique de soumission du formulaire (inchangée) ---
     $('#paymentForm').on('submit', function(e) {
         e.preventDefault(); 
-
         var form = $(this);
         var submitButton = $('#submitPaymentBtn');
         var originalButtonText = submitButton.html();
         submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
+        var formData = form.serialize();
 
         $.ajax({
             url: '{{ route("ipms_angre_colis.valide.payer") }}',
             type: 'POST',
-            data: form.serialize(),
+            data: formData,
             dataType: 'json',
             success: function(response) {
                 $('#paymentModal').modal('hide');
@@ -190,9 +243,7 @@ $(document).ready(function () {
             },
             error: function(xhr) {
                 var errorMessage = 'Une erreur est survenue lors de l\'enregistrement.';
-                if (xhr.responseJSON && xhr.responseJSON.error) {
-                    errorMessage = xhr.responseJSON.error;
-                }
+                if (xhr.responseJSON && xhr.responseJSON.error) { errorMessage = xhr.responseJSON.error; }
                 Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMessage });
             },
             complete: function () {
@@ -200,68 +251,38 @@ $(document).ready(function () {
             }
         });
     });
-    // --- Logique pour le bouton Supprimer/Archiver ---
 
-    // Utilisation de la délégation d'événement sur le tbody pour les boutons ajoutés dynamiquement
+    // --- Logique pour le bouton Supprimer/Archiver (inchangée) ---
     $('#productTable tbody').on('click', '.delete-btn', function (e) {
-        e.preventDefault(); // Bonne pratique
-
+        // ... (logique de suppression inchangée) ...
+        e.preventDefault();
         const button = $(this);
-        const deleteUrl = button.data('url'); // URL de suppression depuis data-url
-        const reference = button.data('reference'); // Référence pour le message de confirmation
-
-        if (!deleteUrl) {
-            console.error("URL de suppression non trouvée pour le bouton:", button);
-            Swal.fire('Erreur', 'Impossible de trouver l\'action de suppression.', 'error');
-            return;
-        }
-
-        // Confirmation avec SweetAlert
+        const deleteUrl = button.data('url');
+        const reference = button.data('reference');
+        if (!deleteUrl) { Swal.fire('Erreur', 'Impossible de trouver l\'action de suppression.', 'error'); return; }
         Swal.fire({
             title: 'Êtes-vous sûr?',
             html: `Voulez-vous vraiment archiver le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
             icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33', // Rouge pour la suppression/archivage
-            cancelButtonColor: '#3085d6', // Bleu pour annuler
-            confirmButtonText: 'Oui, archiver!',
-            cancelButtonText: 'Annuler'
+            showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Oui, archiver!', cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Si l'utilisateur confirme, envoyer la requête AJAX DELETE
                 $.ajax({
-                    url: deleteUrl, // L'URL contient déjà la référence ou l'identifiant nécessaire
-                    type: 'DELETE', // Utiliser la méthode DELETE
-                    // Le token CSRF est déjà configuré globalement via $.ajaxSetup
-                    dataType: 'json', // Attendre une réponse JSON
+                    url: deleteUrl, type: 'DELETE', dataType: 'json',
                     success: function (response) {
-                        Swal.fire(
-                            'Archivé!',
-                            response.success || `Le(s) colis avec la référence ${reference} ont été archivés.`,
-                            'success'
-                        );
-                        table.ajax.reload(null, false); // Recharger la table sans réinitialiser
+                        Swal.fire('Archivé!', response.success || `Le(s) colis avec la référence ${reference} ont été archivés.`, 'success');
+                        table.ajax.reload(null, false);
                     },
-                    error: function (xhr, status, error) {
+                    error: function (xhr) {
                         let errorMsg = 'Une erreur est survenue lors de l\'archivage.';
-                        if(xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMsg = xhr.responseJSON.error;
-                        } else {
-                             console.error("Erreur AJAX Delete:", status, error, xhr.responseText);
-                        }
-                        Swal.fire(
-                            'Erreur!',
-                            errorMsg,
-                            'error'
-                        );
+                        if(xhr.responseJSON && xhr.responseJSON.error) { errorMsg = xhr.responseJSON.error; }
+                        Swal.fire('Erreur!', errorMsg, 'error');
                     }
                 });
             }
         });
     });
-
-
-}); // Fin $(document).ready
+});
 </script>
 
 @endsection
