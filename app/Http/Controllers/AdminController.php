@@ -117,32 +117,36 @@ public function index()
         return view('admin.gestion.agent.index', compact('agences'));
     }
 
-    public function get_users(Request $request)
-    {
-        if ($request->ajax()) {
-            $users = User::select(['id', 'first_name', 'email', 'role', 'created_at']);
-            // dd($users);
-            return DataTables::of($users)
-                ->addColumn('action', function ($row) {
-                    $editUrl = route('agence.agent.edit', ['id' => $row->id]);
-                    $showUrl = route('agence.agent.show', ['id' => $row->id]);
-                    $deleteUrl = route('agence.agent.destroy', ['id' => $row->id]);
-                    return '
-                        <a href="' . $showUrl . '" class="btn btn-sm btn-primary" title="Edit" data-bs-target="#editModal">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify" data-bs-target="#modifModal">
-                            <i class="fas fa-pencil-alt"></i>
-                        </a>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
-                                <i class="fas fa-trash"></i>
-                        </button>
-                    ';
-                })
-                ->rawColumns(['action']) 
-                ->make(true);
-        }
+
+public function get_users(Request $request) // Renommer en get_agents serait plus cohérent
+{
+    if ($request->ajax()) {
+        // 1. On charge la relation 'agence' avec with() pour optimiser la requête.
+        // On sélectionne toutes les colonnes de la table 'agents' explicitement.
+        $data = Agent::with('agence')->select('agents.*');
+
+        return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                // Vos URLs de routes
+                $editUrl = route('agence.agent.edit', $row->id);
+                $showUrl = route('agence.agent.show', $row->id);
+                $deleteUrl = route('agence.agent.destroy', $row->id);
+
+                return '
+                    <a href="' . $showUrl . '" class="btn btn-sm btn-info" title="Voir"><i class="fas fa-eye"></i></a>
+                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-pencil-alt"></i></a>
+                    <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '"><i class="fas fa-trash"></i></button>
+                ';
+            })
+            // 2. On ajoute une nouvelle colonne pour le nom de l'agence
+            ->addColumn('agence', function ($agent) {
+                // On utilise l'opérateur "nullsafe" (?->) pour éviter une erreur si un agent n'a pas d'agence
+                return $agent->agence?->nom_agence ?? 'N/A';
+            })
+            ->rawColumns(['action']) // Indique à DataTables que la colonne 'action' contient du HTML
+            ->make(true);
     }
+}
 
     public function clients(Request $request)
     {

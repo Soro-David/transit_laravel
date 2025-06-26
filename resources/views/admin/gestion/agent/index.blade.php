@@ -1,142 +1,142 @@
 @extends('admin.layouts.admin')
 
 @section('content-header')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Le contenu de content-header doit être ici, pas la meta tag --}}
+@endsection
 
 @section('content')
+{{-- La meta tag CSRF est mieux placée dans le layout principal (layouts/admin.blade.php) dans la section <head>, mais si elle doit être ici, c'est OK. --}}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <section class="py-3">
-            <div class="row justify-content-center">
-                <div class="col-md-12">
-                            <h2>Liste des utilisateurs</h2>
-                                <div class="text-right">
-                                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_agent">
-                                        Ajouter un agent
-                                    </button>
-                                </div><br>
-                                <table id="users-table" class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nom</th>
-                                            <th>Email</th>
-                                            <th>Rôle</th>
-                                            <th>Date de création</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                </table>
+    <div class="container-fluid"> {{-- Utiliser container-fluid pour occuper toute la largeur si besoin --}}
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <h2>Liste des agents</h2>
+                <div class="text-right mb-3"> {{-- mb-3 pour ajouter une marge en bas --}}
+                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_agent">
+                        Ajouter un agent
+                    </button>
                 </div>
+                
+                <table id="users-table" class="table table-bordered table-striped"> {{-- table-striped pour un meilleur style --}}
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Email</th>
+                            <th>Agence</th>
+                            <th>Date de création</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
-        {{--  --}}
-        <div class="modal fade" id="ajouter_agent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <form action="{{route('managers.store')}}" method="post">
-                @csrf
-                @method('POST')
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header d-flex justify-content-between align-items-center">
-                            <h5 class="text-center flex-grow-1 m-0">Information de l'agent</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="container">
-                                <div class="row">
-                                    <!-- Colonne gauche -->
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="nom">Nom:</label>
-                                            <input type="text" name="nom" value="{{ old('nom') }}" class="form-control" id="nom">
-                                            @error('nom')
-                                            <div class="text-danger">
-                                                <p>{{$message}}</p>
-                                            </div>
-                                            @enderror
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email">Email:</label>
-                                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" id="email">
-                                            @error('email')
-                                            <div class="text-danger">
-                                                <p>{{$message}}</p>
-                                            </div>
-                                            @enderror
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="role">Rôle:</label>
-                                            <select name="role" value="{{ old('role') }}" class="form-control" id="role" readonly>
-                                                <option value="agent">Agent</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <!-- Colonne droite -->
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="prenom">Prénom:</label>
-                                            <input type="text" name="prenom" value="{{ old('prenom') }}" class="form-control" id="prenom">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="password">Mot de passe:</label>
-                                            <input type="password" name="password" class="form-control" id="password">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="agence">Agence</label>
-                                            <select name="agence_id" id="agence_id" class="form-control">
-                                                <option value="" disabled selected>-- Sélectionnez une agence --</option>
-                                                @foreach ($agences as $agence)
-                                                    <option value="{{$agence->id}}">{{$agence->nom_agence}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
+    </div> 
+</section>
+
+{{-- Modal pour ajouter un agent (pas de changement majeur ici, mais j'ai nettoyé un peu) --}}
+<div class="modal fade" id="ajouter_agent" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <form action="{{ route('managers.store') }}" method="post">
+        @csrf
+        {{-- @method('POST') n'est pas nécessaire pour une route de type store --}}
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Information de l'agent</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <!-- Colonne gauche -->
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="nom">Nom:</label>
+                                    <input type="text" name="nom" value="{{ old('nom') }}" class="form-control" id="nom" required>
+                                    @error('nom')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="email">Email:</label>
+                                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" id="email" required>
+                                    @error('email')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="role">Rôle:</label>
+                                    <input type="text" name="role" class="form-control" value="agent" readonly>
+                                </div>
+                            </div>
+                            <!-- Colonne droite -->
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="prenom">Prénom:</label>
+                                    <input type="text" name="prenom" value="{{ old('prenom') }}" class="form-control" id="prenom" required>
+                                    @error('prenom')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="password">Mot de passe:</label>
+                                    <input type="password" name="password" class="form-control" id="password" required>
+                                    @error('password')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="agence_id">Agence</label>
+                                    <select name="agence_id" id="agence_id" class="form-control" required>
+                                        <option value="" disabled selected>-- Sélectionnez une agence --</option>
+                                        @foreach ($agences as $agence)
+                                            <option value="{{ $agence->id }}">{{ $agence->nom_agence }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('agence_id')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                            <button type="submit" class="btn btn-primary">Ajouter</button>
-                        </div>
                     </div>
                 </div>
-                {{-- <input type="hidden" name="agence_id" id="agence_id"> --}}
-            </form>
-    </section>
-    <script>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{{-- Le script doit être dans une section dédiée comme @section('scripts') pour une meilleure organisation --}}
+{{-- @push('scripts') --}}
+<script>
 $(document).ready(function () {
-    $('#users-table').DataTable({
+    // Initialisation de la DataTable
+    var table = $('#users-table').DataTable({
         processing: true,
         serverSide: true,
         language: {
-           url: "{{ asset('js/fr-FR.json') }}"
+            url: "{{ asset('js/fr-FR.json') }}"
         },
-        ajax: '{{ route('agence.get.agent') }}',
+        ajax: '{{ route("agence.get.agent") }}',
         columns: [
-            { data: 'id', name: 'id' },
-            { data: 'first_name', name: 'first_name' },
+            // L'ordre doit correspondre à celui des <th>
+            { data: 'nom', name: 'nom' },
+            { data: 'prenom', name: 'prenom' },
             { data: 'email', name: 'email' },
-            { data: 'role', name: 'role' },
-            { data: 'created_at',
+            { data: 'agence', name: 'agence.nom_agence' }, // <<< NOUVELLE COLONNE
+            {
+                data: 'created_at',
+                name: 'created_at',
                 render: function(data, type, row) {
-                    // Vérifiez si la date existe et la formater
-                    if (data) {
-                        var date = new Date(data);
-                        // Retourne la date au format aa/mm/jj
-                        var day = ('0' + date.getDate()).slice(-2);  // Ajoute un zéro si jour < 10
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  // +1 car les mois commencent à 0
-                        var year = date.getFullYear().toString().slice(-2);  // On garde les deux derniers chiffres de l'année
-                        return day + '/' + month + '/' + year;
-                    }
-                    return data;  // Si la date est vide, on retourne la donnée brute
+                    if (!data) return '';
+                    var date = new Date(data);
+                    // Formatage de la date en JJ/MM/AA
+                    return ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear().toString().slice(-2);
                 }
             },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ]
     });
 
-    // Gestion de la suppression
-$(document).on('click', '.delete-btn', function () {
+    // Gestion de la suppression (déléguée au corps du tableau pour les nouvelles lignes)
+    $('#users-table tbody').on('click', '.delete-btn', function () {
         const url = $(this).data('url');
-        const id = $(this).data('id');
         
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -161,12 +161,12 @@ $(document).on('click', '.delete-btn', function () {
                             'L\'utilisateur a été supprimé avec succès.',
                             'success'
                         );
-                        $('#users-table').DataTable().ajax.reload();
+                        table.ajax.reload(); // Recharger la table
                     },
-                    error: function () {
+                    error: function (xhr) {
                         Swal.fire(
                             'Erreur !',
-                            'Une erreur est survenue lors de la suppression.',
+                            'Une erreur est survenue lors de la suppression. (' + xhr.statusText + ')',
                             'error'
                         );
                     }
@@ -175,7 +175,6 @@ $(document).on('click', '.delete-btn', function () {
         });
     });
 });
-
-        </script>
-      
+</script>
+{{-- @endpush --}}
 @endsection

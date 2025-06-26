@@ -31,4 +31,5 @@ class Agence extends Model
     {
         return $this->hasMany(Chauffeur::class);
     }
+
 }
