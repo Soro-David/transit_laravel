@@ -35,7 +35,7 @@ use PDF;
 use Illuminate\Support\Collection; 
 use Illuminate\Support\Carbon;
 use Exception;
-
+use App\Models\Versement;
 
 class ApmsAngreColisController extends Controller
 {

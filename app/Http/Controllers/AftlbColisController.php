@@ -372,54 +372,54 @@ class AftlbColisController extends Controller
     
     public function vol_fermer(Request $request)
     {
-        // dd($request);
         try {
-            // Démarrez une transaction de base de données pour garantir l'atomicité
             DB::beginTransaction();
             $agence = 'AFT Agence Louis Bleriot';
-
-        $colis = Colis::where('etat', 'Chargé')
-            ->where('mode_transit', 'aerien')
-            ->whereHas('expediteur', function ($query) use ($agence) {
-                $query->where('agence', $agence);
-            })
-            ->get();
-
-        $count = $colis->count();
+    
+            // Compter le nombre de colis UNIQUEMENT pour cette agence
+            $count = Colis::where('etat', 'Chargé')
+                ->where('mode_transit', 'aerien')
+                ->whereHas('expediteur', function ($query) use ($agence) {
+                    // ---- LA CORRECTION EST ICI ----
+                    // Il faut utiliser la variable $agence, pas la chaîne de caractères 'agence'
+                    $query->where('agence', $agence);
+                })
+                ->count();
     
             if ($count === 0) {
-                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+                DB::rollBack(); // On annule la transaction même ici pour être propre
+                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé et un mode de transit Aérien pour cette agence.');
             }
     
-            // Générer une référence unique pour le conteneur
-            $referenceContenaire = $this->generateReferenceContenaire();
+            $referenceVol = $this->generateReferenceVol(); 
     
-            // Mise à jour des enregistrements
+            // Mettre à jour les colis en appliquant LE MÊME FILTRE D'AGENCE
             $updatedCount = Colis::where('etat', 'Chargé')
-                                ->where('mode_transit', 'aerien')
-                                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+                ->where('mode_transit', 'aerien')
+                ->whereHas('expediteur', function ($q) use ($agence) {
+                    $q->where('agence', $agence);
+                })
+                ->update([
+                    'etat' => 'Fermé', 
+                    'reference_contenaire' => $referenceVol // Ce champ est utilisé pour les vols et les conteneurs
+                ]);
     
-            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+            // Cette validation fonctionnera maintenant correctement car $count et $updatedCount seront identiques
             if ($updatedCount !== $count) {
-                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
-                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+                DB::rollBack(); 
+                return redirect()->back()->with('error', 'Erreur de cohérence lors de la mise à jour des colis. Veuillez réessayer.');
             }
     
-            // Commit la transaction
             DB::commit();
     
-            // Retourner un message de succès avec le nombre de colis traités
-            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+            return redirect()->back()->with('success', "$updatedCount colis ont été fermés dans le ballon (Réf: $referenceVol) avec succès.");
     
         } catch (\Exception $e) {
-            // En cas d'erreur, annuler la transaction
             DB::rollBack();
+            \Log::error('Erreur lors de la fermeture du vol: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
     }
-
-
-
 
 
 
@@ -2388,7 +2388,7 @@ public function enregistrerPaiement(Request $request)
                     'destinataire_tel' => $group->first()->destinataire_tel,
                     'destinataire_agence' => $group->first()->destinataire_agence,
                     'etat' => $group->first()->etat,
-                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                   'created_at' => $group->first()->created_at ? $group->first()->created_at->toIso8601String() : null,
                     'colis' => $group,
                     'id' => $group->first()->id // Ajout de l'ID pour action
                 ];
