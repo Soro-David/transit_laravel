@@ -229,7 +229,7 @@
                 </div>
             </div>
             <div class="copyright">
-                © 2024 Aft Import Export. Tous droits réservés.
+                © {{ date('Y') }} AFT IMPORT EXPORT. Tous droits réservés.
             </div>
         </div>
     </footer>

@@ -591,7 +591,7 @@
             </div>
         </div>
         <div class="copyright">
-            © 2024 Mon Entreprise. Tous droits réservés.
+            © {{ date('Y') }} AFT IMPORT EXPORT. Tous droits réservés.
         </div>
     </div>
 </footer>

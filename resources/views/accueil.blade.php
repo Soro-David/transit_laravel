@@ -302,7 +302,7 @@
             </div>
             <div class="carousel-inner">
                 <div class="carousel-item active" data-bs-interval="5000">
-                    <img src="{{ asset('images/slide01.jpg') }}" class="d-block w-100 carousel-image" alt="Import & Export Solutions">
+                    <img src="{{ asset('images/slide4.jpg') }}" class="d-block w-100 carousel-image" alt="Import & Export Solutions">
                     <div class="carousel-caption d-md-block">
                         <h4 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h4>
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
@@ -335,7 +335,7 @@
                     </div>
                 </div>
                 <div class="carousel-item" data-bs-interval="5000">
-                    <img src="{{ asset('images/slide4.jpg') }}" class="d-block w-100 carousel-image" alt="Global Network">
+                    <img src="{{ asset('images/slide01.jpg') }}" class="d-block w-100 carousel-image" alt="Global Network">
                     <div class="carousel-caption d-md-block">
                          <h5 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h5><br>
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
@@ -415,8 +415,9 @@
             </div>
         </div>
         <div class="copyright">
-            © 2024 Mon Entreprise. Tous droits réservés.
+            © {{ date('Y') }} AFT IMPORT EXPORT. Tous droits réservés.
         </div>
+
     </div>
 </footer>
 

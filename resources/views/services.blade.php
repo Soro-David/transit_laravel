@@ -198,9 +198,9 @@
                                     <span class="bullet">🇨🇮</span> <strong class="text-orange">CÔTE D'IVOIRE, ABIDJAN</strong>
                                    <ul class="details-list">
                                          <li><i class="fas fa-ship"></i> <strong>Maritime :</strong> CARREFOUR ANGRE</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +86 13 67 89 15 049</li>
+                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 05 84 40 22 00</li>
                                          <li><i class="fas fa-plane"></i> <strong>Aérien :</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 758069896</li>
+                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 0758069896</li>
                                    </ul>
                                 </li>
                                 <li>
@@ -287,7 +287,7 @@
                 </div>
             </div>
             <div class="copyright">
-                © 2024 Aft Import Export. Tous droits réservés.
+                © {{ date('Y') }} AFT IMPORT EXPORT. Tous droits réservés.
             </div>
         </div>
     </footer>
