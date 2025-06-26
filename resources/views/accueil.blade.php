@@ -304,8 +304,8 @@
                 <div class="carousel-item active" data-bs-interval="5000">
                     <img src="{{ asset('images/slide01.jpg') }}" class="d-block w-100 carousel-image" alt="Import & Export Solutions">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold"></h5>
-                        <p class="text-white fw-bold"></p>
+                        <h4 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h4>
+                        <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -315,8 +315,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide2.jpg') }}" class="d-block w-100 carousel-image" alt="Reliable Logistics">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold"></h5>
-                        <p class="text-white fw-bold"></p>
+                       <h4 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h4>
+                        <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -326,8 +326,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide3.jpg') }}" class="d-block w-100 carousel-image" alt="Customs Clearance">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold"></h5>
-                        <p class="text-white fw-bold"></p>
+                        <h4 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h4>
+                        <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="{{ route('customer_colis.create.colis') }}" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -337,8 +337,8 @@
                 <div class="carousel-item" data-bs-interval="5000">
                     <img src="{{ asset('images/slide4.jpg') }}" class="d-block w-100 carousel-image" alt="Global Network">
                     <div class="carousel-caption d-md-block">
-                        <h5 class="text-white fw-bold"></h5>
-                        <p class="text-white fw-bold"></p>
+                         <h5 class="titre">AFRIQUE FRET TRANSIT IMPORT EXPORT</h5><br>
+                        <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis">Demande de devis</a>
                             <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
@@ -357,12 +357,12 @@
                 <span class="visually-hidden">Next</span>
             </button>
         </div>
-    </section>
+    </section><br>
 
     <section class="container my-5">
         <div class="row">
             <div class="col-md-6">
-                <h2>Pourquoi nous choisir ?</h2>
+                <h2 class="text-orange">Pourquoi nous choisir ?</h2>
                 <p>Nous offrons des solutions innovantes et adaptées à vos besoins spécifiques. Notre équipe d'experts est dédiée à votre succès.</p>
                 <ul>
                     <li>Expertise reconnue dans le secteur</li>
@@ -436,4 +436,33 @@
     </script>
     <script src="{{ asset('js/app.js') }}"></script>
 </body>
+<style>
+    .text-orange {
+            color: orange !important;
+        }
+
+.titre {
+    color: green;
+    font-weight: bold;
+    font-size: 32px;
+    text-shadow:
+        -1px -1px 0 white,
+         1px -1px 0 white,
+        -1px  1px 0 white,
+         1px  1px 0 white;
+}
+
+.slogan {
+    color: orange;
+    font-weight: bold;
+    font-size: 24px;
+    text-shadow:
+        -1px -1px 0 white,
+         1px -1px 0 white,
+        -1px  1px 0 white,
+         1px  1px 0 white;
+}
+
+
+</style>
 </html>
