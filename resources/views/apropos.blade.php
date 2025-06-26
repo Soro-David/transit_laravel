@@ -209,8 +209,6 @@
         }
     </style>
 </head>
-<body>
-
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
@@ -257,7 +255,6 @@
             </div>
         </nav>
     </header>
-
 </head>
 <body>
     <section class="header-section">
@@ -269,56 +266,156 @@
     <section class="about-page">
         <div class="container">
             <section class="about-intro">
-                <h2 class="about-title text-center">À Propos de Nous</h2>
-                <p class="about-text">
-                    Nous sommes une entreprise spécialisée dans les solutions de transport et de logistique internationale.
-                    Depuis notre création, nous nous engageons à offrir des services de qualité, adaptés aux besoins de nos
-                    clients.
-                </p>
+                {{-- <h2 class="about-title text-center">À Propos de Nous</h2> --}}
+                <h4 class="about-text" style="color: green; font-weight: bold;">
+                    Afrique Fret Transit Import Export est une entreprise
+                    spécialisée dans le fret maritime et aérien, avec 10 ans
+                    d’expérience dans le domaine du transport
+                    international. Nous offrons des solutions logistiques
+                    sur mesure pour répondre aux besoins de nos clients en
+                    matière d’import et d’export.
+                </h4>
+
             </section>
     
             <section class="mission-vision-section">
                 <div class="row mission-vision">
                     <div class="col-md-6">
-                        <h3>Notre Mission</h3>
-                        <p>
-                            Faciliter le commerce international en offrant des solutions de transport et de logistique
-                            fiables,
-                            efficaces et innovantes.
-                        </p>
+                        <h3>NOTRE EXPERTISE COUVRE LES AXES SUIVANTS :</h3>
+                        <ul>
+                            <li>Fret maritime et aérien de l’Europe vers la Côte d’Ivoire et l’Afrique de l’Ouest.</li>
+                            <li>Fret maritime et aérien de la Chine vers la Côte d’Ivoire.</li>
+                            <li>Fret maritime et aérien de la Chine vers la France.</li>
+                        </ul>
+
                     </div>
                     <div class="col-md-6">
-                        <h3>Notre Vision</h3>
-                        <p>
-                            Devenir un leader mondial dans le domaine du transport et de la logistique, reconnu pour notre
-                            expertise, notre engagement envers la satisfaction client et notre contribution au développement
-                            économique.
-                        </p>
+                        <h3>NOS ATOUTS</h3>
+                    <ul style="list-style-type: disc; padding-left: 20px;">
+                        <li>✅ <strong style="color: orange;">Expérience :</strong> 10 ans d’expertise dans le fret international.</li>
+                        <li>✅ <strong style="color: orange;">Réseau :</strong> Partenaires fiables en Europe, en Chine et en Afrique de l’Ouest.</li>
+                        <li>✅ <strong style="color: orange;">Flexibilité :</strong> Solutions adaptées aux besoins spécifiques de chaque client.</li>
+                        <li>✅ <strong style="color: orange;">Transparence :</strong> Suivi en temps réel des expéditions.</li>
+                    </ul>
+
                     </div>
                 </div>
             </section>
-    
+            <section class="mission-vision-section">
+                <div class="row mission-vision">
+                    <div class="col-md-6">
+                        <h3><strong>NOS AGENCES</strong></h3>
+                        <ul class="services-list">
+                            <li>
+                                <span class="bullet">🇫🇷</span> <strong style="color: orange;">FRANCE</strong>
+                                <ul class="service-details">
+                                   <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
+                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i></i> <strong >Contact :</strong> +33 1 86 78 69 67</li>
+                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i></i> <strong >Contact :</strong> +33 7 66 78 54 61</li>
+                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i></i> <strong >Contact :</strong> +33 6 52 98 35 19</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span class="bullet">🇨🇳</span> <strong style="color: orange;">Chine</strong>
+                                <ul class="service-details">
+                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> <strong style="color: orange;">Maritime :</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
+                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> <strong style="color: orange;">Aérien :</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
+                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> <strong >Contact :</strong> +86 13 67 89 15 049</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span class="bullet">🇨🇮</span> <strong style="color: orange;">Côte d'Ivoire, Abidjan</strong>
+
+                               <ul class="service-details">
+                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> <strong style="color: orange;">Maritime :</strong> CARREFOUR ANGRE</li>
+                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> <strong >Contact :</strong> +86 13 67 89 15 049</li>
+                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> <strong style="color: orange;">Aérien :</strong>Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
+                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> <strong >Contact :</strong>+225 758069896</li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <span class="bullet">🇨🇮</span> <strong style="color: orange;">Côte d'Ivoire, San-pédro</strong>
+
+                               <ul class="service-details">
+                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> San Pedro au feu de la petite mairie coté voie pavée (UTE )</li>
+                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> <strong >Contact :</strong> +225 27 33 74 95 19 / +225 74 940 74 02</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h3><strong>NOS SERVICES</strong></h3>
+                        <ul class="services-list">
+                            <li>
+                                <span class="bullet" >🔘</span> <strong style="color: orange;">FRET MARITIME</strong>
+                                <ul class="service-details">
+                                    <li>Transport de conteneurs (20’, 40’, 40’ HQ)</li>
+                                    <li>Groupage (LCL) et plein chargement (FCL)</li>
+                                    <li>Suivi personnalisé et sécurisé des marchandises</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span class="bullet" style="color: orange;">🔘</span> <strong style="color: orange;">FRET AÉRIEN</strong>
+                                <ul class="service-details">
+                                    <li>Livraison rapide et sécurisée pour les envois urgents</li>
+                                    <li>Gestion des formalités douanières</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span class="bullet" style="color: orange;">🔘</span> <strong style="color: orange;">SERVICES COMPLÉMENTAIRES</strong>
+                                <ul class="service-details">
+                                    <li>Dédouanement et conseils en logistique</li>
+                                    <li>Stockage et distribution locale</li>
+                                    <li>Assurance des marchandises</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+            </section>
+                <section class="mission-vision-section">
+                <div class="row mission-vision">
+                    <div class="col-md-6">
+                        <h3>ZONES D’INTERVENTION :</h3>
+                        <ul>
+                        <li>✅ <strong style="color: orange;">Europe : </strong>France, Belgique, Allemagne, etc.</li>
+                        <li>✅ <strong style="color: orange;">Asie : </strong>Chine (principalement)</li>
+                        <li>✅ <strong style="color: orange;">Afrique : </strong>Côte d’Ivoire, Sénégal, Mali, Burkina Faso, etc.</li>
+                        </ul>
+
+                    </div>
+                    <div class="col-md-6">
+                        <h3>POURQUOI NOUS CHOISIR ?</h3>
+                    <ul style="list-style-type: disc; padding-left: 20px;">
+                        <li>✅ <strong style="color: orange;">Compétitivité :</strong>  Tarifs attractifs et sur mesure.</li>
+                        <li>✅ <strong style="color: orange;">Expertise :</strong> Connaissance approfondie des marchés européens, africains et asiatiques</li>
+                    </ul>
+
+                    </div>
+                </div>
+            </section>
             <section class="team-section">
                 <h2 class="about-title text-center">Notre Équipe</h2>
     
                 <div class="row">
                     <div class="col-md-4 team-member">
                         <img src="https://via.placeholder.com/150" alt="Membre de l'équipe">
-                        <h4>John Doe</h4>
-                        <p>Directeur Général</p>
+                        <h4>M. Sylla  Adama</h4>
+                        <p style="color: orange;">Directeur Général</p>
                     </div>
                     <div class="col-md-4 team-member">
                         <img src="https://via.placeholder.com/150" alt="Membre de l'équipe">
-                        <h4>Jane Smith</h4>
-                        <p>Responsable Logistique</p>
+                        <h4>M.Sylla Ousmane</h4>
+                        <p style="color: orange;">Responsable Logistique</p>
                     </div>
                     <div class="col-md-4 team-member">
                         <img src="https://via.placeholder.com/150" alt="Membre de l'équipe">
-                        <h4>Peter Jones</h4>
-                        <p>Responsable Commercial</p>
+                        <h4>M. Bakary</h4>
+                        <p style="color: orange;">Responsable Commercial</p>
                     </div>
                 </div>
             </section>
+
         </div>
     </section>
     <style>
@@ -494,7 +591,7 @@
             </div>
         </div>
         <div class="copyright">
-            © 2024 Mon Entreprise. Tous droits réservés.
+            © {{ date('Y') }} AFT IMPORT EXPORT. Tous droits réservés.
         </div>
     </div>
 </footer>

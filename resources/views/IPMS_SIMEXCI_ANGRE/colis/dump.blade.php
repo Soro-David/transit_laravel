@@ -189,7 +189,10 @@ $(document).ready(function () {
         }
     });
 
-    // Initialisation de DataTables
+        // Initialisation de DataTables
+        if ($.fn.DataTable.isDataTable('#productTable')) {
+        $('#productTable').DataTable().clear().destroy();
+    }
     var table = $("#productTable").DataTable({
         processing: true,
         serverSide: true,
@@ -228,6 +231,9 @@ $(document).ready(function () {
          order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
     });
   // Initialisation de DataTables
+        if ($.fn.DataTable.isDataTable('#productTable')) {
+        $('#productTable').DataTable().clear().destroy();
+    }
   var table = $("#productTable").DataTable({
         processing: true,
         serverSide: true,
