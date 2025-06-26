@@ -233,7 +233,7 @@ $(document).ready(function () {
         serverSide: true,
         responsive: true,
         language: { url: "{{ asset('js/fr-FR.json') }}" },
-        ajax: '{{ route("ipms_colis.get.colis.dump") }}',
+        ajax: '{{ route("ipms_angre_colis.get.colis.dump") }}',
         columns: [
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
