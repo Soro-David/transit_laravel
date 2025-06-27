@@ -669,9 +669,10 @@ public function vol_fermer(Request $request)
                     $colisModel->update(['qr_code_path' => $filePath]);
     
                     $colisEnregistres[] = $colisModel->fresh();
+                     dd($colisEnregistres);
                 }
             }
-            dd($colisEnregistres);
+           
             // 5. Mise à jour finale et validation de la transaction
             if (empty($colisEnregistres)) {
                 throw new \Exception("Aucun colis n'a été créé, annulation de la transaction.");
