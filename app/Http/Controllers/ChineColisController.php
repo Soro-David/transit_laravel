@@ -668,7 +668,7 @@ public function vol_fermer(Request $request)
                     File::put($fullPath, $pngData);
                     
                     $colisModel->update(['qr_code_path' => $filePath]);
-                    dd($colisModel->fresh());
+                    // dd($colisModel->fresh());
                     $colisEnregistres[] = $colisModel->fresh();
                     //  dd($colisEnregistres);
                 }
