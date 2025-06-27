@@ -302,6 +302,7 @@ class ColisController extends Controller
     
     
     private function generateReferenceVol()
+   
     {
         $user = Auth::user();
 
@@ -462,102 +463,48 @@ class ColisController extends Controller
         }
     }
     
-
-    
-    // public function vol_fermer(Request $request)
-    // {
-    //     // dd($request);
-    //     try {
-    //         // Démarrez une transaction de base de données pour garantir l'atomicité
-    //         DB::beginTransaction();
-    
-    //         // Compter les enregistrements avant la mise à jour
-    //         $count = Colis::where('etat', 'Chargé')
-    //                         ->where('mode_transit', 'aerien')
-    //                         ->count();
-    
-    //         if ($count === 0) {
-    //             return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
-    //         }
-    
-    //         // Générer une référence unique pour le conteneur
-    //         $referenceContenaire = $this->generateReferenceContenaire();
-    
-    //         // Mise à jour des enregistrements
-    //         $updatedCount = Colis::where('etat', 'Chargé')
-    //                             ->where('mode_transit', 'aerien')
-    //                             ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
-    
-    //         // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
-    //         if ($updatedCount !== $count) {
-    //             DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
-    //             return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
-    //         }
-    
-    //         // Commit la transaction
-    //         DB::commit();
-    
-    //         // Retourner un message de succès avec le nombre de colis traités
-    //         return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
-    
-    //     } catch (\Exception $e) {
-    //         // En cas d'erreur, annuler la transaction
-    //         DB::rollBack();
-    //         return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
-    //     }
-    // }
-
     public function vol_fermer(Request $request)
-{
-    try {
-        // Démarrer la transaction
-        DB::beginTransaction();
-
-        $agence = 'Agence de Chine';
-
-        // Récupérer les colis concernés
-        $colis = Colis::where('etat', 'Chargé')
-            ->where('mode_transit', 'aerien')
-            ->whereHas('expediteur', function ($query) use ($agence) {
-                $query->where('agence', $agence);
-            })
-            ->get();
-
-        $count = $colis->count();
-
-        if ($count === 0) {
-            return redirect()->back()->with('warning', 'Aucun colis avec l’état "Chargé" pour le mode "aérien".');
-        }
-
-        // Générer une référence unique pour le vol
-        $referenceVol = $this->generateReferenceVol();
-
-        // Mettre à jour uniquement les colis sélectionnés
-        $updatedCount = Colis::where('etat', 'Chargé')
-            ->where('mode_transit', 'aerien')
-            ->whereHas('expediteur', function ($query) use ($agence) {
-                $query->where('agence', $agence);
-            })
-            ->update([
-                'etat' => 'Fermé',
-                'reference_contenaire' => $referenceVol // même champ que conteneur, mais nommé différemment
-            ]);
-
-        // Vérifier si tous les colis ont bien été mis à jour
-        if ($updatedCount !== $count) {
+    {
+        // dd($request);
+        try {
+            // Démarrez une transaction de base de données pour garantir l'atomicité
+            DB::beginTransaction();
+    
+            // Compter les enregistrements avant la mise à jour
+            $count = Colis::where('etat', 'Chargé')
+                            ->where('mode_transit', 'aerien')
+                            ->count();
+    
+            if ($count === 0) {
+                return redirect()->back()->with('warning', 'Aucun colis avec l’état Chargé.');
+            }
+    
+            // Générer une référence unique pour le conteneur
+            $referenceContenaire = $this->generateReferenceContenaire();
+    
+            // Mise à jour des enregistrements
+            $updatedCount = Colis::where('etat', 'Chargé')
+                                ->where('mode_transit', 'aerien')
+                                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+    
+            // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
+            if ($updatedCount !== $count) {
+                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+                return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
+            }
+    
+            // Commit la transaction
+            DB::commit();
+    
+            // Retourner un message de succès avec le nombre de colis traités
+            return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le conteneur avec succès.");
+    
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
             DB::rollBack();
-            return redirect()->back()->with('error', 'Erreur : certains colis n\'ont pas pu être mis à jour.');
+            return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
-
-        DB::commit();
-
-        return redirect()->back()->with('success', "$updatedCount colis ont été enregistrés dans le vol avec la référence $referenceVol.");
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Une erreur est survenue : ' . $e->getMessage());
     }
-}
 
 
 
@@ -625,7 +572,7 @@ class ColisController extends Controller
                 $rules['montant_reçu'] = [
                     'required',
                     'numeric',
-                    'min:0', // Ou votre minimum requis
+                    'min:100', // Ou votre minimum requis
                     'max:' . $totalPrice // Validation par rapport au montant total
                 ];
             } else {
@@ -702,7 +649,7 @@ class ColisController extends Controller
     }
     
 
-      public function generer_qrcode(Request $request, InfobipService $infobipService)
+    public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         $data = array_merge(
             session('step1', []),
@@ -934,7 +881,7 @@ class ColisController extends Controller
             'totalMontantPaye' => $montantPaiementTransaction,
         ]);
     }
-    
+
     public function editBon_livraison($id)
     {
         // dd($id);
@@ -2115,6 +2062,8 @@ public function destroy_colis_valide($reference)
         }
     }
     
+    
+    
 
     public function edit_qrcode($id)
     {
@@ -2688,7 +2637,6 @@ public function liste_contenaire(Request $request)
 public function liste_vol(Request $request)
 {
     $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
-    
     return view('admin.cargaison.liste_vol',compact('referenceVol'));
 }
 
