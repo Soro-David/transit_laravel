@@ -680,7 +680,7 @@ public function vol_fermer(Request $request)
             $paiementPrincipal->save();
             
             DB::commit();
-    
+            dd($colisEnregistres);
         } catch (\Exception $e) {
             DB::rollBack(); // Annule tout en cas d'erreur
             Log::error("Erreur critique lors de la création de colis/paiement: " . $e->getMessage(), [
