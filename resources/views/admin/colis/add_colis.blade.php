@@ -640,7 +640,6 @@ $(document).ready(function() {
                 agence: agence,
                 prix: prix,
             }),
-            console.log(data);
             success: function (response) {
                 alert(response.message); // Affichage du message de succès
                 $("#produitForm")[0].reset(); // Réinitialisation du formulaire
