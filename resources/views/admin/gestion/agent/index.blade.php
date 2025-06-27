@@ -161,7 +161,7 @@ $(document).ready(function () {
                             'L\'utilisateur a été supprimé avec succès.',
                             'success'
                         );
-                        table.ajax.reload(); // Recharger la table
+                        table.ajax.reload();
                     },
                     error: function (xhr) {
                         Swal.fire(
