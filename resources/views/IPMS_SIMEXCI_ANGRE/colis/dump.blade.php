@@ -1,9 +1,7 @@
 @extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 
 @section('content-header')
-{{-- CSRF Token pour les requêtes AJAX --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
-{{-- Font Awesome --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection
 
@@ -39,7 +37,7 @@
         </div>
     </div>
 
-   {{-- ===== MODALE DE PAIEMENT (Structure HTML inchangée) ===== --}}
+   {{-- ===== MODALE DE PAIEMENT UNIVERSELLE ===== --}}
    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -50,48 +48,26 @@
             <form id="paymentForm">
                 @csrf 
                 <div class="modal-body">
+                    {{-- Champs généraux --}}
                     <input type="hidden" id="modalColisId" name="colis_id" value="">
                     <input type="hidden" id="modalColisIds" name="colis_ids" value="">
-                   
-                    <div class="mb-3">
-                        <label for="modalDisplayReference" class="form-label">Référence Colis</label>
-                        <input type="text" class="form-control" id="modalDisplayReference" name="reference_colis" readonly>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Référence Colis</label><input type="text" class="form-control" id="modalDisplayReference" readonly></div>
+                    <div class="mb-3"><label class="form-label">Montant Total Dû</label><input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;"></div>
+                    <div class="mb-3"><label class="form-label">Montant Déjà Payé</label><input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;"></div>
+                    <div class="mb-3"><label class="form-label">Montant Restant à Payer</label><div id="modalRemainingAmountDisplay" class="form-control" style="font-weight: bold; color: #dc3545; background-color: #f8f9fa;"></div></div>
 
-                    <div class="mb-3">
-                        <label for="modalTotalAmount" class="form-label">Montant Total Dû</label>
-                        <input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;">
+                    {{-- Section pour les agences type EURO (cachée par défaut) --}}
+                    <div id="euroPaymentFields" style="display:none;">
+                        <div class="mb-3"><label for="modalNewPaymentAmountEur" class="form-label">Nouveau Paiement (en EUR) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" required placeholder="0.00"></div>
+                        <div class="mb-3"><label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA</label><input type="text" class="form-control" id="modalConvertedAmountCfa" readonly style="font-weight: bold; background-color: #e9ecef;"></div>
                     </div>
-
-                     <div class="mb-3">
-                        <label for="modalAmountAlreadyPaid" class="form-label">Montant Déjà Payé</label>
-                        <input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Montant Restant à Payer</label>
-                        <div id="modalRemainingAmountDisplay" class="form-control" style="font-weight: bold; color: #dc3545; background-color: #f8f9fa;"></div>
-                    </div>
-
-                    {{-- Champs pour le nouveau paiement --}}
-                    <div class="mb-3">
-                        <label for="modalNewPaymentAmountEur" class="form-label">Montant du Nouveau Paiement (en EUR) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" required placeholder="0.00">
-                        <div class="invalid-feedback" id="paymentAmountError"></div>
-                    </div>
-                
-                    <div class="mb-3">
-                        <label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA (pour information)</label>
-                        <input type="text" class="form-control" id="modalConvertedAmountCfa" readonly style="font-weight: bold; background-color: #e9ecef;">
-                    </div>
-                
-                    {{-- Champ caché qui sera soumis au serveur avec la valeur en FCFA --}}
+                    {{-- Section pour l'agence id=7 (cachée par défaut) --}}
+                    <div id="fcfaPaymentFields" style="display:none;"><div class="mb-3"><label for="modalNewPaymentAmountCfa" class="form-label">Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label><input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa" required placeholder="0"></div></div>
+                    
                     <input type="hidden" id="modalNewPaymentAmount" name="montant_a_payer">
+                    <div class="invalid-feedback" id="paymentAmountError"></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button></div>
             </form>
         </div>
     </div>
@@ -120,26 +96,17 @@
 {{-- Script (LOGIQUE CORRIGÉE) --}}
 <script>
 $(document).ready(function () {
-    // Taux de conversion
     const EUR_TO_FCFA_RATE = parseFloat("{{ App\Services\CurrencyConverterService::FCFA_TO_EUR_RATE }}") || 655.957;
 
-    // Fonctions d'aide pour formater les devises
-    function formatCfa(value) {
-        return Math.round(value).toLocaleString('fr-FR') + ' FCFA';
-    }
-    function formatEur(value) {
-        return Number(value).toFixed(2).replace('.', ',') + ' €';
-    }
+    function formatCfa(value) { return Math.round(value).toLocaleString('fr-FR') + ' FCFA'; }
+    function formatEur(value) { return Number(value).toFixed(2).replace('.', ',') + ' €'; }
 
-    $.ajaxSetup({
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-    });
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
     if ($.fn.DataTable.isDataTable('#productTable')) {
         $('#productTable').DataTable().clear().destroy();
     }
     var table = $("#productTable").DataTable({
-        // ... (configuration DataTables inchangée) ...
         processing: true, serverSide: true, responsive: true,
         language: { url: "{{ asset('js/fr-FR.json') }}" },
         ajax: '{{ route("ipms_angre_colis.get.colis.dump") }}',
@@ -147,9 +114,9 @@ $(document).ready(function () {
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
-            { data: null, name: 'expediteur_nom', render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); }, searchable: true, orderable: true },
+            { data: null, name: 'expediteur_nom', render: function(d,t,r){ return (r.expediteur_nom||'')+' '+(r.expediteur_prenom||''); } },
             { data: 'expediteur_tel', name: 'expediteurs.tel' },
-            { data: null, name: 'destinataire_nom', render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); }, searchable: true, orderable: true },
+            { data: null, name: 'destinataire_nom', render: function(d,t,r){ return (r.destinataire_nom||'')+' '+(r.destinataire_prenom||''); } },
             { data: 'destinataire_tel', name: 'destinataires.tel' },
             { data: 'destinataire_agence', name: 'destinataires.agence' },
             { data: 'etat', name: 'colis.etat' },
@@ -159,69 +126,60 @@ $(document).ready(function () {
         dom: 'Bfrtip', buttons: ['excel', 'pdf', 'print'], order: [[ 1, 'desc' ]]
     });
 
-    // --- NOUVELLE LOGIQUE CORRIGÉE pour la Modale de Paiement ---
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
         e.preventDefault();
-
         var button = $(this);
         
-        // **CORRECTION : Les données du serveur sont traitées comme des EUROS**
-        var totalEur = parseFloat(button.data('total')) || 0;
-        var paidEur = parseFloat(button.data('paid')) || 0;
-
-        // **CORRECTION : On calcule les équivalents FCFA en MULTIPLIANT**
-        var totalCfa = totalEur * EUR_TO_FCFA_RATE;
-        var paidCfa = paidEur * EUR_TO_FCFA_RATE;
-
-        // On calcule les montants restants dans les deux devises
-        var remainingEur = totalEur - paidEur;
-        var remainingCfa = totalCfa - paidCfa;
+        var creatorAgenceId = parseInt(button.data('creator-agence-id')) || 0;
         
-        if (remainingEur <= 0) {
-            Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info');
-            return;
-        }
-
+        var reference = button.data('reference');
         var colisId = button.data('colis-id'); 
         var colisIds = button.data('colis-ids');
-        var reference = button.data('reference');
         
-        // Mettre à jour les champs de la modale avec les valeurs correctes
-        // Format d'affichage : [Valeur EUR] € / [Valeur FCFA] FCFA
         $('#modalDisplayReference').val(reference);
-        $('#modalTotalAmount').val(`${formatEur(totalEur)} soit ${formatCfa(totalCfa)}`);
-        $('#modalAmountAlreadyPaid').val(`${formatEur(paidEur)} soit ${formatCfa(paidCfa)}`);
-        $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatEur(remainingEur)}</strong> soit ${formatCfa(remainingCfa)}`);
-        
-        // Pré-remplir le champ de paiement en EUR avec le montant restant
-        $('#modalNewPaymentAmountEur').val(remainingEur.toFixed(2));
-        $('#modalNewPaymentAmountEur').attr('max', remainingEur.toFixed(2));
-
-        // Déclencher l'événement 'input' pour calculer la valeur FCFA initiale
-        $('#modalNewPaymentAmountEur').trigger('input');
-
-        // Remplir les champs cachés du formulaire
         $('#modalColisId').val(colisId);
-        $('#modalColisIds').val(JSON.stringify(colisIds)); 
+        $('#modalColisIds').val(JSON.stringify(colisIds));
 
-        $('#modalNewPaymentAmountEur').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide();
-        
+        if (creatorAgenceId === 7) {
+            $('#euroPaymentFields').hide();
+            $('#fcfaPaymentFields').show();
+            let total = parseFloat(button.data('total')) || 0;
+            let paid = parseFloat(button.data('paid')) || 0;
+            let remaining = total - paid;
+            if (remaining <= 0) { Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info'); return; }
+            $('#modalTotalAmount').val(formatCfa(total));
+            $('#modalAmountAlreadyPaid').val(formatCfa(paid));
+            $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatCfa(remaining)}</strong>`);
+            $('#modalNewPaymentAmountCfa').val(Math.round(remaining));
+            $('#modalNewPaymentAmountCfa').trigger('input');
+        } else {
+            $('#fcfaPaymentFields').hide();
+            $('#euroPaymentFields').show();
+            let totalEur = parseFloat(button.data('total')) || 0;
+            let paidEur = parseFloat(button.data('paid')) || 0;
+            let remainingEur = totalEur - paidEur;
+            if (remainingEur <= 0) { Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info'); return; }
+            let totalCfa = totalEur * EUR_TO_FCFA_RATE;
+            let paidCfa = paidEur * EUR_TO_FCFA_RATE;
+            let remainingCfa = remainingEur * EUR_TO_FCFA_RATE;
+            $('#modalTotalAmount').val(`${formatEur(totalEur)} soit ${formatCfa(totalCfa)}`);
+            $('#modalAmountAlreadyPaid').val(`${formatEur(paidEur)} soit ${formatCfa(paidCfa)}`);
+            $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatEur(remainingEur)}</strong> soit ${formatCfa(remainingCfa)}`);
+            $('#modalNewPaymentAmountEur').val(remainingEur.toFixed(2));
+            $('#modalNewPaymentAmountEur').trigger('input');
+        }
         $('#paymentModal').modal('show');
     });
 
-    // Gérer la conversion en temps réel lors de la saisie en EUR (cette partie était déjà correcte)
     $('#modalNewPaymentAmountEur').on('input', function() {
         let amountEur = parseFloat($(this).val()) || 0;
-        let amountCfa = amountEur * EUR_TO_FCFA_RATE;
-
-        // Mettre à jour le champ d'affichage FCFA (pour l'utilisateur)
-        $('#modalConvertedAmountCfa').val(formatCfa(amountCfa));
-        
-        // Mettre à jour le champ caché qui sera envoyé au serveur (valeur en FCFA, arrondie)
-        $('#modalNewPaymentAmount').val(Math.round(amountCfa));
+        $('#modalConvertedAmountCfa').val(formatCfa(amountEur * EUR_TO_FCFA_RATE));
+        $('#modalNewPaymentAmount').val(Math.round(amountEur * EUR_TO_FCFA_RATE));
     });
 
+    $('#modalNewPaymentAmountCfa').on('input', function() {
+        $('#modalNewPaymentAmount').val(Math.round(parseFloat($(this).val()) || 0));
+    });
     // --- Logique de soumission du formulaire (inchangée) ---
     $('#paymentForm').on('submit', function(e) {
         e.preventDefault(); 

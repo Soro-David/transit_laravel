@@ -956,23 +956,24 @@ public function get_colis_hold(Request $request)
     {
         if ($request->ajax()) {
             try {
-                // Requête pour récupérer les colis pour l'agence d'Angré
-                $colis = Colis::with('expediteur', 'destinataire', 'paiement')
+                // Requête pour récupérer les colis pour l'agence d'Angré, avec l'agent créateur
+                $query = Colis::with(['expediteur', 'destinataire', 'paiement', 'agent']) // Charger la relation 'agent'
                     ->where('etat', 'Dechargé')
                     ->whereHas('destinataire', function ($query) {
-                        // ADAPTATION : Filtrer par l'agence spécifique
                         $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
                     })
-                    ->where('recup', 'oui')
-                    ->get();
+                    ->where('recup', 'oui');
                 
-                $colisGrouped = $colis->groupBy('reference_colis');
+                $colisGrouped = $query->get()->groupBy('reference_colis');
     
                 $processedData = $colisGrouped->map(function ($group) {
                     $firstColis = $group->first();
                     $prixTotalColis = $group->sum('prix_transit_colis');
                     $montantTotalPaye = $firstColis->paiement ? (float)$firstColis->paiement->montant_paye : 0;
                     $paymentStatus = $firstColis->paiement ? $firstColis->paiement->statut_paiement : 'non payé';
+    
+                    // AJOUT : Récupérer l'ID de l'agence du créateur
+                    $creatorAgenceId = optional($firstColis->agent)->agence_id;
     
                     return [
                         'reference_colis' => $firstColis->reference_colis,
@@ -991,6 +992,7 @@ public function get_colis_hold(Request $request)
                         'montant_paye' => $montantTotalPaye,
                         'colis_ids' => json_encode($group->pluck('id')->toArray()),
                         'first_colis_id' => $firstColis->id,
+                        'creator_agence_id' => $creatorAgenceId, // On passe l'ID au front-end
                     ];
                 })->values();
     
@@ -1019,12 +1021,14 @@ public function get_colis_hold(Request $request)
                         
                         $payBtn = '';
                         if ($row['payment_status'] !== 'payé') {
+                            // MODIFICATION : On ajoute data-creator-agence-id au bouton
                             $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
                                         data-reference="' . htmlspecialchars($row['reference_colis'], ENT_QUOTES, 'UTF-8') . '"
                                         data-total="' . $row['prix_total'] . '"
                                         data-paid="' . $row['montant_paye'] . '"
                                         data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
                                         data-colis-id="' . $row['first_colis_id'] . '"
+                                        data-creator-agence-id="' . $row['creator_agence_id'] . '"
                                         title="Enregistrer un Paiement">
                                     <i class="fas fa-dollar-sign"></i>
                                 </button>';
@@ -2405,7 +2409,7 @@ public function enregistrerPaiement(Request $request)
     try {
         $validated = $request->validate([
             'colis_id'        => 'required|integer|exists:colis,id',
-            'montant_a_payer' => 'required|numeric|min:1', // C'est en FCFA, donc min:1 est raisonnable
+            'montant_a_payer' => 'required|numeric|min:1',
             'colis_ids'       => 'required|json'
         ]);
     } catch (ValidationException $e) {
@@ -2413,7 +2417,7 @@ public function enregistrerPaiement(Request $request)
     }
 
     $colisIdReference = $validated['colis_id'];
-    $nouveauVersementFCFA = (float) $validated['montant_a_payer']; // La valeur reçue est en FCFA
+    $nouveauVersementFCFA = (float) $validated['montant_a_payer'];
     $colisIdsDuGroupe = json_decode($validated['colis_ids'], true);
 
     if (json_last_error() !== JSON_ERROR_NONE || !is_array($colisIdsDuGroupe)) {
@@ -2422,53 +2426,68 @@ public function enregistrerPaiement(Request $request)
 
     DB::beginTransaction();
     try {
-        // --- LOGIQUE CORRIGÉE ---
-
-        // ÉTAPE 1: Convertir le paiement reçu (FCFA) en EURO pour être cohérent avec la BDD
-        $nouveauVersementEUR = round($nouveauVersementFCFA / CurrencyConverterService::FCFA_TO_EUR_RATE, 2);
-
-        $colisDeReference = Colis::with('paiement')->findOrFail($colisIdReference);
+        // Récupérer le colis de référence et son créateur
+        $colisDeReference = Colis::with(['paiement', 'agent'])->findOrFail($colisIdReference);
         $paiement = $colisDeReference->paiement;
+        $agentCreateur = $colisDeReference->agent;
 
-        if (!$paiement) {
-            throw new \Exception("Dossier de paiement introuvable pour le colis ID {$colisIdReference}.");
+        if (!$paiement) { throw new \Exception("Dossier de paiement introuvable pour le colis ID {$colisIdReference}."); }
+        if (!$agentCreateur) { throw new \Exception("Impossible de trouver l'agent créateur du colis ID {$colisIdReference}."); }
+
+        // Agent qui effectue l'action
+        $agentActuel = Auth::user()->agent;
+        if (!$agentActuel) { throw new \Exception("Utilisateur connecté n'est pas un agent valide."); }
+        
+        // --- LOGIQUE CONDITIONNELLE BASÉE SUR L'AGENCE DU CRÉATEUR DU COLIS ---
+        
+        // CAS 1: Le colis a été créé par un agent de l'agence 7
+        if ($agentCreateur->agence_id == 7) {
+            $montantTotalDu = (float) Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
+            $montantDejaPaye = (float) $paiement->montant_paye;
+            $montantRestant = $montantTotalDu - $montantDejaPaye;
+
+            if ($nouveauVersementFCFA > ($montantRestant + 1)) {
+                throw new \Exception('Le montant du versement (' . $nouveauVersementFCFA . ') ne peut pas dépasser le montant restant à payer (' . $montantRestant . ').');
+            }
+
+            Versement::create([
+                'paiement_id'       => $paiement->id,
+                'montant_versement' => $nouveauVersementFCFA, // Enregistrement en FCFA
+                'agent_id'          => $agentActuel->id,
+                'colis_id'          => $colisIdReference,
+            ]);
+            
+            $paiement->montant_paye += $nouveauVersementFCFA;
+        } 
+        // CAS 2: Le colis a été créé par une autre agence
+        else {
+            $nouveauVersementEUR = round($nouveauVersementFCFA / CurrencyConverterService::FCFA_TO_EUR_RATE, 2);
+            $montantTotalDu = (float) Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
+            $montantDejaPaye = (float) $paiement->montant_paye;
+            $montantRestant = $montantTotalDu - $montantDejaPaye;
+
+            if ($nouveauVersementEUR > ($montantRestant + 0.01)) {
+                throw new \Exception('Le montant du versement (' . $nouveauVersementEUR . ' EUR) ne peut pas dépasser le montant restant à payer (' . round($montantRestant, 2) . ' EUR).');
+            }
+
+            Versement::create([
+                'paiement_id'       => $paiement->id,
+                'montant_versement' => $nouveauVersementEUR, // Enregistrement en EURO
+                'agent_id'          => $agentActuel->id,
+                'colis_id'          => $colisIdReference,
+            ]);
+            
+            $paiement->montant_paye += $nouveauVersementEUR;
         }
 
-        $agent = Auth::user()->agent;
-        if (!$agent) {
-            throw new \Exception("Utilisateur connecté n'est pas un agent valide.");
-        }
-        
-        // ÉTAPE 2: Tous les calculs sont faits en EURO
-        $montantTotalDuEUR = (float) Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
-        $montantDejaPayeEUR = (float) $paiement->montant_paye;
-        $montantRestantEUR = $montantTotalDuEUR - $montantDejaPayeEUR;
+        // Mise à jour commune du statut
+        $totalPayeFinal = (float) $paiement->montant_paye;
+        $totalDuFinal = (float) Colis::whereIn('id', $colisIdsDuGroupe)->sum('prix_transit_colis');
+        $tolerance = ($agentCreateur->agence_id == 7) ? 1.0 : 0.01;
 
-        // ÉTAPE 3: La validation compare maintenant des EURO avec des EURO
-        // On ajoute une petite tolérance pour les erreurs d'arrondi
-        if ($nouveauVersementEUR > ($montantRestantEUR + 0.01)) { 
-            throw new \Exception('Le montant du versement (' . $nouveauVersementEUR . ' EUR) ne peut pas dépasser le montant restant à payer (' . round($montantRestantEUR, 2) . ' EUR).');
-        }
-
-        // ÉTAPE 4: On enregistre les montants en EURO dans la base de données
-        Versement::create([
-            'paiement_id'       => $paiement->id,
-            'montant_versement' => $nouveauVersementEUR, // Enregistrer en EUR
-            'agent_id'          => $agent->id,
-            'colis_id'          => $colisIdReference,
-        ]);
-        
-        // Mettre à jour le dossier de paiement principal avec des EURO
-        $totalPayeEUR = $montantDejaPayeEUR + $nouveauVersementEUR;
-        
-        $paiement->montant = $montantTotalDuEUR;
-        $paiement->montant_paye = $totalPayeEUR;
-
-        // Mettre à jour le statut en se basant sur les montants en EURO
-        $tolerance = 0.01;
-        if ($totalPayeEUR >= ($montantTotalDuEUR - $tolerance)) {
+        if ($totalPayeFinal >= ($totalDuFinal - $tolerance)) {
             $paiement->statut_paiement = 'payé';
-        } elseif ($totalPayeEUR > 0) {
+        } elseif ($totalPayeFinal > 0) {
             $paiement->statut_paiement = 'partiellement payé';
         } else {
             $paiement->statut_paiement = 'non payé';

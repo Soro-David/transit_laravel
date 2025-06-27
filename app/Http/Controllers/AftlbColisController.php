@@ -2320,7 +2320,7 @@ public function enregistrerPaiement(Request $request)
                     'destinataire_tel' => $group->first()->destinataire_tel,
                     'destinataire_agence' => $group->first()->destinataire_agence,
                     'etat' => $group->first()->etat,
-                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->toIso8601String() : null,
                     'colis' => $group,
                     'id' => $group->first()->id // Ajout de l'ID pour action
                 ];
