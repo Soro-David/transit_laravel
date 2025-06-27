@@ -118,7 +118,7 @@
                        class="form-control"
                        placeholder="Entrez le montant reçu (max: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} EUR)"
                        max="{{ $totalPrice ?? 0 }}" {{-- Utilisation de la variable $totalPrice --}}
-                       min="100" {{-- Gardez si nécessaire --}}
+                       min="0" {{-- Gardez si nécessaire --}}
                        step="1">
             </div>
         </div>
@@ -218,11 +218,11 @@
                     alert('Veuillez entrer un montant numérique valide pour le paiement en espèces.');
                     return false; // Arrêter la soumission
                 }
-                if (montantRecu < 100) { // <<<<----- Vérification du minimum
-                    alert('Le montant reçu en espèces doit être d\'au moins 100 FCFA.');
-                    $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
-                    return false; // Arrêter la soumission
-                }
+                // if (montantRecu < 100) { // <<<<----- Vérification du minimum
+                //     alert('Le montant reçu en espèces doit être d\'au moins 100 FCFA.');
+                //     $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
+                //     return false; // Arrêter la soumission
+                // }
                 if (montantRecu > prixColis) { // Vérification du maximum
                     alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' FCFA).');
                      $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
@@ -270,14 +270,14 @@
 
             // Vérifier seulement si le mode est 'cash'
             if ($('#mode_payement').val() === 'cash') {
-                if (isNaN(montantSaisi)) {
-                    // Permettre la saisie, la validation backend attrapera si c'est vide mais requis
-                    // On ne bloque pas ici pour un champ vide, mais on pourrait si on voulait
-                } else if (montantSaisi < 100) { // <<<<----- Vérification du minimum
-                    isValid = false;
-                    errorMessage = 'Le montant doit être d\'au moins 100 FCFA.';
-                    console.log(errorMessage); // Pour débogage
-                } else if (montantSaisi > prixColis) { // Vérification du maximum
+                 if (isNaN(montantSaisi)) {
+                //     // Permettre la saisie, la validation backend attrapera si c'est vide mais requis
+                //     // On ne bloque pas ici pour un champ vide, mais on pourrait si on voulait
+                // } else if (montantSaisi < 100) { // <<<<----- Vérification du minimum
+                //     isValid = false;
+                //     errorMessage = 'Le montant doit être d\'au moins 100 FCFA.';
+                //     console.log(errorMessage); // Pour débogage
+                 } else if (montantSaisi > prixColis) { // Vérification du maximum
                     isValid = false;
                     errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' FCFA.';
                     console.log(errorMessage); // Pour débogage
