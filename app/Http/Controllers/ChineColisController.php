@@ -620,7 +620,7 @@ public function vol_fermer(Request $request)
                 
                 // Boucle pour créer un enregistrement par colis physique
                 for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-                    dd($colisEnregistres);
+                    // dd($colisEnregistres);
                     $colisModel = Colis::create([
                         'paiement_id' => $paiementPrincipal->id,
                         'devise' => 'FCFA',
