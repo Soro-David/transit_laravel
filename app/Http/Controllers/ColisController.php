@@ -649,156 +649,205 @@ class ColisController extends Controller
     }
     
 
-    public function generer_qrcode(Request $request, InfobipService $infobipService)
+      public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
         $data = array_merge(
             session('step1', []),
             session('step2', [])
         );
-    
+
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
-            Log::error('Données de session invalides.', ['session_data' => $data]);
-            return redirect()->back()->with('error', 'Les données de la session sont invalides.');
+            Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
+            return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
         }
-    
-        // Début de la transaction pour garantir la cohérence
-        DB::beginTransaction();
-    
+
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
+        $data['etat'] = $data['etat'] ?? 'Validé';
+
+        $expediteurData = [
+            'nom' => $data['nom_expediteur'] ?? null,
+            'prenom' => $data['prenom_expediteur'] ?? null,
+            'email' => $data['email_expediteur'] ?? null,
+            'tel' => $data['tel_expediteur'] ?? null,
+            'agence' => $data['agence_expedition'] ?? null,
+            'adresse' => $data['adresse_expediteur'] ?? null,
+        ];
+
+        $destinataireData = [
+            'nom' => $data['nom_destinataire'] ?? null,
+            'prenom' => $data['prenom_destinataire'] ?? null,
+            'email' => $data['email_destinataire'] ?? null,
+            'tel' => $data['tel_destinataire'] ?? null,
+            'agence' => $data['agence_destination'] ?? null,
+            'adresse' => $data['adresse_destinataire'] ?? null,
+        ];
+
         try {
-            $expediteur = Expediteur::create([
-                'nom' => $data['nom_expediteur'] ?? null,
-                'prenom' => $data['prenom_expediteur'] ?? null,
-                'email' => $data['email_expediteur'] ?? null,
-                'tel' => $data['tel_expediteur'] ?? null,
-                'agence' => $data['agence_expedition'] ?? null,
-                'adresse' => $data['adresse_expediteur'] ?? null,
-            ]);
-    
-            $destinataire = Destinataire::create([
-                'nom' => $data['nom_destinataire'] ?? null,
-                'prenom' => $data['prenom_destinataire'] ?? null,
-                'email' => $data['email_destinataire'] ?? null,
-                'tel' => $data['tel_destinataire'] ?? null,
-                'agence' => $data['agence_destination'] ?? null,
-                'adresse' => $data['adresse_destinataire'] ?? null,
-            ]);
-    
-            // --- SECTION PAIEMENT : Logique corrigée ---
-    
-            // CORRECTION 1 : Le montant total est la somme des prix entrés.
-            $montantTotalDu = collect($data['prix'] ?? [])->sum();
-            
-            $payementDataSession = session('step2', []);
-            $modePaiement = $payementDataSession['mode_payement'] ?? 'non payé';
+            $expediteur = Expediteur::create($expediteurData);
+            $destinataire = Destinataire::create($destinataireData);
+        } catch (\Exception $e) {
+            Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
+        }
+
+        $payementDataSession = session('step2', []);
+        $montantTotalEstime = collect($data['prix'] ?? [])->map(function ($prixItem, $index) use ($data) {
+            $quantite_ligne = $data['quantite_colis'][$index] ?? 0;
+        return (float)($prixItem ?? 0) * (int)$quantite_ligne;
+        })
+        ->sum();
+        
+        $modePaiement = $payementDataSession['mode_payement'] ?? null;
+        $montantPaiementTransaction = 0;
+
+        if ($modePaiement === 'cash') {
+            $montantPaiementTransaction = $payementDataSession['montant_reçu'] ?? 0;
+        } elseif ($modePaiement === 'delivery') {
             $montantPaiementTransaction = 0;
-    
-            if ($modePaiement === 'cash') {
-                $montantPaiementTransaction = (float)($payementDataSession['montant_reçu'] ?? 0);
-            } elseif ($modePaiement !== 'delivery' && $modePaiement !== 'non payé') {
-                $montantPaiementTransaction = $montantTotalDu;
-            }
-    
+        } elseif ($modePaiement) {
+            $montantPaiementTransaction = $montantTotalEstime;
+        }
+
+        $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
+        $statutPaiementGlobal = 'non payé';
+
+        if ($modePaiement === 'delivery') {
             $statutPaiementGlobal = 'non payé';
-            if ($montantPaiementTransaction > 0) {
-                $estTotalementPaye = abs($montantPaiementTransaction - $montantTotalDu) < 0.01;
-                $statutPaiementGlobal = $estTotalementPaye ? 'payé' : 'partiellement payé';
-            }
-            if ($modePaiement === 'delivery') {
+        } elseif ($modePaiement === 'cash') {
+            if ($montantPaiementTransaction <= 0) {
                 $statutPaiementGlobal = 'non payé';
+            } elseif ($montantPaiementTransaction < $montantTotalEstime) {
+                $statutPaiementGlobal = 'partiellement payé';
+            } else {
+                $statutPaiementGlobal = 'payé';
             }
-    
-            // CORRECTION 2 : Création d'UN SEUL enregistrement de paiement pour tout le dossier.
-            $paiementPrincipal = Paiement::create([
-                'methode_paiement' => $modePaiement,
-                'operateur' => $payementDataSession['operateur_mobile'] ?? null,
-                'banque' => $payementDataSession['nom_banque'] ?? null,
-                'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
-                'id_transaction' => $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid()),
-                'statut_paiement' => $statutPaiementGlobal,
-                'date_validation' => now(),
-                'expediteur_id' => $expediteur->id,
-                'agent_id' => Auth::check() ? Auth::user()->agent?->id : null,
-                'montant' => $montantTotalDu, // Montant total du dossier
-                'montant_paye' => $montantPaiementTransaction, // Montant effectivement versé
-                'colis_id' => null, // Sera lié plus tard
-            ]);
-    
-            // --- SECTION CRÉATION COLIS : Logique corrigée ---
-            $colisEnregistres = [];
-            $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
-    
-            foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
-                $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
-                if ($quantite_pour_ligne_article <= 0) continue;
-    
-                // CORRECTION 3 : Calcul du prix unitaire par colis physique
-                $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
-                $prixParColisPhysique = ($quantite_pour_ligne_article > 0) ? $prixTotalPourCetteLigne / $quantite_pour_ligne_article : 0;
-    
-                for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-                    $colisModel = Colis::create([
-                        'paiement_id' => $paiementPrincipal->id, // On lie chaque colis au PAIEMENT UNIQUE
-                        'devise' => 'EUR', // ou $data['devise']
-                        'reference_colis' => $referenceColisPrincipale,
-                        'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                        'quantite_colis' => 1,
-                        'service' => $data['service'][$index] ?? null,
-                        'prix_transit_colis' => $prixParColisPhysique, // Utilisation du prix unitaire correct
-                        'poids_colis' => $data['poids_colis'][$index] ?? null,
-                        'mode_transit' => $data['mode_transit'] ?? null,
-                        'status' => $statutPaiementGlobal, 
-                        'etat' => $data['etat'] ?? 'Validé',
-                        'type_colis' => $data['type_colis'][$index] ?? null,
-                        'dimension_result' => ($data['hauteur'][$index] ?? null) ? "{$data['hauteur'][$index]}x{$data['largeur'][$index]}x{$data['longueur'][$index]}" : null,
-                        'description_colis' => $data['description_colis'][$index] ?? null,
-                        'expediteur_id' => $expediteur->id,
-                        'destinataire_id' => $destinataire->id,
-                        'agent_id' => Auth::check() ? Auth::user()->agent?->id : null,
-                        'qr_code_path' => null,
+        } elseif ($modePaiement) {
+            $statutPaiementGlobal = 'payé';
+        }
+
+        $agentId = Auth::check() ? Auth::user()->agent?->id : null;
+
+        $basePaiementData = [
+            'methode_paiement' => $payementDataSession['mode_payement'] ?? null,
+            'operateur' => $payementDataSession['operateur_mobile'] ?? null,
+            'banque' => $payementDataSession['nom_banque'] ?? null,
+            'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
+            'id_transaction' => $transactionId,
+            'statut_paiement' => $statutPaiementGlobal,
+            'date_validation' => now(),
+            'expediteur_id' => $expediteur->id,
+            'agent_id' => $agentId,
+            'montant_paye' => $montantPaiementTransaction,
+        ];
+
+        $colisEnregistres = [];
+        $erreursCreation = [];
+
+        $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+
+        foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
+            $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
+            if ($quantite_pour_ligne_article <= 0) continue;
+
+            $hauteur = $data['hauteur'][$index] ?? null;
+            $largeur = $data['largeur'][$index] ?? null;
+            $longueur = $data['longueur'][$index] ?? null;
+            $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
+            
+            $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
+
+            for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
+                $colisItemData = [
+                    'devise' => $data['devise'] ?? null,
+                    'reference_colis' => $referenceColisPrincipale,
+                    'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                    'quantite_colis' => 1,
+                    'service' => $data['service'][$index] ?? null,
+                    'prix_transit_colis' => $prixUnitairePourCetteLigne,
+                    'poids_colis' => $data['poids_colis'][$index] ?? null,
+                    'mode_transit' => $data['mode_transit'] ?? null,
+                    'status' => $data['status'], 
+                    'etat' => $data['etat'],
+                    'type_colis' => $data['type_colis'][$index] ?? null,
+                    'dimension_result' => $dimension_result,
+                    'description_colis' => $data['description_colis'][$index] ?? null,
+                    'expediteur_id' => $expediteur->id,
+                    'destinataire_id' => $destinataire->id,
+                    'agent_id' => $agentId,
+                    'qr_code_path' => null,
+                ];
+                // dd($colisItemData);
+                try {
+                    $colisModel = Colis::create($colisItemData);
+
+                    $paiementDataPourCeColis = array_merge($basePaiementData, [
+                        'colis_id' => $colisModel->id,
+                        'montant' => $colisModel->prix_transit_colis,
                     ]);
-    
-                 // dd($qrData);
-                    $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
-                    
+                    Paiement::create($paiementDataPourCeColis);
+
+                    $qrData = [
+                        'ID' => $colisModel->id,
+                        'qr' => $i,
+                        'Ref' => $colisModel->reference_colis,
+                        'Etat' => $colisModel->etat,
+                        'Exp' => optional($expediteur)->nom,
+                        'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
+                        'Agence' => optional($destinataire)->agence,
+                    ];
+
+                    $qrCodeContent = implode("\n", array_map(
+                        function ($k, $v) { return "$k: $v"; },
+                        array_keys($qrData),
+                        array_values($qrData)
+                    ));
+
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
-                    $pngData = $writer->write($qrCode)->getString();
-                    // dd( $pngData);
-                    $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
+                    $result = $writer->write($qrCode);
+                    $pngData = $result->getString();
+
+                    $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colisModel->reference_colis);
+                    $filePath = 'qrcodes/colis_' . $safeRef . '_id' . $colisModel->id . '_item' . $i . '.png';
                     $fullPath = public_path($filePath);
                     $directory = dirname($fullPath);
+
                     if (!File::exists($directory)) {
                         File::makeDirectory($directory, 0755, true, true);
                     }
-                    File::put($fullPath, $pngData);
-                    
+                    file_put_contents($fullPath, $pngData);
+
                     $colisModel->update(['qr_code_path' => $filePath]);
-    
                     $colisEnregistres[] = $colisModel->fresh();
-                }
+
+                    } catch (\Exception $e) {
+                        Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), [
+                            'data' => $colisItemData,
+                            'exception' => $e
+                        ]);
+
+                        $erreursCreation[] = $e->getMessage(); // On stocke l'erreur dans le tableau sans bloquer
+                    }
+
+                // } catch (\Exception $e) {
+                //     Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
+                //     $erreursCreation[] = dd($e->getMessage());
+                //     // $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
+                // }
             }
-    
-            if (empty($colisEnregistres)) {
-                throw new \Exception("Aucun colis n'a été créé, la transaction est annulée.");
-            }
-    
-            // On lie le paiement principal au premier colis créé pour garder une trace
-            $paiementPrincipal->update(['colis_id' => $colisEnregistres[0]->id]);
-            
-            // Tout s'est bien passé, on enregistre définitivement les données
-            DB::commit();
-    
-        } catch (\Exception $e) {
-            // En cas d'erreur, on annule tout ce qui a été fait dans la transaction
-            DB::rollBack();
-            Log::error("Erreur critique lors de la création du dossier: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('error', 'Une erreur est survenue. Aucune donnée n\'a été enregistrée.');
         }
-     
-        // --- PRÉPARATION DES DONNÉES POUR LA VUE FINALE ---
+
+        if (!empty($erreursCreation)) {
+            return redirect()->back()->with('error', implode('<br>', $erreursCreation));
+        }
+
+        if (empty($colisEnregistres)) {
+            return redirect()->back()->with('error', 'Aucun colis n\'a été créé. Vérifiez les quantités.');
+        }
+ 
         $colisEnregistresCollection = collect($colisEnregistres);
         $firstColis = $colisEnregistresCollection->first(); 
-    
+
         $firstInfo = [
             'id' => $firstColis?->id,
             'reference_colis' => $firstColis?->reference_colis,
@@ -808,27 +857,31 @@ class ColisController extends Controller
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
-            'devise' => 'EUR',
+            'devise' => optional($firstColis?->expediteur)->devise,
         ];
-    
+
         $totalQuantitePhysique = $colisEnregistresCollection->count();
-        // Le total du prix est maintenant correct car c'est la somme des prix unitaires recalculés
         $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
+
         $restePaye = $totalPrixTransit - $montantPaiementTransaction;
-    
+        if ($modePaiement === 'delivery') {
+            $restePaye = $totalPrixTransit;
+        }
+
+
         session()->forget(['step1', 'step2']);
-    
-        // La route de destination est bien celle que vous avez spécifiée
+
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
             'first' => $firstInfo,
             'totalQuantite' => $totalQuantitePhysique,
-            'totalPrixTransit' => round($totalPrixTransit, 2), // Arrondir pour éviter les imprécisions de float
-            'restePaye' => round($restePaye, 2),
+            'totalPrixTransit' => $totalPrixTransit,
+            'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
             'totalMontantPaye' => $montantPaiementTransaction,
         ]);
     }
+    
     public function editBon_livraison($id)
     {
         // dd($id);
