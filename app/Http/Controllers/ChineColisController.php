@@ -563,6 +563,7 @@ public function vol_fermer(Request $request)
                 'adresse' => $data['adresse_destinataire'] ?? null,
             ]);
     
+            dd($destinataire);
             // 3. Préparation et création du dossier de paiement principal
             $payementDataSession = session('step2', []);
             $montantTotalDu = collect($data['prix'] ?? [])->sum();
@@ -599,7 +600,7 @@ public function vol_fermer(Request $request)
                 'colis_id' => null,
             ]);
     
-            dd($paiementPrincipal);
+            // dd($paiementPrincipal);
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
