@@ -563,7 +563,7 @@ public function vol_fermer(Request $request)
                 'adresse' => $data['adresse_destinataire'] ?? null,
             ]);
     
-            dd($destinataire);
+            // dd($destinataire);
             // 3. Préparation et création du dossier de paiement principal
             $payementDataSession = session('step2', []);
             $montantTotalDu = collect($data['prix'] ?? [])->sum();
