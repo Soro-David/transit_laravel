@@ -757,15 +757,22 @@ class ColisController extends Controller
                         'qr_code_path' => null,
                     ]);
     
-                    // ... Votre code de génération de QR Code reste valide ...
-                    // (Je le laisse commenté pour la lisibilité de la correction)
-                    /*
-                    $qrData = [...];
-                    $qrCodeContent = ...;
+                 // dd($qrData);
+                    $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
+                    
                     $qrCode = new QrCode($qrCodeContent);
-                    ...
+                    $writer = new PngWriter();
+                    $pngData = $writer->write($qrCode)->getString();
+                    // dd( $pngData);
+                    $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
+                    $fullPath = public_path($filePath);
+                    $directory = dirname($fullPath);
+                    if (!File::exists($directory)) {
+                        File::makeDirectory($directory, 0755, true, true);
+                    }
+                    File::put($fullPath, $pngData);
+                    
                     $colisModel->update(['qr_code_path' => $filePath]);
-                    */
     
                     $colisEnregistres[] = $colisModel->fresh();
                 }
@@ -2001,8 +2008,6 @@ public function destroy_colis_valide($reference)
                 ->make(true);
         }
     }
-    
-    
     
 
     public function edit_qrcode($id)
