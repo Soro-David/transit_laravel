@@ -531,7 +531,8 @@ public function vol_fermer(Request $request)
             session('step1', []),
             session('step2', [])
         );
-    
+
+        dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -552,7 +553,7 @@ public function vol_fermer(Request $request)
                 'agence' => $data['agence_expedition'] ?? null,
                 'adresse' => $data['adresse_expediteur'] ?? null,
             ]);
-    
+            // dd($expediteur);
             $destinataire = Destinataire::create([
                 'nom' => $data['nom_destinataire'] ?? null,
                 'prenom' => $data['prenom_destinataire'] ?? null,
@@ -598,6 +599,7 @@ public function vol_fermer(Request $request)
                 'colis_id' => null,
             ]);
     
+            // dd($paiementPrincipal);
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
@@ -667,7 +669,7 @@ public function vol_fermer(Request $request)
                     $colisEnregistres[] = $colisModel->fresh();
                 }
             }
-            
+            // dd($colisEnregistres);
             // 5. Mise à jour finale et validation de la transaction
             if (empty($colisEnregistres)) {
                 throw new \Exception("Aucun colis n'a été créé, annulation de la transaction.");
