@@ -224,11 +224,11 @@ class ApmsScanController extends Controller
                         'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A', // Formatage de la date
                         'payment_status' => $paymentStatus, // Statut calculé
                         'prix_total' => $prixTotalColis, // Prix total du groupe
-                        'montant_paye' => $montantTotalPaye, // Montant total payé pour le groupe
-                        'colis_ids' => json_encode($colisIdsInGroup), // IDs du groupe en JSON pour le bouton Payer
-                        'first_colis_id' => $firstColis->id // ID du premier colis pour Edit/Invoice
+                        'montant_paye' => $montantTotalPaye, 
+                        'colis_ids' => json_encode($colisIdsInGroup),
+                        'first_colis_id' => $firstColis->id
                     ];
-                })->values(); // Transformer la collection en tableau indexé numériquement
+                })->values();
 
                 return DataTables::of($processedData)
                     ->addColumn('statut_paiement', function ($row) {
@@ -289,52 +289,6 @@ class ApmsScanController extends Controller
         abort(404); 
     }
     
-
-    // Ajax pour récupérer la liste des colis en Charge
-    // public function get_colis_charge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*', 
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as destinataire_tel', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-    //         ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-    //         ->where('etat', 'Chargé') 
-    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI')
-    //         ->get(); 
-    
-    //         $colisGrouped = $colis->groupBy('reference_colis');
-    
-    //         $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-    //             return [
-    //                 'reference_colis' => $reference,
-    //                 'nombre_de_colis' => $group->count(),
-    //                 'expediteur_nom' => $group->first()->nom_expediteur,
-    //                 'expediteur_prenom' => $group->first()->prenom_expediteur,
-    //                 'expediteur_tel' => $group->first()->expediteur_tel,
-    //                 'expediteur_agence' => $group->first()->agence_expedition, 
-    //                 'destinataire_nom' => $group->first()->nom_destinataire,
-    //                 'destinataire_prenom' => $group->first()->prenom_destinataire,
-    //                 'destinataire_tel' => $group->first()->destinataire_tel,
-    //                 'destinataire_agence' => $group->first()->agence_destination, 
-    //                 'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-    //                 'colis' => $group
-    //             ];
-    //         })->values();
-    
-    //         return DataTables::of($colisWithCount)->make(true);
-    //     }
-    // }
 
     public function get_colis_charge(Request $request)
     {
@@ -461,7 +415,6 @@ class ApmsScanController extends Controller
             return DataTables::of($colisWithCount)->make(true);
         }
     }
-
 
     public function livre()
     {

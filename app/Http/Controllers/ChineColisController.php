@@ -595,7 +595,7 @@ public function vol_fermer(Request $request)
                 'agent_id' => $agentId,
                 'montant' => $montantTotalDu,
                 'montant_paye' => $montantPaiementTransaction,
-                'colis_id' => null, // Sera mis à jour après la création du premier colis
+                'colis_id' => null,
             ]);
     
             // 4. Boucle de création des colis physiques
