@@ -463,6 +463,8 @@ class ColisController extends Controller
         }
     }
     
+
+    
     public function vol_fermer(Request $request)
     {
         // dd($request);
