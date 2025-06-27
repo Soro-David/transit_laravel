@@ -54,12 +54,12 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="nom">Nom:</label>
-                                    <input type="text" name="nom" value="{{ old('nom') }}" class="form-control" id="nom" required>
+                                    <input type="text" name="nom" class="form-control" id="nom" required>
                                     @error('nom')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="email">Email:</label>
-                                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" id="email" required>
+                                    <input type="email" name="email" class="form-control"  id="email" required>
                                     @error('email')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
                                 </div>
                                 <div class="form-group mb-3">
@@ -71,7 +71,7 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="prenom">Prénom:</label>
-                                    <input type="text" name="prenom" value="{{ old('prenom') }}" class="form-control" id="prenom" required>
+                                    <input type="text" name="prenom"  class="form-control" id="prenom" required>
                                     @error('prenom')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
                                 </div>
                                 <div class="form-group mb-3">
