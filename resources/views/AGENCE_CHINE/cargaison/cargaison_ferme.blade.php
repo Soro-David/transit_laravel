@@ -37,7 +37,7 @@
                                 <select id="type" name="type" class="form-select" onchange="toggleFields()">
                                     <option value="" disabled selected>Choisir un type</option>
                                     <option value="bateau">BATEAU</option>
-                                    <option value="ballon">BALLON</option>
+                                    <option value="ballon">AVION</option>
                                 </select>
                             </div>
     
@@ -66,12 +66,12 @@
     
                             <!-- Champs du ballon -->
                             <div class="col-md-3 ballon-fields" style="display: none;">
-                                <label for="numero_ballon" class="form-label fw-bold">Numéro du ballon:</label>
+                                <label for="numero_ballon" class="form-label fw-bold">Numéro de vol:</label>
                                 <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" placeholder="Ex: BA123">
                             </div>
     
                             <div class="col-md-3 ballon-fields" style="display: none;">
-                                <label for="nom_ballon" class="form-label fw-bold">Nom du ballon:</label>
+                                <label for="nom_ballon" class="form-label fw-bold">Nom de l'Avion:</label>
                                 <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" placeholder="Ex: AirOcean">
                             </div>
     
@@ -96,157 +96,155 @@
                 </div>
             </div>
         </div>
-    
-        <!-- Script JavaScript -->
-        <script>
-            function generateReferenceBateau() {
-                const referenceConteneur = document.getElementById("reference_conteneur").value;
-                const mois = "{{ $mois }}";  // Récupération du mois depuis Laravel
-                const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
-    
-                if (referenceConteneur) {
-                    const referenceBateau = `BAT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
-                    document.getElementById("reference_bateau").value = referenceBateau;
-                } else {
-                    document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
-                }
-            }
-    
-            function toggleFields() {
-                const type = document.getElementById("type").value;
-                
-                // Sélectionner tous les éléments concernés
-                const bateauFields = document.querySelectorAll(".bateau-fields");
-                const ballonFields = document.querySelectorAll(".ballon-fields");
-    
-                if (type === "bateau") {
-                    bateauFields.forEach(field => field.style.display = "block");
-                    ballonFields.forEach(field => field.style.display = "none");
-                } else if (type === "ballon") {
-                    bateauFields.forEach(field => field.style.display = "none");
-                    ballonFields.forEach(field => field.style.display = "block");
-                } else {
-                    bateauFields.forEach(field => field.style.display = "none");
-                    ballonFields.forEach(field => field.style.display = "none");
-                }
-            }
-        </script>
     </div>
-    
-    
-    <form action="" method="POST" class="mt-4">
-        @csrf
+        
+    <!-- Script JavaScript -->
+    <script>
+        // *** FONCTION MODIFIÉE ***
+        function generateReferenceBateau() {
+            const type = document.getElementById("type").value;
+            const referenceConteneur = document.getElementById("reference_conteneur").value;
+            const mois = "{{ $mois }}";
+            const annee = "{{ $annee }}";
+            const referenceInput = document.getElementById("reference_bateau");
+
+            if (referenceConteneur && type) {
+                // Change le préfixe en fonction du type (BAT pour bateau, AV pour avion/ballon)
+                const prefix = type === 'bateau' ? 'BAT' : 'AV';
+                referenceInput.value = `${prefix}-${referenceConteneur}-${mois}-${annee}`;
+            } else {
+                referenceInput.value = "";
+            }
+        }
+
+        // *** FONCTION MODIFIÉE ***
+        function toggleFields() {
+            const type = document.getElementById("type").value;
+            const agenceDestinationSelect = document.getElementById("agence_destination");
+            
+            const bateauFields = document.querySelectorAll(".bateau-fields");
+            const ballonFields = document.querySelectorAll(".ballon-fields");
+            
+            // Appelle la génération de référence à chaque changement de type
+            generateReferenceBateau();
+
+            if (type === "bateau") {
+                bateauFields.forEach(field => field.style.display = "block");
+                ballonFields.forEach(field => field.style.display = "none");
+                // Sélectionne l'agence maritime
+                agenceDestinationSelect.value = "IPMS-SIMEX-CI";
+            } else if (type === "ballon") {
+                bateauFields.forEach(field => field.style.display = "none");
+                ballonFields.forEach(field => field.style.display = "block");
+                // Sélectionne l'agence aérienne
+                agenceDestinationSelect.value = "IPMS-SIMEX-CI Angre 8ème Tranche";
+            } else {
+                bateauFields.forEach(field => field.style.display = "none");
+                ballonFields.forEach(field => field.style.display = "none");
+                // Réinitialise la sélection
+                agenceDestinationSelect.value = "";
+            }
+        }
+    </script>
+
+    <div class="mt-4">
+        <form action="" method="POST">
+            @csrf
             <div class="row">
                 <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                    <div class="border p-4 rounded shadow-sm">
                         <h4 class="text-left mt-4">Liste des bateaux</h4><br>
-                        <div id="products-container">
-                            <div class="table-responsive">
-                                <table id="productTable" class="table table-bordered table-striped display">
-                                    <thead>
-                                        <tr>
-                                            <th>Référence Bateau</th>
-                                            <th>Date depart</th>
-                                            <th>Date arriver</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+                        <div class="table-responsive">
+                            <table id="productTable" class="table table-bordered table-striped display">
+                                <thead>
+                                    <tr>
+                                        <th>Référence Bateau</th>
+                                        <th>Date depart</th>
+                                        <th>Date arriver</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
-    </form>
+        </form>
+    </div>
+    
     <!-- JavaScript for DataTable and Export -->
     <script>
-$(document).ready(function () {
-    var table = $("#productTable").DataTable({
-        responsive: true,
-        language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-            },
-        ajax: '{{ route("chine_colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
+    $(document).ready(function () {
+        var table = $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                    url: "{{ asset('js/fr-FR.json') }}"
+                },
+            ajax: '{{ route("chine_colis.get.cargaison.ferme") }}',
             columns: [
                 { data: 'reference_bateau', title: "Référence Bateau" },
                 { data: 'date_depart', title: "Date de Départ" },
                 { data: 'date_arriver', title: "Date d'Arrivée" },
                 { data: 'actions', title: "Actions", orderable: false, searchable: false }
             ],
-        dom: 'Bfrtip', // Placement des boutons
-        buttons: [
-            // Bouton Excel
-            {
-                extend: 'excelHtml5',
-                text: 'Exporter en Excel',
-                title: 'Liste des Colis en attente',
-                customize: function (xlsx) {
-                    console.log("Exportation Excel réussie sans image.");
-                }
-            },
-            // Bouton PDF
-            {
-                extend: 'pdfHtml5',
-                text: 'Exporter en PDF',
-                title: 'Liste des Colis en attente',
-                orientation: 'landscape', // Mode paysage
-                pageSize: 'A4', // Taille de la page
-                customize: function (doc) {
-                    // Ajout du logo encodé en Base64 dans le PDF
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    toDataURL(logoUrl, function (dataUrl) {
-                        // Ajout de l'image au début du contenu PDF
-                        console.log(dataUrl);
-                        doc.content.unshift({
-                            image: dataUrl,
-                            width: 100, // Taille du logo
-                            alignment: 'center',
-                            margin: [0, 0, 0, 10] // Espacement
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exporter en Excel',
+                    title: 'Liste des Colis en attente',
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exporter en PDF',
+                    title: 'Liste des Colis en attente',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    customize: function (doc) {
+                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                        toDataURL(logoUrl, function (dataUrl) {
+                            doc.content.unshift({
+                                image: dataUrl,
+                                width: 100,
+                                alignment: 'center',
+                                margin: [0, 0, 0, 10]
+                            });
                         });
-                    });
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimer',
+                    title: 'Liste des Colis en attente',
+                    customize: function (win) {
+                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                        $(win.document.body).find('h1')
+                            .css('text-align', 'center')
+                            .css('margin-top', '10px');
+                        $(win.document.body).find('h1').after(logo);
+                        $(win.document.body).find('table').css('margin-top', '30px');
+                    }
                 }
-            },
-            // Bouton Imprimer
-            {
-                extend: 'print',
-                text: 'Imprimer',
-                title: 'Liste des Colis en attente',
-                customize: function (win) {
-                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                    $(win.document.body).find('h1')
-                        .css('text-align', 'center')
-                        .css('margin-top', '10px');
-                    $(win.document.body).find('h1').after(logo);
-                    $(win.document.body).find('table').css('margin-top', '30px');
-                }
-            }
-        ]
-});
+            ]
+        });
 
-    /**
-     * Fonction pour convertir une image en Base64
-     * @param {string} url - L'URL de l'image
-     * @param {function} callback - Fonction de retour contenant l'image en Base64
-     */
-    function toDataURL(url, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            var reader = new FileReader();
-            reader.onloadend = function () {
-                callback(reader.result); // Retourne l'image encodée en Base64
+        function toDataURL(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                var reader = new FileReader();
+                reader.onloadend = function () {
+                    callback(reader.result);
+                };
+                reader.readAsDataURL(xhr.response);
             };
-            reader.readAsDataURL(xhr.response);
-        };
-        xhr.open('GET', url);
-        xhr.responseType = 'blob'; // Type de réponse : Blob
-        xhr.send();
-    }
-});
-
+            xhr.open('GET', url);
+            xhr.responseType = 'blob';
+            xhr.send();
+        }
+    });
     </script>
-    
     
 </section>
 
@@ -267,27 +265,26 @@ $(document).ready(function () {
     }
 
     .dt-button {
-    width: 100%; /* carré */
-    height: 40px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    border: none;
-    outline: none;
-}
+        width: 100%;
+        height: 40px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: none;
+        outline: none;
+    }
 
-.dt-button:hover {
-    transform: scale(1.1);
-    background-color: #c82333 !important; /* rouge plus foncé */
-}
+    .dt-button:hover {
+        transform: scale(1.1);
+        background-color: #c82333 !important;
+    }
 
-.dt-button:active {
-    transform: scale(0.95);
-    box-shadow: none;
-}
-
+    .dt-button:active {
+        transform: scale(0.95);
+        box-shadow: none;
+    }
 </style>
 @endsection
