@@ -658,7 +658,7 @@ public function vol_fermer(Request $request)
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
                     $pngData = $writer->write($qrCode)->getString();
-                    dd( $pngData);
+                    // dd( $pngData);
                     $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
                     $fullPath = public_path($filePath);
                     $directory = dirname($fullPath);
@@ -668,7 +668,7 @@ public function vol_fermer(Request $request)
                     File::put($fullPath, $pngData);
                     
                     $colisModel->update(['qr_code_path' => $filePath]);
-    
+                    dd($colisModel->fresh());
                     $colisEnregistres[] = $colisModel->fresh();
                     //  dd($colisEnregistres);
                 }
