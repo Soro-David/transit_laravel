@@ -599,11 +599,11 @@ public function vol_fermer(Request $request)
                 'colis_id' => null,
             ]);
     
-            dd($paiementPrincipal);
+            // dd($paiementPrincipal);
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
-            
+            // dd($colisEnregistres);
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
                 if ($quantite_pour_ligne_article <= 0) {
@@ -641,6 +641,7 @@ public function vol_fermer(Request $request)
                         'agent_id' => $agentId,
                         'qr_code_path' => null,
                     ]);
+                    dd($colisModel);
                     // Génération du QR Code
                     $qrData = [
                         'ID' => $colisModel->id,
