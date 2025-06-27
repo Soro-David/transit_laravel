@@ -652,13 +652,13 @@ public function vol_fermer(Request $request)
                         'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
                         'Agence' => optional($destinataire)->agence,
                     ];
-                    dd($qrData);
+                    // dd($qrData);
                     $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
                     
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
                     $pngData = $writer->write($qrCode)->getString();
-                    
+                    dd( $pngData);
                     $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
                     $fullPath = public_path($filePath);
                     $directory = dirname($fullPath);
