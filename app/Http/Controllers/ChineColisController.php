@@ -620,7 +620,7 @@ public function vol_fermer(Request $request)
                     
                     $colisModel = Colis::create([
                         'paiement_id' => $paiementPrincipal->id,
-                        'devise' => 'EUR',
+                        'devise' => 'FCFA',
                         'reference_colis' => $referenceColisPrincipale, 
                         'reference_contenaire' => $data['reference_contenaire'] ?? null,
                         'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique

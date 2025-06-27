@@ -259,38 +259,17 @@ class ApmsScanController extends Controller
                         $reference = $row['reference_colis'];
                         $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
 
-                        $editUrl = route('ipms_colis.valide.edit', ['id' => $firstColisId]); // Route pour modifier (utilise l'ID)
                         $invoiceUrl = route('ipms_colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
-                        $deleteUrl = route('ipms_colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
 
-                        $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
-                                        <i class="fas fa-edit"></i>
-                                    </a>';
+                      
 
-                        $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
-                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                            data-total="' . $row['prix_total'] . '"
-                                            data-paid="' . $row['montant_paye'] . '"
-                                            data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
-                                            title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                        <i class="fas fa-dollar-sign"></i>
-                                    </button>';
-
-                        $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
-                                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                                data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                            <i class="fas fa-trash"></i>
-                                        </button>';
+                      
 
                         $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
                                         <i class="fas fa-file-invoice"></i>
                                        </a>';
 
                         return '<div class="action-buttons-container">'
-                               . $editBtn
-                               . $payBtn
-                               . $deleteBtn
                                . $invoiceBtn
                                . '</div>';
                     })
@@ -383,7 +362,7 @@ class ApmsScanController extends Controller
             $colisWithCount = $colisGrouped->map(function ($group, $reference) {
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->sum('quantite_colis'),
+                    'nombre_de_colis' => $group->count(),
                     'expediteur_nom' => $group->first()->nom_expediteur,
                     'expediteur_prenom' => $group->first()->prenom_expediteur,
                     'expediteur_tel' => $group->first()->expediteur_tel,
