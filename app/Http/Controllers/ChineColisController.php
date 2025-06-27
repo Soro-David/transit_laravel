@@ -599,7 +599,7 @@ public function vol_fermer(Request $request)
                 'colis_id' => null,
             ]);
     
-            // dd($paiementPrincipal);
+            dd($paiementPrincipal);
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
@@ -669,7 +669,7 @@ public function vol_fermer(Request $request)
                     $colisEnregistres[] = $colisModel->fresh();
                 }
             }
-            dd($colisEnregistres);
+            // dd($colisEnregistres);
             // 5. Mise à jour finale et validation de la transaction
             if (empty($colisEnregistres)) {
                 throw new \Exception("Aucun colis n'a été créé, annulation de la transaction.");
