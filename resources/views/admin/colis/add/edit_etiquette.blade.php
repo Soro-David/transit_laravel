@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <title>Étiquettes Colis AFT</title>
     <style>
-                .bw-logo {
-            filter: grayscale(100%) contrast(150%);
-        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -178,6 +175,10 @@
         .etiquette-page:not(.last-page) {
             page-break-after: always !important;
 }
+
+.bw-logo {
+            filter: grayscale(100%) contrast(150%);
+        }
     </style>
 </head>
 <body>
@@ -213,18 +214,11 @@
                                     Phone: 0186786967
                                 </div>
                             </td>
-                             <td class="qr-cell">
+                            <td class="qr-cell">
                                 @if($qr && file_exists(public_path(ltrim($qr, '/'))))
                                     <img src="{{ public_path(ltrim($qr, '/')) }}" class="qr-code-img-header" alt="QR Code">
                                 @else
                                     <div class="qr-placeholder">QR Code<br>Absent</div>
-                                @endif
-                            </td>
-                            <td class="logo-cell">
-                                @if(file_exists(public_path('images/LOGOAFT2.png')))
-                                    <img src="{{ public_path('images/LOGOAFT2.png') }}" style="filter: grayscale(100%) contrast(150%);" class="custom-logo" alt="Logo">
-                                @else
-                                    <p style="font-size:7pt;color:red;">Logo absent</p>
                                 @endif
                             </td>
                         </tr>
