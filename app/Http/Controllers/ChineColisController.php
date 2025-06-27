@@ -652,6 +652,7 @@ public function vol_fermer(Request $request)
                         'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
                         'Agence' => optional($destinataire)->agence,
                     ];
+                    dd($qrData);
                     $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
                     
                     $qrCode = new QrCode($qrCodeContent);
@@ -669,7 +670,7 @@ public function vol_fermer(Request $request)
                     $colisModel->update(['qr_code_path' => $filePath]);
     
                     $colisEnregistres[] = $colisModel->fresh();
-                     dd($colisEnregistres);
+                    //  dd($colisEnregistres);
                 }
             }
            
