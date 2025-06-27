@@ -10,7 +10,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                <h4 class="text-left mt-4">Liste des colis à livrer</h4><br>
+                <h4 class="text-left mt-4">Liste des colis à arrivés</h4><br>
                 <div class="table-responsive">
                     <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
                         <thead>
@@ -126,23 +126,33 @@ $(document).ready(function () {
         dom: 'Bfrtip', buttons: ['excel', 'pdf', 'print'], order: [[ 1, 'desc' ]]
     });
 
+    // --- LOGIQUE CORRIGÉE POUR L'OUVERTURE DE LA MODALE ---
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
         e.preventDefault();
         var button = $(this);
         
+        // On récupère les éléments input une seule fois
+        var euroInput = $('#modalNewPaymentAmountEur');
+        var fcfaInput = $('#modalNewPaymentAmountCfa');
+
         var creatorAgenceId = parseInt(button.data('creator-agence-id')) || 0;
-        
         var reference = button.data('reference');
         var colisId = button.data('colis-id'); 
         var colisIds = button.data('colis-ids');
         
         $('#modalDisplayReference').val(reference);
         $('#modalColisId').val(colisId);
-        $('#modalColisIds').val(JSON.stringify(colisIds));
+        // Assurez-vous que colisIds est bien une chaîne JSON valide
+        $('#modalColisIds').val(typeof colisIds === 'string' ? colisIds : JSON.stringify(colisIds));
 
         if (creatorAgenceId === 7) {
+            // Logique pour l'agence FCFA
             $('#euroPaymentFields').hide();
+            euroInput.prop('disabled', true); // <-- NOUVEAU : On désactive le champ EUR
+
             $('#fcfaPaymentFields').show();
+            fcfaInput.prop('disabled', false); // <-- NOUVEAU : On active le champ FCFA
+
             let total = parseFloat(button.data('total')) || 0;
             let paid = parseFloat(button.data('paid')) || 0;
             let remaining = total - paid;
@@ -153,8 +163,13 @@ $(document).ready(function () {
             $('#modalNewPaymentAmountCfa').val(Math.round(remaining));
             $('#modalNewPaymentAmountCfa').trigger('input');
         } else {
+            // Logique pour les agences EURO
             $('#fcfaPaymentFields').hide();
+            fcfaInput.prop('disabled', true); // <-- NOUVEAU : On désactive le champ FCFA
+
             $('#euroPaymentFields').show();
+            euroInput.prop('disabled', false); // <-- NOUVEAU : On active le champ EUR
+
             let totalEur = parseFloat(button.data('total')) || 0;
             let paidEur = parseFloat(button.data('paid')) || 0;
             let remainingEur = totalEur - paidEur;
