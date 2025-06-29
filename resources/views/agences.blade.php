@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nos Services - Aft Import Export</title>
+    <title>Nos Agences - Aft Import Export</title>
     <!-- Liens CSS existants -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css">
@@ -118,19 +118,15 @@
             color: orange !important;
         }
 
+        .bullet {
+            font-size: 1.5rem;
+            margin-right: 5px;
+        }
 
-        .text-orange {
-    color: orange;
-}
-
-.bullet {
-    font-size: 1.3rem;
-    margin-right: 5px;
-}
-
-.details-list li {
-    margin-bottom: 5px;
-}
+        .details-list p {
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
 
 
         /* Styles pour le Footer */
@@ -160,8 +156,8 @@
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item"><a class="nav-link mx-3" aria-current="page" href="/">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/a-propos">À propos de nous</a></li>
-                        <li class="nav-item"><a class="nav-link active mx-3" href="/nos-servives">Nos services</a></li>
-                        <li class="nav-item"><a class="nav-link mx-3" href="/nos-agences">Nos Agences</a></li>
+                        <li class="nav-item"><a class="nav-link mx-3" href="/nos-servives">Nos services</a></li>
+                        <li class="nav-item"><a class="nav-link active mx-3" href="/nos-agences">Nos Agences</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/contact">Contact</a></li>
                     </ul>
                     <ul class="navbar-nav">
@@ -177,55 +173,69 @@
     </header>
 
     <main>
-       <section class="header-section" style="background-color: rgb(230, 121, 13); color: white; padding: 2em 0;">
+       <section class="header-section" style="background-color: green; color: white; padding: 2em 0;">
             <div class="container">
-                <h1>Nos Services</h1>
-                <p>Découvrez l'ensemble de nos solutions de transport, de logistique et nos implantations stratégiques pour vous accompagner partout dans le monde.</p>
+                <h1>Nos Agences</h1>
+                <p>Implantées au cœur des zones stratégiques, nos agences vous offrent un service de proximité, efficace et personnalisé pour répondre à tous vos besoins en transport et logistique.</p>
             </div>
+
         </section>
 
-        <section class="services-agencies-section text-center py-5">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <div class="info-card w-100">
-                            <h3 class="mb-4">NOS SERVICES</h3>
-                            <ul class="main-list list-unstyled">
-                                <!-- FRET MARITIME -->
-                                <li class="mb-4">
-                                    <span class="bullet text-orange">🔘</span> 
-                                    <strong class="text-orange">FRET MARITIME</strong>
-                                    <ul class="details-list list-unstyled mt-2">
-                                        <p>Transport de conteneurs (20’, 40’, 40’ HQ) 
-                                        Groupage (LCL) et plein chargement (FCL) 
-                                        Suivi personnalisé et sécurisé des marchandises</p>
-                                    </ul>
-                                </li><br><br>
-                                <!-- FRET AÉRIEN -->
-                                <li class="mb-4">
-                                    <span class="bullet text-orange">🔘</span> 
-                                    <strong class="text-orange">FRET AÉRIEN</strong>
-                                    <ul class="details-list list-unstyled mt-2">
-                                        <p>Livraison rapide et sécurisée pour les envois urgents
-                                       Gestion des formalités douanières</p>
-                                    </ul>
-                                </li><br><br>
-                                <!-- SERVICES COMPLÉMENTAIRES -->
-                                <li class="mb-4">
-                                    <span class="bullet text-orange">🔘</span> 
-                                    <strong class="text-orange">SERVICES COMPLÉMENTAIRES</strong>
-                                    <ul class="details-list list-unstyled mt-2">
-                                        <p>Dédouanement et conseils en logistique
-                                            Stockage et distribution locale
-                                            Assurance des marchandises</p>
-                                    </ul>
-                                </li>
-                            </ul>
+        
+    <section class="services-agencies-section text-center py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <!-- COLONNE AGENCES -->
+                <div class="col-lg-10">
+                    <div class="info-card w-100">
+                        <h3 class="mb-4">NOS AGENCES</h3>
+
+                        <!-- FRANCE -->
+                        <div class="mb-5">
+                            <p><span class="bullet">🇫🇷</span> <strong class="text-orange">FRANCE</strong></p>
+                            <div class="details-list">
+                                <p><i class="fas fa-map-marker-alt"></i> 7, avenue Louis Blériot 93120 La Courneuve</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 1 86 78 69 67</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 7 66 78 54 61</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 6 52 98 35 19</p>
+                            </div>
                         </div>
+
+                        <!-- CHINE -->
+                        <div class="mb-5">
+                            <p><span class="bullet">🇨🇳</span> <strong class="text-orange">CHINE</strong></p>
+                            <div class="details-list">
+                                <p><i class="fas fa-ship"></i> <strong>Maritime :</strong> 广东省佛山市南海区里水镇河塱沙路D2仓。</p>
+                                <p><i class="fas fa-plane"></i> <strong>Aérien :</strong> 广州市环市中路205号恒生大厦B座室918</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +86 13 67 89 15 049</p>
+                            </div>
+                        </div>
+
+                        <!-- ABIDJAN -->
+                        <div class="mb-5">
+                            <p><span class="bullet">🇨🇮</span> <strong class="text-orange">CÔTE D'IVOIRE, ABIDJAN</strong></p>
+                            <div class="details-list">
+                                <p><i class="fas fa-ship"></i> <strong>Maritime :</strong> CARREFOUR ANGRE</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 05 84 40 22 00</p>
+                                <p><i class="fas fa-plane"></i> <strong>Aérien :</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 0758069896</p>
+                            </div>
+                        </div>
+
+                        <!-- SAN-PÉDRO -->
+                        <div class="mb-5">
+                            <p><span class="bullet">🇨🇮</span> <strong class="text-orange">CÔTE D'IVOIRE, SAN-PÉDRO</strong></p>
+                            <div class="details-list">
+                                <p><i class="fas fa-map-marker-alt"></i> San Pedro au feu de la petite mairie côté voie pavée (UTE)</p>
+                                <p><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 27 33 74 95 19 / +225 74 940 74 02</p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
     </main>
 

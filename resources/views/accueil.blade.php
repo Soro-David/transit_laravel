@@ -272,6 +272,9 @@
                             <a class="nav-link mx-3" href="/nos-servives">Nos services</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link mx-3" href="/nos-agences">Nos Agences</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link mx-3" href="/contact">Contact</a>
                         </li>
                     </ul>

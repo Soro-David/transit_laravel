@@ -86,6 +86,9 @@ Route::get('/a-propos', function () {
 Route::get('/nos-servives', function () {
     return view('services'); // Affiche la vue accueil.blade.php
 });
+Route::get('/nos-agences', function () {
+    return view('agences'); // Affiche la vue accueil.blade.php
+});
 Route::get('/contact', function () {
     return view('contact'); // Affiche la vue accueil.blade.php
 });
