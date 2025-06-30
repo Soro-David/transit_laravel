@@ -210,8 +210,8 @@
                             <label for="agence_destination" class="form-label">Agence de destination</label>
                             <select name="agence_destination" id="agence_destination" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                                <option value="IPMS-SIMEX-CI">IPMS-SIMEX-CI</option>
-                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">IPMS-SIMEX-CI Angre 8ème Tranche</option>
+                                <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angre 8ème Tranche</option>
                             </select>
                         </div>
                     </div>                    
