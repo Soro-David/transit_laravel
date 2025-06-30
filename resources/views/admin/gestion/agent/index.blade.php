@@ -84,10 +84,21 @@
                                     <select name="agence_id" id="agence_id" class="form-control" required>
                                         <option value="" disabled selected>-- Sélectionnez une agence --</option>
                                         @foreach ($agences as $agence)
-                                            <option value="{{ $agence->id }}">{{ $agence->nom_agence }}</option>
+                                            @php
+                                                // Détermine l'affichage en fonction du nom de l'agence
+                                                $displayName = $agence->nom_agence;
+                                                if ($agence->nom_agence === 'IPMS-SIMEX-CI') {
+                                                    $displayName = 'Carrefour Angré';
+                                                } elseif ($agence->nom_agence === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                                                    $displayName = 'Angre 8ème Tranche';
+                                                }
+                                            @endphp
+                                            <option value="{{ $agence->id }}">{{ $displayName }}</option>
                                         @endforeach
                                     </select>
-                                    @error('agence_id')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                                    @error('agence_id')
+                                        <div class="text-danger"><p>{{ $message }}</p></div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -119,7 +130,19 @@ $(document).ready(function () {
             { data: 'nom', name: 'nom' },
             { data: 'prenom', name: 'prenom' },
             { data: 'email', name: 'email' },
-            { data: 'agence', name: 'agence.nom_agence' }, // <<< NOUVELLE COLONNE
+            { 
+                data: 'agence', 
+                name: 'agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'Angre 8 ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'Carrefour Angré';
+                    }
+                    return data;
+                }
+            },
+
             {
                 data: 'created_at',
                 name: 'created_at',

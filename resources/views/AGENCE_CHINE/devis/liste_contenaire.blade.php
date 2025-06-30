@@ -202,7 +202,18 @@
                 }
             },
             { data: 'destinataire_tel' },
-            { data: 'destinataire_agence' },
+            { 
+                data: 'destinataire_agence',
+                name: 'destinataire_agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'Angre 8 ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'Carrefour Angré';
+                    }
+                    return data;
+                }
+            },
             { data: 'etat' },
             { data: 'created_at',
                 render: function(data, type, row) {

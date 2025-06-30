@@ -384,7 +384,7 @@ class ColisController extends Controller
         $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
         $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-    
+        // dd($agences);
         // Génère juste les références, sans enregistrer encore dans la base
         $referenceColis = $this->generateReferenceColisComplet();
         // dd($referenceColis);
