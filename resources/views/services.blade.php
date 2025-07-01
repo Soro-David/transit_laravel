@@ -118,6 +118,21 @@
             color: orange !important;
         }
 
+
+        .text-orange {
+    color: orange;
+}
+
+.bullet {
+    font-size: 1.3rem;
+    margin-right: 5px;
+}
+
+.details-list li {
+    margin-bottom: 5px;
+}
+
+
         /* Styles pour le Footer */
         .footer-dark { background-color: #343a40; color: #fff; padding: 40px 0; }
         .footer-dark h3 { font-size: 1.2rem; margin-bottom: 15px; }
@@ -146,6 +161,7 @@
                         <li class="nav-item"><a class="nav-link mx-3" aria-current="page" href="/">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/a-propos">À propos de nous</a></li>
                         <li class="nav-item"><a class="nav-link active mx-3" href="/nos-servives">Nos services</a></li>
+                        <li class="nav-item"><a class="nav-link mx-3" href="/nos-agences">Nos Agences</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/contact">Contact</a></li>
                     </ul>
                     <ul class="navbar-nav">
@@ -161,84 +177,47 @@
     </header>
 
     <main>
-       <section class="header-section" style="background-color: green; color: white; padding: 2em 0;">
+       <section class="header-section" style="background-color: rgb(230, 121, 13); color: white; padding: 2em 0;">
             <div class="container">
                 <h1>Nos Services</h1>
                 <p>Découvrez l'ensemble de nos solutions de transport, de logistique et nos implantations stratégiques pour vous accompagner partout dans le monde.</p>
             </div>
         </section>
 
-        
-        <section class="services-agencies-section">
+        <section class="services-agencies-section text-center py-5">
             <div class="container">
-                <div class="row">
-                    <!-- COLONNE AGENCES -->
-                    <div class="col-lg-6 d-flex">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
                         <div class="info-card w-100">
-                            <h3>NOS AGENCES</h3>
-                            <ul class="main-list">
-                                <li>
-                                    <span class="bullet">🇫🇷</span> <strong class="text-orange">FRANCE</strong>
-                                    <ul class="details-list">
-                                       <li><i class="fas fa-map-marker-alt"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
-                                       <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 1 86 78 69 67</li>
-                                       <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 7 66 78 54 61</li>
-                                       <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +33 6 52 98 35 19</li>
+                            <h3 class="mb-4">NOS SERVICES</h3>
+                            <ul class="main-list list-unstyled">
+                                <!-- FRET MARITIME -->
+                                <li class="mb-4">
+                                    <span class="bullet text-orange">🔘</span> 
+                                    <strong class="text-orange">FRET MARITIME</strong>
+                                    <ul class="details-list list-unstyled mt-2">
+                                        <p>Transport de conteneurs (20’, 40’, 40’ HQ) 
+                                        Groupage (LCL) et plein chargement (FCL) 
+                                        Suivi personnalisé et sécurisé des marchandises</p>
                                     </ul>
-                                </li>
-                                <li>
-                                    <span class="bullet">🇨🇳</span> <strong class="text-orange">CHINE</strong>
-                                    <ul class="details-list">
-                                         <li><i class="fas fa-ship"></i> <strong>Maritime :</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
-                                         <li><i class="fas fa-plane"></i> <strong>Aérien :</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +86 13 67 89 15 049</li>
+                                </li><br><br>
+                                <!-- FRET AÉRIEN -->
+                                <li class="mb-4">
+                                    <span class="bullet text-orange">🔘</span> 
+                                    <strong class="text-orange">FRET AÉRIEN</strong>
+                                    <ul class="details-list list-unstyled mt-2">
+                                        <p>Livraison rapide et sécurisée pour les envois urgents
+                                       Gestion des formalités douanières</p>
                                     </ul>
-                                </li>
-                                <li>
-                                    <span class="bullet">🇨🇮</span> <strong class="text-orange">CÔTE D'IVOIRE, ABIDJAN</strong>
-                                   <ul class="details-list">
-                                         <li><i class="fas fa-ship"></i> <strong>Maritime :</strong> CARREFOUR ANGRE</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 05 84 40 22 00</li>
-                                         <li><i class="fas fa-plane"></i> <strong>Aérien :</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 0758069896</li>
-                                   </ul>
-                                </li>
-                                <li>
-                                    <span class="bullet">🇨🇮</span> <strong class="text-orange">CÔTE D'IVOIRE, SAN-PÉDRO</strong>
-                                   <ul class="details-list">
-                                         <li><i class="fas fa-map-marker-alt"></i> San Pedro au feu de la petite mairie coté voie pavée (UTE )</li>
-                                         <li><i class="fas fa-phone-alt"></i> <strong>Contact :</strong> +225 27 33 74 95 19 / +225 74 940 74 02</li>
-                                   </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <!-- COLONNE SERVICES -->
-                    <div class="col-lg-6 d-flex">
-                        <div class="info-card w-100">
-                            <h3>NOS SERVICES</h3>
-                            <ul class="main-list">
-                                <li>
-                                    <span class="bullet text-orange">🔘</span> <strong class="text-orange">FRET MARITIME</strong>
-                                    <ul class="details-list">
-                                        <li>Transport de conteneurs (20’, 40’, 40’ HQ)</li>
-                                        <li>Groupage (LCL) et plein chargement (FCL)</li>
-                                        <li>Suivi personnalisé et sécurisé des marchandises</li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <span class="bullet text-orange">🔘</span> <strong class="text-orange">FRET AÉRIEN</strong>
-                                    <ul class="details-list">
-                                        <li>Livraison rapide et sécurisée pour les envois urgents</li>
-                                        <li>Gestion des formalités douanières</li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <span class="bullet text-orange">🔘</span> <strong class="text-orange">SERVICES COMPLÉMENTAIRES</strong>
-                                    <ul class="details-list">
-                                        <li>Dédouanement et conseils en logistique</li>
-                                        <li>Stockage et distribution locale</li>
-                                        <li>Assurance des marchandises</li>
+                                </li><br><br>
+                                <!-- SERVICES COMPLÉMENTAIRES -->
+                                <li class="mb-4">
+                                    <span class="bullet text-orange">🔘</span> 
+                                    <strong class="text-orange">SERVICES COMPLÉMENTAIRES</strong>
+                                    <ul class="details-list list-unstyled mt-2">
+                                        <p>Dédouanement et conseils en logistique
+                                            Stockage et distribution locale
+                                            Assurance des marchandises</p>
                                     </ul>
                                 </li>
                             </ul>
@@ -247,6 +226,7 @@
                 </div>
             </div>
         </section>
+
     </main>
 
     <footer class="footer-dark">

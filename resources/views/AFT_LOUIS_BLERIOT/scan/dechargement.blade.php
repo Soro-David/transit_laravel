@@ -214,7 +214,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     return row.destinataire_nom + ' ' + row.destinataire_prenom;
                 }
             },
-            { data: 'destinataire_agence' },
+            { 
+                data: 'destinataire_agence',
+                name: 'destinataire_agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'Angre 8 ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'Carrefour Angré';
+                    }
+                    return data;
+                }
+            },
             { data: 'destinataire_tel' },
             {
                 data: 'created_at',

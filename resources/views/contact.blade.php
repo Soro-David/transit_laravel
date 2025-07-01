@@ -110,6 +110,7 @@
                         <li class="nav-item"><a class="nav-link mx-3" href="/">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/a-propos">À propos de nous</a></li>
                         <li class="nav-item"><a class="nav-link mx-3" href="/nos-servives">Nos services</a></li>
+                        <li class="nav-item"><a class="nav-link mx-3" href="/nos-agences">Nos Agences</a></li>
                         <li class="nav-item"><a class="nav-link active mx-3" href="/contact">Contact</a></li>
                     </ul>
                     <ul class="navbar-nav">
@@ -132,63 +133,39 @@
             </div>
         </section>
 
-        <section class="contact-content-section">
-            <div class="container">
-                <h2 class="section-title">Nos Agences à Votre Service</h2>
-                
-                <!-- Grille des agences -->
-                <div class="row g-4">
-                    <!-- Agence France -->
-                    <div class="col-lg-6 col-md-6 d-flex">
-                        <div class="agency-card w-100">
-                            <h4 class="agency-title"><span class="flag-icon">🇫🇷</span> France</h4>
-                            <ul class="contact-list">
-                                <li><i class="fas fa-map-marker-alt"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
-                                <li><i class="fas fa-phone-alt"></i> +33 1 86 78 69 67</li>
-                                <li><i class="fas fa-phone-alt"></i> +33 7 66 78 54 61</li>
-                                <li><i class="fas fa-phone-alt"></i> +33 6 52 98 35 19</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Agence Chine -->
-                    <div class="col-lg-6 col-md-6 d-flex">
-                        <div class="agency-card w-100">
-                            <h4 class="agency-title"><span class="flag-icon">🇨🇳</span> Chine</h4>
-                            <ul class="contact-list">
-                                <li><i class="fas fa-ship"></i> <strong>Maritime:</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
-                                <li><i class="fas fa-plane"></i> <strong>Aérien:</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
-                                <li><i class="fas fa-phone-alt"></i> +86 13 67 89 15 049</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Agence Côte d'Ivoire - Abidjan -->
-                    <div class="col-lg-6 col-md-6 d-flex">
-                        <div class="agency-card w-100">
-                            <h4 class="agency-title"><span class="flag-icon">🇨🇮</span> Côte d'Ivoire - Abidjan</h4>
-                             <ul class="contact-list">
-                                <li><i class="fas fa-ship"></i> <strong>Maritime:</strong> CARREFOUR ANGRE</li>
-                                <li><i class="fas fa-plane"></i> <strong>Aérien:</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                <li><i class="fas fa-phone-alt"></i> +225 75 80 69 896</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <!-- Agence Côte d'Ivoire - San-Pédro -->
-                    <div class="col-lg-6 col-md-6 d-flex">
-                         <div class="agency-card w-100">
-                            <h4 class="agency-title"><span class="flag-icon">🇨🇮</span> Côte d'Ivoire - San-Pédro</h4>
-                             <ul class="contact-list">
-                                <li><i class="fas fa-map-marker-alt"></i> San Pedro au feu de la petite mairie coté voie pavée (UTE)</li>
-                                <li><i class="fas fa-phone-alt"></i> +225 27 33 74 95 19</li>
-                                <li><i class="fas fa-phone-alt"></i> +225 74 940 74 02</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+ <section class="contact-content-section">
+    <div class="container">
+        <h2 class="section-title">Formulaire de contact</h2>
+        @if(session('success'))
+            <div class="alert alert-success text-center">
+                {{ session('success') }}
             </div>
-        </section>
+        @endif
+        <form action="{{ route('contact.store') }}" method="POST" class="row g-3">
+            @csrf
+            <div class="col-md-6">
+                <label for="nom" class="form-label">Nom</label>
+                <input type="text" class="form-control" id="nom" name="nom" required>
+            </div>
+            <div class="col-md-6">
+                <label for="email" class="form-label">Adresse Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="col-md-12">
+                <label for="sujet" class="form-label">Sujet</label>
+                <input type="text" class="form-control" id="sujet" name="sujet" required>
+            </div>
+            <div class="col-md-12">
+                <label for="message" class="form-label">Message</label>
+                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary px-5">Envoyer</button>
+            </div>
+        </form>
+    </div>
+</section>
+
     </main>
 
     <footer class="footer-dark">

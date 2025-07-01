@@ -34,6 +34,7 @@ use App\Http\Controllers\RdvchineController;
 use App\Http\Controllers\RdvipmxangreController;
 use App\Http\Controllers\RdvlbController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ContactController;
 
 
 use App\Models\Colis;
@@ -76,6 +77,11 @@ Route::get('/login', function () { return redirect('/login'); });
 
 // Route::get('/accueil', function () { return redirect('/login_admin'); });
 
+
+// Store mail 
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+
 Route::get('/', function () {
     return view('accueil'); // Affiche la vue accueil.blade.php
 });
@@ -85,6 +91,9 @@ Route::get('/a-propos', function () {
 });
 Route::get('/nos-servives', function () {
     return view('services'); // Affiche la vue accueil.blade.php
+});
+Route::get('/nos-agences', function () {
+    return view('agences'); // Affiche la vue accueil.blade.php
 });
 Route::get('/contact', function () {
     return view('contact'); // Affiche la vue accueil.blade.php

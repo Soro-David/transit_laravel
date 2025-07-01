@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                <h4 class="text-left mt-4">Liste des colis Validés</h4><br>
+                <h4 class="text-left mt-4">Liste des colis Arrivés</h4><br>
                 <div class="table-responsive">
                     <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
                         <thead>
@@ -78,7 +78,7 @@
                     <div id="euroPaymentFields" style="display:none;">
                         <div class="mb-3">
                             <label for="modalNewPaymentAmountEur" class="form-label">Montant du Nouveau Paiement (en EUR) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" placeholder="0.00">  <!-- required a été retiré -->
+                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur"  placeholder="0.00">
                         </div>
                         <div class="mb-3">
                             <label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA</label>
@@ -90,7 +90,7 @@
                     <div id="fcfaPaymentFields" style="display:none;">
                         <div class="mb-3">
                             <label for="modalNewPaymentAmountCfa" class="form-label">Montant du Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label>
-                            <input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa" placeholder="0"> <!-- required a été retiré -->
+                            <input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa"  placeholder="0">
                         </div>
                     </div>
                 
@@ -169,6 +169,7 @@ $(document).ready(function () {
         order: [[ 1, 'desc' ]]
     });
 
+    // LOGIQUE CONDITIONNELLE BASÉE SUR L'AGENT CRÉATEUR DU COLIS
     // LOGIQUE CONDITIONNELLE BASÉE SUR L'AGENT CRÉATEUR DU COLIS
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
         e.preventDefault();

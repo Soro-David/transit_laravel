@@ -8,9 +8,11 @@
                     <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
                             <div id="products-container">
                                 <div class="table-responsive">
-                                    <div>
+                                   <div>
                                         <label for="reference_contenaire" style="font-size: 25px;">VOL REF:</label>
-                                        <strong style="font-size: 30px;">{{ $referenceVol }}</strong>
+                                        <strong style="font-size: 30px;">
+                                           {{ $referenceVol['reference_contenaire'] }}
+                                        </strong>
                                     </div>
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
@@ -31,7 +33,7 @@
                                         <form id="btnFermerVol" action="{{ route('colis.vol.fermer') }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
-                                                Fermer le ballon
+                                                Fermer le vol
                                             </button>
                                         </form>
                                     </div>

@@ -531,7 +531,8 @@ public function vol_fermer(Request $request)
             session('step1', []),
             session('step2', [])
         );
-    
+
+        // dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -552,7 +553,7 @@ public function vol_fermer(Request $request)
                 'agence' => $data['agence_expedition'] ?? null,
                 'adresse' => $data['adresse_expediteur'] ?? null,
             ]);
-    
+            // dd($expediteur);
             $destinataire = Destinataire::create([
                 'nom' => $data['nom_destinataire'] ?? null,
                 'prenom' => $data['prenom_destinataire'] ?? null,
@@ -562,6 +563,7 @@ public function vol_fermer(Request $request)
                 'adresse' => $data['adresse_destinataire'] ?? null,
             ]);
     
+            // dd($destinataire);
             // 3. Préparation et création du dossier de paiement principal
             $payementDataSession = session('step2', []);
             $montantTotalDu = collect($data['prix'] ?? [])->sum();
@@ -595,13 +597,14 @@ public function vol_fermer(Request $request)
                 'agent_id' => $agentId,
                 'montant' => $montantTotalDu,
                 'montant_paye' => $montantPaiementTransaction,
-                'colis_id' => null, // Sera mis à jour après la création du premier colis
+                'colis_id' => null,
             ]);
     
+            // dd($paiementPrincipal);
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
-            
+            // dd($colisEnregistres);
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
                 if ($quantite_pour_ligne_article <= 0) {
@@ -617,10 +620,10 @@ public function vol_fermer(Request $request)
                 
                 // Boucle pour créer un enregistrement par colis physique
                 for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-                    
+                    // dd($colisEnregistres);
                     $colisModel = Colis::create([
                         'paiement_id' => $paiementPrincipal->id,
-                        'devise' => 'EUR',
+                        'devise' => 'FCFA',
                         'reference_colis' => $referenceColisPrincipale, 
                         'reference_contenaire' => $data['reference_contenaire'] ?? null,
                         'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
@@ -639,6 +642,7 @@ public function vol_fermer(Request $request)
                         'agent_id' => $agentId,
                         'qr_code_path' => null,
                     ]);
+                    // dd($colisModel);
                     // Génération du QR Code
                     $qrData = [
                         'ID' => $colisModel->id,
@@ -648,12 +652,13 @@ public function vol_fermer(Request $request)
                         'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
                         'Agence' => optional($destinataire)->agence,
                     ];
+                    // dd($qrData);
                     $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
                     
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
                     $pngData = $writer->write($qrCode)->getString();
-                    
+                    // dd( $pngData);
                     $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
                     $fullPath = public_path($filePath);
                     $directory = dirname($fullPath);
@@ -663,11 +668,12 @@ public function vol_fermer(Request $request)
                     File::put($fullPath, $pngData);
                     
                     $colisModel->update(['qr_code_path' => $filePath]);
-    
+                    // dd($colisModel->fresh());
                     $colisEnregistres[] = $colisModel->fresh();
+                    //  dd($colisEnregistres);
                 }
             }
-            
+           
             // 5. Mise à jour finale et validation de la transaction
             if (empty($colisEnregistres)) {
                 throw new \Exception("Aucun colis n'a été créé, annulation de la transaction.");
@@ -678,7 +684,7 @@ public function vol_fermer(Request $request)
             $paiementPrincipal->save();
             
             DB::commit();
-    
+            // dd($colisEnregistres);
         } catch (\Exception $e) {
             DB::rollBack(); // Annule tout en cas d'erreur
             Log::error("Erreur critique lors de la création de colis/paiement: " . $e->getMessage(), [

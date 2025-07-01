@@ -10,7 +10,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                <h4 class="text-left mt-4">Liste des colis à livrer</h4><br>
+                <h4 class="text-left mt-4">Liste des colis à arrivés</h4><br>
                 <div class="table-responsive">
                     <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
                         <thead>
@@ -126,8 +126,8 @@ $(document).ready(function () {
         dom: 'Bfrtip', buttons: ['excel', 'pdf', 'print'], order: [[ 1, 'desc' ]]
     });
 
-   // --- LOGIQUE CORRIGÉE POUR L'OUVERTURE DE LA MODALE ---
-   $('#productTable tbody').on('click', '.pay-btn', function (e) {
+    // --- LOGIQUE CORRIGÉE POUR L'OUVERTURE DE LA MODALE ---
+    $('#productTable tbody').on('click', '.pay-btn', function (e) {
         e.preventDefault();
         var button = $(this);
         

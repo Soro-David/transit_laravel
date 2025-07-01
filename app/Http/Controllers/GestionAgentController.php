@@ -84,8 +84,8 @@ class GestionAgentController extends Controller
     public function destroy($id)
     {
         try {
-            $agence = Agence::findOrFail($id);
-            $agence->delete();
+            $agent = Agent::findOrFail($id);
+            $agent->delete();
             return response()->json(['success' => true, 'message' => 'Agence supprimée avec succès.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Une erreur est survenue.']);

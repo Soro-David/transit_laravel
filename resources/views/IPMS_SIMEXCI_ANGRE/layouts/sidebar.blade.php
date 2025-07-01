@@ -83,7 +83,7 @@
                 <li class="nav-item"> <!-- Supprimé has-treeview car c'est un lien direct -->
                     <a href="{{ route('ipms_angre_colis.liste_ballon') }}" class="nav-link {{ isActiveRoute('ipms_angre_colis.liste_ballon') }}">
                         <i class="fas fa-ship"></i>
-                        <p>{{ __('Ballon Arrivés') }}</p>
+                        <p>{{ __('Vol Arrivés') }}</p>
                     </a>
                 </li>
 

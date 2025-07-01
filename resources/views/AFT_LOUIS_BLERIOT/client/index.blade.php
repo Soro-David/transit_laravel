@@ -11,7 +11,7 @@
                 <th>Email</th>
                 {{-- <th>Type de Client</th> --}}
                 <th>Date de Création</th>
-                <th>Actions</th> <!-- Nouvelle colonne -->
+                {{-- <th>Actions</th> <!-- Nouvelle colonne --> --}}
             </tr>
         </thead>
         <tbody>
@@ -25,13 +25,13 @@
                     <td>{{ $client->created_at }}</td>
                     <td>
                         <!-- Liens ou boutons pour les actions -->
-                        <a href="{{ route('client.edit', ['nom' => $client->nom, 'prenom' => $client->prenom, 'tel' => $client->tel, 'email' => $client->email]) }}" class="btn btn-sm btn-primary">Éditer</a>
+                        {{-- <a href="{{ route('client.edit', ['nom' => $client->nom, 'prenom' => $client->prenom, 'tel' => $client->tel, 'email' => $client->email]) }}" class="btn btn-sm btn-primary">Éditer</a> --}}
 
-                        <form action="{{ route('client.destroy', ['nom' => $client->nom, 'prenom' => $client->prenom, 'tel' => $client->tel, 'email' => $client->email]) }}" method="POST" style="display:inline;">
+                        {{-- <form action="{{ route('client.destroy', ['nom' => $client->nom, 'prenom' => $client->prenom, 'tel' => $client->tel, 'email' => $client->email]) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?')">Supprimer</button>
-                        </form>
+                        </form> --}}
                     </td>
                 </tr>
             @endforeach

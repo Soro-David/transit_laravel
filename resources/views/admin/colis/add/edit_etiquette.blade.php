@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <title>Étiquettes Colis AFT</title>
     <style>
-                .bw-logo {
-            filter: grayscale(100%) contrast(150%);
-        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -178,6 +175,10 @@
         .etiquette-page:not(.last-page) {
             page-break-after: always !important;
 }
+
+.bw-logo {
+            filter: grayscale(100%) contrast(150%);
+        }
     </style>
 </head>
 <body>

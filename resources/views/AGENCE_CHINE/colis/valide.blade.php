@@ -200,7 +200,18 @@ $(document).ready(function () {
                  searchable: true, orderable: true // Permettre recherche/tri
             },
             { data: 'destinataire_tel', name: 'destinataires.tel' }, // Utiliser le nom de table correct
-            { data: 'destinataire_agence', name: 'destinataires.agence' }, // Utiliser le nom de table correct
+            { 
+                data: 'destinataire_agence',
+                name: 'destinataire_agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'Angre 8 ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'Carrefour Angré';
+                    }
+                    return data;
+                }
+            },
             { data: 'etat', name: 'colis.etat' }, // Utiliser le nom de table correct
             { data: 'created_at', name: 'colis.created_at' }, // Utiliser le nom de table correct
              // La colonne 'action' est générée côté serveur avec HTML

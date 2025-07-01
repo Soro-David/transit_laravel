@@ -16,14 +16,14 @@
                         <div class="row g-3 align-items-center">
                             <!-- Référence du bateau (rempli automatiquement) -->
                             <div class="col-md-3">
-                                <label for="reference_bateau" class="form-label fw-bold">Référence du bateau:</label>
+                                <label for="reference_bateau" class="form-label fw-bold">Référence du véhicule:</label>
                                 <input type="text" name="reference_bateau" id="reference_bateau" class="form-control" readonly>
                             </div>
     
                             <!-- Sélection de la référence du conteneur -->
                             <div class="col-md-3">
-                                <label for="reference_conteneur" class="form-label fw-bold">Référence conteneur:</label>
-                                <select id="reference_conteneur" name="reference_conteneur" class="form-select" onchange="generateReferenceBateau()">
+                                <label for="reference_conteneur" class="form-label fw-bold">Référence conteneur/vol:</label>
+                                <select id="reference_conteneur" name="reference_conteneur" class="form-select" onchange="generateReference()">
                                     <option value="" disabled selected>-- Sélectionnez la référence --</option>
                                     @foreach ($referenceFermes as $reference)
                                         <option value="{{ $reference }}">{{ $reference }}</option>
@@ -34,10 +34,10 @@
                             <!-- Type de véhicule -->
                             <div class="col-md-3">
                                 <label for="type" class="form-label fw-bold">Véhicule de navigation:</label>
-                                <select id="type" name="type" class="form-select" onchange="toggleFields()">
+                                <select id="type" name="type" class="form-select" onchange="toggleFields(); generateReference();">
                                     <option value="" disabled selected>Choisir un type</option>
                                     <option value="bateau">BATEAU</option>
-                                    <option value="ballon">BALLON</option>
+                                    <option value="ballon">AVION</option>
                                 </select>
                             </div>
     
@@ -64,15 +64,15 @@
                                 <input type="text" name="nom_bateau" id="nom_bateau" class="form-control" placeholder="Ex: Océanic">
                             </div>
     
-                            <!-- Champs du ballon -->
+                            <!-- Champs de l'avion -->
                             <div class="col-md-3 ballon-fields" style="display: none;">
-                                <label for="numero_ballon" class="form-label fw-bold">Numéro du ballon:</label>
-                                <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" placeholder="Ex: BA123">
+                                <label for="numero_ballon" class="form-label fw-bold">Numéro de vol:</label>
+                                <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" placeholder="Ex: AF702">
                             </div>
     
                             <div class="col-md-3 ballon-fields" style="display: none;">
-                                <label for="nom_ballon" class="form-label fw-bold">Nom du ballon:</label>
-                                <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" placeholder="Ex: AirOcean">
+                                <label for="nom_ballon" class="form-label fw-bold">Nom de l'avion:</label>
+                                <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" placeholder="Ex: Airbus A380">
                             </div>
     
                             <!-- Agence de destination -->
@@ -88,7 +88,7 @@
                             <input type="hidden" name="agence_expedition" value="{{ old('agence_expedition', 'AFT Agence Louis Bleriot') }}">
     
                             <!-- Bouton de soumission -->
-                            <div class="col-md-12 text-center">
+                            <div class="col-md-12 text-center mt-3">
                                 <button type="submit" class="btn btn-success">Créer</button>
                             </div>
                         </div>
@@ -96,122 +96,124 @@
                 </div>
             </div>
         </div>
-    
-        <!-- Script JavaScript -->
-        <script>
-            function generateReferenceBateau() {
-                const referenceConteneur = document.getElementById("reference_conteneur").value;
-                const mois = "{{ $mois }}";  // Récupération du mois depuis Laravel
-                const annee = "{{ $annee }}"; // Récupération de l'année depuis Laravel
-    
-                if (referenceConteneur) {
-                    const referenceBateau = `BAT-${referenceConteneur}-${mois}-${annee}`; // Structure de référence
-                    document.getElementById("reference_bateau").value = referenceBateau;
-                } else {
-                    document.getElementById("reference_bateau").value = ""; // Vider le champ si aucune référence sélectionnée
-                }
-            }
-    
-            function toggleFields() {
-                const type = document.getElementById("type").value;
-                
-                // Sélectionner tous les éléments concernés
-                const bateauFields = document.querySelectorAll(".bateau-fields");
-                const ballonFields = document.querySelectorAll(".ballon-fields");
-    
-                if (type === "bateau") {
-                    bateauFields.forEach(field => field.style.display = "block");
-                    ballonFields.forEach(field => field.style.display = "none");
-                } else if (type === "ballon") {
-                    bateauFields.forEach(field => field.style.display = "none");
-                    ballonFields.forEach(field => field.style.display = "block");
-                } else {
-                    bateauFields.forEach(field => field.style.display = "none");
-                    ballonFields.forEach(field => field.style.display = "none");
-                }
-            }
-        </script>
     </div>
     
-    
-    <form action="" method="POST" class="mt-4">
-        @csrf
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                        <h4 class="text-left mt-4">Liste des bateaux</h4><br>
-                        <div id="products-container">
-                            <div class="table-responsive">
-                                <table id="productTable" class="table table-bordered table-striped display">
-                                    <thead>
-                                        <tr>
-                                            <th>Référence Bateau</th>
-                                            <th>Date depart</th>
-                                            <th>Date arriver</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    <div class="row d-flex justify-content-center mt-4">
+        <div class="col-md-12">
+            <div class="border p-4 rounded shadow-sm">
+                <h4 class="text-left mt-4">Liste des Véhicules de Navigation</h4><br>
+                <div class="table-responsive">
+                    <table id="productTable" class="table table-bordered table-striped display">
+                        <thead>
+                            <tr>
+                                <th>Référence Véhicule</th>
+                                <th>Date de Départ</th>
+                                <th>Date d'Arrivée</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
-    </form>
-    <!-- JavaScript for DataTable and Export -->
-    <script>
+        </div>
+    </div>
+</section>
+
+<!-- Script JavaScript -->
+<script>
+    function generateReference() {
+        const type = document.getElementById("type").value;
+        const referenceConteneur = document.getElementById("reference_conteneur").value;
+        const mois = "{{ $mois }}";
+        const annee = "{{ $annee }}";
+        const referenceInput = document.getElementById("reference_bateau");
+        
+        if (referenceConteneur && type) {
+            let prefix = type === 'bateau' ? 'BAT' : 'AV';
+            referenceInput.value = `${prefix}-${referenceConteneur}-${mois}-${annee}`;
+        } else {
+            referenceInput.value = "";
+        }
+    }
+
+    function toggleFields() {
+        const type = document.getElementById("type").value;
+        const agenceDestinationSelect = document.getElementById("agence_destination");
+        
+        const bateauFields = document.querySelectorAll(".bateau-fields");
+        const ballonFields = document.querySelectorAll(".ballon-fields");
+
+        if (type === "bateau") {
+            bateauFields.forEach(field => field.style.display = "block");
+            ballonFields.forEach(field => field.style.display = "none");
+            
+            // Sélectionne automatiquement "IPMS-SIMEX-CI" pour le bateau
+            agenceDestinationSelect.value = "IPMS-SIMEX-CI";
+
+        } else if (type === "ballon") {
+            bateauFields.forEach(field => field.style.display = "none");
+            ballonFields.forEach(field => field.style.display = "block");
+            
+            // *** CORRECTION APPLIQUÉE ICI ***
+            // Sélectionne automatiquement "IPMS-SIMEX-CI Angre 8ème Tranche" pour l'avion
+            agenceDestinationSelect.value = "IPMS-SIMEX-CI Angre 8ème Tranche";
+
+        } else {
+            bateauFields.forEach(field => field.style.display = "none");
+            ballonFields.forEach(field => field.style.display = "none");
+            
+            // Réinitialise la sélection si aucune option n'est choisie
+            agenceDestinationSelect.value = "";
+        }
+    }
+</script>
+
+
+<!-- JavaScript for DataTable and Export -->
+<script>
 $(document).ready(function () {
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                url: "{{ asset('js/fr-FR.json') }}"
             },
-        ajax: '{{ route("colis.get.cargaison.ferme") }}', // Récupération des données via AJAX
-            columns: [
-                { data: 'reference_bateau', title: "Référence Bateau" },
-                { data: 'date_depart', title: "Date de Départ" },
-                { data: 'date_arriver', title: "Date d'Arrivée" },
-                { data: 'actions', title: "Actions", orderable: false, searchable: false }
-            ],
-        dom: 'Bfrtip', // Placement des boutons
+        ajax: '{{ route("colis.get.cargaison.ferme") }}',
+        columns: [
+            { data: 'reference_bateau', title: "Référence Véhicule" },
+            { data: 'date_depart', title: "Date de Départ" },
+            { data: 'date_arriver', title: "Date d'Arrivée" },
+            { data: 'actions', title: "Actions", orderable: false, searchable: false }
+        ],
+        dom: 'Bfrtip',
         buttons: [
-            // Bouton Excel
             {
                 extend: 'excelHtml5',
                 text: 'Exporter en Excel',
-                title: 'Liste des Colis en attente',
-                customize: function (xlsx) {
-                    console.log("Exportation Excel réussie sans image.");
-                }
+                title: 'Liste des Véhicules de Navigation',
             },
-            // Bouton PDF
             {
                 extend: 'pdfHtml5',
                 text: 'Exporter en PDF',
-                title: 'Liste des Colis en attente',
-                orientation: 'landscape', // Mode paysage
-                pageSize: 'A4', // Taille de la page
+                title: 'Liste des Véhicules de Navigation',
+                orientation: 'landscape',
+                pageSize: 'A4',
                 customize: function (doc) {
-                    // Ajout du logo encodé en Base64 dans le PDF
                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                     toDataURL(logoUrl, function (dataUrl) {
-                        // Ajout de l'image au début du contenu PDF
-                        console.log(dataUrl);
                         doc.content.unshift({
                             image: dataUrl,
-                            width: 100, // Taille du logo
+                            width: 100,
                             alignment: 'center',
-                            margin: [0, 0, 0, 10] // Espacement
+                            margin: [0, 0, 0, 10]
                         });
                     });
                 }
             },
-            // Bouton Imprimer
             {
                 extend: 'print',
                 text: 'Imprimer',
-                title: 'Liste des Colis en attente',
+                title: 'Liste des Véhicules de Navigation',
                 customize: function (win) {
                     var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                     var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
@@ -223,34 +225,26 @@ $(document).ready(function () {
                 }
             }
         ]
-});
+    });
 
-    /**
-     * Fonction pour convertir une image en Base64
-     * @param {string} url - L'URL de l'image
-     * @param {function} callback - Fonction de retour contenant l'image en Base64
-     */
     function toDataURL(url, callback) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function () {
             var reader = new FileReader();
             reader.onloadend = function () {
-                callback(reader.result); // Retourne l'image encodée en Base64
+                callback(reader.result);
             };
             reader.readAsDataURL(xhr.response);
         };
         xhr.open('GET', url);
-        xhr.responseType = 'blob'; // Type de réponse : Blob
+        xhr.responseType = 'blob';
         xhr.send();
     }
 });
-
-    </script>
-    
-    
-</section>
+</script>
 
 <style>
+    /* Les styles restent les mêmes, ils sont déjà corrects */
     .btn {
         width: 15%;
         height: 40px;
@@ -258,7 +252,7 @@ $(document).ready(function () {
     }
 
     .dataTable-wrapper {
-        width: 80% !important;
+        width: 100% !important;
         margin: 20px auto;
         padding: 15px;
         border: 1px solid #ccc;
@@ -267,27 +261,28 @@ $(document).ready(function () {
     }
 
     .dt-button {
-    width: 100%; /* carré */
-    height: 40px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    border: none;
-    outline: none;
-}
+        width: auto;
+        padding: 0.5rem 1rem;
+        height: 40px;
+        font-size: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: none;
+        outline: none;
+        margin: 5px;
+    }
 
-.dt-button:hover {
-    transform: scale(1.1);
-    background-color: #c82333 !important; /* rouge plus foncé */
-}
+    .dt-button:hover {
+        transform: scale(1.05);
+        background-color: #c82333 !important;
+    }
 
-.dt-button:active {
-    transform: scale(0.95);
-    box-shadow: none;
-}
-
+    .dt-button:active {
+        transform: scale(0.98);
+        box-shadow: none;
+    }
 </style>
 @endsection

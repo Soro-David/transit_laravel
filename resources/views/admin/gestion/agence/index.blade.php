@@ -19,7 +19,7 @@
                                             <th>NOM AGENCE</th>
                                             <th>ADRESSE</th>
                                             <th>PAYS</th>
-                                            <th>DEVIS</th>
+                                            {{-- <th>DEVIS</th> --}}
                                             <th>ACTIONS</th>
                                         </tr>
                                     </thead>
@@ -158,7 +158,7 @@
                     { data: 'nom_agence', name: 'nom_agence' },
                     { data: 'adresse_agence', name: 'adresse_agence' },
                     { data: 'pays_agence', name: 'pays_agence' },
-                    { data: 'devise_agence', name: 'devise_agence' },
+                   // { data: 'devise_agence', name: 'devise_agence' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                     ]
             });
