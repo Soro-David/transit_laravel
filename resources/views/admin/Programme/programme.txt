@@ -1,0 +1,1226 @@
+@extends('admin.layouts.admin')
+
+@section('content-header')
+@endsection
+
+@section('content')
+<div class="container-fluid"> 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h1 class="m-0 font-weight-bold text-primary">Gestion des Programmes</h1>
+        </div>
+        <div class="card-body">
+            <!-- =================== SECTION DES BOUTONS ET DE LA RECHERCHE =================== -->
+            <div class="mb-3 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center">
+                <div class="mb-2 mb-md-0">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
+                        <i class="fa fa-plus"></i> Ajouter Programme
+                    </button>
+                    <a href="{{ route('programme.export.pdf') }}" class="btn btn-danger ml-2">
+                        <i class="fas fa-file-pdf"></i> Exporter en PDF
+                    </a>
+                </div>
+
+                <div class="form-inline">
+                    <input type="text" id="search" class="form-control" placeholder="Rechercher...">
+                </div>
+            </div>
+
+            <div class="mb-3 d-flex justify-content-start align-items-center">
+                <div class="mr-2">Afficher par page:</div>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span id="pageSizeDisplay">10</span>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="pageSizeDropdown">
+                        <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
+                        <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
+                        <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =================== TABLEAU DES PROGRAMMES =================== -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="bg-light">
+                    <tr>
+                        <th>Date Programme</th>
+                        <th>Chauffeur</th>
+                        <th>Référence Colis</th>
+                        <th>Actions à faire</th>
+                        <th>Nom Expéditeur</th>
+                        <th>Adresse Expédition</th>
+                        <th>Téléphone Expéditeur</th>
+                        <th>Nom Destinataire</th>
+                        <th>Téléphone Destinataire</th>
+                        <th>Adresse Destination</th>
+                        <th>Etat RDV</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="programmes-table">
+                    <!-- Données chargées par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul id="pagination" class="pagination">
+                        <!-- Pagination générée par JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ======================================================================================================= -->
+<!-- ======================================= MODAL D'AJOUT DE PROGRAMME ====================================== -->
+<!-- ======================================================================================================= -->
+<div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
+    {{-- MODAL AGRANDI avec modal-xl --}}
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addProgrammeModalLabel">Créer un Programme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ route('programme.store') }}">
+                    @csrf
+                    {{-- Champs généraux du programme --}}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_programme" class="form-label">Date du Programme:</label>
+                            <input type="date" name="date_programme" id="date_programme" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="chauffeur_id" class="form-label">Chauffeur:</label>
+                            <select name="chauffeur_id" id="chauffeur_id" class="form-control" required>
+                                <option value="">-- Sélectionner un Chauffeur --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {{-- Conteneur pour les entrées de colis dynamiques --}}
+                    <div id="programme-entries-container">
+                        <!-- Premier bloc de programme (colis) -->
+                        <div class="programme-entry">
+                            <h5>Colis 1</h5>
+                            {{-- MISE EN PAGE SUR DEUX COLONNES --}}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                                        <input type="text" name="reference_colis[]" class="form-control reference_colis required-field" data-index="0" id="reference_colis_0" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
+                                        <select name="actions_a_faire[]" class="form-control required-field" required>
+                                            <option value="">-- Sélectionner une action --</option>
+                                            <option value="depot">Dépôt</option>
+                                            <option value="recuperation">Récupération</option>
+                                            <option value="livraison">Livraison</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nom_expediteur_0" class="form-label">Nom Expéditeur :</label>
+                                        <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Adresse_expedition_0" class="form-label">Adresse d’enlèvement :</label>
+                                        <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="tel_expediteur_0" class="form-label">Téléphone Expéditeur :</label>
+                                        <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nom_destinataire_0" class="form-label">Nom Destinataire :</label>
+                                        <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="tel_destinataire_0" class="form-label">Téléphone Destinataire :</label>
+                                        <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
+                                        <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-success" id="add-programme-entry">
+                            <i class="fa fa-plus"></i> Ajouter un autre Colis
+                        </button>
+                    </div>
+
+                    <div class="modal-footer mt-4">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les Programmes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================================================= -->
+<!-- ======================================= MODAL D'ÉDITION DE PROGRAMME ==================================== -->
+<!-- ======================================================================================================= -->
+<div class="modal fade" id="editProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="editProgrammeModalLabel" aria-hidden="true">
+    {{-- MODAL AGRANDI avec modal-xl --}}
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editProgrammeModalLabel">Modifier le Programme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editProgrammeForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="programme_id" id="edit_programme_id">
+                    
+                    {{-- MISE EN PAGE SUR DEUX COLONNES --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_date_programme" class="form-label">Date du Programme:</label>
+                                <input type="date" name="date_programme" id="edit_date_programme" class="form-control" data-modified="false">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_chauffeur_id" class="form-label">Chauffeur:</label>
+                                <select name="chauffeur_id" id="edit_chauffeur_id" class="form-control" data-modified="false">
+                                    <option value="">-- Sélectionner un Chauffeur --</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_reference_colis" class="form-label">Référence Colis :</label>
+                                <input type="text" name="reference_colis" id="edit_reference_colis" class="form-control" data-modified="false">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_actions_a_faire" class="form-label">Actions à faire :</label>
+                                <select name="actions_a_faire" id="edit_actions_a_faire" class="form-control" data-modified="false">
+                                    <option value="">-- Sélectionner une action --</option>
+                                    <option value="depot">Dépôt</option>
+                                    <option value="recuperation">Récupération</option>
+                                    <option value="livraison">Livraison</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_etat_rdv" class="form-label">Etat du RDV:</label>
+                                <input type="text" class="form-control" id="edit_etat_rdv" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer mt-4">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<datalist id="colis-list"></datalist>
+
+@endsection
+
+@push('scripts')
+{{-- Pousser les scripts dans la stack 'scripts' du layout admin si elle existe --}}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://kit.fontawesome.com/votre-id-fontawesome.js" crossorigin="anonymous"></script> {{-- Pensez à remplacer par votre ID FontAwesome --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    let programmesData = { programmes: [], colisValides: [] };
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let entryCounter = 1; // Compteur pour les nouveaux colis
+
+    // ================== FONCTIONS UTILITAIRES (TABLEAU, PAGINATION) ==================
+    function generateTable(programmes) {
+        const tableBody = $('#programmes-table');
+        tableBody.empty();
+
+        if (programmes.length === 0) {
+            tableBody.append('<tr><td colspan="12" class="text-center">Aucun programme trouvé.</td></tr>');
+            return;
+        }
+
+        programmes.forEach(programme => {
+            let rowClass = '';
+            if (programme.etat_rdv === 'effectué') rowClass = 'table-success';
+            else if (programme.etat_rdv === 'à replanifié') rowClass = 'table-warning';
+            
+            tableBody.append(`
+                <tr class="${rowClass}">
+                    <td>${programme.date_programme}</td>
+                    <td>${programme.chauffeur ? programme.chauffeur.nom : 'N/A'}</td>
+                    <td>${programme.reference_colis || 'N/A'}</td>
+                    <td>${programme.actions_a_faire || 'N/A'}</td>
+                    <td>${programme.nom_expediteur || 'N/A'}</td>
+                    <td>${programme.Adresse_expedition || 'N/A'}</td>
+                    <td>${programme.tel_expediteur || 'N/A'}</td>
+                    <td>${programme.nom_destinataire || 'N/A'}</td>
+                    <td>${programme.tel_destinataire || 'N/A'}</td>
+                    <td>${programme.Adresse_destination || 'N/A'}</td>
+                    <td>${programme.etat_rdv || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}" title="Modifier"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}" title="Supprimer"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function generatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const paginationContainer = $('#pagination');
+        paginationContainer.empty();
+        if (totalPages <= 1) return;
+
+        const createPageItem = (label, page, isDisabled = false, isActive = false) => {
+            const li = $(`<li class="page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}">`);
+            const a = $(`<a class="page-link" href="#">${label}</a>`).on('click', e => {
+                e.preventDefault();
+                if (!isDisabled) {
+                    currentPage = page;
+                    updateTable();
+                }
+            });
+            return li.append(a);
+        };
+
+        paginationContainer.append(createPageItem('«', currentPage - 1, currentPage === 1));
+        for (let i = 1; i <= totalPages; i++) {
+            paginationContainer.append(createPageItem(i, i, false, currentPage === i));
+        }
+        paginationContainer.append(createPageItem('»', currentPage + 1, currentPage === totalPages));
+    }
+
+    function updateTable() {
+        const searchTerm = $('#search').val().toLowerCase();
+        const filteredProgrammes = programmesData.programmes.filter(p =>
+            Object.values(p).some(val => val && val.toString().toLowerCase().includes(searchTerm)) ||
+            (p.chauffeur && p.chauffeur.nom.toLowerCase().includes(searchTerm))
+        );
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        generateTable(filteredProgrammes.slice(startIndex, endIndex));
+        generatePagination(filteredProgrammes.length);
+    }
+
+    // ================== CHARGEMENT INITIAL DES DONNÉES ==================
+    function loadInitialData() {
+        axios.get("{{ route('programme.data') }}")
+            .then(function(response) {
+                programmesData.programmes = response.data.programmes;
+                programmesData.colisValides = response.data.colisValides;
+
+                const chauffeurs = response.data.chauffeurs;
+                const selectChauffeur = $('#chauffeur_id, #edit_chauffeur_id');
+                selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                chauffeurs.forEach(c => selectChauffeur.append(`<option value="${c.id}">${c.nom}</option>`));
+
+                const colisList = $('#colis-list');
+                colisList.empty();
+                response.data.colisValides.forEach(colis => {
+                    colisList.append(`<option value="${colis.reference_colis}"></option>`);
+                });
+
+                updateTable();
+            })
+            .catch(error => console.error('Erreur de requête:', error));
+    }
+    
+    loadInitialData(); // Appel initial
+
+    // ================== GESTION DES ÉVÉNEMENTS (CLICS, INPUTS) ==================
+
+    $('#search').on('input', () => { currentPage = 1; updateTable(); });
+    $('.page-size-btn').on('click', function(e) {
+        e.preventDefault();
+        itemsPerPage = parseInt($(this).data('size'));
+        currentPage = 1;
+        $('#pageSizeDisplay').text(itemsPerPage);
+        updateTable();
+    });
+
+    // --- AJOUT D'UN NOUVEAU BLOC COLIS DANS LE MODAL D'AJOUT ---
+    $('#add-programme-entry').on('click', function() {
+        const index = $('.programme-entry').length;
+        entryCounter++;
+        // NOUVELLE LOGIQUE : ajout du bouton "Retirer" et structure en 2 colonnes
+        let newEntry = `
+            <div class="programme-entry mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5>Colis ${entryCounter}</h5>
+                    <button type="button" class="btn btn-danger btn-sm remove-programme-entry">
+                        <i class="fa fa-times"></i> Retirer
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                            <input type="text" name="reference_colis[]" class="form-control reference_colis" data-index="${index}" id="reference_colis_${index}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
+                            <select name="actions_a_faire[]" class="form-control required-field" required>
+                                <option value="">-- Sélectionner une action --</option>
+                                <option value="depot">Dépôt</option>
+                                <option value="recuperation">Récupération</option>
+                                <option value="livraison">Livraison</option>
+                            </select>
+                        </div>
+                        <div class="mb-3"><label>Nom Expéditeur :</label><input type="text" name="nom_expediteur[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Adresse d’enlèvement :</label><input type="text" name="Adresse_expedition[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Téléphone Expéditeur :</label><input type="text" name="tel_expediteur[]" class="form-control" readonly></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3"><label>Nom Destinataire :</label><input type="text" name="nom_destinataire[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Téléphone Destinataire :</label><input type="text" name="tel_destinataire[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Adresse Destination :</label><input type="text" name="Adresse_destination[]" class="form-control" readonly></div>
+                    </div>
+                </div>
+            </div>`;
+        $('#programme-entries-container').append(newEntry);
+    });
+
+    // --- SUPPRESSION D'UN BLOC COLIS ---
+    $(document).on('click', '.remove-programme-entry', function() {
+        $(this).closest('.programme-entry').remove();
+        // Ré-indexer les numéros de colis pour l'affichage
+        entryCounter = 0;
+        $('.programme-entry h5').each(function() {
+            entryCounter++;
+            $(this).text(`Colis ${entryCounter}`);
+        });
+    });
+
+    // --- AUTO-REMPLISSAGE DES INFOS COLIS ---
+    $(document).on('input', '.reference_colis', function() {
+        const selectedReference = $(this).val();
+        const entryBlock = $(this).closest('.programme-entry');
+        
+        const clearFields = () => {
+            entryBlock.find('input[name="nom_expediteur[]"], input[name="Adresse_expedition[]"], input[name="tel_expediteur[]"], input[name="nom_destinataire[]"], input[name="tel_destinataire[]"], input[name="Adresse_destination[]"]').val('');
+        };
+
+        if (selectedReference.length >= 3) {
+            axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
+                .then(response => {
+                    const colis = response.data;
+                    if (colis) {
+                        entryBlock.find('input[name="nom_expediteur[]"]').val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
+                        entryBlock.find('input[name="Adresse_expedition[]"]').val(colis.expediteur.lieu_expedition);
+                        entryBlock.find('input[name="tel_expediteur[]"]').val(colis.expediteur.tel);
+                        entryBlock.find('input[name="nom_destinataire[]"]').val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
+                        entryBlock.find('input[name="tel_destinataire[]"]').val(colis.destinataire.tel);
+                        entryBlock.find('input[name="Adresse_destination[]"]').val(colis.destinataire.lieu_destination);
+                    } else {
+                        clearFields();
+                    }
+                }).catch(() => clearFields());
+        } else {
+            clearFields();
+        }
+    });
+
+    // ================== ACTIONS CRUD (AJOUT, MODIFICATION, SUPPRESSION) ==================
+
+    // --- SOUMISSION DU FORMULAIRE D'AJOUT ---
+    $('#addProgrammeModal form').on('submit', function(event) {
+        event.preventDefault();
+        const form = $(this);
+        axios.post(form.attr('action'), form.serialize())
+            .then(() => {
+                $('#addProgrammeModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Programme créé avec succès!', showConfirmButton: false, timer: 2000 });
+                loadInitialData(); // Recharger toutes les données
+            })
+            .catch(error => {
+                console.error('Erreur lors de la création:', error);
+                Swal.fire({ icon: 'error', title: 'Erreur', text: 'Une erreur est survenue.' });
+            });
+    });
+    
+    // --- OUVERTURE ET REMPLISSAGE DU MODAL D'ÉDITION ---
+    $(document).on('click', '.edit-programme-btn', function() {
+        const programmeId = $(this).data('id');
+        const editForm = $('#editProgrammeForm');
+        editForm.attr('action', `/admin/programme/update/${programmeId}`);
+
+        axios.get(`/admin/programme/edit/${programmeId}`)
+            .then(response => {
+                const { programme, chauffeurs } = response.data;
+                $('#edit_programme_id').val(programme.id);
+                $('#edit_date_programme').val(programme.date_programme);
+                
+                const selectChauffeur = $('#edit_chauffeur_id');
+                selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                chauffeurs.forEach(c => {
+                    selectChauffeur.append(`<option value="${c.id}" ${programme.chauffeur_id == c.id ? 'selected' : ''}>${c.nom}</option>`);
+                });
+
+                $('#edit_reference_colis').val(programme.reference_colis);
+                $('#edit_actions_a_faire').val(programme.actions_a_faire);
+                $('#edit_etat_rdv').val(programme.etat_rdv);
+                
+                // Réinitialiser l'état 'modified'
+                $('#editProgrammeModal [data-modified]').attr('data-modified', 'false');
+                
+                $('#editProgrammeModal').modal('show');
+            })
+            .catch(error => console.error('Erreur de récupération:', error));
+    });
+
+    // Marquer les champs comme modifiés dans le modal d'édition
+    $('#editProgrammeModal').on('change', 'input, select', function() {
+        $(this).attr('data-modified', 'true');
+    });
+
+    // --- SOUMISSION DU FORMULAIRE DE MODIFICATION ---
+    $('#editProgrammeForm').on('submit', function(event) {
+        event.preventDefault();
+        const form = $(this);
+        const formData = {};
+
+        // Ne soumettre que les champs qui ont été modifiés
+        form.find('[data-modified="true"]').each(function() {
+            formData[$(this).attr('name')] = $(this).val();
+        });
+
+        // Ajouter _token et _method manuellement pour Axios
+        formData['_token'] = form.find('input[name="_token"]').val();
+        formData['_method'] = form.find('input[name="_method"]').val();
+
+        if (Object.keys(formData).length > 2) { // Si au moins un champ a changé
+            axios.post(form.attr('action'), formData)
+                .then(() => {
+                    $('#editProgrammeModal').modal('hide');
+                    Swal.fire({ icon: 'success', title: 'Programme mis à jour !', showConfirmButton: false, timer: 2000 });
+                    loadInitialData();
+                })
+                .catch(error => {
+                    console.error('Erreur de mise à jour:', error);
+                    Swal.fire({ icon: 'error', title: 'Erreur', text: 'Une erreur est survenue.' });
+                });
+        } else {
+            $('#editProgrammeModal').modal('hide'); // Fermer si rien n'a changé
+        }
+    });
+
+    // --- SUPPRESSION D'UN PROGRAMME ---
+    $(document).on('click', '.delete-programme-btn', function() {
+        const programmeId = $(this).data('id');
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: "Cette action est irréversible !",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer !',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/admin/programme/delete/${programmeId}`, { data: { _token: "{{ csrf_token() }}" } })
+                    .then(() => {
+                        Swal.fire('Supprimé!', 'Le programme a été supprimé.', 'success');
+                        loadInitialData();
+                    })
+                    .catch(error => {
+                        console.error('Erreur de suppression:', error);
+                        Swal.fire('Erreur!', 'La suppression a échoué.', 'error');
+                    });
+            }
+        });
+    });
+
+    // Vider le formulaire d'ajout à la fermeture du modal pour éviter les données persistantes
+    $('#addProgrammeModal').on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        // Garder uniquement le premier bloc de colis et supprimer les autres
+        $('#programme-entries-container').find('.programme-entry:not(:first)').remove();
+        entryCounter = 1; // Réinitialiser le compteur
+    });
+});
+</script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@extends('admin.layouts.admin')
+
+@section('content-header')
+@endsection
+
+@section('content')
+<div class="container-fluid"> 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h1 class="m-0 font-weight-bold text-primary">Gestion des Programmes</h1>
+        </div>
+        <div class="card-body">
+            <!-- =================== SECTION DES BOUTONS ET DE LA RECHERCHE =================== -->
+            <div class="mb-3 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center">
+                <div class="mb-2 mb-md-0">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
+                        <i class="fa fa-plus"></i> Ajouter Programme
+                    </button>
+                    <a href="{{ route('programme.export.pdf') }}" class="btn btn-danger ml-2">
+                        <i class="fas fa-file-pdf"></i> Exporter en PDF
+                    </a>
+                </div>
+
+                <div class="form-inline">
+                    <input type="text" id="search" class="form-control" placeholder="Rechercher...">
+                </div>
+            </div>
+
+            <div class="mb-3 d-flex justify-content-start align-items-center">
+                <div class="mr-2">Afficher par page:</div>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span id="pageSizeDisplay">10</span>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="pageSizeDropdown">
+                        <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
+                        <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
+                        <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =================== TABLEAU DES PROGRAMMES =================== -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="bg-light">
+                    <tr>
+                        <th>Date Programme</th>
+                        <th>Chauffeur</th>
+                        <th>Référence Colis</th>
+                        <th>Actions à faire</th>
+                        <th>Nom Expéditeur</th>
+                        <th>Adresse Expédition</th>
+                        <th>Téléphone Expéditeur</th>
+                        <th>Nom Destinataire</th>
+                        <th>Téléphone Destinataire</th>
+                        <th>Adresse Destination</th>
+                        <th>Etat RDV</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="programmes-table">
+                    <!-- Données chargées par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul id="pagination" class="pagination">
+                        <!-- Pagination générée par JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ======================================================================================================= -->
+<!-- ======================================= MODAL D'AJOUT DE PROGRAMME ====================================== -->
+<!-- ======================================================================================================= -->
+<div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
+    {{-- MODAL AGRANDI avec modal-xl --}}
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addProgrammeModalLabel">Créer un Programme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ route('programme.store') }}">
+                    @csrf
+                    {{-- Champs généraux du programme --}}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_programme" class="form-label">Date du Programme:</label>
+                            <input type="date" name="date_programme" id="date_programme" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="chauffeur_id" class="form-label">Chauffeur:</label>
+                            <select name="chauffeur_id" id="chauffeur_id" class="form-control" required>
+                                <option value="">-- Sélectionner un Chauffeur --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {{-- Conteneur pour les entrées de colis dynamiques --}}
+                    <div id="programme-entries-container">
+                        <!-- Premier bloc de programme (colis) -->
+                        <div class="programme-entry">
+                            <h5>Colis 1</h5>
+                            {{-- MISE EN PAGE SUR DEUX COLONNES --}}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                                        <input type="text" name="reference_colis[]" class="form-control reference_colis required-field" data-index="0" id="reference_colis_0" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
+                                        <select name="actions_a_faire[]" class="form-control required-field" required>
+                                            <option value="">-- Sélectionner une action --</option>
+                                            <option value="depot">Dépôt</option>
+                                            <option value="recuperation">Récupération</option>
+                                            <option value="livraison">Livraison</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nom_expediteur_0" class="form-label">Nom Expéditeur :</label>
+                                        <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Adresse_expedition_0" class="form-label">Adresse d’enlèvement :</label>
+                                        <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="tel_expediteur_0" class="form-label">Téléphone Expéditeur :</label>
+                                        <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nom_destinataire_0" class="form-label">Nom Destinataire :</label>
+                                        <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="tel_destinataire_0" class="form-label">Téléphone Destinataire :</label>
+                                        <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
+                                        <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-success" id="add-programme-entry">
+                            <i class="fa fa-plus"></i> Ajouter un autre Colis
+                        </button>
+                    </div>
+
+                    <div class="modal-footer mt-4">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les Programmes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================================================= -->
+<!-- ======================================= MODAL D'ÉDITION DE PROGRAMME ==================================== -->
+<!-- ======================================================================================================= -->
+<div class="modal fade" id="editProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="editProgrammeModalLabel" aria-hidden="true">
+    {{-- MODAL AGRANDI avec modal-xl --}}
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editProgrammeModalLabel">Modifier le Programme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editProgrammeForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="programme_id" id="edit_programme_id">
+                    
+                    {{-- MISE EN PAGE SUR DEUX COLONNES --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_date_programme" class="form-label">Date du Programme:</label>
+                                <input type="date" name="date_programme" id="edit_date_programme" class="form-control" data-modified="false">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_chauffeur_id" class="form-label">Chauffeur:</label>
+                                <select name="chauffeur_id" id="edit_chauffeur_id" class="form-control" data-modified="false">
+                                    <option value="">-- Sélectionner un Chauffeur --</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_reference_colis" class="form-label">Référence Colis :</label>
+                                <input type="text" name="reference_colis" id="edit_reference_colis" class="form-control" data-modified="false">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_actions_a_faire" class="form-label">Actions à faire :</label>
+                                <select name="actions_a_faire" id="edit_actions_a_faire" class="form-control" data-modified="false">
+                                    <option value="">-- Sélectionner une action --</option>
+                                    <option value="depot">Dépôt</option>
+                                    <option value="recuperation">Récupération</option>
+                                    <option value="livraison">Livraison</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_etat_rdv" class="form-label">Etat du RDV:</label>
+                                <input type="text" class="form-control" id="edit_etat_rdv" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer mt-4">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<datalist id="colis-list"></datalist>
+
+@endsection
+
+@push('scripts')
+{{-- Pousser les scripts dans la stack 'scripts' du layout admin si elle existe --}}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://kit.fontawesome.com/votre-id-fontawesome.js" crossorigin="anonymous"></script> {{-- Pensez à remplacer par votre ID FontAwesome --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    let programmesData = { programmes: [], colisValides: [] };
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let entryCounter = 1; // Compteur pour les nouveaux colis
+
+    // ================== FONCTIONS UTILITAIRES (TABLEAU, PAGINATION) ==================
+    function generateTable(programmes) {
+        const tableBody = $('#programmes-table');
+        tableBody.empty();
+
+        if (programmes.length === 0) {
+            tableBody.append('<tr><td colspan="12" class="text-center">Aucun programme trouvé.</td></tr>');
+            return;
+        }
+
+        programmes.forEach(programme => {
+            let rowClass = '';
+            if (programme.etat_rdv === 'effectué') rowClass = 'table-success';
+            else if (programme.etat_rdv === 'à replanifié') rowClass = 'table-warning';
+            
+            tableBody.append(`
+                <tr class="${rowClass}">
+                    <td>${programme.date_programme}</td>
+                    <td>${programme.chauffeur ? programme.chauffeur.nom : 'N/A'}</td>
+                    <td>${programme.reference_colis || 'N/A'}</td>
+                    <td>${programme.actions_a_faire || 'N/A'}</td>
+                    <td>${programme.nom_expediteur || 'N/A'}</td>
+                    <td>${programme.Adresse_expedition || 'N/A'}</td>
+                    <td>${programme.tel_expediteur || 'N/A'}</td>
+                    <td>${programme.nom_destinataire || 'N/A'}</td>
+                    <td>${programme.tel_destinataire || 'N/A'}</td>
+                    <td>${programme.Adresse_destination || 'N/A'}</td>
+                    <td>${programme.etat_rdv || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}" title="Modifier"><i class="fa fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}" title="Supprimer"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function generatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const paginationContainer = $('#pagination');
+        paginationContainer.empty();
+        if (totalPages <= 1) return;
+
+        const createPageItem = (label, page, isDisabled = false, isActive = false) => {
+            const li = $(`<li class="page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}">`);
+            const a = $(`<a class="page-link" href="#">${label}</a>`).on('click', e => {
+                e.preventDefault();
+                if (!isDisabled) {
+                    currentPage = page;
+                    updateTable();
+                }
+            });
+            return li.append(a);
+        };
+
+        paginationContainer.append(createPageItem('«', currentPage - 1, currentPage === 1));
+        for (let i = 1; i <= totalPages; i++) {
+            paginationContainer.append(createPageItem(i, i, false, currentPage === i));
+        }
+        paginationContainer.append(createPageItem('»', currentPage + 1, currentPage === totalPages));
+    }
+
+    function updateTable() {
+        const searchTerm = $('#search').val().toLowerCase();
+        const filteredProgrammes = programmesData.programmes.filter(p =>
+            Object.values(p).some(val => val && val.toString().toLowerCase().includes(searchTerm)) ||
+            (p.chauffeur && p.chauffeur.nom.toLowerCase().includes(searchTerm))
+        );
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        generateTable(filteredProgrammes.slice(startIndex, endIndex));
+        generatePagination(filteredProgrammes.length);
+    }
+
+    // ================== CHARGEMENT INITIAL DES DONNÉES ==================
+    function loadInitialData() {
+        axios.get("{{ route('programme.data') }}")
+            .then(function(response) {
+                programmesData.programmes = response.data.programmes;
+                programmesData.colisValides = response.data.colisValides;
+
+                const chauffeurs = response.data.chauffeurs;
+                const selectChauffeur = $('#chauffeur_id, #edit_chauffeur_id');
+                selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                chauffeurs.forEach(c => selectChauffeur.append(`<option value="${c.id}">${c.nom}</option>`));
+
+                const colisList = $('#colis-list');
+                colisList.empty();
+                response.data.colisValides.forEach(colis => {
+                    colisList.append(`<option value="${colis.reference_colis}"></option>`);
+                });
+
+                updateTable();
+            })
+            .catch(error => console.error('Erreur de requête:', error));
+    }
+    
+    loadInitialData(); // Appel initial
+
+    // ================== GESTION DES ÉVÉNEMENTS (CLICS, INPUTS) ==================
+
+    $('#search').on('input', () => { currentPage = 1; updateTable(); });
+    $('.page-size-btn').on('click', function(e) {
+        e.preventDefault();
+        itemsPerPage = parseInt($(this).data('size'));
+        currentPage = 1;
+        $('#pageSizeDisplay').text(itemsPerPage);
+        updateTable();
+    });
+
+    // --- AJOUT D'UN NOUVEAU BLOC COLIS DANS LE MODAL D'AJOUT ---
+    $('#add-programme-entry').on('click', function() {
+        const index = $('.programme-entry').length;
+        entryCounter++;
+        // NOUVELLE LOGIQUE : ajout du bouton "Retirer" et structure en 2 colonnes
+        let newEntry = `
+            <div class="programme-entry mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5>Colis ${entryCounter}</h5>
+                    <button type="button" class="btn btn-danger btn-sm remove-programme-entry">
+                        <i class="fa fa-times"></i> Retirer
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                            <input type="text" name="reference_colis[]" class="form-control reference_colis" data-index="${index}" id="reference_colis_${index}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
+                            <select name="actions_a_faire[]" class="form-control required-field" required>
+                                <option value="">-- Sélectionner une action --</option>
+                                <option value="depot">Dépôt</option>
+                                <option value="recuperation">Récupération</option>
+                                <option value="livraison">Livraison</option>
+                            </select>
+                        </div>
+                        <div class="mb-3"><label>Nom Expéditeur :</label><input type="text" name="nom_expediteur[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Adresse d’enlèvement :</label><input type="text" name="Adresse_expedition[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Téléphone Expéditeur :</label><input type="text" name="tel_expediteur[]" class="form-control" readonly></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3"><label>Nom Destinataire :</label><input type="text" name="nom_destinataire[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Téléphone Destinataire :</label><input type="text" name="tel_destinataire[]" class="form-control" readonly></div>
+                        <div class="mb-3"><label>Adresse Destination :</label><input type="text" name="Adresse_destination[]" class="form-control" readonly></div>
+                    </div>
+                </div>
+            </div>`;
+        $('#programme-entries-container').append(newEntry);
+    });
+
+    // --- SUPPRESSION D'UN BLOC COLIS ---
+    $(document).on('click', '.remove-programme-entry', function() {
+        $(this).closest('.programme-entry').remove();
+        // Ré-indexer les numéros de colis pour l'affichage
+        entryCounter = 0;
+        $('.programme-entry h5').each(function() {
+            entryCounter++;
+            $(this).text(`Colis ${entryCounter}`);
+        });
+    });
+
+    // --- AUTO-REMPLISSAGE DES INFOS COLIS ---
+    $(document).on('input', '.reference_colis', function() {
+        const selectedReference = $(this).val();
+        const entryBlock = $(this).closest('.programme-entry');
+        
+        const clearFields = () => {
+            entryBlock.find('input[name="nom_expediteur[]"], input[name="Adresse_expedition[]"], input[name="tel_expediteur[]"], input[name="nom_destinataire[]"], input[name="tel_destinataire[]"], input[name="Adresse_destination[]"]').val('');
+        };
+
+        if (selectedReference.length >= 3) {
+            axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
+                .then(response => {
+                    const colis = response.data;
+                    if (colis) {
+                        entryBlock.find('input[name="nom_expediteur[]"]').val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
+                        entryBlock.find('input[name="Adresse_expedition[]"]').val(colis.expediteur.lieu_expedition);
+                        entryBlock.find('input[name="tel_expediteur[]"]').val(colis.expediteur.tel);
+                        entryBlock.find('input[name="nom_destinataire[]"]').val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
+                        entryBlock.find('input[name="tel_destinataire[]"]').val(colis.destinataire.tel);
+                        entryBlock.find('input[name="Adresse_destination[]"]').val(colis.destinataire.lieu_destination);
+                    } else {
+                        clearFields();
+                    }
+                }).catch(() => clearFields());
+        } else {
+            clearFields();
+        }
+    });
+
+    // ================== ACTIONS CRUD (AJOUT, MODIFICATION, SUPPRESSION) ==================
+
+    // --- SOUMISSION DU FORMULAIRE D'AJOUT ---
+    $('#addProgrammeModal form').on('submit', function(event) {
+        event.preventDefault();
+        const form = $(this);
+        axios.post(form.attr('action'), form.serialize())
+            .then(() => {
+                $('#addProgrammeModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Programme créé avec succès!', showConfirmButton: false, timer: 2000 });
+                loadInitialData(); // Recharger toutes les données
+            })
+            .catch(error => {
+                console.error('Erreur lors de la création:', error);
+                Swal.fire({ icon: 'error', title: 'Erreur', text: 'Une erreur est survenue.' });
+            });
+    });
+    
+    // --- OUVERTURE ET REMPLISSAGE DU MODAL D'ÉDITION ---
+    $(document).on('click', '.edit-programme-btn', function() {
+        const programmeId = $(this).data('id');
+        const editForm = $('#editProgrammeForm');
+        editForm.attr('action', `/admin/programme/update/${programmeId}`);
+
+        axios.get(`/admin/programme/edit/${programmeId}`)
+            .then(response => {
+                const { programme, chauffeurs } = response.data;
+                $('#edit_programme_id').val(programme.id);
+                $('#edit_date_programme').val(programme.date_programme);
+                
+                const selectChauffeur = $('#edit_chauffeur_id');
+                selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                chauffeurs.forEach(c => {
+                    selectChauffeur.append(`<option value="${c.id}" ${programme.chauffeur_id == c.id ? 'selected' : ''}>${c.nom}</option>`);
+                });
+
+                $('#edit_reference_colis').val(programme.reference_colis);
+                $('#edit_actions_a_faire').val(programme.actions_a_faire);
+                $('#edit_etat_rdv').val(programme.etat_rdv);
+                
+                // Réinitialiser l'état 'modified'
+                $('#editProgrammeModal [data-modified]').attr('data-modified', 'false');
+                
+                $('#editProgrammeModal').modal('show');
+            })
+            .catch(error => console.error('Erreur de récupération:', error));
+    });
+
+    // Marquer les champs comme modifiés dans le modal d'édition
+    $('#editProgrammeModal').on('change', 'input, select', function() {
+        $(this).attr('data-modified', 'true');
+    });
+
+    // --- SOUMISSION DU FORMULAIRE DE MODIFICATION ---
+    $('#editProgrammeForm').on('submit', function(event) {
+        event.preventDefault();
+        const form = $(this);
+        const formData = {};
+
+        // Ne soumettre que les champs qui ont été modifiés
+        form.find('[data-modified="true"]').each(function() {
+            formData[$(this).attr('name')] = $(this).val();
+        });
+
+        // Ajouter _token et _method manuellement pour Axios
+        formData['_token'] = form.find('input[name="_token"]').val();
+        formData['_method'] = form.find('input[name="_method"]').val();
+
+        if (Object.keys(formData).length > 2) { // Si au moins un champ a changé
+            axios.post(form.attr('action'), formData)
+                .then(() => {
+                    $('#editProgrammeModal').modal('hide');
+                    Swal.fire({ icon: 'success', title: 'Programme mis à jour !', showConfirmButton: false, timer: 2000 });
+                    loadInitialData();
+                })
+                .catch(error => {
+                    console.error('Erreur de mise à jour:', error);
+                    Swal.fire({ icon: 'error', title: 'Erreur', text: 'Une erreur est survenue.' });
+                });
+        } else {
+            $('#editProgrammeModal').modal('hide'); // Fermer si rien n'a changé
+        }
+    });
+
+    // --- SUPPRESSION D'UN PROGRAMME ---
+    $(document).on('click', '.delete-programme-btn', function() {
+        const programmeId = $(this).data('id');
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: "Cette action est irréversible !",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer !',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(`/admin/programme/delete/${programmeId}`, { data: { _token: "{{ csrf_token() }}" } })
+                    .then(() => {
+                        Swal.fire('Supprimé!', 'Le programme a été supprimé.', 'success');
+                        loadInitialData();
+                    })
+                    .catch(error => {
+                        console.error('Erreur de suppression:', error);
+                        Swal.fire('Erreur!', 'La suppression a échoué.', 'error');
+                    });
+            }
+        });
+    });
+
+    // Vider le formulaire d'ajout à la fermeture du modal pour éviter les données persistantes
+    $('#addProgrammeModal').on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        // Garder uniquement le premier bloc de colis et supprimer les autres
+        $('#programme-entries-container').find('.programme-entry:not(:first)').remove();
+        entryCounter = 1; // Réinitialiser le compteur
+    });
+});
+</script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+

@@ -26,19 +26,21 @@ class AgentTransportController extends Controller
      */
     public function index()
     {
-        return view('agent.transport.index');
+        return view('IPMS_SIMEXCI.transport.index');
     }
     public function show_chauffeur()
     {
-        $agences = Agence::select('nom_agence', 'id')->get();
-        return view('agent.transport.chauffeur', compact('agences'));
+        $agences = Agence::select('nom_agence', 'id')
+                            ->where('nom_agence', "IPMS-SIMEX-CI")
+                            ->get();
+        return view('IPMS_SIMEXCI.transport.chauffeur', compact('agences'));
     }
 
     public function planing_chauffeur()
     {
         $agences = Agence::select('nom_agence', 'id')->get();
         $chauffeurs = Chauffeur::select('nom','prenom','id')->get();
-        return view('agent.transport.planing', compact('agences','chauffeurs'));
+        return view('IPMS_SIMEXCI.transport.planing', compact('agences','chauffeurs'));
     }
     
     /**

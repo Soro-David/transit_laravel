@@ -12,6 +12,8 @@ class ProgrammeController extends Controller
 {
     public function index()
     {
+        // $chauffeurs = Chauffeur::all();
+        // dd($chauffeurs);
         return view('admin.Programme.programme');
     }
 

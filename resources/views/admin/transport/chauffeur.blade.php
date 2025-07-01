@@ -1,6 +1,8 @@
 @extends('admin.layouts.admin')
 
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @endsection
 
 @section('content')
@@ -280,25 +282,26 @@
         </form>
     </div>
 
-    {{-- Confirm Delete Modal --}}
-    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de Suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer ce chauffeur ?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
-                </div>
+{{-- Confirm Delete Modal --}}
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de Suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer ce chauffeur ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                {{-- BOUTON CORRIGÉ : Il a maintenant un ID unique et ne déclenche plus un modal --}}
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
             </div>
         </div>
     </div>
+</div>
 
     </section>
 
@@ -307,145 +310,132 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-        let chauffeurIdToDelete;
 
-        $(document).ready(function() {
-            // Initialize DataTables
-            var table = $('#chauffeur-table').DataTable({
-                processing: true,
-                serverSide: true,
-                language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+    $(document).ready(function() {
+        // Initialisation de la DataTable (votre code était déjà correct)
+        var table = $('#chauffeur-table').DataTable({
+            processing: true,
+            serverSide: true,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+            },
+            ajax: {
+                url: '{{ route('transport.get.chauffeur.list') }}',
+                data: function(d) {
+                    d.pays_agence = $('#pays_agence').val()
+                }
+            },
+            columns: [
+                { data: 'nom', name: 'nom' },
+                { data: 'prenom', name: 'prenom' },
+                { data: 'tel', name: 'tel' },
+                { data: 'email', name: 'email' },
+                { data: 'agence', name: 'agence', orderable: false, searchable: false },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `
+                            <button class="btn btn-sm btn-primary edit-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#editChauffeurModal" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                    }
+
+                }
+            ]
+    });
+
+        $('#pays_agence').on('change', function() {
+            table.ajax.reload();
+        });
+        
+        let chauffeurIdToDelete = null;
+
+        $('#chauffeur-table').on('click', '.delete-chauffeur-btn', function () {
+            chauffeurIdToDelete = $(this).data('id');
+        });
+
+
+        $('#confirmDeleteBtn').on('click', function () {
+            if (!chauffeurIdToDelete) {
+                alert('Erreur: ID du chauffeur non trouvé.');
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route("transport.chauffeur.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    _method: 'DELETE'
                 },
-                ajax: {
-                    url: '{{ route('transport.get.chauffeur.list') }}',
-                    data: function(d) {
-                        d.pays_agence = $('#pays_agence').val()
-                    }
+                success: function (response) {
+                    $('#confirmDeleteModal').modal('hide');
+                    table.ajax.reload(null, false);
+                    alert(response.success);
                 },
-                columns: [{
-                        data: 'nom',
-                        name: 'nom'
-                    },
-                    {
-                        data: 'prenom',
-                        name: 'prenom'
-                    },
-                    {
-                        data: 'tel',
-                        name: 'tel'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'agence', // Data for the agency column
-                        name: 'agence',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            // Generate URLs using the route() helper
-                            var editUrl = `{{ route('transport.chauffeur.edit', ['id' => '__ID__']) }}`.replace('__ID__', row.id);
-                            var deleteUrl = `{{ route('transport.chauffeur.destroy', ['id' => '__ID__']) }}`.replace('__ID__', row.id);
-
-                            return `
-                                <button class="btn btn-sm btn-primary edit-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#editChauffeurModal" title="Modifier">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger delete-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" title="Supprimer">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            `;
-                        }
-                    }
-                ]
+                error: function (xhr) {
+                    console.error('Erreur :', xhr.responseText);
+                    alert('Une erreur est survenue : ' + xhr.status);
+                }
             });
+        });
 
-            // Reload table on country change
-            $('#pays_agence').on('change', function() {
-                table.ajax.reload();
+
+        $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
+            const chauffeurId = $(this).data('id');
+            $('#editChauffeurForm').data('id', chauffeurId); // Store chauffeurId in the form
+
+            $.ajax({
+                url: `{{ route('transport.chauffeur.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
+                type: 'GET',
+                success: function(data) {
+                    // Populate modal with chauffeur data, setting read-only values
+                    $('#editChauffeurModal #edit_nom_chauffeur').val(data.chauffeur.nom);
+                    $('#editChauffeurModal #edit_prenom_chauffeur').val(data.chauffeur.prenom);
+                    $('#editChauffeurModal #edit_tel_chauffeur').val(data.chauffeur.tel);
+
+                    // Set agency selection
+                    $('#editChauffeurModal #edit_agence_expedition').val(data.chauffeur.agence_id);
+
+                    // Show the modal
+                    $('#editChauffeurModal').modal('show');
+                },
+                error: function(xhr) {
+                    console.error('Error fetching chauffeur data:', xhr);
+                }
             });
+        });
 
-            // Delete Chauffeur
-            $('#confirmDeleteBtn').click(function() {
-                $.ajax({
-                    url: `{{ route('transport.chauffeur.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-                    type: 'DELETE',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        $('#confirmDeleteModal').modal('hide');
-                        table.ajax.reload();
-                    },
-                    error: function(xhr) {
-                        console.error('Error deleting chauffeur:', xhr);
-                    }
-                });
+        $('#editChauffeurForm').submit(function(e) {
+            e.preventDefault(); // Prevent the form from submitting normally
+
+            const chauffeurId = $(this).data('id'); // Retrieve the chauffeur ID from the form's data attribute
+
+            const formData = $(this).serialize();
+
+            $.ajax({
+                url: `{{ route('transport.chauffeur.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
+                type: 'PUT', // Use PUT method for updating
+                data: formData,
+                success: function(response) {
+                    // Handle success response
+                    $('#editChauffeurModal').modal('hide'); // Hide the modal
+                    table.ajax.reload(); // Reload the DataTable
+                    alert('Chauffeur mis à jour avec succès.');
+                },
+                error: function(xhr) {
+                    console.error('Error updating chauffeur data:', xhr);
+                    alert('Une erreur est survenue lors de la mise à jour du chauffeur.');
+                }
             });
-
-            $('#confirmDeleteModal').on('show.bs.modal', function(event) {
-                const button = $(event.relatedTarget);
-                chauffeurIdToDelete = button.data('id');
-            });
-
-            // Show Edit Chauffeur Modal and Populate Data
-            $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
-                const chauffeurId = $(this).data('id');
-                $('#editChauffeurForm').data('id', chauffeurId); // Store chauffeurId in the form
-
-                $.ajax({
-                    url: `{{ route('transport.chauffeur.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
-                    type: 'GET',
-                    success: function(data) {
-                        // Populate modal with chauffeur data, setting read-only values
-                        $('#editChauffeurModal #edit_nom_chauffeur').val(data.chauffeur.nom);
-                        $('#editChauffeurModal #edit_prenom_chauffeur').val(data.chauffeur.prenom);
-                        $('#editChauffeurModal #edit_tel_chauffeur').val(data.chauffeur.tel);
-
-                        // Set agency selection
-                        $('#editChauffeurModal #edit_agence_expedition').val(data.chauffeur.agence_id);
-
-                        // Show the modal
-                        $('#editChauffeurModal').modal('show');
-                    },
-                    error: function(xhr) {
-                        console.error('Error fetching chauffeur data:', xhr);
-                    }
-                });
-            });
-
-            // Handle the form submission for editing the chauffeur
-            $('#editChauffeurForm').submit(function(e) {
-                e.preventDefault(); // Prevent the form from submitting normally
-
-                const chauffeurId = $(this).data('id'); // Retrieve the chauffeur ID from the form's data attribute
-
-                const formData = $(this).serialize(); // Serialize the form data
-
-                $.ajax({
-                    url: `{{ route('transport.chauffeur.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId), // Dynamic URL with the chauffeur ID
-                    type: 'PUT', // Use PUT method for updating
-                    data: formData,
-                    success: function(response) {
-                        // Handle success response
-                        $('#editChauffeurModal').modal('hide'); // Hide the modal
-                        table.ajax.reload(); // Reload the DataTable
-                        alert('Chauffeur mis à jour avec succès.');
-                    },
-                    error: function(xhr) {
-                        console.error('Error updating chauffeur data:', xhr);
-                        alert('Une erreur est survenue lors de la mise à jour du chauffeur.');
-                    }
-                });
-            });
+        });
 
         });
     </script>

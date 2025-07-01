@@ -23,7 +23,7 @@
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <!-- Scripts globaux -->
+    <!-- Scripts globaux --register>
     <script>
         window.APP = @json([
             'currency_symbol' => config('settings.currency_symbol'),
