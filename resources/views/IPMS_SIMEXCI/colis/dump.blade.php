@@ -78,7 +78,7 @@
                     <div id="euroPaymentFields" style="display:none;">
                         <div class="mb-3">
                             <label for="modalNewPaymentAmountEur" class="form-label">Montant du Nouveau Paiement (en EUR) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" required placeholder="0.00">
+                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" placeholder="0.00">  <!-- required a été retiré -->
                         </div>
                         <div class="mb-3">
                             <label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA</label>
@@ -88,9 +88,9 @@
 
                     {{-- Section pour l'agence id=7 (cachée par défaut) --}}
                     <div id="fcfaPaymentFields" style="display:none;">
-                         <div class="mb-3">
+                        <div class="mb-3">
                             <label for="modalNewPaymentAmountCfa" class="form-label">Montant du Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label>
-                            <input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa" required placeholder="0">
+                            <input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa" placeholder="0"> <!-- required a été retiré -->
                         </div>
                     </div>
                 
@@ -185,10 +185,19 @@ $(document).ready(function () {
         $('#modalColisId').val(colisId);
         $('#modalColisIds').val(JSON.stringify(colisIds));
 
+        // ===== MODIFICATION : GESTION DYNAMIQUE DE L'ATTRIBUT 'REQUIRED' =====
+        var fcfaInput = $('#modalNewPaymentAmountCfa');
+        var eurInput = $('#modalNewPaymentAmountEur');
+
         // CAS 1 : Colis créé par l'agence avec id = 7 (FCFA)
         if (creatorAgenceId === 7) {
+            // Cacher les champs EUR et les rendre non-obligatoires
             $('#euroPaymentFields').hide();
+            eurInput.prop('required', false);
+
+            // Afficher les champs FCFA et les rendre obligatoires
             $('#fcfaPaymentFields').show();
+            fcfaInput.prop('required', true);
 
             let total = parseFloat(button.data('total')) || 0;
             let paid = parseFloat(button.data('paid')) || 0;
@@ -203,13 +212,18 @@ $(document).ready(function () {
             $('#modalAmountAlreadyPaid').val(formatCfa(paid));
             $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatCfa(remaining)}</strong>`);
             
-            $('#modalNewPaymentAmountCfa').val(Math.round(remaining));
-            $('#modalNewPaymentAmountCfa').trigger('input');
+            fcfaInput.val(Math.round(remaining));
+            fcfaInput.trigger('input'); // Déclenche le calcul pour le champ caché
         } 
         // CAS 2 : Colis créé par une autre agence (Euro)
         else {
+            // Cacher les champs FCFA et les rendre non-obligatoires
             $('#fcfaPaymentFields').hide();
+            fcfaInput.prop('required', false);
+
+            // Afficher les champs EUR et les rendre obligatoires
             $('#euroPaymentFields').show();
+            eurInput.prop('required', true);
 
             let totalEur = parseFloat(button.data('total')) || 0;
             let paidEur = parseFloat(button.data('paid')) || 0;
@@ -228,8 +242,8 @@ $(document).ready(function () {
             $('#modalAmountAlreadyPaid').val(`${formatEur(paidEur)} soit ${formatCfa(paidCfa)}`);
             $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatEur(remainingEur)}</strong> soit ${formatCfa(remainingCfa)}`);
             
-            $('#modalNewPaymentAmountEur').val(remainingEur.toFixed(2));
-            $('#modalNewPaymentAmountEur').trigger('input');
+            eurInput.val(remainingEur.toFixed(2));
+            eurInput.trigger('input'); // Déclenche le calcul pour le champ caché
         }
         
         $('#paymentModal').modal('show');

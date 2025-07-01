@@ -74,16 +74,25 @@ class TransportController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroyChauffeur($id)
-    {
-        try {
-            $chauffeur = Chauffeur::findOrFail($id);
-            $chauffeur->delete();
-            return response()->json(['success' => 'Chauffeur supprimé avec succès.']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erreur lors de la suppression.'], 500);
+    public function destroy($id)
+{
+    try {
+        // Supprimer le chauffeur
+        $chauffeur = Chauffeur::findOrFail($id);
+        
+        // Supprimer l'utilisateur associé
+        $user = User::where('email', $chauffeur->email)->first();
+        if ($user) {
+            $user->delete();
         }
+        
+        $chauffeur->delete();
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
+}
 
     public function editChauffeur($id)
     {

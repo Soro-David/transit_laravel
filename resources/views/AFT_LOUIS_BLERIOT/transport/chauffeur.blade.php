@@ -133,7 +133,7 @@
     {{-- Add Chauffeur Modal --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="{{ route('aftlb_transport.store.chauffeur') }}" method="post">
+        <form id="addChauffeurForm" action="{{ route('aftlb_transport.store.chauffeur') }}" method="post">
             @csrf
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -350,25 +350,51 @@
                     }
                 ]
             });
+            // AJAX pour l'ajout de chauffeur
+    $('#addChauffeurForm').submit(function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
 
-            // Delete Chauffeur
-            $('#confirmDeleteBtn').click(function() {
-                $.ajax({
-                    url: `{{ URL::route('aftlb_transport.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-                    type: 'DELETE',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        $('#confirmDeleteModal').modal('hide');
-                        table.ajax.reload();
-                    },
-                    error: function(xhr) {
-                        console.error('Error deleting chauffeur:', xhr);
-                    }
-                });
-            });
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                $('#ajouter_chauffeur').modal('hide'); // Fermer la modal
+                table.ajax.reload(); // Recharger la DataTable
+                $('#addChauffeurForm')[0].reset(); // Réinitialiser le formulaire
+                alert('Chauffeur ajouté avec succès!');
+            },
+            error: function(xhr) {
+                // Gérer les erreurs de validation
+                var errors = xhr.responseJSON.errors;
+                // Afficher les erreurs (à adapter selon votre structure)
+                console.error(errors);
+            }
+        });
+    });
 
+          // Correction de la suppression
+$('#confirmDeleteBtn').click(function() {
+    $.ajax({
+        url: `{{ route('aftlb_transport.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
+        type: 'DELETE',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#confirmDeleteModal').modal('hide');
+                table.ajax.reload();
+            } else {
+                alert('Erreur lors de la suppression: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            alert('Erreur serveur');
+        }
+    });
+});
             $('#confirmDeleteModal').on('show.bs.modal', function(event) {
                 const button = $(event.relatedTarget);
                 chauffeurIdToDelete = button.data('id');
