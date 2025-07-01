@@ -347,7 +347,7 @@
             updateTable();
         });
 
-        $('#add-programme-entry').on('click', function() {
+        $('#add-programme-netry').on('click', function() {
             const index = $('.programme-entry').length;
             let newEntry = `
                 <hr>
