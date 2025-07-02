@@ -87,11 +87,19 @@
                                     <div class="form-group">
                                         <label for="edit_agence_expedition">Agence:</label>
                                         <select name="agence_expedition" id="edit_agence_expedition" class="form-control">
-                                            <option value="" disabled>-- Sélectionnez l'agence d'expédition --</option>
-                                            @foreach ($agences as $agence)
-                                                <option value="{{ $agence->id }}">{{ $agence->nom_agence }}</option>
-                                            @endforeach
+                                               <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                                @foreach ($agences as $agence)
+                                                    @php
+                                                        $nomAffiche = match($agence->nom_agence) {
+                                                            'IPMS-SIMEX-CI Angre 8ème Tranche' => 'Angré 8ème Tranche',
+                                                            'IPMS-SIMEX-CI' => 'Carrefour Angré',
+                                                            default => $agence->nom_agence,
+                                                        };
+                                                    @endphp
+                                                    <option value="{{ $agence->id }}">{{ $nomAffiche }}</option>
+                                                @endforeach
                                         </select>
+
                                         @error('agence_expedition')
                                             <div class="text-danger">
                                                 <p>{{ $message }}</p>
@@ -251,15 +259,18 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="agence_expedition">Agence:</label>
-                                        <select name="agence_expedition" id="agence_expedition" class="form-control">
-                                            <option value="" disabled selected>-- Sélectionnez l'agence d'expédition
-                                            </option>
-                                            @foreach ($agences as $agence)
-                                                <option value="{{ $agence->id }}"
-                                                    {{ old('agence_expedition') == $agence->id ? 'selected' : '' }}>
-                                                    {{ $agence->nom_agence }}
-                                                </option>
-                                            @endforeach
+                                        <select name="agence_expedition" id="edit_agence_expedition" class="form-control">
+                                               <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                                @foreach ($agences as $agence)
+                                                    @php
+                                                        $nomAffiche = match($agence->nom_agence) {
+                                                            'IPMS-SIMEX-CI Angre 8ème Tranche' => 'Angré 8ème Tranche',
+                                                            'IPMS-SIMEX-CI' => 'Carrefour Angré',
+                                                            default => $agence->nom_agence,
+                                                        };
+                                                    @endphp
+                                                    <option value="{{ $agence->id }}">{{ $nomAffiche }}</option>
+                                                @endforeach
                                         </select>
                                         @error('agence_expedition')
                                             <div class="text-danger">
@@ -330,7 +341,22 @@
                 { data: 'prenom', name: 'prenom' },
                 { data: 'tel', name: 'tel' },
                 { data: 'email', name: 'email' },
-                { data: 'agence', name: 'agence', orderable: false, searchable: false },
+                {
+                    data: 'agence',
+                    name: 'agence',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                            return 'Angré 8ème Tranche';
+                        } else if (data === 'IPMS-SIMEX-CI') {
+                            return 'Carrefour Angré';
+                        } else {
+                            return data;
+                        }
+                    }
+                },
+
                 {
                     data: 'action',
                     name: 'action',

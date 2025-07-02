@@ -14,6 +14,138 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+                .header-section {
+            background-color:rgb(255, 149, 0);
+            color: white;
+            padding: 50px 0;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 3em;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
+        }
+        
+        h2 {
+            color: #333; /* Couleur du titre */
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666; /* Couleur du texte */
+            line-height: 1.6;
+        }
+        
+        ul {
+            list-style-type: disc; /* Style des puces */
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .img-fluid {
+            width: 100%; /* L'image prend toute la largeur de son conteneur */
+            height: auto; /* La hauteur s'ajuste automatiquement pour conserver les proportions */
+        }
+        
+        .rounded {
+            border-radius: 10px; /* Arrondit les coins de l'image */
+        }
+        .footer-dark {
+            background-color: #343a40; /* Couleur de fond sombre */
+            color: #fff; /* Couleur du texte clair */
+            padding: 50px 0;
+        }
+
+        .footer-dark h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .footer-dark ul {
+            padding: 0;
+            list-style: none;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .footer-dark ul a {
+            color: inherit;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        .footer-dark ul a:hover {
+            opacity: 1;
+        }
+
+        .footer-dark .social {
+            text-align: center;
+        }
+
+        .footer-dark .social > a {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            display: inline-block;
+            text-align: center;
+            border-radius: 50%;
+            border: 1px solid #fff;
+            margin: 0 8px;
+            color: inherit;
+            opacity: 0.75;
+        }
+
+        .footer-dark .social > a:hover {
+            opacity: 0.9;
+        }
+
+        .footer-dark .copyright {
+            text-align: center;
+            padding-top: 24px;
+            opacity: 0.7;
+            font-size: 13px;
+        }
+        .container {
+            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
+        }
+        
+        h2 {
+            color: #333; /* Couleur du titre */
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666; /* Couleur du texte */
+            line-height: 1.6;
+        }
+        
+        ul {
+            list-style-type: disc; /* Style des puces */
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .img-fluid {
+            width: 100%; /* L'image prend toute la largeur de son conteneur */
+            height: auto; /* La hauteur s'ajuste automatiquement pour conserver les proportions */
+        }
+        
+        .rounded {
+            border-radius: 10px; /* Arrondit les coins de l'image */
+        }
         /* Styles personnalisés */
         body {
             font-family: 'Arial', sans-serif;
@@ -240,7 +372,7 @@
                             <a class="nav-link mx-3" href="/nos-servives">Nos services</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active mx-3" href="/nos-agences">Nos Agences</a>
+                            <a class="nav-link mx-3" href="/nos-agences">Nos Agences</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link mx-3" href="/contact">Contact</a>
@@ -304,7 +436,7 @@
                     </div>
                 </div>
             </section>
-            <section class="mission-vision-section">
+            {{-- <section class="mission-vision-section">
                 <div class="row mission-vision">
                     <div class="col-md-6">
                         <h3><strong>NOS AGENCES</strong></h3>
@@ -375,7 +507,7 @@
                             </li>
                         </ul>
                     </div>
-            </section>
+            </section> --}}
                 <section class="mission-vision-section">
                 <div class="row mission-vision">
                     <div class="col-md-6">
@@ -421,140 +553,6 @@
 
         </div>
     </section>
-    <style>
-        .header-section {
-            background-color:rgb(255, 149, 0);
-            color: white;
-            padding: 50px 0;
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .header-section h1 {
-            font-size: 3em;
-            font-weight: bold;
-        }
-        .container {
-            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
-        }
-        
-        h2 {
-            color: #333; /* Couleur du titre */
-            margin-bottom: 20px;
-        }
-        
-        p {
-            color: #666; /* Couleur du texte */
-            line-height: 1.6;
-        }
-        
-        ul {
-            list-style-type: disc; /* Style des puces */
-            padding-left: 20px;
-        }
-        
-        li {
-            margin-bottom: 10px;
-        }
-        
-        .img-fluid {
-            width: 100%; /* L'image prend toute la largeur de son conteneur */
-            height: auto; /* La hauteur s'ajuste automatiquement pour conserver les proportions */
-        }
-        
-        .rounded {
-            border-radius: 10px; /* Arrondit les coins de l'image */
-        }
-        .footer-dark {
-            background-color: #343a40; /* Couleur de fond sombre */
-            color: #fff; /* Couleur du texte clair */
-            padding: 50px 0;
-        }
-
-        .footer-dark h3 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .footer-dark ul {
-            padding: 0;
-            list-style: none;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        .footer-dark ul a {
-            color: inherit;
-            text-decoration: none;
-            opacity: 0.8;
-        }
-
-        .footer-dark ul a:hover {
-            opacity: 1;
-        }
-
-        .footer-dark .social {
-            text-align: center;
-        }
-
-        .footer-dark .social > a {
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            display: inline-block;
-            text-align: center;
-            border-radius: 50%;
-            border: 1px solid #fff;
-            margin: 0 8px;
-            color: inherit;
-            opacity: 0.75;
-        }
-
-        .footer-dark .social > a:hover {
-            opacity: 0.9;
-        }
-
-        .footer-dark .copyright {
-            text-align: center;
-            padding-top: 24px;
-            opacity: 0.7;
-            font-size: 13px;
-        }
-        .container {
-            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
-        }
-        
-        h2 {
-            color: #333; /* Couleur du titre */
-            margin-bottom: 20px;
-        }
-        
-        p {
-            color: #666; /* Couleur du texte */
-            line-height: 1.6;
-        }
-        
-        ul {
-            list-style-type: disc; /* Style des puces */
-            padding-left: 20px;
-        }
-        
-        li {
-            margin-bottom: 10px;
-        }
-        
-        .img-fluid {
-            width: 100%; /* L'image prend toute la largeur de son conteneur */
-            height: auto; /* La hauteur s'ajuste automatiquement pour conserver les proportions */
-        }
-        
-        .rounded {
-            border-radius: 10px; /* Arrondit les coins de l'image */
-        }
-    </style>
 
 <footer class="footer-dark">
     <div class="container">
