@@ -370,6 +370,7 @@
                             <button class="btn btn-sm btn-danger delete-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
+
                         `;
                     }
 
@@ -383,9 +384,12 @@
         
         let chauffeurIdToDelete = null;
 
+       
         $('#chauffeur-table').on('click', '.delete-chauffeur-btn', function () {
             chauffeurIdToDelete = $(this).data('id');
         });
+
+
 
 
         $('#confirmDeleteBtn').on('click', function () {
@@ -397,14 +401,14 @@
             $.ajax({
                 url: '{{ route("transport.chauffeur.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
                 type: 'POST',
-                data: {
+                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     _method: 'DELETE'
-                },
+                 },
                 success: function (response) {
                     $('#confirmDeleteModal').modal('hide');
                     table.ajax.reload(null, false);
-                    alert(response.success);
+                    alert(response.success || 'Chauffeur supprimé avec succès.');
                 },
                 error: function (xhr) {
                     console.error('Erreur :', xhr.responseText);
@@ -412,7 +416,6 @@
                 }
             });
         });
-
 
         $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
             const chauffeurId = $(this).data('id');
