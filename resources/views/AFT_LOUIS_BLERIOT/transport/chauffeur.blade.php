@@ -1,6 +1,8 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agent')
 
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @endsection
 
 @section('content')
@@ -349,56 +351,46 @@
                         }
                     }
                 ]
-            });
-            // AJAX pour l'ajout de chauffeur
-    $('#addChauffeurForm').submit(function(e) {
-        e.preventDefault();
-        var formData = $(this).serialize();
-
-        $.ajax({
-            url: $(this).attr('action'),
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                $('#ajouter_chauffeur').modal('hide'); // Fermer la modal
-                table.ajax.reload(); // Recharger la DataTable
-                $('#addChauffeurForm')[0].reset(); // Réinitialiser le formulaire
-                alert('Chauffeur ajouté avec succès!');
-            },
-            error: function(xhr) {
-                // Gérer les erreurs de validation
-                var errors = xhr.responseJSON.errors;
-                // Afficher les erreurs (à adapter selon votre structure)
-                console.error(errors);
-            }
         });
-    });
 
-          // Correction de la suppression
-$('#confirmDeleteBtn').click(function() {
-    $.ajax({
-        url: `{{ route('aftlb_transport.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-        type: 'DELETE',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function(response) {
-            if (response.success) {
-                $('#confirmDeleteModal').modal('hide');
-                table.ajax.reload();
-            } else {
-                alert('Erreur lors de la suppression: ' + response.message);
+
+        // Reload DataTable on filtre
+        $('#pays_agence').on('change', function () {
+            table.ajax.reload();
+        });
+
+        // Stocke l'ID du chauffeur à supprimer quand on ouvre le modal
+        $('#chauffeur-table').on('click', '.delete-chauffeur-btn', function () {
+            chauffeurIdToDelete = $(this).data('id');
+        });
+
+        // Confirme suppression
+        $('#confirmDeleteBtn').on('click', function () {
+            if (!chauffeurIdToDelete) {
+                alert('Erreur: ID du chauffeur non trouvé.');
+                return;
             }
-        },
-        error: function(xhr) {
-            alert('Erreur serveur');
-        }
-    });
-});
-            $('#confirmDeleteModal').on('show.bs.modal', function(event) {
-                const button = $(event.relatedTarget);
-                chauffeurIdToDelete = button.data('id');
+
+            $.ajax({
+                url: '{{ route("aftlb_transport.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    _method: 'DELETE'
+                },
+                success: function (response) {
+                    $('#confirmDeleteModal').modal('hide');
+                    table.ajax.reload(null, false);
+                    alert(response.success || 'Chauffeur supprimé avec succès.');
+                },
+                error: function (xhr) {
+                    console.error('Erreur :', xhr.responseText);
+                    alert('Une erreur est survenue : ' + xhr.status);
+                }
             });
+        });
+
+
 
             // Show Edit Chauffeur Modal and Populate Data
             $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {

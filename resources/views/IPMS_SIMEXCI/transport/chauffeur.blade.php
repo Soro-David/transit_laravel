@@ -1,28 +1,16 @@
-@extends('admin.layouts.admin')
+@extends('IPMS_SIMEXCI.layouts.agent')
 
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @endsection
 
 @section('content')
     <div class="row justify-content-center">
         <div class="col-md-12">
-            <h2>Liste des chauffeur</h2>
+            <h2>Liste des chauffeurs</h2>
 
-            {{-- Filter and Search Section --}}
-            <div class="row">
-                {{-- Country Filter --}}
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label for="pays_agence" class="col-label">Country:</label>
-                        <select class="form-control" id="pays_agence" name="pays_agence">
-                            <option value="">Tous les pays</option>
-                            @foreach($pays_agence as $pays)
-                            <option value="{{ $pays }}">{{ $pays }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-              
+            {{-- Filter and Search Section (Deleted, as it's not needed based on your requirement) --}}
 
             <div class="text-right">
                 <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal"
@@ -147,7 +135,7 @@
     {{-- Add Chauffeur Modal --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="{{ route('transport.store.chauffeur') }}" method="post">
+        <form action="{{ route('IPMSANGRE_transport.chauffeurs.store') }}" method="post">
             @csrf
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -269,8 +257,9 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="agence_id" value="{{ $agence->id }}">
-                    {{-- @dd($agence->id) --}}
+                    <!-- enlever car cette variable n'est pas transferer vers la vue , 
+                    et que ce n'est pas necessaire de transferer l'id de l'agence pour ajouter le chauffeur -->
+                  
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                         <button type="submit" class="btn btn-primary">Ajouter</button>
@@ -309,20 +298,17 @@
     <script>
         let chauffeurIdToDelete;
 
-        $(document).ready(function() {
+    $(document).ready(function() {
             // Initialize DataTables
-            var table = $('#chauffeur-table').DataTable({
+        var table = $('#chauffeur-table').DataTable({
                 processing: true,
                 serverSide: true,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
                 },
                 ajax: {
-                    url: '{{ route('transport.get.chauffeur.list') }}',
-                    data: function(d) {
-                        d.pays_agence = $('#pays_agence').val()
-                    }
-                },
+                            url: '{{ route('IPMSANGRE_transport.chauffeurs.data') }}', // Nom corrigé
+                      },
                 columns: [{
                         data: 'nom',
                         name: 'nom'
@@ -340,7 +326,7 @@
                         name: 'email'
                     },
                     {
-                        data: 'agence', // Data for the agency column
+                        data: 'agence',
                         name: 'agence',
                         orderable: false,
                         searchable: false
@@ -352,8 +338,8 @@
                         searchable: false,
                         render: function(data, type, row) {
                             // Generate URLs using the route() helper
-                            var editUrl = `{{ route('transport.chauffeur.edit', ['id' => '__ID__']) }}`.replace('__ID__', row.id);
-                            var deleteUrl = `{{ route('transport.chauffeur.destroy', ['id' => '__ID__']) }}`.replace('__ID__', row.id);
+                            var editUrl = `{{ URL::route('IPMSANGRE_transport.chauffeurs.edit', ['id' => '__ID__']) }}`.replace('__ID__', row.id);
+                            var deleteUrl = `{{ URL::route('IPMSANGRE_transport.chauffeurs.destroy', ['id' => '__ID__']) }}`;
 
                             return `
                                 <button class="btn btn-sm btn-primary edit-chauffeur-btn" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#editChauffeurModal" title="Modifier">
@@ -366,35 +352,43 @@
                         }
                     }
                 ]
-            });
+    });
 
-            // Reload table on country change
-            $('#pays_agence').on('change', function() {
-                table.ajax.reload();
-            });
 
-            // Delete Chauffeur
-            $('#confirmDeleteBtn').click(function() {
-                $.ajax({
-                    url: `{{ route('transport.chauffeur.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-                    type: 'DELETE',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        $('#confirmDeleteModal').modal('hide');
-                        table.ajax.reload();
-                    },
-                    error: function(xhr) {
-                        console.error('Error deleting chauffeur:', xhr);
-                    }
-                });
-            });
+     let chauffeurIdToDelete = null;
 
-            $('#confirmDeleteModal').on('show.bs.modal', function(event) {
-                const button = $(event.relatedTarget);
-                chauffeurIdToDelete = button.data('id');
-            });
+    // Lors de l'ouverture du modal : récupère l'ID du bouton cliqué
+    $('#confirmDeleteModal').on('show.bs.modal', function(event) {
+        const button = $(event.relatedTarget); // le bouton cliqué
+        chauffeurIdToDelete = button.data('id');
+    });
+
+       $('#confirmDeleteBtn').on('click', function () {
+        if (!chauffeurIdToDelete) {
+            alert('Erreur: ID du chauffeur non trouvé.');
+            return;
+        }
+
+        $.ajax({
+            url: '{{ route("IPMSANGRE_transport.chauffeurs.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'DELETE'
+            },
+            success: function (response) {
+                $('#confirmDeleteModal').modal('hide');
+                if (typeof table !== 'undefined') {
+                    table.ajax.reload(null, false); // recharge DataTable
+                }
+                alert(response.success || 'Chauffeur supprimé avec succès.');
+            },
+            error: function (xhr) {
+                console.error('Erreur :', xhr.responseText);
+                alert('Une erreur est survenue : ' + xhr.status);
+            }
+        });
+    });
 
             // Show Edit Chauffeur Modal and Populate Data
             $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
@@ -402,7 +396,7 @@
                 $('#editChauffeurForm').data('id', chauffeurId); // Store chauffeurId in the form
 
                 $.ajax({
-                    url: `{{ route('transport.chauffeur.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
+                    url: `{{ URL::route('IPMSANGRE_transport.chauffeurs.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
                     type: 'GET',
                     success: function(data) {
                         // Populate modal with chauffeur data, setting read-only values
@@ -431,7 +425,7 @@
                 const formData = $(this).serialize(); // Serialize the form data
 
                 $.ajax({
-                    url: `{{ route('transport.chauffeur.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId), // Dynamic URL with the chauffeur ID
+                    url:`{{ URL::route('IPMSANGRE_transport.chauffeurs.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId), // Dynamic URL with the chauffeur ID
                     type: 'PUT', // Use PUT method for updating
                     data: formData,
                     success: function(response) {

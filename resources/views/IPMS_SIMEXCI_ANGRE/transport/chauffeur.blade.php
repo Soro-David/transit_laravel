@@ -1,6 +1,8 @@
 @extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @endsection
 
 @section('content')
@@ -296,17 +298,17 @@
     <script>
         let chauffeurIdToDelete;
 
-        $(document).ready(function() {
+    $(document).ready(function() {
             // Initialize DataTables
-            var table = $('#chauffeur-table').DataTable({
+        var table = $('#chauffeur-table').DataTable({
                 processing: true,
                 serverSide: true,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
                 },
                 ajax: {
-    url: '{{ route('IPMSANGRE_transport.chauffeurs.data') }}', // Nom corrigé
-},
+                            url: '{{ route('IPMSANGRE_transport.chauffeurs.data') }}', // Nom corrigé
+                      },
                 columns: [{
                         data: 'nom',
                         name: 'nom'
@@ -324,7 +326,7 @@
                         name: 'email'
                     },
                     {
-                        data: 'agence', // Data for the agency column
+                        data: 'agence',
                         name: 'agence',
                         orderable: false,
                         searchable: false
@@ -350,29 +352,43 @@
                         }
                     }
                 ]
-            });
-            // Delete Chauffeur
-            $('#confirmDeleteBtn').click(function() {
-    $.ajax({
-        url: `{{ URL::route('IPMSANGRE_transport.chauffeurs.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-        type: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Ajoute le jeton CSRF
-        },
-        success: function(response) {
-            $('#confirmDeleteModal').modal('hide');
-            table.ajax.reload();
-        },
-        error: function(xhr) {
-            console.error('Error deleting chauffeur:', xhr);
-        }
     });
-});
 
-            $('#confirmDeleteModal').on('show.bs.modal', function(event) {
-                const button = $(event.relatedTarget);
-                chauffeurIdToDelete = button.data('id');
-            });
+
+     let chauffeurIdToDelete = null;
+
+    // Lors de l'ouverture du modal : récupère l'ID du bouton cliqué
+    $('#confirmDeleteModal').on('show.bs.modal', function(event) {
+        const button = $(event.relatedTarget); // le bouton cliqué
+        chauffeurIdToDelete = button.data('id');
+    });
+
+       $('#confirmDeleteBtn').on('click', function () {
+        if (!chauffeurIdToDelete) {
+            alert('Erreur: ID du chauffeur non trouvé.');
+            return;
+        }
+
+        $.ajax({
+            url: '{{ route("IPMSANGRE_transport.chauffeurs.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'DELETE'
+            },
+            success: function (response) {
+                $('#confirmDeleteModal').modal('hide');
+                if (typeof table !== 'undefined') {
+                    table.ajax.reload(null, false); // recharge DataTable
+                }
+                alert(response.success || 'Chauffeur supprimé avec succès.');
+            },
+            error: function (xhr) {
+                console.error('Erreur :', xhr.responseText);
+                alert('Une erreur est survenue : ' + xhr.status);
+            }
+        });
+    });
 
             // Show Edit Chauffeur Modal and Populate Data
             $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {

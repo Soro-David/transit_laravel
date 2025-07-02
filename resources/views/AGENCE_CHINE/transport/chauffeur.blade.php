@@ -1,6 +1,9 @@
 @extends('AGENCE_CHINE.layouts.agent')
 
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+
 @endsection
 
 @section('content')
@@ -265,25 +268,25 @@
         </form>
     </div>
 
-    {{-- Confirm Delete Modal --}}
-    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de Suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer ce chauffeur ?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
-                </div>
+ <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de Suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer ce chauffeur ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
             </div>
         </div>
     </div>
+</div>
+
+
 
     </section>
 
@@ -348,108 +351,98 @@
                         }
                     }
                 ]
-            });
+        });
 
-             // AJAX pour l'ajout de chauffeur
-    $('#addChauffeurForm').submit(function(e) {
-        e.preventDefault();
-        var formData = $(this).serialize();
-
-        $.ajax({
-            url: $(this).attr('action'),
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                $('#ajouter_chauffeur').modal('hide'); // Fermer la modal
-                table.ajax.reload(); // Recharger la DataTable
-                $('#addChauffeurForm')[0].reset(); // Réinitialiser le formulaire
-                alert('Chauffeur ajouté avec succès!');
-            },
-            error: function(xhr) {
-                // Gérer les erreurs de validation
-                var errors = xhr.responseJSON.errors;
-                // Afficher les erreurs (à adapter selon votre structure)
-                console.error(errors);
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-    });
-            // Reload table on country change (Deleted, as it's not needed based on your requirement)
-          // Correction de la suppression
-$('#confirmDeleteBtn').click(function() {
-    $.ajax({
-        url: `{{ route('aftlb_transport.destroy', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurIdToDelete),
-        type: 'DELETE',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function(response) {
-            if (response.success) {
-                $('#confirmDeleteModal').modal('hide');
-                table.ajax.reload();
-            } else {
-                alert('Erreur lors de la suppression: ' + response.message);
+
+        let chauffeurIdToDelete = null;
+
+        $('#confirmDeleteModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget); // bouton qui a déclenché le modal
+            chauffeurIdToDelete = button.data('id'); // récupère l'ID du chauffeur
+        });
+
+        $('#confirmDeleteBtn').on('click', function () {
+            if (!chauffeurIdToDelete) {
+                alert('Erreur: ID du chauffeur non trouvé.');
+                return;
             }
-        },
-        error: function(xhr) {
-            alert('Erreur serveur');
-        }
-    });
-});
-            $('#confirmDeleteModal').on('show.bs.modal', function(event) {
-                const button = $(event.relatedTarget);
-                chauffeurIdToDelete = button.data('id');
-            });
 
-            // Show Edit Chauffeur Modal and Populate Data
-            $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
-                const chauffeurId = $(this).data('id');
-                $('#editChauffeurForm').data('id', chauffeurId); // Store chauffeurId in the form
-
-                $.ajax({
-                    url: `{{ URL::route('chine_transport.chauffeurs.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
-                    type: 'GET',
-                    success: function(data) {
-                        // Populate modal with chauffeur data, setting read-only values
-                        $('#editChauffeurModal #edit_nom_chauffeur').val(data.chauffeur.nom);
-                        $('#editChauffeurModal #edit_prenom_chauffeur').val(data.chauffeur.prenom);
-                        $('#editChauffeurModal #edit_tel_chauffeur').val(data.chauffeur.tel);
-
-                        // Set agency selection
-                        $('#editChauffeurModal #edit_agence_expedition').val(data.chauffeur.agence_id);
-
-                        // Show the modal
-                        $('#editChauffeurModal').modal('show');
-                    },
-                    error: function(xhr) {
-                        console.error('Error fetching chauffeur data:', xhr);
+            $.ajax({
+                url: '{{ route("IPMSANGRE_transport.chauffeurs.destroy", ":id") }}'.replace(':id', chauffeurIdToDelete),
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    _method: 'DELETE'
+                },
+                success: function (response) {
+                    $('#confirmDeleteModal').modal('hide');
+                    if (typeof table !== 'undefined') {
+                        table.ajax.reload(null, false); // recharge DataTable sans reset pagination
                     }
-                });
+                    alert(response.success || 'Chauffeur supprimé avec succès.');
+                },
+                error: function (xhr) {
+                    console.error('Erreur :', xhr.responseText);
+                    alert('Une erreur est survenue : ' + xhr.status);
+                }
             });
+        });
 
-            // Handle the form submission for editing the chauffeur
-            $('#editChauffeurForm').submit(function(e) {
-                e.preventDefault(); // Prevent the form from submitting normally
+        // Show Edit Chauffeur Modal and Populate Data
+        $('#chauffeur-table').on('click', '.edit-chauffeur-btn', function() {
+            const chauffeurId = $(this).data('id');
+            $('#editChauffeurForm').data('id', chauffeurId); // Store chauffeurId in the form
 
-                const chauffeurId = $(this).data('id'); // Retrieve the chauffeur ID from the form's data attribute
+            $.ajax({
+                url: `{{ URL::route('chine_transport.chauffeurs.edit', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId),
+                type: 'GET',
+                success: function(data) {
+                    // Populate modal with chauffeur data, setting read-only values
+                    $('#editChauffeurModal #edit_nom_chauffeur').val(data.chauffeur.nom);
+                    $('#editChauffeurModal #edit_prenom_chauffeur').val(data.chauffeur.prenom);
+                    $('#editChauffeurModal #edit_tel_chauffeur').val(data.chauffeur.tel);
 
-                const formData = $(this).serialize(); // Serialize the form data
+                    // Set agency selection
+                    $('#editChauffeurModal #edit_agence_expedition').val(data.chauffeur.agence_id);
 
-                $.ajax({
-                    url: `{{ URL::route('chine_transport.chauffeurs.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId), // Dynamic URL with the chauffeur ID
-                    type: 'PUT', // Use PUT method for updating
-                    data: formData,
-                    success: function(response) {
-                        // Handle success response
-                        $('#editChauffeurModal').modal('hide'); // Hide the modal
-                        table.ajax.reload(); // Reload the DataTable
-                        alert('Chauffeur mis à jour avec succès.');
-                    },
-                    error: function(xhr) {
-                        console.error('Error updating chauffeur data:', xhr);
-                        alert('Une erreur est survenue lors de la mise à jour du chauffeur.');
-                    }
-                });
+                    // Show the modal
+                    $('#editChauffeurModal').modal('show');
+                },
+                error: function(xhr) {
+                    console.error('Error fetching chauffeur data:', xhr);
+                }
             });
+        });
+
+        // Handle the form submission for editing the chauffeur
+        $('#editChauffeurForm').submit(function(e) {
+            e.preventDefault(); // Prevent the form from submitting normally
+
+            const chauffeurId = $(this).data('id'); // Retrieve the chauffeur ID from the form's data attribute
+
+            const formData = $(this).serialize(); // Serialize the form data
+
+            $.ajax({
+                url: `{{ URL::route('chine_transport.chauffeurs.update', ['id' => '__ID__']) }}`.replace('__ID__', chauffeurId), // Dynamic URL with the chauffeur ID
+                type: 'PUT', // Use PUT method for updating
+                data: formData,
+                success: function(response) {
+                    // Handle success response
+                    $('#editChauffeurModal').modal('hide'); // Hide the modal
+                    table.ajax.reload(); // Reload the DataTable
+                    alert('Chauffeur mis à jour avec succès.');
+                },
+                error: function(xhr) {
+                    console.error('Error updating chauffeur data:', xhr);
+                    alert('Une erreur est survenue lors de la mise à jour du chauffeur.');
+                }
+            });
+        });
 
         });
     </script>

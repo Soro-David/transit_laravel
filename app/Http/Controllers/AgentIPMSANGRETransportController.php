@@ -30,24 +30,26 @@ class AgentIPMSANGRETransportController extends Controller
     }
 
     public function show_chauffeur()
-{
-    // Récupérer les agences dont le pays est France
-    $agences = Agence::where('pays_agence', 'Côte d\'Ivoire')->select('nom_agence', 'id')->get();
+    {
+        // Récupérer les agences dont le pays est France
+        $agences = Agence::select('nom_agence', 'id')
+                            ->where('nom_agence', "IPMS-SIMEX-CI Angre 8ème Tranche")
+                            ->get();
 
-    return view('IPMS_SIMEXCI_ANGRE.transport.chauffeur', compact('agences'));
-}
+        return view('IPMS_SIMEXCI_ANGRE.transport.chauffeur', compact('agences'));
+    }
 
-public function planing_chauffeur()
-{
-    // Ajout du filtre Côte d'Ivoire
-    $agences = Agence::where('pays_agence', 'Côte d\'Ivoire')
-                   ->select('nom_agence', 'id')
-                   ->get();
+    public function planing_chauffeur()
+    {
+        // Ajout du filtre Côte d'Ivoire
+        $agences = Agence::where('pays_agence', 'Côte d\'Ivoire')
+                    ->select('nom_agence', 'id')
+                    ->get();
 
-    $chauffeurs = Chauffeur::select('nom','prenom','id')->get();
+        $chauffeurs = Chauffeur::select('nom','prenom','id')->get();
 
-    return view('IPMS_SIMEXCI_ANGRE.transport.planing', compact('agences','chauffeurs'));
-}
+        return view('IPMS_SIMEXCI_ANGRE.transport.planing', compact('agences','chauffeurs'));
+    }
 
     /**
      * Show the form for creating a new resource.

@@ -41,89 +41,116 @@
             </div>
         </div>
 
-        <!-- Modal d'ajout de programme -->
-        <div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="addProgrammeModalLabel">Créer un Programme</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form method="post" action="{{ route('chine_programme.store') }}">
-                            @csrf
+      <!-- Modal d'ajout de programme -->
+<div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addProgrammeModalLabel">Créer un Programme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ route('lb_programme.store') }}" novalidate>
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="date_programme" class="form-label">Date du Programme:</label>
                                 <input type="date" name="date_programme" id="date_programme" class="form-control" required>
                             </div>
+                        </div>
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="chauffeur_id" class="form-label">Chauffeur:</label>
                                 <select name="chauffeur_id" id="chauffeur_id" class="form-control" required>
                                     <option value="">-- Sélectionner un Chauffeur --</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
 
-                            <div id="programme-entries-container">
-                                <!-- Premier bloc de programme -->
-                                <div class="programme-entry">
-                                    <hr>
-                                    <div class="mb-3">
-                                        <label for="reference_colis_0" class="form-label">Référence Colis :</label>
-                                        <input type="text" name="reference_colis[]" class="form-control reference_colis required-field" data-index="0" id="reference_colis_0" required>
+                    <div id="programme-entries-container">
+                        <!-- Premier bloc de programme -->
+                        <div class="programme-entry card mb-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                                   data-index="0" id="reference_colis_0">
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
-                                        <select name="actions_a_faire[]" class="form-control required-field" required>
-                                            <option value="">-- Sélectionner une action --</option>
-                                            <option value="depot">Dépôt</option>
-                                            <option value="recuperation">Récupération</option>
-                                            <option value="livraison">Livraison</option>
-                                        </select>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
+                                            <select name="actions_a_faire[]" class="form-control required-field" required>
+                                                <option value="">-- Sélectionner une action --</option>
+                                                <option value="depot">Dépôt</option>
+                                                <option value="recuperation">Récupération</option>
+                                                <option value="livraison">Livraison</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="nom_expediteur_0" class="form-label">Nom Expéditeur :</label>
-                                        <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
+                                        <div class="mb-3">
+                                            <label for="nom_expediteur_0" class="form-label">Nom :</label>
+                                            <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="Adresse_expedition_0" class="form-label">Adresse d'enlèvement :</label>
+                                            <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tel_expediteur_0" class="form-label">Téléphone :</label>
+                                            <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="Adresse_expedition_0" class="form-label">Adresse d’enlèvement  :</label>
-                                        <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="tel_expediteur_0" class="form-label">Téléphone Expéditeur :</label>
-                                        <input type="text" name="tel_expediteur[]" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="nom_destinataire_0" class="form-label">Nom Destinataire :</label>
-                                        <input type="text" name="nom_destinataire[]" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="tel_destinataire_0" class="form-label">Téléphone Destinataire :</label>
-                                        <input type="text" name="tel_destinataire[]" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
-                                        <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                    
+                                    <div class="col-md-6">
+                                        <h6 class="border-bottom pb-2">Informations Destinataire</h6>
+                                        <div class="mb-3">
+                                            <label for="nom_destinataire_0" class="form-label">Nom :</label>
+                                            <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tel_destinataire_0" class="form-label">Téléphone :</label>
+                                            <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
+                                            <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="text-center">
-                                <button type="button" class="btn btn-success" id="add-programme-entry">
-                                    <i class="fa fa-plus"></i> Ajouter un Colis
-                                </button>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                                <button type="submit" class="btn btn-primary">Enregistrer les Programmes</button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-success" id="add-programme-entry">
+                            <i class="fa fa-plus"></i> Ajouter un Colis
+                        </button>
+                        <button type="button" class="btn btn-danger" id="remove-programme-entry" style="margin-left: 10px;">
+                            <i class="fa fa-minus"></i> Retirer le Dernier
+                        </button>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les Programmes</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
         {{-- Modal d'édition de programme --}}
         <div class="modal fade" id="editProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="editProgrammeModalLabel" aria-hidden="true">
@@ -134,7 +161,6 @@
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span>
                         </button>
-
                     </div>
                     <div class="modal-body">
                         <form id="editProgrammeForm" method="POST">
@@ -171,7 +197,6 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
                                 <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-                             
                             </div>
                         </form>
                     </div>
@@ -218,9 +243,9 @@
         </div>
     </div>
     <datalist id="colis-list"></datalist>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    {{-- <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script> --}}
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://kit.fontawesome.com/your-Font-Awesome-Kit-ID.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -350,46 +375,81 @@
         $('#add-programme-entry').on('click', function() {
             const index = $('.programme-entry').length;
             let newEntry = `
-                <hr>
-                <div class="mb-3">
-                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                    <input type="text" name="reference_colis[]" class="form-control reference_colis" data-index="${index}" id="reference_colis_${index}" required>
-                </div>
-                <div class="mb-3">
-                    <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
-                    <select name="actions_a_faire[]" class="form-control required-field" required>
-                        <option value="">-- Sélectionner une action --</option>
-                        <option value="depot">Dépôt</option>
-                        <option value="recuperation">Récupération</option>
-                        <option value="livraison">Livraison</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="nom_expediteur_${index}" class="form-label">Nom Expéditeur :</label>
-                    <input type="text" name="nom_expediteur[]" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="Adresse_expedition_${index}" class="form-label">Adresse Expédition :</label>
-                    <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="tel_expediteur_${index}" class="form-label">Téléphone Expéditeur :</label>
-                    <input type="text" name="tel_expediteur[]" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="nom_destinataire_${index}" class="form-label">Nom Destinataire :</label>
-                    <input type="text" name="nom_destinataire[]" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="tel_destinataire_${index}" class="form-label">Téléphone Destinataire :</label>
-                    <input type="text" name="tel_destinataire[]" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
-                    <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                <div class="programme-entry card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                           data-index="${index}" id="reference_colis_${index}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
+                                    <select name="actions_a_faire[]" class="form-control required-field" required>
+                                        <option value="">-- Sélectionner une action --</option>
+                                        <option value="depot">Dépôt</option>
+                                        <option value="recuperation">Récupération</option>
+                                        <option value="livraison">Livraison</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
+                                <div class="mb-3">
+                                    <label for="nom_expediteur_${index}" class="form-label">Nom :</label>
+                                    <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="Adresse_expedition_${index}" class="form-label">Adresse d'enlèvement :</label>
+                                    <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tel_expediteur_${index}" class="form-label">Téléphone :</label>
+                                    <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2">Informations Destinataire</h6>
+                                <div class="mb-3">
+                                    <label for="nom_destinataire_${index}" class="form-label">Nom :</label>
+                                    <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tel_destinataire_${index}" class="form-label">Téléphone :</label>
+                                    <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
+                                    <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
             $('#programme-entries-container').append(newEntry);
+        });
+
+        // Gestion de la suppression des entrées de programme
+        $('#remove-programme-entry').on('click', function() {
+            const entries = $('.programme-entry');
+            if (entries.length > 1) {
+                entries.last().remove();
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Action impossible',
+                    text: 'Vous ne pouvez pas supprimer la dernière entrée',
+                    timer: 2000
+                });
+            }
         });
 
         $(document).on('input', '.reference_colis', function() {
@@ -445,9 +505,9 @@
             const editForm = $('#editProgrammeForm');
 
             // Définir l'URL de soumission du formulaire AVEC le préfixe /admin
-            editForm.attr('action', `/AFT_LOUIS_BLERIOT/programmelb/update/${programmeId}`); // <-- Idem
+            editForm.attr('action', `/AFT_LOUIS_BLERIOT/programmelb/update/${programmeId}`); 
             // Modifier l'URL pour la requête GET AVEC le préfixe /admin
-            axios.get(`/AFT_LOUIS_BLERIOT/programmelb/edit/${programmeId}`) // <-- Ajouter le préfixe
+            axios.get(`/AFT_LOUIS_BLERIOT/programmelb/edit/${programmeId}`) 
                 .then(response => {
                     const programme = response.data.programme;
                     const chauffeurs = response.data.chauffeurs;
@@ -476,43 +536,51 @@
                 });
         });
 
-        // Gestion de la soumission du formulaire de modification
-        $('#editProgrammeForm').off('submit').on('submit', function(event) {
-            event.preventDefault();
-            const programmeId = $('#edit_programme_id').val();
-            const formData = {};
-            const formElements = $('#editProgrammeModal input, #editProgrammeModal select');
+     // Gestion de la soumission du formulaire de modification
+$('#editProgrammeForm').off('submit').on('submit', function(event) {
+    event.preventDefault();
+    const programmeId = $('#edit_programme_id').val();
+    const formData = {};
+    const formElements = $('#editProgrammeModal input, #editProgrammeModal select');
 
-            formElements.each(function() {
-                const element = $(this);
-                if (element.attr('data-modified') === 'true') {
-                    formData[element.attr('name')] = element.val();
-                }
+    formElements.each(function() {
+        const element = $(this);
+        if (element.attr('data-modified') === 'true') {
+            formData[element.attr('name')] = element.val();
+        }
+    });
+
+    // Utilisez la même URL que pour l'édition
+    axios.put(`/AFT_LOUIS_BLERIOT/programmelb/update/${programmeId}`, formData)
+        .then(response => {
+            if (response.data.success) {
+                // Recharger les données depuis le serveur
+                return axios.get("{{ route('lb_programme.data') }}");
+            } else {
+                throw new Error(response.data.message);
+            }
+        })
+        .then(response => {
+            programmesData.programmes = response.data.programmes;
+            updateTable();
+            generatePagination(programmesData.programmes.length);
+            Swal.fire({
+                icon: 'success',
+                title: 'Programme mis à jour avec succès!',
+                showConfirmButton: false,
+                timer: 2000
             });
-
-            axios.put(`/programmelb/update/${programmeId}`, formData)
-                .then(response => {
-                    return axios.get("{{ route('lb_programme.data') }}");
-                })
-                .then(response => {
-                    programmesData.programmes = response.data.programmes;
-                    updateTable();
-                    generatePagination(programmesData.programmes.length);
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Programme mis à jour avec succès!',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                    $('#editProgrammeModal').modal('hide');
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la mise à jour du programme:', error);
-                    if (error.response && error.response.data.errors) {
-
-                    }
-                });
+            $('#editProgrammeModal').modal('hide');
+        })
+        .catch(error => {
+            console.error('Erreur lors de la mise à jour du programme:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: error.response?.data?.message || error.message,
+            });
         });
+});
 
         // Gestion du clic sur la croix et le bouton Fermer
         $('#editProgrammeModal .close, #editProgrammeModal .btn-secondary').off('click').on('click', function() {
@@ -548,57 +616,118 @@
                     }
                 });
         });
-        // Validation du formulaire
-        $('form').off('submit').on('submit', function(event) {
-           if (!$(event.target).closest('#editProgrammeModal').length) {
-               let isValid = true;
-                $('.programme-entry').each(function() {
-                    const referenceColis = $(this).find('.reference_colis').val();
-                    const actionsAFaire = $(this).find('select[name="actions_a_faire[]"]').val();
-
-                    if (!referenceColis || !actionsAFaire) {
-                        isValid = false;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur',
-                            text: 'Veuillez remplir tous les champs obligatoires (Référence Colis et Actions à faire).',
-                        });
-                        return false; // Arrêter la boucle .each()
-                    }
+       // Validation du formulaire
+$('#addProgrammeModal form').off('submit').on('submit', function(event) {
+    let isValid = true;
+    
+    $('.programme-entry').each(function(index) {
+        const action = $(this).find('select[name="actions_a_faire[]"]').val();
+        const refInput = $(this).find('.reference_colis');
+        
+        if (action === 'recuperation') {
+            // Validation spécifique pour la récupération
+            const nomExpediteur = $(this).find('input[name="nom_expediteur[]"]').val();
+            const adresseExpedition = $(this).find('input[name="Adresse_expedition[]"]').val();
+            const telExpediteur = $(this).find('input[name="tel_expediteur[]"]').val();
+            
+            if (!nomExpediteur || !adresseExpedition || !telExpediteur) {
+                isValid = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Champs obligatoires manquants',
+                    text: 'Pour la récupération, les champs "Nom Expéditeur", "Adresse d\'enlèvement" et "Téléphone Expéditeur" sont obligatoires',
                 });
-
-                if (!isValid) {
-                    event.preventDefault(); // Empêcher la soumission du formulaire
+                return false; // Arrêter la boucle
+            }
+            
+            // Désactiver la validation pour la référence
+            refInput.prop('required', false);
+        } else {
+            // Validation pour les autres actions
+            if (!action || !refInput.val()) {
+                isValid = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Champs obligatoires manquants',
+                    text: 'Veuillez remplir tous les champs obligatoires (Référence Colis et Actions à faire)',
+                });
+                return false; // Arrêter la boucle
+            }
+        }
+    });
+    
+    if (!isValid) {
+        event.preventDefault();
+    }
+});
+    // Activer/désactiver les champs selon l'action sélectionnée
+$(document).on('change', 'select[name="actions_a_faire[]"]', function() {
+    const entry = $(this).closest('.programme-entry');
+    const isRecuperation = $(this).val() === 'recuperation';
+    
+    // Activer/désactiver les champs
+    const fields = entry.find(
+        'input[name="nom_expediteur[]"], ' +
+        'input[name="Adresse_expedition[]"], ' +
+        'input[name="tel_expediteur[]"], ' +
+        'input[name="nom_destinataire[]"], ' +
+        'input[name="tel_destinataire[]"], ' +
+        'input[name="Adresse_destination[]"]'
+    );
+    
+    fields.prop('readonly', !isRecuperation);
+    
+    // Gérer le champ référence colis
+    const refInput = entry.find('.reference_colis');
+    refInput.prop('required', !isRecuperation);
+    
+    // Désactiver la saisie automatique pour la récupération
+    if (isRecuperation) {
+        refInput.prop('readonly', true);
+        refInput.val('');
+        fields.prop('readonly', false);
+    } else {
+        refInput.prop('readonly', false);
+    }
+});
+// Désactiver la recherche AJAX pour les références en mode récupération
+$(document).on('input', '.reference_colis', function() {
+    const entry = $(this).closest('.programme-entry');
+    const isRecuperation = entry.find('select[name="actions_a_faire[]"]').val() === 'recuperation';
+    
+    if (isRecuperation) return;
+});
+// Appliquer au chargement initial pour les entrées existantes
+$('select[name="actions_a_faire[]"]').each(function() {
+    $(this).trigger('change');
+});
+     // Gestion de la suppression
+$(document).on('click', '.delete-programme-btn', function() {
+    const programmeId = $(this).data('id');
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce programme ?')) {
+        axios.delete(`/AFT_LOUIS_BLERIOT/programmelb/delete/${programmeId}`)
+            .then(response => {
+                if (response.data.success) {
+                    // Supprimer le programme localement
+                    programmesData.programmes = programmesData.programmes.filter(p => p.id !== programmeId);
+                    
+                    // Actualiser l'affichage
+                    updateTable();
+                    
+                    // Message de succès
+                    $('.container').prepend('<div class="alert alert-success">' + response.data.message + '</div>');
+                    setTimeout(() => $(".alert-success").remove(), 3000);
+                } else {
+                    throw new Error(response.data.message);
                 }
-            }
-        });
-
-        // Gestion de la suppression
-        $(document).on('click', '.delete-programme-btn', function() {
-            const programmeId = $(this).data('id');
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce programme ?')) {
-                axios.delete(`/AFT_LOUIS_BLERIOT/programmelb/delete/${programmeId}`) // <-- Préfixe ajouté
-                    .then(response => {
-                        // Recharger les données ou supprimer la ligne du tableau
-                        return axios.get("{{ route('lb_programme.data') }}")
-
-                            .then(function(response) {
-                                programmesData.programmes = response.data.programmes;
-                                updateTable();
-                                // Afficher un message de succès
-                                $('.container').prepend('<div class="alert alert-success">' + response.data.message + '</div>');
-                                setTimeout(function() {
-                                    $(".alert-success").remove();
-                                }, 3000);
-                            })
-
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la suppression du programme:', error);
-                    });
-            }
-        });
-
+            })
+            .catch(error => {
+                console.error('Erreur lors de la suppression:', error);
+                $('.container').prepend('<div class="alert alert-danger">' + error.message + '</div>');
+                setTimeout(() => $(".alert-danger").remove(), 3000);
+            });
+    }
+});
     });
 </script>
 @endsection

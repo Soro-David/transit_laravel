@@ -164,7 +164,7 @@ public function get_chauffeur_list(Request $request)
             ->rawColumns(['action'])
             ->setTotalRecords(Chauffeur::whereHas('agence', function ($query) {
                 $query->where('pays_agence', 'France');
-            })->count())//Compter le nombre total d'enregistrements
+            })->count())
             ->make(true);
     }
 
