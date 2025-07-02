@@ -258,7 +258,8 @@
                 let programmesData = { programmes: [], colisValides: [] };
                 let currentPage = 1;
                 let itemsPerPage = 10;
-        
+          // MODIFICATION 2: Cacher le bouton "Retirer" au chargement
+          $('#remove-programme-entry').hide();
                 function generateTable(programmes) {
                     const tableBody = $('#programmes-table');
                     tableBody.empty();
@@ -438,24 +439,36 @@
                         </div>
                     `;
                     $('#programme-entries-container').append(newEntry);
+                    // MODIFICATION 2: Afficher le bouton "Retirer" après l'ajout d'une ligne
+            $('#remove-programme-entry').show();
                 });
         
                 // Gestion de la suppression des entrées de programme
                 $('#remove-programme-entry').on('click', function() {
-                    const entries = $('.programme-entry');
-                    if (entries.length > 1) {
-                        entries.last().remove();
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Action impossible',
-                            text: 'Vous ne pouvez pas supprimer la dernière entrée',
-                            timer: 2000
-                        });
-                    }
+            const entries = $('.programme-entry');
+            if (entries.length > 1) {
+                entries.last().remove();
+                // MODIFICATION 2: Si on revient à une seule ligne, on cache à nouveau le bouton
+                if ($('.programme-entry').length === 1) {
+                    $('#remove-programme-entry').hide();
+                }
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Action impossible',
+                    text: 'Vous ne pouvez pas supprimer la dernière entrée',
+                    timer: 2000
                 });
+            }
+        });
         
                 $(document).on('input', '.reference_colis', function() {
+                    const entry = $(this).closest('.programme-entry');
+            // MODIFICATION 1: On ne fait pas de recherche AJAX si c'est une récupération
+            const isRecuperation = entry.find('select[name="actions_a_faire[]"]').val() === 'recuperation';
+            if(isRecuperation) {
+                return; // Pas de recherche pour une récupération
+            }
                     const selectedReference = $(this).val();
                     const index = $(this).data('index');
                     if (selectedReference.length >= 3) {
@@ -524,7 +537,7 @@
                                 $('#edit_chauffeur_id').append(`<option value="${chauffeur.id}" ${programme.chauffeur_id == chauffeur.id ? 'selected' : ''}>${chauffeur.nom}</option>`);
                             });
         
-                            $('#editProgrammeModal #reference_colis').val(programme.reference_colis);
+                            $('#edit_reference_colis').val(programme.reference_colis);
                             $('#edit_actions_a_faire').val(programme.actions_a_faire);
                             $('#edit_etat_rdv').val(programme.etat_rdv); // Remplir le champ état RDV
                             editModal.modal('show');
@@ -663,13 +676,12 @@
                 event.preventDefault();
             }
         });
-            // Activer/désactiver les champs selon l'action sélectionnée
         $(document).on('change', 'select[name="actions_a_faire[]"]', function() {
             const entry = $(this).closest('.programme-entry');
+            const refInput = entry.find('.reference_colis');
             const isRecuperation = $(this).val() === 'recuperation';
-            
-            // Activer/désactiver les champs
-            const fields = entry.find(
+
+            const infoFields = entry.find(
                 'input[name="nom_expediteur[]"], ' +
                 'input[name="Adresse_expedition[]"], ' +
                 'input[name="tel_expediteur[]"], ' +
@@ -677,24 +689,20 @@
                 'input[name="tel_destinataire[]"], ' +
                 'input[name="Adresse_destination[]"]'
             );
-            
-            fields.prop('readonly', !isRecuperation);
-            
-            // Gérer le champ référence colis
-            const refInput = entry.find('.reference_colis');
-            refInput.prop('required', !isRecuperation);
-            
-            // Désactiver la saisie automatique pour la récupération
+
             if (isRecuperation) {
-                refInput.prop('readonly', true);
-                refInput.val('');
-                fields.prop('readonly', false);
+                // Pour une récupération, l'utilisateur doit pouvoir TOUT saisir.
+                refInput.prop('readonly', false).val(''); // On rend le champ éditable et on le vide
+                infoFields.prop('readonly', false).val(''); // On rend les autres champs éditables et on les vide
             } else {
-                refInput.prop('readonly', false);
+                // Pour les autres actions (Dépôt, Livraison), la référence est utilisée pour une recherche.
+                refInput.prop('readonly', false); // Le champ référence reste éditable pour la recherche
+                infoFields.prop('readonly', true).val(''); // Les autres champs sont bloqués car remplis par l'AJAX
             }
         });
         // Désactiver la recherche AJAX pour les références en mode récupération
         $(document).on('input', '.reference_colis', function() {
+            
             const entry = $(this).closest('.programme-entry');
             const isRecuperation = entry.find('select[name="actions_a_faire[]"]').val() === 'recuperation';
             
