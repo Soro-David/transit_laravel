@@ -135,7 +135,7 @@
     {{-- Add Chauffeur Modal --}}
     <div class="modal fade" id="ajouter_chauffeur" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="{{ route('aftlb_transport.store.chauffeur') }}" method="post">
+        <form id="addChauffeurForm" action="{{ route('aftlb_transport.store.chauffeur') }}" method="post">
             @csrf
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">

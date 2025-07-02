@@ -710,18 +710,18 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/show-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
         Route::get('/planing-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
         Route::get('/reference.auto/{query}-aft-louis-b', [AgentLBTransportController::class, 'reference_auto'])->name('reference.auto');
+        
+        // Route AJAX pour DataTables
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
+        
+        // Routes chauffeurs
         Route::post('/store-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
         Route::post('/store-planification-aft-louis-b', [AgentLBTransportController::class, 'store_plannification'])->name('store.plannification'); 
         Route::match(['get', 'post'], '/store', [AgentLBTransportController::class, 'store'])->name('store'); 
-
-        // Route pour afficher le formulaire de modification d'un chauffeur
+    
+        // Routes CRUD chauffeurs
         Route::get('/chauffeurs/{id}/edit', [AgentLBTransportController::class, 'edit'])->name('edit');
-
-        // Route pour mettre à jour un chauffeur (méthode PUT)
         Route::put('/chauffeurs/{id}', [AgentLBTransportController::class, 'update'])->name('update');
-
-         // Route pour supprimer un chauffeur (méthode DELETE)
         Route::delete('/chauffeurs/{id}', [AgentLBTransportController::class, 'destroy'])->name('destroy');
     });
 

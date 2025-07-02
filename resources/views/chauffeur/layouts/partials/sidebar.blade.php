@@ -17,25 +17,20 @@
                 <li class="nav-item">
                     <a href="{{ route('chauffeur.dashboard') }}" class="nav-link {{ activeSegment('chauffeur/dashboard') }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
-                        <p>Tableau de bord du chauffeur</p>
+                        <p>Tableau de bord</p>
                     </a>
                  </li>
 
-                <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('colis') }}">
-                        <i class="fas fa-concierge-bell"></i>
-                        <p>Gestion des Colis</p>
-                         <i class="right fas fa-angle-left"></i>
-                    </a>
-                </li>
+              
 
-                 <li class="nav-item has-treeview">
-                    <a href="{{ route('chauffeur.programme.index') }}" class="nav-link {{ activeSegment('programme') }}">
-                        <i class="fas fa-calendar-alt"></i>
-                         <p>Programme De livraison</p>
-                         <i class="right fas fa-angle-left"></i>
-                    </a>
-                 </li>
+              <!-- La classe "has-treeview" a été enlevée -->
+<li class="nav-item">
+    <a href="{{ route('chauffeur.programme.index') }}" class="nav-link {{ activeSegment('programme') }}">
+        <i class="fas fa-calendar-alt"></i>
+         <p>Programme De livraison</p>
+         <!-- La ligne de l'icône flèche a été supprimée -->
+    </a>
+ </li>
 
 
                 <li class="nav-item">

@@ -88,7 +88,7 @@
 
                     {{-- Section pour l'agence id=7 (cachée par défaut) --}}
                     <div id="fcfaPaymentFields" style="display:none;">
-                         <div class="mb-3">
+                        <div class="mb-3">
                             <label for="modalNewPaymentAmountCfa" class="form-label">Montant du Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label>
                             <input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa"  placeholder="0">
                         </div>

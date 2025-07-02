@@ -186,6 +186,7 @@ $(document).ready(function () {
         $('#paymentModal').modal('show');
     });
 
+
     $('#modalNewPaymentAmountEur').on('input', function() {
         let amountEur = parseFloat($(this).val()) || 0;
         $('#modalConvertedAmountCfa').val(formatCfa(amountEur * EUR_TO_FCFA_RATE));
