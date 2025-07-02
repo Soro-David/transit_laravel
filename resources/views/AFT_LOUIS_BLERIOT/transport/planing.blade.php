@@ -459,56 +459,61 @@
         });
 
         $(document).on('input', '.reference_colis', function() {
-            const entry = $(this).closest('.programme-entry');
-            // MODIFICATION 1: On ne fait pas de recherche AJAX si c'est une récupération
-            const isRecuperation = entry.find('select[name="actions_a_faire[]"]').val() === 'recuperation';
-            if(isRecuperation) {
-                return; // Pas de recherche pour une récupération
-            }
-            const selectedReference = $(this).val();
-            const index = $(this).data('index');
-            if (selectedReference.length >= 3) {
-                // Faire une requête AJAX pour récupérer les informations du colis
-                axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
-                    .then(response => {
-                        const colis = response.data;
-                        if (colis) {
-                            $(`input[name="nom_expediteur[]"]:eq(${index})`).val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
-                            $(`input[name="Adresse_expedition[]"]:eq(${index})`).val(colis.expediteur.lieu_expedition);
-                            $(`input[name="tel_expediteur[]"]:eq(${index})`).val(colis.expediteur.tel);
-                            $(`input[name="nom_destinataire[]"]:eq(${index})`).val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
-                            $(`input[name="tel_destinataire[]"]:eq(${index})`).val(colis.destinataire.tel);
-                            $(`input[name="Adresse_destination[]"]:eq(${index})`).val(colis.destinataire.lieu_destination);
-                        } else {
-                            // Effacer les champs si le colis n'est pas trouvé
-                            $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                            $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                            $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                            $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                            $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                            $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la récupération des informations du colis:', error);
-                        // Effacer les champs en cas d'erreur
-                        $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                        $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                        $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                        $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                        $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                        $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-                    });
-            } else {
-                // Effacer les champs si la référence est trop courte
+    const entry = $(this).closest('.programme-entry');
+    const selectedReference = $(this).val();
+    const index = $(this).data('index');
+    const action = entry.find('select[name="actions_a_faire[]"]').val();
+
+    // Toujours faire la recherche AJAX si la référence est assez longue
+    if (selectedReference.length >= 3) {
+        axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
+            .then(response => {
+                const colis = response.data;
+                if (colis) {
+                    // Remplir les champs avec les données du colis
+                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
+                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val(colis.expediteur.lieu_expedition);
+                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val(colis.expediteur.tel);
+                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
+                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val(colis.destinataire.tel);
+                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val(colis.destinataire.lieu_destination);
+
+                    // Si c'est une récupération, rendre les champs éditables
+                    if (action === 'recuperation') {
+                        entry.find('input[name="nom_expediteur[]"]').prop('readonly', false);
+                        entry.find('input[name="Adresse_expedition[]"]').prop('readonly', false);
+                        entry.find('input[name="tel_expediteur[]"]').prop('readonly', false);
+                    }
+                } else {
+                    // Effacer les champs si le colis n'est pas trouvé
+                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
+                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
+                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
+                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
+                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
+                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la récupération des informations du colis:', error);
+                // Effacer les champs en cas d'erreur
                 $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
                 $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
                 $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
                 $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
                 $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
                 $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-            }
-        });
+            });
+    } else {
+        // Effacer les champs si la référence est trop courte
+        $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
+        $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
+        $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
+        $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
+        $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
+        $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
+    }
+});
 
         // Remplir le modal d'édition et gérer la soumission
         $(document).on('click', '.edit-programme-btn', function() {
