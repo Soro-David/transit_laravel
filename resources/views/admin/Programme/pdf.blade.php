@@ -24,7 +24,6 @@
             margin-top: 0;
         }
 
-
         .company-info {
             flex-grow: 1; /* Permet au texte de prendre l'espace restant */
             margin: 0;
@@ -44,7 +43,6 @@
             font-size: 12px;
             line-height: 1.2;
         }
-
 
         /* Ajustement tableau */
         table {
@@ -81,7 +79,6 @@
         </div>
     </div>
 
-
     <!-- Tableau des programmes -->
     <table>
         <thead>
@@ -89,12 +86,13 @@
                 <th style="width: 8%">Date</th>
                 <th style="width: 10%">Chauffeur</th>
                 <th style="width: 10%">Réf. Colis</th>
+                <th style="width: 10%">Nature Colis</th> <!-- Nouvelle colonne -->
                 <th style="width: 8%">Action</th>
-                <th style="width: 12%">Expéditeur</th>
-                <th style="width: 10%">Tél Expéditeur</th>
+                <th style="width: 10%">Expéditeur</th>
+                <th style="width: 8%">Tél Expéditeur</th>
                 <th style="width: 10%">Adresse Expédition</th>
-                <th style="width: 12%">Destinataire</th>
-                <th style="width: 10%">Tél Destinataire</th>
+                <th style="width: 10%">Destinataire</th>
+                <th style="width: 8%">Tél Destinataire</th>
                 <th style="width: 10%">Adresse Destination</th>
                 <th style="width: 8%">État RDV</th>
             </tr>
@@ -105,6 +103,7 @@
                 <td>{{ $programme->date_programme }}</td>
                 <td>{{ $programme->chauffeur->nom ?? 'N/A' }}</td>
                 <td>{{ $programme->reference_colis }}</td>
+                <td>{{ $programme->nature_du_colis ?? 'N/A' }}</td> <!-- Nouvelle colonne -->
                 <td>{{ $programme->actions_a_faire }}</td>
                 <td>{{ $programme->nom_expediteur }}</td>
                 <td>{{ $programme->tel_expediteur }}</td>
