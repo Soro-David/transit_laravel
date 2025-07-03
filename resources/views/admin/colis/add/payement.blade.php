@@ -245,7 +245,7 @@
                         genererQrcodeUrl = response.redirect;
                         window.location.href = genererQrcodeUrl;
                     } else {
-                        alert('Paiement enregistré avec succès !');
+                        alert('Colis enregistré avec succès !');
                         if (response.redirect) {
                             window.location.href = response.redirect;
                         }

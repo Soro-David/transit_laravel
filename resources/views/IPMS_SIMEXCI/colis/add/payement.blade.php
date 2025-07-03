@@ -150,7 +150,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify(formDataJson),
                 success: function (response) {
-                    alert('Paiement enregistré avec succès !');
+                    alert('Colis enregistré avec succès !');
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     } else {

@@ -378,13 +378,6 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                                   data-index="${index}" id="reference_colis_${index}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
                                             <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
                                             <select name="actions_a_faire[]" class="form-control required-field" required>
                                                 <option value="">-- Sélectionner une action --</option>
@@ -394,6 +387,14 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                                   data-index="${index}" id="reference_colis_${index}">
+                                        </div>
+                                    </div>
+                                    
                                 </div>
         
                                 <div class="row">

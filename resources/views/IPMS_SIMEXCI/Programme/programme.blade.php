@@ -348,10 +348,6 @@
             let newEntry = `
                 <hr>
                 <div class="mb-3">
-                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                    <input type="text" name="reference_colis[]" class="form-control reference_colis" data-index="${index}" id="reference_colis_${index}" required>
-                </div>
-                <div class="mb-3">
                     <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
                     <select name="actions_a_faire[]" class="form-control required-field" required>
                         <option value="">-- Sélectionner une action --</option>
@@ -359,6 +355,11 @@
                         <option value="recuperation">Récupération</option>
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                    <input type="text" name="reference_colis[]" class="form-control reference_colis" data-index="${index}" id="reference_colis_${index}" required>
+                </div>
+                
                 <div class="mb-3">
                     <label for="nom_expediteur_${index}" class="form-label">Nom Expéditeur :</label>
                     <input type="text" name="nom_expediteur[]" class="form-control" readonly>

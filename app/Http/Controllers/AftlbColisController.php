@@ -478,7 +478,7 @@ public function store_colis(Request $request)
     if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
         // Rediriger vers la première étape avec une erreur si les données sont manquantes
         // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
-        return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+        return redirect()->route('aftlb_colis.create.colis')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
     }
 
     // Calculer le montant total en additionnant tous les prix du tableau 'prix'
