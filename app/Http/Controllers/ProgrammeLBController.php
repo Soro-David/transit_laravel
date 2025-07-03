@@ -82,27 +82,23 @@ class ProgrammeLBController extends Controller
     
             foreach ($actionsAFaire as $index => $action) {
                 $referenceColis = $referencesColis[$index] ?? null;
-    
+     // MODIFICATION 2: Vérifier l'unicité pour tous les types d'actions
+     if (!empty($referenceColis)) {
+        $programmeExistant = Programme::where('reference_colis', $referenceColis)->first();
+        if ($programmeExistant) {
+            throw new \Exception("Le colis $referenceColis est déjà attribué");
+        }
+    }
                 if ($action === 'recuperation') {
-                    // Validation des champs obligatoires pour la récupération
-                    if (empty($nomExpediteurs[$index])) {
-                        throw new \Exception("Le nom de l'expéditeur est obligatoire pour la récupération");
-                    }
-                    if (empty($adresseExpeditions[$index])) {
-                        throw new \Exception("L'adresse d'enlèvement est obligatoire pour la récupération");
-                    }
-                    if (empty($telExpediteurs[$index])) {
-                        throw new \Exception("Le téléphone de l'expéditeur est obligatoire pour la récupération");
-                    }
-    
+                    // MODIFICATION 1: Supprimer la validation des champs pour la récupération
                     Programme::create([
                         'date_programme' => $dateProgramme,
                         'chauffeur_id' => $chauffeurId,
                         'reference_colis' => $referenceColis, // Peut être null
                         'actions_a_faire' => $action,
-                        'nom_expediteur' => $nomExpediteurs[$index],
-                        'lieu_expedition' => $adresseExpeditions[$index],
-                        'tel_expediteur' => $telExpediteurs[$index],
+                        'nom_expediteur' => $nomExpediteurs[$index] ?? null,
+                        'lieu_expedition' => $adresseExpeditions[$index] ?? null,
+                        'tel_expediteur' => $telExpediteurs[$index] ?? null,
                         'nom_destinataire' => $nomDestinataires[$index] ?? null,
                         'tel_destinataire' => $telDestinataires[$index] ?? null,
                         'lieu_destination' => $adresseDestinations[$index] ?? null,
@@ -152,6 +148,7 @@ class ProgrammeLBController extends Controller
             return redirect()->back()->with('error', 'Erreur: ' . $e->getMessage());
         }
     }
+
     public function edit($id)// Modifié pour utiliser l'ID
 {
     // Vérifier que le programme appartient à l'agence 5
