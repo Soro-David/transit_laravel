@@ -89,6 +89,10 @@
                                                     <input type="text" name="reference_colis[]" class="form-control reference_colis" 
                                                            data-index="0" id="reference_colis_0">
                                                 </div>
+                                                <div class="mb-3">
+                                                    <label for="nature_du_colis_0" class="form-label">Nature du Colis :</label>
+                                                    <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_0">
+                                                </div>
                                             </div>
                                             
                                         </div>
@@ -98,15 +102,15 @@
                                                 <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
                                                 <div class="mb-3">
                                                     <label for="nom_expediteur_0" class="form-label">Nom :</label>
-                                                    <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                                    <input type="text" name="nom_expediteur[]" class="form-control" >
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="Adresse_expedition_0" class="form-label">Adresse d'enlèvement :</label>
-                                                    <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                                    <input type="text" name="Adresse_expedition[]" class="form-control" >
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="tel_expediteur_0" class="form-label">Téléphone :</label>
-                                                    <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                                    <input type="text" name="tel_expediteur[]" class="form-control" >
                                                 </div>
                                             </div>
                                             
@@ -114,15 +118,15 @@
                                                 <h6 class="border-bottom pb-2">Informations Destinataire</h6>
                                                 <div class="mb-3">
                                                     <label for="nom_destinataire_0" class="form-label">Nom :</label>
-                                                    <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                                    <input type="text" name="nom_destinataire[]" class="form-control" >
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="tel_destinataire_0" class="form-label">Téléphone :</label>
-                                                    <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                                    <input type="text" name="tel_destinataire[]" class="form-control" >
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
-                                                    <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                                    <input type="text" name="Adresse_destination[]" class="form-control" >
                                                 </div>
                                             </div>
                                         </div>
@@ -188,6 +192,10 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
+                                        <label for="edit_nature_du_colis">Nature du Colis :</label>
+                                        <input type="text" name="nature_du_colis" class="form-control" id="edit_nature_du_colis">
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="edit_etat_rdv" class="form-label">Etat du RDV:</label>
                                         <input type="text" class="form-control" id="edit_etat_rdv" readonly>
                                     </div>
@@ -213,6 +221,7 @@
                                     <th>Date Programme</th>
                                     <th>Chauffeur</th>
                                     <th>Référence Colis</th>
+                                    <th>Nature du Colis</th>
                                     <th>Actions à faire</th>
                                     <th>Nom Expéditeur</th>
                                     <th>Adresse Expédition</th>
@@ -275,6 +284,7 @@
                                 <td>${programme.date_programme}</td>
                                 <td>${programme.chauffeur ? programme.chauffeur.nom : 'N/A'}</td>
                                 <td>${programme.reference_colis || 'N/A'}</td>
+                                 <td>${programme.nature_du_colis || 'N/A'}</td>
                                 <td>${programme.actions_a_faire || 'N/A'}</td>
                                 <td>${programme.nom_expediteur || 'N/A'}</td>
                                 <td>${programme.Adresse_expedition || 'N/A'}</td>
@@ -382,6 +392,11 @@
                                             <input type="text" name="reference_colis[]" class="form-control reference_colis" 
                                                    data-index="${index}" id="reference_colis_${index}">
                                         </div>
+                                         <!-- AJOUT DU CHAMP NATURE DU COLIS -->
+                        <div class="mb-3">
+                            <label for="nature_du_colis_${index}" class="form-label">Nature du Colis :</label>
+                            <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_${index}">
+                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -401,15 +416,15 @@
                                         <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
                                         <div class="mb-3">
                                             <label for="nom_expediteur_${index}" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_expediteur[]" class="form-control" readonly>
+                                            <input type="text" name="nom_expediteur[]" class="form-control" >
                                         </div>
                                         <div class="mb-3">
                                             <label for="Adresse_expedition_${index}" class="form-label">Adresse d'enlèvement :</label>
-                                            <input type="text" name="Adresse_expedition[]" class="form-control" readonly>
+                                            <input type="text" name="Adresse_expedition[]" class="form-control" >
                                         </div>
                                         <div class="mb-3">
                                             <label for="tel_expediteur_${index}" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_expediteur[]" class="form-control" readonly>
+                                            <input type="text" name="tel_expediteur[]" class="form-control" >
                                         </div>
                                     </div>
                                     
@@ -417,15 +432,15 @@
                                         <h6 class="border-bottom pb-2">Informations Destinataire</h6>
                                         <div class="mb-3">
                                             <label for="nom_destinataire_${index}" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_destinataire[]" class="form-control" readonly>
+                                            <input type="text" name="nom_destinataire[]" class="form-control" >
                                         </div>
                                         <div class="mb-3">
                                             <label for="tel_destinataire_${index}" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_destinataire[]" class="form-control" readonly>
+                                            <input type="text" name="tel_destinataire[]" class="form-control" >
                                         </div>
                                         <div class="mb-3">
                                             <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
-                                            <input type="text" name="Adresse_destination[]" class="form-control" readonly>
+                                            <input type="text" name="Adresse_destination[]" class="form-control" >
                                         </div>
                                     </div>
                                 </div>
@@ -528,7 +543,7 @@
         
                             $('#edit_programme_id').val(programme.id);
                             $('#edit_date_programme').val(programme.date_programme);
-        
+                            $('#edit_nature_du_colis').val(programme.nature_du_colis);
                             // Remplir le select des chauffeurs
                             $('#edit_chauffeur_id').empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
                             chauffeurs.forEach(chauffeur => {
@@ -666,30 +681,22 @@ $('#addProgrammeModal form').off('submit').on('submit', function(event) {
         event.preventDefault();
     }
 });
-        $(document).on('change', 'select[name="actions_a_faire[]"]', function() {
-            const entry = $(this).closest('.programme-entry');
-            const refInput = entry.find('.reference_colis');
-            const isRecuperation = $(this).val() === 'recuperation';
+$(document).on('change', 'select[name="actions_a_faire[]"]', function() {
+    const entry = $(this).closest('.programme-entry');
+    const refInput = entry.find('.reference_colis');
+    const isRecuperation = $(this).val() === 'recuperation';
 
-            const infoFields = entry.find(
-                'input[name="nom_expediteur[]"], ' +
-                'input[name="Adresse_expedition[]"], ' +
-                'input[name="tel_expediteur[]"], ' +
-                'input[name="nom_destinataire[]"], ' +
-                'input[name="tel_destinataire[]"], ' +
-                'input[name="Adresse_destination[]"]'
-            );
-
-            if (isRecuperation) {
-                // Pour une récupération, l'utilisateur doit pouvoir TOUT saisir.
-                refInput.prop('readonly', false).val(''); // On rend le champ éditable et on le vide
-                infoFields.prop('readonly', false).val(''); // On rend les autres champs éditables et on les vide
-            } else {
-                // Pour les autres actions (Dépôt, Livraison), la référence est utilisée pour une recherche.
-                refInput.prop('readonly', false); // Le champ référence reste éditable pour la recherche
-                infoFields.prop('readonly', true).val(''); // Les autres champs sont bloqués car remplis par l'AJAX
-            }
-        });
+    if (isRecuperation) {
+        // Pour une récupération, vider tous les champs
+        refInput.val('');
+        entry.find('input[name="nom_expediteur[]"]').val('');
+        entry.find('input[name="Adresse_expedition[]"]').val('');
+        entry.find('input[name="tel_expediteur[]"]').val('');
+        entry.find('input[name="nom_destinataire[]"]').val('');
+        entry.find('input[name="tel_destinataire[]"]').val('');
+        entry.find('input[name="Adresse_destination[]"]').val('');
+    }
+});
         // Désactiver la recherche AJAX pour les références en mode récupération
         $(document).on('input', '.reference_colis', function() {
             
