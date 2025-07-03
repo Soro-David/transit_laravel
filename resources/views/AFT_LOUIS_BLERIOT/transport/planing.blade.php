@@ -84,14 +84,17 @@
                                             <input type="text" name="reference_colis[]" class="form-control reference_colis" 
                                                    data-index="0" id="reference_colis_0">
                                         </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="nature_du_colis_0" class="form-label">Nature du Colis :</label>
                                             <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_0">
                                         </div>
                                     </div>
-                                    
                                 </div>
-
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
@@ -378,33 +381,38 @@
         $('#add-programme-entry').on('click', function() {
                     const index = $('.programme-entry').length;
                     let newEntry = `
-                        <div class="programme-entry card mb-3">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                                   data-index="${index}" id="reference_colis_${index}">
-                                        </div>
-                                         <!-- AJOUT DU CHAMP NATURE DU COLIS -->
-                        <div class="mb-3">
-                            <label for="nature_du_colis_${index}" class="form-label">Nature du Colis :</label>
-                            <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_${index}">
-                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
-                                            <select name="actions_a_faire[]" class="form-control required-field" required>
-                                                <option value="">-- Sélectionner une action --</option>
-                                                <option value="depot">Dépôt</option>
-                                                <option value="recuperation">Récupération</option>
-                                                <option value="livraison">Livraison</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+  <div class="programme-entry card mb-3">
+    <div class="card-body">
+        <!-- Ligne pour Action et Référence -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
+                    <select name="actions_a_faire[]" class="form-control required-field" required>
+                        <option value="">-- Sélectionner une action --</option>
+                        <option value="depot">Dépôt</option>
+                        <option value="recuperation">Récupération</option>
+                        <option value="livraison">Livraison</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                           data-index="0" id="reference_colis_0">
+                </div>
+            </div>
+        </div>
+        <!-- Ligne pour Nature du Colis -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <label for="nature_du_colis_0" class="form-label">Nature du Colis :</label>
+                    <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_0">
+                </div>
+            </div>
+        </div>
         
                                 <div class="row">
                                     <div class="col-md-6">
@@ -438,13 +446,6 @@
                                             <input type="text" name="Adresse_destination[]" class="form-control" >
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                           data-index="${index}" id="reference_colis_${index}">
                                 </div>
                             </div>
                            
