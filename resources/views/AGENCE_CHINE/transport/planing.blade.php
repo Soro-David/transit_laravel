@@ -256,7 +256,8 @@
         let programmesData = { programmes: [], colisValides: [] };
         let currentPage = 1;
         let itemsPerPage = 10;
-
+// MODIFICATION 2: Cacher le bouton "Retirer" au chargement
+$('#remove-programme-entry').hide();
         function generateTable(programmes) {
             const tableBody = $('#programmes-table');
             tableBody.empty();
@@ -436,52 +437,82 @@
         </div>
     `;
     $('#programme-entries-container').append(newEntry);
+     // MODIFICATION 2: Afficher le bouton "Retirer" après l'ajout d'une ligne
+     $('#remove-programme-entry').show();
 });
-        $(document).on('input', '.reference_colis', function() {
-            const selectedReference = $(this).val();
-            const index = $(this).data('index');
-            if (selectedReference.length >= 3) {
-                // Faire une requête AJAX pour récupérer les informations du colis
-                axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
-                    .then(response => {
-                        const colis = response.data;
-                        if (colis) {
-                            $(`input[name="nom_expediteur[]"]:eq(${index})`).val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
-                            $(`input[name="Adresse_expedition[]"]:eq(${index})`).val(colis.expediteur.lieu_expedition);
-                            $(`input[name="tel_expediteur[]"]:eq(${index})`).val(colis.expediteur.tel);
-                            $(`input[name="nom_destinataire[]"]:eq(${index})`).val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
-                            $(`input[name="tel_destinataire[]"]:eq(${index})`).val(colis.destinataire.tel);
-                            $(`input[name="Adresse_destination[]"]:eq(${index})`).val(colis.destinataire.lieu_destination);
-                        } else {
-                            // Effacer les champs si le colis n'est pas trouvé
-                            $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                            $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                            $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                            $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                            $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                            $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la récupération des informations du colis:', error);
-                        // Effacer les champs en cas d'erreur
-                        $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                        $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                        $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                        $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                        $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                        $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-                    });
+$('#remove-programme-entry').on('click', function() {
+            const entries = $('.programme-entry');
+            if (entries.length > 1) {
+                entries.last().remove();
+                // MODIFICATION 2: Si on revient à une seule ligne, on cache à nouveau le bouton
+                if ($('.programme-entry').length === 1) {
+                    $('#remove-programme-entry').hide();
+                }
             } else {
-                // Effacer les champs si la référence est trop courte
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Action impossible',
+                    text: 'Vous ne pouvez pas supprimer la dernière entrée',
+                    timer: 2000
+                });
+            }
+        });
+        $(document).on('input', '.reference_colis', function() {
+    const entry = $(this).closest('.programme-entry');
+    const selectedReference = $(this).val();
+    const index = $(this).data('index');
+    const action = entry.find('select[name="actions_a_faire[]"]').val();
+
+    // Toujours faire la recherche AJAX si la référence est assez longue
+    if (selectedReference.length >= 3) {
+        axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
+            .then(response => {
+                const colis = response.data;
+                if (colis) {
+                    // Remplir les champs avec les données du colis
+                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
+                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val(colis.expediteur.lieu_expedition);
+                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val(colis.expediteur.tel);
+                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
+                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val(colis.destinataire.tel);
+                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val(colis.destinataire.lieu_destination);
+
+                    // Si c'est une récupération, rendre les champs éditables
+                    if (action === 'recuperation') {
+                        entry.find('input[name="nom_expediteur[]"]').prop('readonly', false);
+                        entry.find('input[name="Adresse_expedition[]"]').prop('readonly', false);
+                        entry.find('input[name="tel_expediteur[]"]').prop('readonly', false);
+                    }
+                } else {
+                    // Effacer les champs si le colis n'est pas trouvé
+                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
+                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
+                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
+                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
+                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
+                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la récupération des informations du colis:', error);
+                // Effacer les champs en cas d'erreur
                 $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
                 $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
                 $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
                 $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
                 $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
                 $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-            }
-        });
+            });
+    } else {
+        // Effacer les champs si la référence est trop courte
+        $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
+        $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
+        $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
+        $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
+        $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
+        $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
+    }
+});
 
         // Remplir le modal d'édition et gérer la soumission
         $(document).on('click', '.edit-programme-btn', function() {
@@ -506,7 +537,7 @@
                         $('#edit_chauffeur_id').append(`<option value="${chauffeur.id}" ${programme.chauffeur_id == chauffeur.id ? 'selected' : ''}>${chauffeur.nom}</option>`);
                     });
 
-                    $('#editProgrammeModal #reference_colis').val(programme.reference_colis);
+                    $('#edit_reference_colis').val(programme.reference_colis);
                     $('#edit_actions_a_faire').val(programme.actions_a_faire);
                     $('#edit_etat_rdv').val(programme.etat_rdv); // Remplir le champ état RDV
                     editModal.modal('show');
@@ -566,21 +597,7 @@ $('#editProgrammeForm').off('submit').on('submit', function(event) {
             });
         });
 });
-// Gestion de la suppression des entrées de programme
-$('#remove-programme-entry').on('click', function() {
-    const entries = $('.programme-entry');
-    if (entries.length > 1) {
-        entries.last().remove();
-    } else {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Action impossible',
-            text: 'Vous ne pouvez pas supprimer la dernière entrée',
-            timer: 2000
-        });
-    }
-});
-        // Gestion du clic sur la croix et le bouton Fermer
+    // Gestion du clic sur la croix et le bouton Fermer
         $('#editProgrammeModal .close, #editProgrammeModal .btn-secondary').off('click').on('click', function() {
             $('#editProgrammeModal').modal('hide');
         });
@@ -659,36 +676,30 @@ $('#addProgrammeModal form').off('submit').on('submit', function(event) {
         event.preventDefault();
     }
 });
-    // Activer/désactiver les champs selon l'action sélectionnée
 $(document).on('change', 'select[name="actions_a_faire[]"]', function() {
-    const entry = $(this).closest('.programme-entry');
-    const isRecuperation = $(this).val() === 'recuperation';
-    
-    // Activer/désactiver les champs
-    const fields = entry.find(
-        'input[name="nom_expediteur[]"], ' +
-        'input[name="Adresse_expedition[]"], ' +
-        'input[name="tel_expediteur[]"], ' +
-        'input[name="nom_destinataire[]"], ' +
-        'input[name="tel_destinataire[]"], ' +
-        'input[name="Adresse_destination[]"]'
-    );
-    
-    fields.prop('readonly', !isRecuperation);
-    
-    // Gérer le champ référence colis
-    const refInput = entry.find('.reference_colis');
-    refInput.prop('required', !isRecuperation);
-    
-    // Désactiver la saisie automatique pour la récupération
-    if (isRecuperation) {
-        refInput.prop('readonly', true);
-        refInput.val('');
-        fields.prop('readonly', false);
-    } else {
-        refInput.prop('readonly', false);
-    }
-});
+            const entry = $(this).closest('.programme-entry');
+            const refInput = entry.find('.reference_colis');
+            const isRecuperation = $(this).val() === 'recuperation';
+
+            const infoFields = entry.find(
+                'input[name="nom_expediteur[]"], ' +
+                'input[name="Adresse_expedition[]"], ' +
+                'input[name="tel_expediteur[]"], ' +
+                'input[name="nom_destinataire[]"], ' +
+                'input[name="tel_destinataire[]"], ' +
+                'input[name="Adresse_destination[]"]'
+            );
+
+            if (isRecuperation) {
+                // Pour une récupération, l'utilisateur doit pouvoir TOUT saisir.
+                refInput.prop('readonly', false).val(''); // On rend le champ éditable et on le vide
+                infoFields.prop('readonly', false).val(''); // On rend les autres champs éditables et on les vide
+            } else {
+                // Pour les autres actions (Dépôt, Livraison), la référence est utilisée pour une recherche.
+                refInput.prop('readonly', false); // Le champ référence reste éditable pour la recherche
+                infoFields.prop('readonly', true).val(''); // Les autres champs sont bloqués car remplis par l'AJAX
+            }
+        });
 // Désactiver la recherche AJAX pour les références en mode récupération
 $(document).on('input', '.reference_colis', function() {
     const entry = $(this).closest('.programme-entry');

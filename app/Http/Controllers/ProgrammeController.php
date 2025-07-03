@@ -155,8 +155,7 @@ class ProgrammeController extends Controller
 {
     $rules = [
         'date_programme' => 'nullable|date',
-        'chauffeur_id' => 'nullable|exists:chauffeurs,id',
-        'reference_colis' => 'nullable|exists:colis,reference_colis',
+        'chauffeur_id' => 'nullable|exists:chauffeurs,id', 
         'actions_a_faire' => 'nullable|in:depot,recuperation,livraison',
     ];
 
@@ -186,10 +185,7 @@ class ProgrammeController extends Controller
         $programme->chauffeur_id = $request->chauffeur_id;
         $updated = true;
     }
-    if ($request->has('reference_colis') && $request->reference_colis != $programme->reference_colis) {
-        $programme->reference_colis = $request->reference_colis;
-        $updated = true;
-    }
+    
     if ($request->has('actions_a_faire') && $request->actions_a_faire != $programme->actions_a_faire) {
         $programme->actions_a_faire = $request->actions_a_faire;
         $updated = true;

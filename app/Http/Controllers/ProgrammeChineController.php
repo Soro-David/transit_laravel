@@ -168,64 +168,72 @@ class ProgrammeChineController extends Controller
     
 
     public function update(Request $request, $id)
-    {
-        $programme = Programme::whereHas('chauffeur', fn($q) => $q->where('agence_id', 7))
+{
+    $programme = Programme::whereHas('chauffeur', fn($q) => $q->where('agence_id', 7))
         ->findOrFail($id);
-        $rules = [
-            'date_programme' => 'nullable|date',
-            'chauffeur_id' => 'nullable|exists:chauffeurs,id',
-            'reference_colis' => 'nullable|exists:colis,reference_colis',
-            'actions_a_faire' => 'nullable|in:depot,recuperation,livraison',
-        ];
-    
-        $request->validate($rules);
-    
-        // Vérifier si la référence du colis a été modifiée
-        if ($request->has('reference_colis') && $request->reference_colis != $programme->reference_colis) {
-            $programmeExistant = Programme::where('reference_colis', $request->reference_colis)
-                ->where('id', '!=', $programme->id)
-                ->first();
-    
-            if ($programmeExistant) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Le colis avec la référence {$request->reference_colis} est déjà attribué"
-                ], 422);
-            }
-        }
-    
-        // Mettre à jour uniquement les champs fournis
-        $updated = false;
-        if ($request->has('date_programme') && $request->date_programme != $programme->date_programme) {
-            $programme->date_programme = $request->date_programme;
-            $updated = true;
-        }
-        if ($request->has('chauffeur_id') && $request->chauffeur_id != $programme->chauffeur_id) {
-            $programme->chauffeur_id = $request->chauffeur_id;
-            $updated = true;
-        }
-        if ($request->has('reference_colis') && $request->reference_colis != $programme->reference_colis) {
-            $programme->reference_colis = $request->reference_colis;
-            $updated = true;
-        }
-        if ($request->has('actions_a_faire') && $request->actions_a_faire != $programme->actions_a_faire) {
-            $programme->actions_a_faire = $request->actions_a_faire;
-            $updated = true;
-        }
-    
-        if ($updated) {
-            $programme->save();
+
+    // Déterminer l'action
+    $action = $request->has('actions_a_faire') 
+        ? $request->actions_a_faire 
+        : $programme->actions_a_faire;
+
+    $rules = [
+        'date_programme' => 'nullable|date',
+        'chauffeur_id' => 'nullable|exists:chauffeurs,id',
+        'actions_a_faire' => 'nullable|in:depot,recuperation,livraison',
+    ];
+
+    // Règle conditionnelle pour reference_colis
+    if ($action === 'recuperation') {
+        $rules['reference_colis'] = 'nullable';
+    } else {
+        $rules['reference_colis'] = 'nullable|exists:colis,reference_colis';
+    }
+
+    $request->validate($rules);
+
+    // Vérification de la référence seulement pour les actions non-récupération
+    if ($action !== 'recuperation' && 
+        $request->has('reference_colis') && 
+        $request->reference_colis != $programme->reference_colis) 
+    {
+        $programmeExistant = Programme::where('reference_colis', $request->reference_colis)
+            ->where('id', '!=', $programme->id)
+            ->first();
+
+        if ($programmeExistant) {
             return response()->json([
-                'success' => true,
-                'message' => 'Programme mis à jour avec succès'
-            ]);
+                'success' => false,
+                'message' => "Le colis {$request->reference_colis} est déjà attribué"
+            ], 422);
         }
+    }
+
+    // Mettre à jour les champs modifiés
+    $updated = false;
+    $fields = ['date_programme', 'chauffeur_id', 'reference_colis', 'actions_a_faire'];
     
+    foreach ($fields as $field) {
+        if ($request->has($field) && $request->$field != $programme->$field) {
+            $programme->$field = $request->$field;
+            $updated = true;
+        }
+    }
+
+    // Sauvegarder uniquement si des modifications ont été apportées
+    if ($updated) {
+        $programme->save();
         return response()->json([
             'success' => true,
-            'message' => 'Aucune modification détectée'
+            'message' => 'Programme mis à jour avec succès'
         ]);
     }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Aucune modification détectée'
+    ]);
+}
     public function destroy($id)
     {
         $programme = Programme::whereHas('chauffeur', fn($q) => $q->where('agence_id', 7))
