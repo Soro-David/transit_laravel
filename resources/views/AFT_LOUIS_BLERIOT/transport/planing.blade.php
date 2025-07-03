@@ -5,16 +5,7 @@
 
 @section('content')
     <div class="container">
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-        @endif
+       
 
         <h1 class="mb-4">Gestion des Programmes</h1>
 
@@ -78,13 +69,6 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="reference_colis_0" class="form-label">Référence Colis :</label>
-                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                                   data-index="0" id="reference_colis_0">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
                                             <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
                                             <select name="actions_a_faire[]" class="form-control required-field" required>
                                                 <option value="">-- Sélectionner une action --</option>
@@ -94,6 +78,14 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                                   data-index="0" id="reference_colis_0">
+                                        </div>
+                                    </div>
+                                   
                                 </div>
 
                                 <div class="row">
@@ -634,46 +626,38 @@ $('#editProgrammeForm').off('submit').on('submit', function(event) {
                 });
         });
        // Validation du formulaire
+// Remplacer la validation existante par ceci :
 $('#addProgrammeModal form').off('submit').on('submit', function(event) {
     let isValid = true;
-    
+    let errorMessage = '';
+
     $('.programme-entry').each(function(index) {
         const action = $(this).find('select[name="actions_a_faire[]"]').val();
         const refInput = $(this).find('.reference_colis');
         
-        if (action === 'recuperation') {
-            // Validation spécifique pour la récupération
-            const nomExpediteur = $(this).find('input[name="nom_expediteur[]"]').val();
-            const adresseExpedition = $(this).find('input[name="Adresse_expedition[]"]').val();
-            const telExpediteur = $(this).find('input[name="tel_expediteur[]"]').val();
-            
-            if (!nomExpediteur || !adresseExpedition || !telExpediteur) {
+        // Vérifier que l'action est sélectionnée
+        if (!action) {
+            isValid = false;
+            errorMessage = 'Veuillez sélectionner une action à faire pour chaque entrée.';
+            return false; // Arrêter la boucle
+        }
+        
+        // Pour les actions autres que la récupération, la référence colis est obligatoire
+        if (action !== 'recuperation') {
+            if (!refInput.val()) {
                 isValid = false;
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Champs obligatoires manquants',
-                    text: 'Pour la récupération, les champs "Nom Expéditeur", "Adresse d\'enlèvement" et "Téléphone Expéditeur" sont obligatoires',
-                });
-                return false; // Arrêter la boucle
-            }
-            
-            // Désactiver la validation pour la référence
-            refInput.prop('required', false);
-        } else {
-            // Validation pour les autres actions
-            if (!action || !refInput.val()) {
-                isValid = false;
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Champs obligatoires manquants',
-                    text: 'Veuillez remplir tous les champs obligatoires (Référence Colis et Actions à faire)',
-                });
-                return false; // Arrêter la boucle
+                errorMessage = 'La référence colis est obligatoire pour les actions de dépôt et livraison.';
+                return false;
             }
         }
     });
-    
+
     if (!isValid) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Champs obligatoires manquants',
+            text: errorMessage,
+        });
         event.preventDefault();
     }
 });

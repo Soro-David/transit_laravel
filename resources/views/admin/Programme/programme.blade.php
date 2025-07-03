@@ -4,29 +4,22 @@
 
 @section('content')
     <div class="container">
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-        @endif
+       
 
         <h1 class="mb-4">Gestion des Programmes</h1>
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
-                Ajouter Programme
-            </button>
-            <a href="{{ route('programme.export.pdf') }}" class="btn btn-danger ml-2" style= "position: relative;
-            right: 350px";>
-            <i class="fas fa-file-pdf"></i> Exporter en PDF
-        </a>
+            <div class="d-flex">
+                <button type="button" class="btn btn-primary mr-2" data-toggle="modal" data-target="#addProgrammeModal">
+                    <i class="fa fa-plus"></i> Ajouter Programme
+                </button>
+                <a href="{{ route('programme.export.pdf') }}" class="btn btn-danger">
+                    <i class="fa fa-file-pdf"></i> Exporter en PDF
+                </a>
+            </div>
+            
             <div class="form-inline">
-                <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
+                <input type="text" id="search" class="form-control" placeholder="Rechercher...">
             </div>
         </div>
         <div class="mb-3 d-flex justify-content-start align-items-center">
@@ -81,13 +74,6 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
-                                                    <label for="reference_colis_0" class="form-label">Référence Colis :</label>
-                                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                                           data-index="0" id="reference_colis_0">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
                                                     <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
                                                     <select name="actions_a_faire[]" class="form-control required-field" required>
                                                         <option value="">-- Sélectionner une action --</option>
@@ -97,6 +83,14 @@
                                                     </select>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="reference_colis_0" class="form-label">Référence Colis :</label>
+                                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                                           data-index="0" id="reference_colis_0">
+                                                </div>
+                                            </div>
+                                            
                                         </div>
         
                                         <div class="row">
@@ -637,49 +631,41 @@
                         });
                 });
                // Validation du formulaire
-        $('#addProgrammeModal form').off('submit').on('submit', function(event) {
-            let isValid = true;
-            
-            $('.programme-entry').each(function(index) {
-                const action = $(this).find('select[name="actions_a_faire[]"]').val();
-                const refInput = $(this).find('.reference_colis');
-                
-                if (action === 'recuperation') {
-                    // Validation spécifique pour la récupération
-                    const nomExpediteur = $(this).find('input[name="nom_expediteur[]"]').val();
-                    const adresseExpedition = $(this).find('input[name="Adresse_expedition[]"]').val();
-                    const telExpediteur = $(this).find('input[name="tel_expediteur[]"]').val();
-                    
-                    if (!nomExpediteur || !adresseExpedition || !telExpediteur) {
-                        isValid = false;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Champs obligatoires manquants',
-                            text: 'Pour la récupération, les champs "Nom Expéditeur", "Adresse d\'enlèvement" et "Téléphone Expéditeur" sont obligatoires',
-                        });
-                        return false; // Arrêter la boucle
-                    }
-                    
-                    // Désactiver la validation pour la référence
-                    refInput.prop('required', false);
-                } else {
-                    // Validation pour les autres actions
-                    if (!action || !refInput.val()) {
-                        isValid = false;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Champs obligatoires manquants',
-                            text: 'Veuillez remplir tous les champs obligatoires (Référence Colis et Actions à faire)',
-                        });
-                        return false; // Arrêter la boucle
-                    }
-                }
-            });
-            
-            if (!isValid) {
-                event.preventDefault();
+     // Remplacer la validation existante par ceci :
+$('#addProgrammeModal form').off('submit').on('submit', function(event) {
+    let isValid = true;
+    let errorMessage = '';
+
+    $('.programme-entry').each(function(index) {
+        const action = $(this).find('select[name="actions_a_faire[]"]').val();
+        const refInput = $(this).find('.reference_colis');
+        
+        // Vérifier que l'action est sélectionnée
+        if (!action) {
+            isValid = false;
+            errorMessage = 'Veuillez sélectionner une action à faire pour chaque entrée.';
+            return false; // Arrêter la boucle
+        }
+        
+        // Pour les actions autres que la récupération, la référence colis est obligatoire
+        if (action !== 'recuperation') {
+            if (!refInput.val()) {
+                isValid = false;
+                errorMessage = 'La référence colis est obligatoire pour les actions de dépôt et livraison.';
+                return false;
             }
+        }
+    });
+
+    if (!isValid) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Champs obligatoires manquants',
+            text: errorMessage,
         });
+        event.preventDefault();
+    }
+});
         $(document).on('change', 'select[name="actions_a_faire[]"]', function() {
             const entry = $(this).closest('.programme-entry');
             const refInput = entry.find('.reference_colis');

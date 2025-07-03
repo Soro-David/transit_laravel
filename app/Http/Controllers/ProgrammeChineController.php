@@ -56,102 +56,99 @@ class ProgrammeChineController extends Controller
         'colisValides' => $colisValides
     ]);
 }
-    public function storeProgramme(Request $request)
-    {
-        \Log::info("Debut de la creation du programme");
-        try {
-            // Supprimer la validation exists pour reference_colis
-            $request->validate([
-                'date_programme' => 'required|date',
-                'chauffeur_id' => 'required|exists:chauffeurs,id',
-                'actions_a_faire.*' => 'required|in:depot,recuperation,livraison',
-            ]);
-    
-            $dateProgramme = $request->date_programme;
-            $chauffeurId = $request->chauffeur_id;
-            $referencesColis = $request->input('reference_colis', []);
-            $actionsAFaire = $request->input('actions_a_faire', []);
-            $nomExpediteurs = $request->input('nom_expediteur', []);
-            $adresseExpeditions = $request->input('Adresse_expedition', []);
-            $telExpediteurs = $request->input('tel_expediteur', []);
-            $nomDestinataires = $request->input('nom_destinataire', []);
-            $telDestinataires = $request->input('tel_destinataire', []);
-            $adresseDestinations = $request->input('Adresse_destination', []);
-    
-            DB::beginTransaction();
-    
-            foreach ($actionsAFaire as $index => $action) {
-                $referenceColis = $referencesColis[$index] ?? null;
-    
-                if ($action === 'recuperation') {
-                    // Validation des champs obligatoires pour la récupération
-                    if (empty($nomExpediteurs[$index])) {
-                        throw new \Exception("Le nom de l'expéditeur est obligatoire pour la récupération");
-                    }
-                    if (empty($adresseExpeditions[$index])) {
-                        throw new \Exception("L'adresse d'enlèvement est obligatoire pour la récupération");
-                    }
-                    if (empty($telExpediteurs[$index])) {
-                        throw new \Exception("Le téléphone de l'expéditeur est obligatoire pour la récupération");
-                    }
-    
-                    Programme::create([
-                        'date_programme' => $dateProgramme,
-                        'chauffeur_id' => $chauffeurId,
-                        'reference_colis' => $referenceColis, // Peut être null
-                        'actions_a_faire' => $action,
-                        'nom_expediteur' => $nomExpediteurs[$index],
-                        'lieu_expedition' => $adresseExpeditions[$index],
-                        'tel_expediteur' => $telExpediteurs[$index],
-                        'nom_destinataire' => $nomDestinataires[$index] ?? null,
-                        'tel_destinataire' => $telDestinataires[$index] ?? null,
-                        'lieu_destination' => $adresseDestinations[$index] ?? null,
-                        'etat_rdv' => 'en attente',
-                    ]);
-                } else {
-                    // Validation pour les autres actions
-                    if (empty($referenceColis)) {
-                        throw new \Exception("La référence colis est obligatoire pour l'action '$action'");
-                    }
-    
-                    $programmeExistant = Programme::where('reference_colis', $referenceColis)->first();
-                    if ($programmeExistant) {
-                        throw new \Exception("Le colis $referenceColis est déjà attribué");
-                    }
-    
-                    $colis = Colis::where('reference_colis', $referenceColis)->with('expediteur', 'destinataire')->first();
-                    if (!$colis) {
-                        throw new \Exception("Le colis $referenceColis n'existe pas");
-                    }
-    
-                    $nomExpediteur = $colis->expediteur->nom . ' ' . $colis->expediteur->prenom;
-                    $nomDestinataire = $colis->destinataire->nom . ' ' . $colis->destinataire->prenom;
-    
-                    Programme::create([
-                        'date_programme' => $dateProgramme,
-                        'chauffeur_id' => $chauffeurId,
-                        'reference_colis' => $referenceColis,
-                        'actions_a_faire' => $action,
-                        'nom_expediteur' => $nomExpediteur,
-                        'lieu_expedition' => $colis->expediteur->adresse,
-                        'tel_expediteur' => $colis->expediteur->tel,
-                        'nom_destinataire' => $nomDestinataire,
-                        'tel_destinataire' => $colis->destinataire->tel,
-                        'lieu_destination' => $colis->destinataire->adresse,
-                        'etat_rdv' => 'en attente',
-                    ]);
-                }
-            }
-    
-            DB::commit();
-            return redirect()->back()->with('success', 'Programmes créés avec succès!');
-    
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error("Erreur création programmes: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur: ' . $e->getMessage());
-        }
+public function storeProgramme(Request $request)
+{
+    \Log::info("Debut de la creation du programme");
+    try {
+        // Supprimer la validation exists pour reference_colis
+        $request->validate([
+            'date_programme' => 'required|date',
+            'chauffeur_id' => 'required|exists:chauffeurs,id',
+            'actions_a_faire.*' => 'required|in:depot,recuperation,livraison',
+        ]);
+
+        $dateProgramme = $request->date_programme;
+        $chauffeurId = $request->chauffeur_id;
+        $referencesColis = $request->input('reference_colis', []);
+        $actionsAFaire = $request->input('actions_a_faire', []);
+        $nomExpediteurs = $request->input('nom_expediteur', []);
+        $adresseExpeditions = $request->input('Adresse_expedition', []);
+        $telExpediteurs = $request->input('tel_expediteur', []);
+        $nomDestinataires = $request->input('nom_destinataire', []);
+        $telDestinataires = $request->input('tel_destinataire', []);
+        $adresseDestinations = $request->input('Adresse_destination', []);
+
+        DB::beginTransaction();
+
+        foreach ($actionsAFaire as $index => $action) {
+            $referenceColis = $referencesColis[$index] ?? null;
+ // MODIFICATION 2: Vérifier l'unicité pour tous les types d'actions
+ if (!empty($referenceColis)) {
+    $programmeExistant = Programme::where('reference_colis', $referenceColis)->first();
+    if ($programmeExistant) {
+        throw new \Exception("Le colis $referenceColis est déjà attribué");
     }
+}
+            if ($action === 'recuperation') {
+                // MODIFICATION 1: Supprimer la validation des champs pour la récupération
+                Programme::create([
+                    'date_programme' => $dateProgramme,
+                    'chauffeur_id' => $chauffeurId,
+                    'reference_colis' => $referenceColis, // Peut être null
+                    'actions_a_faire' => $action,
+                    'nom_expediteur' => $nomExpediteurs[$index] ?? null,
+                    'lieu_expedition' => $adresseExpeditions[$index] ?? null,
+                    'tel_expediteur' => $telExpediteurs[$index] ?? null,
+                    'nom_destinataire' => $nomDestinataires[$index] ?? null,
+                    'tel_destinataire' => $telDestinataires[$index] ?? null,
+                    'lieu_destination' => $adresseDestinations[$index] ?? null,
+                    'etat_rdv' => 'en attente',
+                ]);
+            } else {
+                // Validation pour les autres actions
+                if (empty($referenceColis)) {
+                    throw new \Exception("La référence colis est obligatoire pour l'action '$action'");
+                }
+
+                $programmeExistant = Programme::where('reference_colis', $referenceColis)->first();
+                if ($programmeExistant) {
+                    throw new \Exception("Le colis $referenceColis est déjà attribué");
+                }
+
+                $colis = Colis::where('reference_colis', $referenceColis)->with('expediteur', 'destinataire')->first();
+                if (!$colis) {
+                    throw new \Exception("Le colis $referenceColis n'existe pas");
+                }
+
+                $nomExpediteur = $colis->expediteur->nom . ' ' . $colis->expediteur->prenom;
+                $nomDestinataire = $colis->destinataire->nom . ' ' . $colis->destinataire->prenom;
+
+                Programme::create([
+                    'date_programme' => $dateProgramme,
+                    'chauffeur_id' => $chauffeurId,
+                    'reference_colis' => $referenceColis,
+                    'actions_a_faire' => $action,
+                    'nom_expediteur' => $nomExpediteur,
+                    'lieu_expedition' => $colis->expediteur->adresse,
+                    'tel_expediteur' => $colis->expediteur->tel,
+                    'nom_destinataire' => $nomDestinataire,
+                    'tel_destinataire' => $colis->destinataire->tel,
+                    'lieu_destination' => $colis->destinataire->adresse,
+                    'etat_rdv' => 'en attente',
+                ]);
+            }
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Programmes créés avec succès!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error("Erreur création programmes: " . $e->getMessage());
+        return redirect()->back()->with('error', 'Erreur: ' . $e->getMessage());
+    }
+}
+
     public function edit($id) // Modifié pour utiliser l'ID
     {
         // Vérifier que le programme appartient à l'agence 7
