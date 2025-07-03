@@ -20,23 +20,12 @@
                         <p>Tableau de bord</p>
                     </a>
                  </li>
-
-              
-
-              <!-- La classe "has-treeview" a été enlevée -->
-<li class="nav-item">
-    <a href="{{ route('chauffeur.programme.index') }}" class="nav-link {{ activeSegment('programme') }}">
-        <i class="fas fa-calendar-alt"></i>
-         <p>Programme De livraison</p>
-         <!-- La ligne de l'icône flèche a été supprimée -->
-    </a>
- </li>
-
-
+                <!-- La classe "has-treeview" a été enlevée -->
                 <li class="nav-item">
-                    <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
-                        <i class="nav-icon fas fa-cogs"></i>
-                        <p>{{ __('trans.settings') }}</p>
+                    <a href="{{ route('chauffeur.programme.index') }}" class="nav-link {{ activeSegment('programme') }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>Programme De livraison</p>
+                        <!-- La ligne de l'icône flèche a été supprimée -->
                     </a>
                 </li>
             </ul>
