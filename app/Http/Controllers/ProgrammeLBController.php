@@ -33,6 +33,7 @@ class ProgrammeLBController extends Controller
                     'date_programme' => $programme->date_programme,
                     'chauffeur' => $programme->chauffeur,
                     'reference_colis' => $programme->reference_colis,
+                    'nature_du_colis' => $programme->nature_du_colis,
                     'actions_a_faire' => $programme->actions_a_faire,
                     'nom_expediteur' => $programme->nom_expediteur,
                     'Adresse_expedition' => $programme->lieu_expedition, // Mapping correct
@@ -70,6 +71,7 @@ class ProgrammeLBController extends Controller
             $dateProgramme = $request->date_programme;
             $chauffeurId = $request->chauffeur_id;
             $referencesColis = $request->input('reference_colis', []);
+        $natureDuColis = $request->input('nature_du_colis', []);
             $actionsAFaire = $request->input('actions_a_faire', []);
             $nomExpediteurs = $request->input('nom_expediteur', []);
             $adresseExpeditions = $request->input('Adresse_expedition', []);
@@ -95,6 +97,7 @@ class ProgrammeLBController extends Controller
                         'date_programme' => $dateProgramme,
                         'chauffeur_id' => $chauffeurId,
                         'reference_colis' => $referenceColis, // Peut être null
+                        'nature_du_colis' => $natureDuColis[$index] ?? null,
                         'actions_a_faire' => $action,
                         'nom_expediteur' => $nomExpediteurs[$index] ?? null,
                         'lieu_expedition' => $adresseExpeditions[$index] ?? null,
@@ -127,6 +130,7 @@ class ProgrammeLBController extends Controller
                         'date_programme' => $dateProgramme,
                         'chauffeur_id' => $chauffeurId,
                         'reference_colis' => $referenceColis,
+                        'nature_du_colis' => $natureDuColis[$index] ?? null,
                         'actions_a_faire' => $action,
                         'nom_expediteur' => $nomExpediteur,
                         'lieu_expedition' => $colis->expediteur->adresse,
@@ -184,7 +188,10 @@ public function update(Request $request, $id)
     } else {
         $rules['reference_colis'] = 'nullable|exists:colis,reference_colis';
     }
-
+    if ($request->has('nature_du_colis')) {
+        $programme->nature_du_colis = $request->nature_du_colis;
+        $updated = true;
+    }
     $request->validate($rules);
 
     // Vérification de la référence seulement pour les actions non-récupération

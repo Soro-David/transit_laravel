@@ -53,6 +53,7 @@ class ProgrammeController extends Controller
             $dateProgramme = $request->date_programme;
             $chauffeurId = $request->chauffeur_id;
             $referencesColis = $request->input('reference_colis', []);
+            $natureDuColis = $request->input('nature_du_colis', []);
             $actionsAFaire = $request->input('actions_a_faire', []);
             $nomExpediteurs = $request->input('nom_expediteur', []);
             $adresseExpeditions = $request->input('Adresse_expedition', []);
@@ -78,6 +79,7 @@ class ProgrammeController extends Controller
                         'date_programme' => $dateProgramme,
                         'chauffeur_id' => $chauffeurId,
                         'reference_colis' => $referenceColis, // Peut être null
+                        'nature_du_colis' => $natureDuColis[$index] ?? null,
                         'actions_a_faire' => $action,
                         'nom_expediteur' => $nomExpediteurs[$index] ?? null,
                         'lieu_expedition' => $adresseExpeditions[$index] ?? null,
@@ -110,6 +112,7 @@ class ProgrammeController extends Controller
                         'date_programme' => $dateProgramme,
                         'chauffeur_id' => $chauffeurId,
                         'reference_colis' => $referenceColis,
+                        'nature_du_colis' => $natureDuColis[$index] ?? null,
                         'actions_a_faire' => $action,
                         'nom_expediteur' => $nomExpediteur,
                         'lieu_expedition' => $colis->expediteur->adresse,
@@ -173,12 +176,17 @@ class ProgrammeController extends Controller
 
     // Mettre à jour uniquement les champs fournis
     $updated = false;
+    
     if ($request->has('date_programme') && $request->date_programme != $programme->date_programme) {
         $programme->date_programme = $request->date_programme;
         $updated = true;
     }
     if ($request->has('chauffeur_id') && $request->chauffeur_id != $programme->chauffeur_id) {
         $programme->chauffeur_id = $request->chauffeur_id;
+        $updated = true;
+    }
+    if ($request->has('nature_du_colis')) {
+        $programme->nature_du_colis = $request->nature_du_colis;
         $updated = true;
     }
     
@@ -193,6 +201,7 @@ class ProgrammeController extends Controller
             'success' => true,
             'message' => 'Programme mis à jour avec succès'
         ]);
+        
     }
 
     return response()->json([
@@ -222,5 +231,6 @@ public function destroy(Programme $programme)
 
     $pdf = PDF::loadView('admin.programme.pdf', compact('programmes'));
     return $pdf->download('programmes-list.pdf');
+    
 }
 }

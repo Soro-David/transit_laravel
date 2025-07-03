@@ -14,6 +14,7 @@ class Programme extends Model
         'date_programme',
         'chauffeur_id',
         'reference_colis',
+        'nature_du_colis',
         'actions_a_faire',
         'nom_expediteur',
         'nom_destinataire',

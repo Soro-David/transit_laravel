@@ -13,19 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('contacts', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('programmes', function (Blueprint $table) {
+            $table->string('nature_du_colis')->nullable()->after('reference_colis');
         });
     }
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
+    
     public function down()
     {
-        Schema::dropIfExists('contacts');
+        Schema::table('programmes', function (Blueprint $table) {
+            $table->dropColumn('nature_du_colis');
+        });
     }
 };
