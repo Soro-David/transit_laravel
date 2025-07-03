@@ -229,7 +229,7 @@ public function destroy(Programme $programme)
             return $programme;
         });
 
-    $pdf = PDF::loadView('admin.programme.pdf', compact('programmes'));
+    $pdf = PDF::loadView('admin.Programme.pdf', compact('programmes'));
     return $pdf->download('programmes-list.pdf');
     
 }
