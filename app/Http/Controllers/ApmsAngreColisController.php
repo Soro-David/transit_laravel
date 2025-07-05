@@ -45,6 +45,8 @@ use Illuminate\Database\QueryException;
 use Barryvdh\DomPDF\Facade;
 use App\Services\CurrencyConverterService;
 use PDF;
+use Illuminate\Support\Carbon;
+
 
 class ApmsAngreColisController extends Controller
 {
@@ -136,7 +138,7 @@ class ApmsAngreColisController extends Controller
             $baseReference = "{$currentLetter}{$increment}";
     
             // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
+            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
     
             if ($exists) {
                 $increment++; // Incrémenter le numéro
@@ -151,43 +153,159 @@ class ApmsAngreColisController extends Controller
     
         return $baseReference;// Retourner la référence finale
     }
-    private function generateReferenceColisComplet()
-    {
-        $user = Auth::user();
+    // private function generateReferenceColisComplet()
+    // {
+    //     $user = Auth::user();
 
-        if (!$user) {
+    //     if (!$user) {
             
-            throw new \Exception("Utilisateur non connecté.");
-        }
+    //         throw new \Exception("Utilisateur non connecté.");
+    //     }
 
-        $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
+    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
     
-        $contenaireRef = DB::table('colis')
-            ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-            ->orderByDesc('id')
-            ->value('reference_contenaire');
+    //     $contenaireRef = DB::table('colis')
+    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
+    //         ->orderByDesc('id')
+    //         ->value('reference_contenaire');
 
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceContenaire();
-            if (!$contenaireRef) {
-                throw new \Exception("Impossible de générer une référence de conteneur.");
-            }
-        }
+    //     if (!$contenaireRef) {
+    //         $contenaireRef = $this->generateReferenceContenaire();
+    //         if (!$contenaireRef) {
+    //             throw new \Exception("Impossible de générer une référence de conteneur.");
+    //         }
+    //     }
 
-        $lastId = DB::table('colis')->max('id');
+    //     $lastId = DB::table('colis')->max('id');
 
-        $nextId = ($lastId === null) ? 1 : $lastId + 1;
+    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
 
-        $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
+    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
 
-        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
 
-        return [
-            'reference_colis' => $reference,
-            'reference_contenaire' => $contenaireRef
-        ];
+    //     return [
+    //         'reference_colis' => $reference,
+    //         'reference_contenaire' => $contenaireRef
+    //     ];
+    // }
+
+
+
+
+
+// private function generateReferenceParMode(string $mode_transit)
+// {
+//     $user = Auth::user();
+//     if (!$user) {
+//         throw new \Exception("Utilisateur non connecté.");
+//     }
+
+//     // Initiales : ex SE
+//     $initiales = strtoupper(
+//         substr($user->last_name ?? 'X', 0, 1) .
+//         substr($user->first_name ?? 'X', 0, 1)
+//     );
+
+//     // Agence fixée
+//     $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
+
+//     // 🔍 Requête avec correction TRIM et LOWER
+//     $lastIdRef = DB::table('colis')
+//         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+//         ->where('colis.mode_transit', $mode_transit)
+//         ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
+//         ->max('colis.id_reference');
+
+//     // 🚀 Incrément
+//     $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+//     // 📦 Conteneur actif
+//     $contenaireRef = DB::table('colis')
+//         ->where('mode_transit', $mode_transit)
+//         ->where('etat', '!=', 'Fermé')
+//         ->orderByDesc('id')
+//         ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+
+//     // 🔢 Format
+//     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+//     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+//     return [
+//         'reference_colis' => $reference,
+//         'id_reference' => $nextIdRef,
+//         'reference_contenaire' => $contenaireRef
+//     ];
+// }
+
+private function generateReferenceParMode(string $mode_transit)
+{
+    $user = Auth::user();
+    if (!$user) {
+        throw new \Exception("Utilisateur non connecté.");
     }
+
+    // Initiales de l'utilisateur (ex: SE)
+    $initiales = strtoupper(
+        substr($user->last_name ?? 'X', 0, 1) .
+        substr($user->first_name ?? 'X', 0, 1)
+    );
+
+    // Agence cible
+    $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
+
+    // Dernier identifiant de référence par mode + agence
+    $lastIdRef = DB::table('colis')
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+        ->where('colis.mode_transit', $mode_transit)
+        ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
+        ->max('colis.id_reference');
+
+    // Incrémentation de l'ID de référence
+    $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+    // Déterminer la bonne référence de conteneur ou vol selon le mode
+    if ($mode_transit === 'maritime') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+    } elseif ($mode_transit === 'aerien') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_vol') ?? $this->generateReferenceVol();
+    } else {
+        throw new \Exception("Mode de transit invalide : $mode_transit");
+    }
+
+    // Format final de la référence du colis
+    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    return [
+        'reference_colis' => $reference,
+        'id_reference' => $nextIdRef,
+        'reference_contenaire' => $contenaireRef
+    ];
+}
+
+
+
+
+    public function genererReferenceSelonMode($mode)
+    {
+        try {
+            $ref = $this->generateReferenceParMode($mode);
+            return response()->json($ref);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 
     public function add_colis(Request $request)
     {
@@ -195,17 +313,18 @@ class ApmsAngreColisController extends Controller
         $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
         $agencesExpedition = Agence::where('nom_agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-    
+        // dd($agences);
         // Génère juste les références, sans enregistrer encore dans la base
-        $referenceColis = $this->generateReferenceColisComplet();
-    
-        return view('IPMS_SIMEXCI_ANGRE.colis.add_colis',
-         compact('agencesExpedition', 
-                'agencesDestination', 
-                'paysUniques', 
-                'referenceColis',
-                'agences'));        
+        // $referenceColis = $this->generateReferenceParMode();
+        $referenceColis_maritime = $this->generateReferenceParMode('maritime');
+        $referenceColis_aerien = $this->generateReferenceParMode('aerien');
+        // dd($referenceColis);
+       return view('IPMS_SIMEXCI_ANGRE.colis.add_colis', compact(
+            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis_maritime','referenceColis_aerien'
+        ));
     }
+
+
     
     public function autocompleteProduit(Request $request)
     {
@@ -337,24 +456,24 @@ class ApmsAngreColisController extends Controller
         $data['etat'] = $data['etat'] ?? 'Validé';
 
         $expediteurData = [
-            'nom' => $data['nom_expediteur'] ?? null,
-            'prenom' => $data['prenom_expediteur'] ?? null,
-            'email' => $data['email_expediteur'] ?? null,
-            'tel' => $data['tel_expediteur'] ?? null,
-            'agence' => $data['agence_expedition'] ?? null,
-            'adresse' => $data['adresse_expediteur'] ?? null,
+                    'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+                    'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ??'',
+                    'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
+                    'tel' => $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '',
+                    'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'],
+                    'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur'] ?? 'null',
         ];
 
         $destinataireData = [
-            'nom' => $data['nom_destinataire'] ?? null,
-            'prenom' => $data['prenom_destinataire'] ?? null,
-            'email' => $data['email_destinataire'] ?? null,
-            'tel' => $data['tel_destinataire'] ?? null,
-            'agence' => $data['agence_destination'] ?? null,
-            'adresse' => $data['adresse_destinataire'] ?? null,
+                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe']?? '',
+                'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
+                'tel' => $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '',
+                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'],
+                'adresse' => $data['adresse_destinataire']?? $data['adresse_destinataire_societe'] ?? '',
         ];
 
-        // --- Création Expediteur & Destinataire (une seule fois) ---
+        // --- Création Expediteur & Destinataire (une seule fois) --- 
         try {
             $expediteur = Expediteur::create($expediteurData);
             $destinataire = Destinataire::create($destinataireData);
@@ -438,10 +557,21 @@ class ApmsAngreColisController extends Controller
 
         
              $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
-            
+            $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
+
+            //    dd($agence);
+                $lastIdRef = DB::table('colis')
+                    ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                    ->where('colis.mode_transit', $data['mode_transit'])
+                    ->where('expediteurs.agence', $agence)
+                    ->max('colis.id_reference');
+
+                $id_reference = ($lastIdRef ?? 0) + 1;
+
             $colisItemData = [
                 'devise' => 'FCFA', // Devise par défaut
                 'reference_colis' => $referenceColis,
+                'id_reference' => $id_reference,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
@@ -1385,20 +1515,65 @@ public function get_colis_hold(Request $request)
         }
     }
 
+    // public function cargaison_ferme(Request $request)
+    // {
+
+    //     $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+
+    //     // Récupérer les références de conteneurs fermés, sans doublons
+    //     $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+
+    //     // Obtenir le mois et l'année actuels
+    //     $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
+    //     $annee = Carbon::now()->year;
+
+    //     return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
+    // }
+
+
     public function cargaison_ferme(Request $request)
-    {
+{
+    // Récupérer les agences de destination
+    $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
 
-        $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+    // Étape 1 : Récupérer tous les colis fermés
+    $colisFermes = Colis::select('colis.reference_contenaire', 'colis.reference_vol')
+                       ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                        ->where('colis.etat', 'Fermé')
+                        ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche') // <-- adapte selon besoin
+                        ->get();
+    // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
+    $referencesColis = collect($colisFermes)
+        ->flatMap(function ($colis) {
+            return [$colis->reference_contenaire, $colis->reference_vol];
+        })
+        ->filter()  // Supprimer les valeurs nulles
+        ->unique()
+        ->values()
+        ->toArray();
 
-        // Récupérer les références de conteneurs fermés, sans doublons
-        $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+    // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
+    $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
+        ->selectRaw('reference_conteneur, COUNT(*) as total')
+        ->groupBy('reference_conteneur')
+        ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
+        ->toArray();
 
-        // Obtenir le mois et l'année actuels
-        $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
-        $annee = Carbon::now()->year;
+    // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
+    $referenceFermes = collect($referencesColis)
+        ->filter(function ($ref) use ($referencesBateauxCounts) {
+            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+        })
+        ->values()
+        ->toArray();
 
-        return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
-    }
+    // Mois et année
+    $mois = Carbon::now()->translatedFormat('F');
+    $annee = Carbon::now()->year;
+
+    return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
+}
+
 
     public function edit_bateaux($id)
     {

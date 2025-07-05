@@ -31,9 +31,9 @@
                             <div class="container text-right">
                                 <form id="fermerConteneurForm" action="{{ route('colis.contenaire.fermer') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
+                                    {{-- <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
                                         Fermer le conteneur
-                                    </button>
+                                    </button> --}}
                                 </form>
                             </div>
                         </div>

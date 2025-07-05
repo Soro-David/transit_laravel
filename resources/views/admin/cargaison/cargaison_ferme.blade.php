@@ -25,7 +25,7 @@
                                 <label for="reference_conteneur" class="form-label fw-bold">Référence conteneur/vol:</label>
                                 <select id="reference_conteneur" name="reference_conteneur" class="form-select" onchange="generateReference()">
                                     <option value="" disabled selected>-- Sélectionnez la référence --</option>
-                                    @foreach ($referenceFermes as $reference)
+                                   @foreach ($referenceFermes as $reference)
                                         <option value="{{ $reference }}">{{ $reference }}</option>
                                     @endforeach
                                 </select>

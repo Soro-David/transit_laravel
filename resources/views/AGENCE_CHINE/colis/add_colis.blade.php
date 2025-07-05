@@ -40,6 +40,7 @@
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
                 <div class="row">
+                    <!-- Sélecteur de mode -->
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
@@ -50,12 +51,34 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="reference_colis" class="form-label">Référence</label>
-                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis['reference_colis'] }}" class="form-control" readonly>
+                            <label for="categorie_client" class="form-label">Sélectionnez la catégorie de client</label>
+                            <select name="categorie_client" id="categorie_client" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez la catégorie de client --</option>
+                                <option value="particulier">Particulier</option>
+                                <option value="societe">Sociéte</option>
+                            </select>
                         </div>
                     </div>
+
+                    <!-- Maritime -->
+                    <div class="col-md-6" id="ref_maritime" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Référence (Maritime)</label>
+                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Aérien -->
+                    <div class="col-md-6" id="ref_aerien" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Référence (Aérien)</label>
+                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                        </div>
+                    </div>
+
                     <div class="text-end mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
                         <button type="button" class="btn btn-primary btn-next">Suivant</button>
@@ -63,124 +86,163 @@
                 </div>
             </div>
         </fieldset>
+
         <!-- Étape 2 : Informations de l'Expéditeur -->
+        {{-- ================== EXPÉDITEUR ================== --}}
         <fieldset>
             <div class="form-section">
-                <h5 class="text-center mb-4 mt-5">Informations de l'Expéditeur</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ old('nom_expediteur') }}" class="form-control" required>
+                <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
+
+                {{-- ===== SOCIÉTÉ EXPÉDITEUR ===== --}}
+                <div id="societe_expediteur_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_societe_expediteur" class="form-label">Nom de la société</label>
+                            <input type="text" name="nom_expediteur_societe" id="nom_societe_expediteur" class="form-control">
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_societe_expediteur" class="form-label">Email</label>
+                            <input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control">
                         </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{ old('email_expediteur') }}" class="form-control">
+                        <div class="col-md-6 mb-3">
+                            <label for="contact_societe_expediteur" class="form-label">Contact</label>
+                            <input type="text" name="tel_expediteur_societe" id="contact_societe_expediteur" class="form-control">
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ old('tel_expediteur') }}" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
+                         <div class="col-md-6 mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ old('adresse_expediteur') }}" class="form-control" required>
+                            <input type="text" name="adresse_expediteur_societe" id="adresse_expediteur" class="form-control">
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="agence_expedition" class="form-label">Agence d'expédition</label>
-                            <select name="agence_expedition" id="agence_expedition" class="form-control">
-                                {{-- <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option> --}}
+                        <div class="col-md-12 mb-3">
+                            <label for="agence_societe_expediteur" class="form-label">Agence d'expédition</label>
+                            <select name="agence_expediteur_societe" id="agence_societe_expediteur" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
                                 @foreach ($agencesExpedition as $agence)
-                                    <option value="{{$agence->nom_agence}}">{{ $agence->nom_agence }}</option>
+                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                    </div>
-
-            </div>
-            {{-- Boutons navigation --}}
-            <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                <button type="button" class="btn btn-primary btn-next">Suivant</button>
-            </div>
-        </fieldset>
-
-        <!-- Étape 2 : Informations du Destinataire -->
-        <fieldset style="display: none;">
-            <h5 class="text-center mb-4">Informations du Destinataire</h5>
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="{{ old('nom_destinataire') }}" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" value="{{ old('prenom_destinataire') }}" class="form-control" required>
-                        </div>
+                             {{-- Boutons navigation --}}
+                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" value="{{ old('email_destinataire') }}" class="form-control">
+
+                {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
+                <div id="particulier_expediteur_section">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_expediteur" class="form-label">Nom</label>
+                            <input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control">
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" value="{{ old('tel_destinataire') }}" class="form-control" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom_expediteur" class="form-label">Prénom</label>
+                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control">
                         </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" value="{{ old('adresse_destinataire') }}" class="form-control" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_expediteur" class="form-label">Email</label>
+                            <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="agence_destination" class="form-label">Agence de destination</label>
-                            <select name="agence_destination" id="agence_destination" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                                <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
-                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angre 8ème Tranche</option>
+                        <div class="col-md-6 mb-3">
+                            <label for="tel_expediteur" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_expediteur" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="agence_particulier_expediteur" class="form-label">Agence d'expedition</label>
+                            <select name="agence_expedition" id="agence_particulier_expediteur" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                                @foreach ($agencesExpedition as $agence)
+                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                @endforeach
                             </select>
                         </div>
-                    </div>                    
+                    </div>
+                            {{-- Boutons navigation --}}
+                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                    </div>
                 </div>
             </div>
-            {{-- Boutons navigation --}}
-            <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                <button type="button" class="btn btn-primary btn-next">Suivant</button>
+        </fieldset>
+
+            {{-- ================== DESTINATAIRE ================== --}}
+        <fieldset style="display: none;">
+            <div class="form-section">
+                <h5 class="text-center mb-4">Informations du destinataire</h5>
+
+                {{-- ===== SOCIÉTÉ DESTINATAIRE ===== --}}
+                <div id="societe_destinataire_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
+                            <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_societe_destinataire" class="form-label">Email</label>
+                            <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="contact_societe_destinataire" class="form-label">Contact</label>
+                            <input type="text" name="tel_destinataire_societe" id="contact_societe_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
+                            <select name="agence_destinataire_societe" id="agence_particulier_destinataire_societe" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
+                <div id="particulier_destinataire_section">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_destinataire" class="form-label">Nom</label>
+                            <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom_destinataire" class="form-label">Prénom</label>
+                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_destinataire" class="form-label">Email</label>
+                            <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tel_destinataire" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
+                            <select name="agence_destination" id="agence_particulier_destinataire_particulier" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                    {{-- Boutons navigation --}}
+                <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                    <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                </div>
             </div>
         </fieldset>
-        <!-- Étape 3 : Mode de transit -->
 
         <!-- Étape 4 : Informations du Colis -->
         <fieldset id="colisTemplate" style="display: none;">
@@ -298,18 +360,94 @@
 </section>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modeTransitSelect = document.getElementById('mode_transit');
+    const refMaritime = document.getElementById('ref_maritime');
+    const refAerien = document.getElementById('ref_aerien');
+    const categorieClientSelect = document.getElementById('categorie_client');
 
-            // Fonction pour mettre à jour l'agence de destination selon le mode de transit sélectionné
-    document.getElementById('mode_transit').addEventListener('change', function() {
-        var modeTransit = this.value;
-        var agenceDestination = document.getElementById('agence_destination');
+    // Agences destinataires avec IDs différents
+    const agenceSelectParticulier = document.getElementById('agence_particulier_destinataire_particulier');
+    const agenceSelectSociete = document.getElementById('agence_particulier_destinataire_societe');
 
-        if (modeTransit === 'maritime') {
-            agenceDestination.value = 'IPMS-SIMEX-CI'; // Sélectionner l'agence maritime
-        } else if (modeTransit === 'aerien') {
-            agenceDestination.value = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Sélectionner l'agence aérienne
-        }
+    const societeExpediteurSection = document.getElementById('societe_expediteur_section');
+    const particulierExpediteurSection = document.getElementById('particulier_expediteur_section');
+    const societeDestinataireSection = document.getElementById('societe_destinataire_section');
+    const particulierDestinataireSection = document.getElementById('particulier_destinataire_section');
+
+    // Options agences selon mode de transit
+    const agenceOptionsTransit = {
+        maritime: { value: "IPMS-SIMEX-CI", label: "Carrefour Angré" },
+        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "Angre 8ème Tranche" }
+    };
+
+    // Affichage des champs référence selon mode
+    function toggleReferenceFields(mode) {
+        refMaritime.style.display = mode === 'maritime' ? 'block' : 'none';
+        refAerien.style.display = mode === 'aerien' ? 'block' : 'none';
+    }
+
+    // Récupération référence via fetch AJAX
+    function fetchReference(mode) {
+        fetch(`/AGENCE_CHINE/colis/generer-reference/${mode}`)
+            .then(res => res.json())
+            .then(data => {
+                if (mode === 'maritime') {
+                    document.querySelector('input[name="reference_colis_maritime"]').value = data.reference_colis;
+                } else if (mode === 'aerien') {
+                    document.querySelector('input[name="reference_colis_aerien"]').value = data.reference_colis;
+                }
+            })
+            .catch(err => console.error('Erreur génération référence :', err));
+    }
+
+    // Met à jour les options agences destinataires selon mode de transit
+    function updateAgenceOptionsByMode(mode) {
+        if (!agenceOptionsTransit[mode]) return;
+
+        // Remise à zéro + ajout option unique dans les deux select
+        [agenceSelectParticulier, agenceSelectSociete].forEach(select => {
+            if (!select) return;
+            select.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
+            const option = document.createElement('option');
+            option.value = agenceOptionsTransit[mode].value;
+            option.textContent = agenceOptionsTransit[mode].label;
+            select.appendChild(option);
+            select.value = option.value; // sélection automatique
+        });
+    }
+
+    // Affiche/masque les sections selon la catégorie client
+    function toggleCategorieClientFields(categorie) {
+        const isSociete = categorie === 'societe';
+        societeExpediteurSection.style.display = isSociete ? 'block' : 'none';
+        particulierExpediteurSection.style.display = isSociete ? 'none' : 'block';
+        societeDestinataireSection.style.display = isSociete ? 'block' : 'none';
+        particulierDestinataireSection.style.display = isSociete ? 'none' : 'block';
+    }
+
+    // Écouteur changement mode transit
+    modeTransitSelect.addEventListener('change', function () {
+        const selectedMode = this.value;
+        toggleReferenceFields(selectedMode);
+        fetchReference(selectedMode);
+        updateAgenceOptionsByMode(selectedMode);
     });
+
+    // Écouteur changement catégorie client
+    categorieClientSelect.addEventListener('change', function () {
+        toggleCategorieClientFields(this.value);
+    });
+
+    // Initialisation au chargement si valeurs déjà sélectionnées
+    if (modeTransitSelect.value) {
+        toggleReferenceFields(modeTransitSelect.value);
+        updateAgenceOptionsByMode(modeTransitSelect.value);
+    }
+    if (categorieClientSelect.value) {
+        toggleCategorieClientFields(categorieClientSelect.value);
+    }
+});
 
 $(document).ready(function() {
     // Initialisation de l'autocomplétion sur les champs existants

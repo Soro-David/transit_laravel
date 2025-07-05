@@ -93,7 +93,7 @@
                         <li class="nav-item">
                             <a href="{{ route('aftlb_colis.cargaison.ferme') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Cargaisons fermées') }}</p>
+                                <p>{{ __('Bateaux & Avions') }}</p>
                             </a>
                         </li>
                     </ul>

@@ -74,7 +74,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('ipms_angre_colis.cargaison.ferme') }}" class="nav-link {{ isActiveRoute('ipms_angre_colis.cargaison.ferme') }}">
-                                <p>{{ __('Cargaisons fermées') }}</p>
+                                 <p>{{ __('Bateaux & Avions') }}</p>
                             </a>
                         </li>
                     </ul>

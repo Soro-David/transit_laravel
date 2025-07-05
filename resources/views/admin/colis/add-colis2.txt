@@ -1,0 +1,1098 @@
+@extends('admin.layouts.admin')
+@section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
+@section('content')
+<section class="p-4 mx-auto">
+
+    <form action="{{ route('colis.store.colis') }}" method="post" class="form-container">
+        @csrf
+
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+        <div class="progress-bar-container text-center mb-4">
+            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
+                <li class="step active" data-step="0">1</li>
+            </ul>
+            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
+                <li class="step" data-step="1">2</li>
+
+            </ul>
+            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
+                <li class="step" data-step="2">3</li>
+
+            </ul>
+            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
+                <li class="step" data-step="3">4</li>
+            </ul>
+        </div>
+        <!-- Étape 1 : Informations transport -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
+                            <select name="mode_transit" id="mode_transit" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
+                                <option value="maritime">Maritime</option>
+                                <option value="aerien">Aérien</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="categorie_client" class="form-label">Sélectionnez la catégorie client</label>
+                            <select name="categorie_client" id="categorie_client" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez la catégorie client --</option>
+                                <option value="particulier">Particulier</option>
+                                <option value="societe">Société</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="reference_container" style="display: none;">
+                    <div class="mb-3">
+                        <label for="reference_colis" class="form-label">Référence</label>
+                        <input type="text" name="reference_colis" id="reference_colis" class="form-control" readonly>
+                        {{-- Champs cachés pour stocker les références générées --}}
+                        <input type="hidden" id="reference_maritime_val" value="{{ $referenceMaritime }}">
+                        <input type="hidden" id="reference_aerien_val" value="{{ $referenceAerien }}">
+                    </div>
+                   <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Étape 2 : Informations de l'Expéditeur -->
+        <fieldset>
+         <div class="form-section">
+                <h5 class="text-center mb-4 mt-5">Informations de l'Expéditeur</h5>
+                <div class="row">
+                   <div class="col-md-6">
+                        <div class="mb-3">
+                            {{-- Le label change dynamiquement via JS --}}
+                            <label for="nom_expediteur" id="label_nom_expediteur" class="form-label">Nom</label>
+                            <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ old('nom_expediteur') }}" class="form-control" required>
+                        </div>
+                    </div>
+                    {{-- Ce champ sera masqué pour les sociétés via JS --}}
+                    <div class="col-md-6" id="field_prenom_expediteur">
+                        <div class="mb-3">
+                            <label for="prenom_expediteur" class="form-label">Prénom</label>
+                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ old('prenom_expediteur') }}" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email_expediteur" class="form-label">Email</label>
+                            <input type="email" name="email_expediteur" id="email_expediteur" value="{{ old('email_expediteur') }}" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{-- Le label change dynamiquement via JS --}}
+                            <label for="tel_expediteur" id="label_contact_expediteur" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ old('tel_expediteur') }}" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="adresse_expediteur" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ old('adresse_expediteur') }}" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="pays_expedition" class="form-label">Pays d'expédition</label>
+                            <select name="pays_expedition" id="pays_expedition" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le pays d'expédition --</option>
+                                @foreach ($paysUniques as $pays)
+                                <option value="{{ $pays }}">{{ $pays }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label for="agence_expedition" class="form-label">Agence d'expédition</label>
+                            <select name="agence_expedition" id="agence_expedition" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence d'expédition --</option>
+                                @foreach ($agencesExpedition as $agence)
+                                <option value="{{ $agence->nom_agence }}" data-pays="{{ $agence->pays_agence }}">
+                                    {{ $agence->nom_agence }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const paysSelect = document.getElementById('pays_expedition');
+                        const agenceSelect = document.getElementById('agence_expedition');
+                        const agenceOptions = agenceSelect.querySelectorAll('option[data-pays]');
+
+                        paysSelect.addEventListener('change', function() {
+                            const selectedPays = this.value;
+
+                            // Réinitialiser les options
+                            agenceSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence d\'expédition --</option>';
+
+                            // Ajouter uniquement les options correspondant au pays sélectionné
+                            agenceOptions.forEach(option => {
+                                if (option.getAttribute('data-pays') === selectedPays) {
+                                    agenceSelect.appendChild(option.cloneNode(true));
+                                }
+                            });
+                        });
+
+                        // Déclencher l'événement "change" au chargement de la page si un pays est déjà sélectionné
+                        if (paysSelect.value) {
+                            paysSelect.dispatchEvent(new Event('change'));
+                        }
+                    });
+                </script>
+            </div>
+             {{-- Boutons navigation --}}
+            <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                <button type="button" class="btn btn-primary btn-next">Suivant</button>
+            </div>
+        </fieldset>
+        <!-- Étape 3 : Informations du Destinataire -->
+
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4">Informations du Destinataire</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{-- Le label change dynamiquement via JS --}}
+                            <label for="nom_destinataire" id="label_nom_destinataire" class="form-label">Nom</label>
+                            <input type="text" name="nom_destinataire" id="nom_destinataire" value="{{ old('nom_destinataire') }}" class="form-control" required>
+                        </div>
+                    </div>
+                    {{-- Ce champ sera masqué pour les sociétés via JS --}}
+                    <div class="col-md-6" id="field_prenom_destinataire">
+                        <div class="mb-3">
+                            <label for="prenom_destinataire" class="form-label">Prénom</label>
+                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" value="{{ old('prenom_destinataire') }}" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email_destinataire" class="form-label">Email</label>
+                            <input type="email" name="email_destinataire" id="email_destinataire" value="{{ old('email_destinataire') }}" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{-- Le label change dynamiquement via JS --}}
+                            <label for="tel_destinataire" id="label_contact_destinataire" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_destinataire" id="tel_destinataire" value="{{ old('tel_destinataire') }}" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="adresse_destinataire" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" value="{{ old('adresse_destinataire') }}" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="agence_destination" class="form-label">Agence de destination</label>
+                            <select name="agence_destination" id="agence_destination" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                                <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angre 8ème Tranche</option>
+                            </select>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+            {{-- Boutons navigation --}}
+            <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                <button type="button" class="btn btn-primary btn-next">Suivant</button>
+            </div>
+        </fieldset>
+        <!-- Étape 4 : Informations du Colis -->
+        <fieldset id="colisTemplate" style="display: none;">
+                <h5 class="text-center mb-4 mt-5">Informations du Colis</h5>
+            <div class="form-section">
+
+
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
+                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Produit(s) ou Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="service[]" class="form-control produit-input">
+                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
+                        </div>
+                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="type_colis" class="form-label">Type colis</label>
+                            <select name="type_colis[]" class="form-control">
+                                <option value="" disabled selected>-- Type de colis --</option>
+                                <option value="standard">Standard</option>
+                                <option value="fragile">Fragile</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2 col-md-2 col-lg-2">
+                        <div class="mb-3">
+                            <label for="devise" class="form-label">Devise</label>
+                            <select name="devise" id="devise" class="form-control">
+                                <option value="" disabled selected>-- Devise --</option>
+                                <option value="EUR">EUR</option>
+                                <option value="YUAN">YUAN</option>
+                                <option value="FCFA">FCFA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 dimension-section">
+                        <label class="form-label">Dimensions (cm)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                        </div>
+                        <div class="dimension-result mt-2"  name="dimension_result" style="display: none; font-weight: bold;"></div>
+                    </div>
+                    <div class="col-md-6 poids-section" style="display: none;">
+                        <label class="form-label">Poids (kg)</label>
+                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-6">
+                        <div class="mb-3">
+                            <label for="description_colis" class="form-label">Commentaire</label>
+                            <textarea 
+                            name="description_colis[]" 
+                            id="description_colis" 
+                            class="form-control" 
+                            rows="4"
+                            placeholder="Saisissez la description du colis"></textarea>
+                        </div>
+                    </div>
+                
+                </div>
+            </div>
+            <div class="text-end mt-2">
+                {{-- <a href="#" class="btn btn-link add-colis">Ajouter un autre colis</a> --}}
+                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
+                <button type="button" class="btn btn-danger remove-colis" style="display: none">Retirer ce colis</button>
+            </div>
+            <div id="colisContainer"></div>
+            <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                <button type="submit" class="btn btn-success" style="display: none;">Valider</button>
+            </div>
+        </fieldset>
+</form>
+
+<div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="produitForm">
+                    <div class="mb-3">
+                        <label for="description_produit" class="form-label">Description</label>
+                        <input type="text" name="description" id="description_produit" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categorie_produit" class="form-label">Catégorie</label>
+                        <select name="categorie" id="categorie_produit" class="form-control" required>
+                            <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
+                            <option value="Colis">COLIS</option>
+                            <option value="Service">SERVICES</option>
+                            <option value="Remise">REMISES</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prix_unitaire" class="form-label">Prix Unitaire</label>
+                        <input type="number" name="prix" id="prix_unitaire" class="form-control" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agence" class="form-label">Agence de destination</label>
+                        <select name="agence" id="agence" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angre 8ème Tranche</option>
+                            <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
+                            <option value="Agence de Chine">Agence de Chine</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary btn-save" data-url="{{ route('colis.store.produit') }}">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<script>
+$(document).ready(function() {
+
+        $('#mode_transit').on('change', function() {
+        const mode = $(this).val();
+        const refContainer = $('#reference_container');
+        const refInput = $('#reference_colis');
+        
+        if (mode === 'maritime') {
+            const refMaritime = $('#reference_maritime_val').val();
+            refInput.val(refMaritime);
+            refContainer.show();
+        } else if (mode === 'aerien') {
+            const refAerien = $('#reference_aerien_val').val();
+            refInput.val(refAerien);
+            refContainer.show();
+        } else {
+            refContainer.hide();
+            refInput.val('');
+        }
+    }).trigger('change'); // Déclencher au chargement pour l'état initial
+
+    // Règle 2: Affichage des champs selon la catégorie de client (Particulier/Société)
+    $('#categorie_client').on('change', function() {
+        const categorie = $(this).val();
+
+        if (categorie === 'societe') {
+            // Pour l'expéditeur (Fieldset 2)
+            $('#label_nom_expediteur').text('Raison Sociale');
+            $('#field_prenom_expediteur').hide();
+            $('#prenom_expediteur').prop('required', false); // Rendre le champ non requis
+            $('#label_contact_expediteur').text('Contact Agence');
+
+            // Pour le destinataire (Fieldset 3)
+            $('#label_nom_destinataire').text('Raison Sociale');
+            $('#field_prenom_destinataire').hide();
+            $('#prenom_destinataire').prop('required', false); // Rendre le champ non requis
+            $('#label_contact_destinataire').text('Contact Agence');
+
+        } else { // Cas 'particulier' ou autre
+            // Pour l'expéditeur
+            $('#label_nom_expediteur').text('Nom');
+            $('#field_prenom_expediteur').show();
+            $('#prenom_expediteur').prop('required', true);
+            $('#label_contact_expediteur').text('Téléphone');
+            
+            // Pour le destinataire
+            $('#label_nom_destinataire').text('Nom');
+            $('#field_prenom_destinataire').show();
+            $('#prenom_destinataire').prop('required', true);
+            $('#label_contact_destinataire').text('Téléphone');
+        }
+    }).trigger('change'); // Déclencher au chargement pour l'état initial
+
+
+    // Initialisation de l'autocomplétion sur les champs existants
+    initAutocomplete($(document));
+
+    function initAutocomplete(element) {
+        $(element).find(".produit-input").off("keyup").on("keyup", function() {
+            let query = $(this).val().trim();
+            let input = $(this);
+            let row = input.closest('.row');
+            let resultsContainer = row.find('.autocomplete-results');
+            let prixInput = row.find('input[name="prix[]"]');
+            let quantiteInput = row.find('input[name="quantite_colis[]"]');
+            let prixTotalDisplay = row.find('.prix-total');
+
+            if (query.length >= 2) {
+                $.ajax({
+                    url: "{{ route('colis.recherche.auto') }}",
+                    type: "GET",
+                    dataType: "json",
+                    data: { query: query },
+                    success: function(data) {
+                        resultsContainer.empty().show();
+                        if (data.length > 0) {
+                            $.each(data, function(index, produit) {
+                                let resultItem = $('<div class="autocomplete-item"></div>')
+                                    .text(produit.description)
+                                    .css({
+                                        padding: "5px",
+                                        cursor: "pointer",
+                                        borderBottom: "1px solid #eee"
+                                    })
+                                    .on('click', function() {
+                                        input.val(produit.description);
+                                        resultsContainer.empty().hide();
+
+                                        // Mise à jour du prix unitaire et du prix total
+                                        let prixUnitaire = parseFloat(produit.prix);
+                                        let quantite = parseInt(quantiteInput.val()) || 1;
+                                        let prixTotal = prixUnitaire * quantite;
+
+                                        prixInput.attr("data-prix-unitaire", prixUnitaire); // Stocker le prix unitaire
+                                        prixInput.val(prixTotal);
+                                        prixTotalDisplay.text(prixTotal);
+                                    });
+
+                                resultsContainer.append(resultItem);
+                            });
+                        } else {
+                            resultsContainer.hide();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Erreur AJAX:", error);
+                        resultsContainer.empty().hide();
+                    }
+                });
+            } else {
+                resultsContainer.empty().hide();
+            }
+        });
+    }
+
+    // Met à jour le prix total lors de la modification de la quantité
+    $(document).on('input', '.quantite-colis', function() {
+        let row = $(this).closest('.row');
+        let prixInput = row.find('input[name="prix[]"]');
+        let prixTotalDisplay = row.find('.prix-total');
+        let quantite = parseInt($(this).val()) || 1;
+        let prixUnitaire = parseFloat(prixInput.attr("data-prix-unitaire")) || 0;
+
+        let prixTotal = prixUnitaire * quantite;
+
+        prixInput.val(prixTotal);
+        prixTotalDisplay.text(prixTotal);
+    });
+
+    // Fermer les suggestions en cliquant en dehors
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.input-group, .autocomplete-results').length) {
+            $('.autocomplete-results').hide();
+        }
+    });
+
+    // Empêcher la soumission du formulaire avec "Enter" si l'autocomplétion est ouverte
+    $(document).on('keydown', '.produit-input', function(event) {
+        if (event.key === "Enter" && $('.autocomplete-results').is(':visible')) {
+            event.preventDefault();
+        }
+    });
+
+    // Ajouter un nouveau colis et initialiser l'autocomplétion
+    $(document).on("click", ".add-colis", function(e) {
+        e.preventDefault();
+        const newColis = $(`
+            <div class="colis-fieldset mb-4">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
+                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Produit(s) ou Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="service[]" class="form-control produit-input">
+                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
+                        </div>
+                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="type_colis" class="form-label">Type de colis</label>
+                            <select name="type_colis[]" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                                <option value="standard">Standard</option>
+                                <option value="fragile">Fragile</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2 col-md-2 col-lg-2">
+                        <div class="mb-3">
+                            <label for="devise" class="form-label">Devise</label>
+                            <select name="devise" id="devise" class="form-control">
+                                <option value="" disabled selected>-- Devise --</option>
+                                <option value="EUR">EUR</option>
+                                <option value="YUAN">YUAN</option>
+                                <option value="FCFA">FCFA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 dimension-section">
+                        <label class="form-label">Dimensions (cm)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                        </div>
+                        <div class="dimension-result mt-2" name="dimension_result" style="display: none; font-weight: bold;"></div>
+                    </div>
+                    <div class="col-md-6 poids-section" style="display: none;">
+                        <label class="form-label">Poids (kg)</label>
+                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-6">
+                        <div class="mb-3">
+                            <label for="description_colis" class="form-label">Description colis</label>
+                            <textarea 
+                            name="description_colis[]" 
+                            id="description_colis" 
+                            class="form-control" 
+                            rows="4"
+                            placeholder="Saisissez la description du colis"></textarea>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="text-end mt-2">
+                    <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
+                    <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
+                </div>
+            </div>
+        `);
+
+        $("#colisContainer").append(newColis);
+        initAutocomplete(newColis);
+        toggleFields();
+
+    });
+   
+     // Supprimer un colis
+     $(document).on("click", ".remove-colis", function () {
+        $(this).closest(".colis-fieldset").remove();
+    });
+
+    // Fonction pour appliquer les règles d'affichage sur les colis existants
+    function toggleFields() {
+        let mode = $("#mode_transit").val();
+        $(".dimension-section").toggle(mode === "maritime");
+        $(".poids-section").toggle(mode === "aerien");
+    }
+
+    // Appliquer les changements lors de la sélection du mode de transit
+    $("#mode_transit").change(function () {
+        toggleFields();
+    });
+
+    // Afficher les dimensions sous format texte pour chaque colis ajouté
+    $(document).on("input", ".hauteur, .largeur, .longueur", function () {
+        let parent = $(this).closest(".colis-fieldset");
+        let hauteur = parent.find(".hauteur").val();
+        let largeur = parent.find(".largeur").val();
+        let longueur = parent.find(".longueur").val();
+        let resultDiv = parent.find(".dimension-result");
+
+        if (hauteur && largeur && longueur) {
+            resultDiv.text(`${longueur}x${largeur}x${hauteur} cm`).show();
+        } else {
+            resultDiv.hide();
+        }
+    });
+
+    // Initialiser les champs visibles selon le mode de transport sélectionné
+    toggleFields();
+
+
+    $(document).ready(function () {
+    // Configuration du token CSRF pour toutes les requêtes AJAX
+    $.ajaxSetup({
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+    });
+
+    // Remplissage automatique du champ description lorsque l'utilisateur clique sur "+"
+    $(".btn-add").on("click", function () {
+        let produit = $(this).siblings(".produit-input").val().trim();
+        $("#description_produit").val(produit);
+    });
+
+    // Gérer la création d'un nouveau produit dans le modal
+    $(".btn-save").on("click", function () {
+        let description = $("#description_produit").val().trim();
+        let categorie = $("#categorie_produit").val();
+        let agence = $("#agence").val();
+        let prix = parseFloat($("#prix_unitaire").val().trim()) || 0;
+        let url = $(this).data("url"); // Récupération de l'URL depuis data-url  agence_destination
+
+        console.log("Description:", description);
+        console.log("Catégorie:", categorie);
+        console.log("Prix:", prix);
+        console.log("agence:", agence);
+    
+
+        // Vérification des champs
+        if (!description) {
+            alert("Veuillez saisir une description.");
+            return;
+        }
+
+        if (!categorie) {
+            alert("Veuillez sélectionner une catégorie.");
+            return;
+        }
+
+        if (isNaN(prix) || prix <= 0) {
+            alert("Veuillez entrer un prix valide.");
+            return;
+        }
+
+        $(".btn-save").prop("disabled", true).text("Enregistrement...");
+
+        // Envoi des données via AJAX
+        $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                description: description,
+                categorie: categorie,
+                agence: agence,
+                prix: prix,
+            }),
+            success: function (response) {
+                alert(response.message); // Affichage du message de succès
+                $("#produitForm")[0].reset(); // Réinitialisation du formulaire
+                $("#produitModal").modal("hide"); // Fermeture du modal
+                $(".btn-save").prop("disabled", false).text("Créer");
+
+                // Remplir les champs dans la ligne active si un champ est en focus
+                let activeInput = $(".produit-input:focus");
+                if (activeInput.length) {
+                    activeInput.val(description);
+                    let row = activeInput.closest(".row");
+                    let prixInput = row.find('input[name="prix[]"]');
+                    let quantiteInput = row.find('input[name="quantite_colis[]"]');
+                    let prixTotalDisplay = row.find(".prix-total");
+
+                    let quantite = parseInt(quantiteInput.val()) || 1;
+                    let prixTotal = prix * quantite;
+
+                    prixInput.attr("data-prix-unitaire", prix); // Stocker le prix unitaire
+                    prixInput.val(prixTotal);
+                    prixTotalDisplay.text(prixTotal);
+                }
+            },
+            error: function (xhr) {
+                let message = "Erreur lors de l'enregistrement du produit !\n";
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    $.each(xhr.responseJSON.errors, function (key, value) {
+                        message += value + "\n";
+                    });
+                }
+                alert(message);
+                $(".btn-save").prop("disabled", false).text("Créer");
+            },
+        });
+    });
+});
+        // Fonction pour mettre à jour l'agence de destination selon le mode de transit sélectionné
+document.getElementById('mode_transit').addEventListener('change', function() {
+        var modeTransit = this.value;
+        var agenceDestination = document.getElementById('agence_destination');
+
+        if (modeTransit === 'maritime') {
+            agenceDestination.value = 'IPMS-SIMEX-CI'; // Sélectionner l'agence maritime
+        } else if (modeTransit === 'aerien') {
+            agenceDestination.value = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Sélectionner l'agence aérienne
+        }
+    });
+
+
+});
+
+$(document).ready(function () {
+    // Fonction pour afficher les champs en fonction du mode de transport sélectionné
+    function toggleFields() {
+        let mode = $("#mode_transit").val();
+        $(".dimension-section").toggle(mode === "maritime");
+        $(".poids-section").toggle(mode === "aerien");
+    }
+
+    // Appliquer les changements lors de la sélection du mode de transit
+    $("#mode_transit").change(function () {
+        toggleFields();
+    });
+    // Initialiser les champs visibles selon le mode de transport sélectionné
+    toggleFields();
+});
+
+
+$(document).ready(function () {
+    let currentStep = 0;
+    const fieldsets = $("fieldset");
+    const steps = $(".step");
+
+    // Fonction pour afficher une étape spécifique
+    function showStep(step) {
+        fieldsets.hide().eq(step).show();
+        updateProgressBar(step);
+        toggleButtons(step);
+    }
+
+    // Fonction pour gérer la visibilité des boutons
+    function toggleButtons(step) {
+        const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
+
+        // Afficher ou masquer les boutons en fonction de l'étape
+        $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
+        $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
+        $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
+    }
+
+    // Gestion des boutons "Suivant" et "Précédent"
+    $(".btn-next").click(function () {
+        if (currentStep < fieldsets.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    });
+
+    $(".btn-prev").click(function () {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Afficher l'étape initiale
+    showStep(currentStep);
+});
+
+$(document).on("input", ".hauteur, .largeur, .longueur", function () {
+    const parent = $(this).closest(".dimension_section");
+    const hauteur = parent.find(".hauteur").val().trim();
+    const largeur = parent.find(".largeur").val().trim();
+    const longueur = parent.find(".longueur").val().trim();
+    const dimensionResult = parent.find(".dimension_result");
+
+    if (hauteur && largeur && longueur) {
+        dimensionResult.text(`${hauteur}x${largeur}x${longueur} cm`).show();
+    } else {
+        dimensionResult.hide();
+    }
+});
+
+    $(document).ready(function () {
+        $(document).on('click', '#remove-colis', function () {
+            var colisFieldset = $(this).closest('fieldset');
+            if ($('fieldset').length > 1) {
+                colisFieldset.remove();
+                updateFieldsetButtons();
+            }
+        });
+
+        // Update the buttons visibility for the fieldsets
+        function updateFieldsetButtons() {
+            var allFieldsets = $('fieldset');
+            allFieldsets.each(function (index) {
+                var btnPrev = $(this).find('.btn-prev');
+                var btnValider = $(this).find('button[type="submit"]');
+                if (index === allFieldsets.length - 1) {
+                    btnPrev.show();
+                    btnValider.show();
+                } else {
+                    btnPrev.hide();
+                    btnValider.hide();
+                }
+            });
+    }
+
+
+
+        // Handle transit mode visibility based on selection
+        $('#mode_transit').on('change', function () {
+            const selectedMode = $(this).val();
+            const modeActions = {
+                'maritime': () => { $('#poids_section').hide(); $('#dimension_section').show(); },
+                'aerien': () => { $('#dimension_section').hide(); $('#poids_section').show(); },
+                '': () => { $('#poids_section, #dimension_section').hide(); }
+            };
+            (modeActions[selectedMode] || modeActions[''])();
+        });
+
+        // Initial hiding of sections
+        $('#poids_section, #dimension_section').hide();
+
+        // Multi-step form handling
+        let currentStep = 0;
+        const fieldsets = document.querySelectorAll("fieldset");
+        const steps = document.querySelectorAll(".step");
+
+        function showStep(step) {
+            fieldsets.forEach((fieldset, index) => {
+                fieldset.style.display = index === step ? "block" : "none";
+            });
+            updateProgressBar(step);
+            toggleButtons(step);
+        }
+
+        function updateProgressBar(step) {
+            steps.each(function(index) {
+                $(this).toggleClass("active", index <= step);
+            });
+        }
+
+        function toggleButtons(step) {
+            const isLastStep = step === fieldsets.length - 1;
+            $(".btn-prev").toggle(step > 0);
+            $(".btn-next").toggle(!isLastStep);
+            $("button[type='submit']").toggle(isLastStep);
+        }
+        // Handle next and previous buttons for multi-step form
+        document.querySelectorAll(".btn-next").forEach(button => {
+            button.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (currentStep < fieldsets.length - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            });
+        });
+
+        document.querySelectorAll(".btn-prev").forEach(button => {
+            button.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+        });
+
+        // Click on step number to navigate
+        steps.forEach((stepElement, index) => {
+            stepElement.addEventListener("click", () => {
+                currentStep = index;
+                showStep(currentStep);
+            });
+        });
+
+        // Initial step display
+        showStep(currentStep);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const hauteurInput = document.getElementById("hauteur");
+        const largeurInput = document.getElementById("largeur");
+        const longueurInput = document.getElementById("longueur");
+        const dimensionResult = document.getElementById("dimension_result");
+
+    function updateDimensionDisplay() {
+        const hauteur = hauteurInput.value.trim();
+        const largeur = largeurInput.value.trim();
+        const longueur = longueurInput.value.trim();
+        
+        if (hauteur !== "" && largeur !== "" && longueur !== "") {
+            dimensionResult.textContent = `${hauteur} x ${largeur} x ${longueur} cm`;
+            dimensionResult.style.display = "block";
+        } else {
+            dimensionResult.style.display = "none";
+        }
+    }
+
+    [hauteurInput, largeurInput, longueurInput].forEach(input => {
+        input.addEventListener("input", updateDimensionDisplay);
+    });
+});
+
+</script>
+
+<style>
+
+    .autocomplete-results {
+        position: absolute; /* Important pour le positionnement */
+        top: 100%; /* Affiche les résultats sous l'input */
+        left: 0;
+        right: 0;
+        z-index: 1000; /* Pour être au-dessus des autres éléments */
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px;
+        display: none; /* Caché par défaut */
+    }
+
+    .autocomplete-item {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    body {
+        background-color: #f7f7f7;
+    }
+
+    fieldset + fieldset {
+        border-top: 2px solid #ccc;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+
+    .form-container {
+        max-width: 95%;
+        margin: auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        display: flex; /* Utilise flexbox pour aligner les éléments */
+        justify-content: space-between; /* Espace égal entre les étapes */
+        list-style: none; /* Supprime les puces de la liste */
+        background: #fff; /* Couleur de fond */
+        padding: 0; 
+        margin: 50px; /* Supprime les marges */
+    }
+    .progress-bar-container {
+        margin-bottom: 20px;
+        display: flex; /* Use flexbox for centering */
+        justify-content: center; /* Center the progress bar */
+        width: 100%; /* Prend toute la largeur disponible */
+    }
+
+    /* Permettre le défilement horizontal si nécessaire */
+    .progress-bar-container {
+    overflow-x: auto;
+    }
+
+    /* Les listes de progression sont déjà en flex via Bootstrap ;
+    on peut ajouter quelques réglages pour améliorer l’affichage */
+    .progress-bar {
+    flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
+    margin: 0 auto;  /* centrer */
+    }
+
+    /* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
+    .progress-bar li.step {
+    flex: 1;              /* prend une part égale de l’espace disponible */
+    min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
+    text-align: center;   /* centrer le contenu */
+    font-size: 1rem;      /* taille de police par défaut */
+    }
+
+    /* Sur écrans moyens à grands, on peut augmenter la taille de police */
+    @media (min-width: 768px) {
+    .progress-bar li.step {
+        font-size: 1.25rem;
+    }
+    }
+
+    .progress-bar::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: #ddd;
+        z-index: -1;
+        transform: translateY(-50%);
+    }
+
+    .step {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background: #ddd;
+        color: #333;
+        text-align: center;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        position: relative;
+        /* z-index: 1; */
+    }
+
+    .step.active {
+        background: #05a805;
+        color: #fff;
+    }
+
+
+    .step::after {
+        content: ''; /* Create a line after each step */
+        position: absolute; /* Position the line absolutely */
+        top: 50%; /* Center vertically */
+        left: 100%; /* Position to the right of the step */
+        width: 100%; /* Width of the line */
+        height: 4px; /* Height of the line */
+        background-color: #ddd; /* Color of the line */
+        z-index: -1; /* Send the line behind the text */
+    }
+
+    .step:last-child::after {
+        content: none; /* Remove the line after the last step */
+    }
+
+    .step.active {
+        font-weight: bold; /* Bold the active step */
+        color: #ffffff; /* Color of the active step */
+    }
+
+</style>
+
+@endsection
+
+
+

@@ -220,59 +220,90 @@ class AftlbColisController extends Controller
             $baseReference = "{$currentLetter}{$increment}";
     
             // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_contenaire', $baseReference)->exists();
+            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
     
             if ($exists) {
                 $increment++; // Incrémenter le numéro
     
-                // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
                 if ($increment > 5) {
-                    $increment = 1; // Réinitialiser le numéro
-                    $letterIndex++; // Passer à la lettre suivante
+                    $increment = 1;
+                    $letterIndex++;
                 }
             }
-        } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
+        } while ($exists && $letterIndex < count($alphabet));
     
-        return $baseReference;// Retourner la référence finale
+        return $baseReference;
     }
 
-    private function generateReferenceColisComplet()
-    {
-        $user = Auth::user();
 
-        if (!$user) {
-            
-            throw new \Exception("Utilisateur non connecté.");
-        }
+private function generateReferenceParMode(string $mode_transit)
+{
+    $user = Auth::user();
+    if (!$user) {
+        throw new \Exception("Utilisateur non connecté.");
+    }
 
-        $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
+    // Initiales de l'utilisateur (ex: SE)
+    $initiales = strtoupper(
+        substr($user->last_name ?? 'X', 0, 1) .
+        substr($user->first_name ?? 'X', 0, 1)
+    );
+
+    // Agence cible
+    $agence = 'AFT Agence Louis Bleriot';
+
+    // Dernier identifiant de référence par mode + agence
+    $lastIdRef = DB::table('colis')
+        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+        ->where('colis.mode_transit', $mode_transit)
+        ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
+        ->max('colis.id_reference');
+
+    // Incrémentation de l'ID de référence
+    $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+    // Déterminer la bonne référence de conteneur ou vol selon le mode
+    if ($mode_transit === 'maritime') {
         $contenaireRef = DB::table('colis')
-            ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
             ->orderByDesc('id')
-            ->value('reference_contenaire');
-
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceContenaire();
-            if (!$contenaireRef) {
-                throw new \Exception("Impossible de générer une référence de conteneur.");
-            }
-        }
-
-        $lastId = DB::table('colis')->max('id');
-
-        $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-        $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-        return [
-            'reference_colis' => $reference,
-            'reference_contenaire' => $contenaireRef
-        ];
+            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+    } elseif ($mode_transit === 'aerien') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_vol') ?? $this->generateReferenceVol();
+    } else {
+        throw new \Exception("Mode de transit invalide : $mode_transit");
     }
+
+    // Format final de la référence du colis
+    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    return [
+        'reference_colis' => $reference,
+        'id_reference' => $nextIdRef,
+        'reference_contenaire' => $contenaireRef
+    ];
+}
+
+
+
+
+
+    public function genererReferenceSelonMode($mode)
+    {
+        try {
+            $ref = $this->generateReferenceParMode($mode);
+            return response()->json($ref);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 
     public function add_colis(Request $request)
     {
@@ -280,14 +311,17 @@ class AftlbColisController extends Controller
         $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
         $agencesExpedition = Agence::where('nom_agence', 'AFT Agence Louis Bleriot')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-    
+        // dd($agences);
         // Génère juste les références, sans enregistrer encore dans la base
-        $referenceColis = $this->generateReferenceColisComplet();
-    
+        // $referenceColis = $this->generateReferenceParMode();
+        $referenceColis_maritime = $this->generateReferenceParMode('maritime');
+        $referenceColis_aerien = $this->generateReferenceParMode('aerien');
+        // dd($referenceColis);
         return view('AFT_LOUIS_BLERIOT.colis.add_colis', compact(
-            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis'
+            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis_maritime','referenceColis_aerien'
         ));
     }
+
     
     
     
@@ -401,7 +435,7 @@ class AftlbColisController extends Controller
                 })
                 ->update([
                     'etat' => 'Fermé', 
-                    'reference_contenaire' => $referenceVol // Ce champ est utilisé pour les vols et les conteneurs
+                    'reference_vol' => $referenceVol // Ce champ est utilisé pour les vols et les conteneurs
                 ]);
     
             // Cette validation fonctionnera maintenant correctement car $count et $updatedCount seront identiques
@@ -424,37 +458,6 @@ class AftlbColisController extends Controller
 
 
 
-
-
-
-// public function add_colis(Request $request)
-// {
-//     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
-//                          ->distinct()
-//                          ->pluck('pays_agence');
-
-//     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-//     $agencesExpedition = Agence::where('nom_agence', 'AFT Agence Louis Bleriot')->get();
-//     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-
-//     // Étape 1 : Créer un colis vide (ou avec des valeurs par défaut)
-//     $colis = new Colis(); // modèle Eloquent
-//     $colis->save(); // on sauve pour avoir l'ID
-
-//     // Étape 2 : Générer la référence à partir de l'ID
-//     $referenceColis = $this->generateReferenceColisComplet($colis->id);
-
-//     // Étape 3 : Mettre à jour les références
-//     $colis->reference_colis = $referenceColis['reference_colis'];
-//     $colis->reference_contenaire = $referenceColis['reference_contenaire'];
-//     $colis->save();
-
-//     return view('AFT_LOUIS_BLERIOT.colis.add_colis', compact('agencesExpedition','agencesDestination', 'paysUniques', 'colis','referenceColis'));
-// }
-
-
-
-
 public function store_colis(Request $request)
 {
     try {
@@ -471,14 +474,14 @@ public function store_colis(Request $request)
 
     public function stepPayment()
     {
-       // Récupérer les données de l'étape 1 depuis la session
-    $step1Data = session('step1');
+        // Récupérer les données de l'étape 1 depuis la session
+        $step1Data = session('step1');
 
-    // Vérifier si les données existent et contiennent les prix
-    if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
-        // Rediriger vers la première étape avec une erreur si les données sont manquantes
-        // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
-        return redirect()->route('aftlb_colis.create.colis')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+        // Vérifier si les données existent et contiennent les prix
+        if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
+            // Rediriger vers la première étape avec une erreur si les données sont manquantes
+            // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
+            return redirect()->route('aftlb_colis.create.colis')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
     }
 
     // Calculer le montant total en additionnant tous les prix du tableau 'prix'
@@ -557,6 +560,7 @@ public function store_colis(Request $request)
             session('step1', []),
             session('step2', [])
         );
+        // dd($data);
     
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
@@ -571,23 +575,23 @@ public function store_colis(Request $request)
         try {
             // 2. Création de l'expéditeur et du destinataire
             $expediteur = Expediteur::create([
-                'nom' => $data['nom_expediteur'] ?? null,
-                'prenom' => $data['prenom_expediteur'] ?? null,
-                'email' => $data['email_expediteur'] ?? null,
-                'tel' => $data['tel_expediteur'] ?? null,
-                'agence' => $data['agence_expedition'] ?? null,
-                'adresse' => $data['adresse_expediteur'] ?? null,
+                    'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+                    'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ??'',
+                    'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
+                    'tel' => $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '',
+                    'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'],
+                    'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur'] ?? 'null',
             ]);
     
             $destinataire = Destinataire::create([
-                'nom' => $data['nom_destinataire'] ?? null,
-                'prenom' => $data['prenom_destinataire'] ?? null,
-                'email' => $data['email_destinataire'] ?? null,
-                'tel' => $data['tel_destinataire'] ?? null,
-                'agence' => $data['agence_destination'] ?? null,
-                'adresse' => $data['adresse_destinataire'] ?? null,
+                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe']?? '',
+                'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
+                'tel' => $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '',
+                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'],
+                'adresse' => $data['adresse_destinataire']?? $data['adresse_destinataire_societe'] ?? '',
             ]);
-    
+            // dd($expediteur, $destinataire);
             // 3. Préparation et création du dossier de paiement principal
             $payementDataSession = session('step2', []);
             $montantTotalDu = collect($data['prix'] ?? [])->sum();
@@ -636,8 +640,19 @@ public function store_colis(Request $request)
             
                 // Récupérer le prix TOTAL pour cette ligne d'article
                 $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
-            
-                // Calculer le prix pour UN SEUL colis physique en divisant le prix total par la quantité
+
+               $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
+
+            //    dd($agence);
+                $lastIdRef = DB::table('colis')
+                    ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                    ->where('colis.mode_transit', $data['mode_transit'])
+                    ->where('expediteurs.agence', $agence)
+                    ->max('colis.id_reference');
+
+                $id_reference = ($lastIdRef ?? 0) + 1;
+                // dd($id_reference);
+               // Calculer le prix pour UN SEUL colis physique en divisant le prix total par la quantité
                 // On ajoute une sécurité pour éviter la division par zéro
                 $prixParColisPhysique = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
                 
@@ -649,6 +664,7 @@ public function store_colis(Request $request)
                         'devise' => 'EUR',
                         'reference_colis' => $referenceColisPrincipale, 
                         'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                         'id_reference' => $id_reference,
                         'quantite_colis' => 1, // Chaque enregistrement représente 1 colis physique
                         'service' => $data['service'][$index] ?? null,
                         // Utiliser le prix par colis physique calculé
@@ -2505,17 +2521,60 @@ public function enregistrerPaiement(Request $request)
     }
     
 
+// public function cargaison_ferme(Request $request)
+// {
+//  // Récupérer les agences de destination
+//  $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+
+//  // Récupérer les références de conteneurs fermés, sans doublons
+//  $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+
+//  // Obtenir le mois et l'année actuels
+//  $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
+//  $annee = Carbon::now()->year;
+
+//     return view('AFT_LOUIS_BLERIOT.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
+// }
+
 public function cargaison_ferme(Request $request)
 {
- // Récupérer les agences de destination
- $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+    // Récupérer les agences de destination
+    $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
 
- // Récupérer les références de conteneurs fermés, sans doublons
- $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+    // Étape 1 : Récupérer tous les colis fermés
+ $colisFermes = Colis::select('colis.reference_contenaire', 'colis.reference_vol')
+                        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                        ->where('colis.etat', 'Fermé')
+                        ->where('expediteurs.agence', 'AFT Agence Louis Bleriot') // <-- adapte selon besoin
+                        ->get();
+    // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
+    $referencesColis = collect($colisFermes)
+        ->flatMap(function ($colis) {
+            return [$colis->reference_contenaire, $colis->reference_vol];
+        })
+        ->filter()  // Supprimer les valeurs nulles
+        ->unique()
+        ->values()
+        ->toArray();
 
- // Obtenir le mois et l'année actuels
- $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
- $annee = Carbon::now()->year;
+    // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
+    $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
+        ->selectRaw('reference_conteneur, COUNT(*) as total')
+        ->groupBy('reference_conteneur')
+        ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
+        ->toArray();
+
+    // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
+    $referenceFermes = collect($referencesColis)
+        ->filter(function ($ref) use ($referencesBateauxCounts) {
+            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+        })
+        ->values()
+        ->toArray();
+
+    // Mois et année
+    $mois = Carbon::now()->translatedFormat('F');
+    $annee = Carbon::now()->year;
 
     return view('AFT_LOUIS_BLERIOT.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
 }

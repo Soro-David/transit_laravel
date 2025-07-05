@@ -10,9 +10,7 @@
                                 <div class="table-responsive">
                                    <div>
                                         <label for="reference_contenaire" style="font-size: 25px;">VOL REF:</label>
-                                        <strong style="font-size: 30px;">
-                                           {{ $referenceVol['reference_contenaire'] }}
-                                        </strong>
+                                        <strong style="font-size: 30px;">{{ $referenceVol }}</strong>
                                     </div>
                                     <table id="productTable" class="table table-striped table-bordered">
                                         <thead>
@@ -32,9 +30,9 @@
                                     <div class="container text-right">
                                         <form id="btnFermerVol" action="{{ route('colis.vol.fermer') }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
+                                            {{-- <button type="submit" class="btn btn-danger mt-3" id="btnFermerConteneur">
                                                 Fermer le vol
-                                            </button>
+                                            </button> --}}
                                         </form>
                                     </div>
                                 </div>
@@ -49,7 +47,7 @@ $(document).ready(function () {
     var table = $("#productTable").DataTable({
         responsive: true,
         language: {
-                url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                url: "{{ asset('js/fr-FR.json') }}"
             },
         ajax: '{{ route('colis.get.colis.vol') }}',
         columns: [

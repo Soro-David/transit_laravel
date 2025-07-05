@@ -203,7 +203,20 @@ class ColisController extends Controller
             'email_destinataire', 
             'tel_destinataire',
             'agence_destination',
-            'adresse_destinataire'
+            'adresse_destinataire',
+
+             'nom_expediteur_societe',
+            'prenom_expediteur_societe', 
+            'email_expediteur_societe', 
+            'tel_expediteur_societe',
+            'agence_expedition_societe',
+            'adresse_expediteur_societe', 
+            'nom_destinataire_societe', 
+            'prenom_destinataire_societe',
+            'email_destinataire_societe', 
+            'tel_destinataire_societe',
+            'agence_destination_societe',
+            'adresse_destinataire_societe'
         ])]);
 
         return redirect()->route('colis.create.step2');
@@ -301,82 +314,211 @@ class ColisController extends Controller
     }
     
     
-    private function generateReferenceVol()
-   
+    // private function generateReferenceVol()
+    // {
+    //     $user = Auth::user();
+
+    //     if (!$user) {
+            
+    //         throw new \Exception("Utilisateur non connecté.");
+    //     }
+
+    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
+    
+    //     $contenaireRef = DB::table('colis')
+    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
+    //         ->orderByDesc('id')
+    //         ->value('reference_vol');
+
+    //     if (!$contenaireRef) {
+    //         $contenaireRef = $this->generateReferenceContenaire();
+    //         if (!$contenaireRef) {
+    //             throw new \Exception("Impossible de générer une référence de conteneur.");
+    //         }
+    //     }
+
+    //     $lastId = DB::table('colis')->max('id');
+
+    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
+
+    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+
+    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+    //     dd($reference);
+
+    //     return [
+    //         'reference_colis' => $reference,
+    //         'reference_contenaire' => $contenaireRef
+    //     ];
+    // }
+
+
+        private function generateReferenceVol()
+    {
+        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
+        $letterIndex = 0; // Commencer par 'A'
+        $increment = 1; // Commencer par 1
+    
+        do {
+            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
+            $baseReference = "{$currentLetter}{$increment}";
+    
+            // Vérifier si la référence existe dans la table `colis`
+            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
+    
+            if ($exists) {
+                $increment++; // Incrémenter le numéro
+    
+                if ($increment > 5) {
+                    $increment = 1;
+                    $letterIndex++;
+                }
+            }
+        } while ($exists && $letterIndex < count($alphabet));
+    
+        return $baseReference;
+    }
+
+    // private function generateReferenceColisComplet()
+    // {
+    //     $user = Auth::user();
+
+    //     if (!$user) {
+            
+    //         throw new \Exception("Utilisateur non connecté.");
+    //     }
+
+    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
+    
+    //     $contenaireRef = DB::table('colis')
+    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
+    //         ->orderByDesc('id')
+    //         ->value('reference_contenaire');
+
+    //     if (!$contenaireRef) {
+    //         $contenaireRef = $this->generateReferenceContenaire();
+    //         if (!$contenaireRef) {
+    //             throw new \Exception("Impossible de générer une référence de conteneur.");
+    //         }
+    //     }
+
+    //     $lastId = DB::table('colis')->max('id');
+
+    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
+
+    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+
+    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    //     return [
+    //         'reference_colis' => $reference,
+    //         'reference_contenaire' => $contenaireRef
+    //     ];
+    // }
+
+    // private function generateReferenceParMode(string $mode_transit)
+    // {
+    //     $user = Auth::user();
+    //     if (!$user) {
+    //         throw new \Exception("Utilisateur non connecté.");
+    //     }
+
+    //     // Récupérer les initiales utilisateur
+    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
+
+    //     // Récupérer le dernier id_reference pour ce mode de transit
+    //     $lastIdRef = DB::table('colis')
+    //         ->where('mode_transit', $mode_transit)
+    //         ->max('id_reference');
+
+    //     $nextIdRef = $lastIdRef ? $lastIdRef + 1 : 1;
+
+    //     // Récupérer ou générer le conteneur
+    //     $contenaireRef = DB::table('colis')
+    //         ->where('mode_transit', $mode_transit)
+    //         ->where('etat', '!=', 'Fermé')
+    //         ->orderByDesc('id')
+    //         ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+
+    //     // Construction finale
+    //     $numero = str_pad($nextIdRef, 3, '0', STR_PAD_LEFT); // 001, 002, ...
+    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    //     return [
+    //         'reference_colis' => $reference,
+    //         'id_reference' => $nextIdRef,
+    //         'reference_contenaire' => $contenaireRef
+    //     ];
+    // }
+
+
+    private function generateReferenceParMode(string $mode_transit)
     {
         $user = Auth::user();
-
         if (!$user) {
-            
             throw new \Exception("Utilisateur non connecté.");
         }
 
-        $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-        $contenaireRef = DB::table('colis')
-            ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-            ->orderByDesc('id')
-            ->value('reference_contenaire');
+        // Initiales de l'utilisateur (ex: SE)
+        $initiales = strtoupper(
+            substr($user->last_name ?? 'X', 0, 1) .
+            substr($user->first_name ?? 'X', 0, 1)
+        );
 
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceContenaire();
-            if (!$contenaireRef) {
-                throw new \Exception("Impossible de générer une référence de conteneur.");
-            }
+        // Agence cible
+      
+
+        // Dernier identifiant de référence par mode + agence
+        $lastIdRef = DB::table('colis')
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->where('colis.mode_transit', $mode_transit)
+            ->max('colis.id_reference');
+
+        // Incrémentation de l'ID de référence
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+        // Déterminer la bonne référence de conteneur ou vol selon le mode
+        if ($mode_transit === 'maritime') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+        } elseif ($mode_transit === 'aerien') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_vol') ?? $this->generateReferenceVol();
+        } else {
+            throw new \Exception("Mode de transit invalide : $mode_transit");
         }
 
-        $lastId = DB::table('colis')->max('id');
-
-        $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-        $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
+        // Format final de la référence du colis
+        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
         $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+        
 
         return [
             'reference_colis' => $reference,
+            'id_reference' => $nextIdRef,
             'reference_contenaire' => $contenaireRef
         ];
     }
 
-    private function generateReferenceColisComplet()
+    public function genererReferenceSelonMode($mode)
     {
-        $user = Auth::user();
-
-        if (!$user) {
-            
-            throw new \Exception("Utilisateur non connecté.");
+        try {
+            $ref = $this->generateReferenceParMode($mode);
+            return response()->json($ref);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-        $contenaireRef = DB::table('colis')
-            ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-            ->orderByDesc('id')
-            ->value('reference_contenaire');
-
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceContenaire();
-            if (!$contenaireRef) {
-                throw new \Exception("Impossible de générer une référence de conteneur.");
-            }
-        }
-
-        $lastId = DB::table('colis')->max('id');
-
-        $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-        $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-        return [
-            'reference_colis' => $reference,
-            'reference_contenaire' => $contenaireRef
-        ];
     }
+
 
     public function add_colis(Request $request)
     {
@@ -386,10 +528,12 @@ class ColisController extends Controller
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
         // dd($agences);
         // Génère juste les références, sans enregistrer encore dans la base
-        $referenceColis = $this->generateReferenceColisComplet();
+        // $referenceColis = $this->generateReferenceParMode();
+        $referenceColis_maritime = $this->generateReferenceParMode('maritime');
+        $referenceColis_aerien = $this->generateReferenceParMode('aerien');
         // dd($referenceColis);
         return view('admin.colis.add_colis', compact(
-            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis'
+            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis_maritime','referenceColis_aerien'
         ));
     }
     
@@ -485,7 +629,8 @@ class ColisController extends Controller
             // Mise à jour des enregistrements
             $updatedCount = Colis::where('etat', 'Chargé')
                                 ->where('mode_transit', 'aerien')
-                                ->update(['etat' => 'Fermé', 'reference_contenaire' => $referenceContenaire]);
+                                ->update(['etat' => 'Fermé', 'reference_vol' => $referenceVol
+                            ]);
     
             // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
             if ($updatedCount !== $count) {
@@ -651,10 +796,12 @@ class ColisController extends Controller
 
     public function generer_qrcode(Request $request, InfobipService $infobipService)
     {
+        // dd($request->all());
         $data = array_merge(
             session('step1', []),
             session('step2', [])
         );
+        // dd($data);
 
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
@@ -665,22 +812,23 @@ class ColisController extends Controller
         $data['etat'] = $data['etat'] ?? 'Validé';
 
         $expediteurData = [
-            'nom' => $data['nom_expediteur'] ?? null,
-            'prenom' => $data['prenom_expediteur'] ?? null,
-            'email' => $data['email_expediteur'] ?? null,
-            'tel' => $data['tel_expediteur'] ?? null,
-            'agence' => $data['agence_expedition'] ?? null,
-            'adresse' => $data['adresse_expediteur'] ?? null,
+            'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+            'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ??'',
+            'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
+            'tel' => $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '',
+            'agence' => $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? '',
+            'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur'] ?? 'null',
         ];
 
         $destinataireData = [
-            'nom' => $data['nom_destinataire'] ?? null,
-            'prenom' => $data['prenom_destinataire'] ?? null,
-            'email' => $data['email_destinataire'] ?? null,
-            'tel' => $data['tel_destinataire'] ?? null,
-            'agence' => $data['agence_destination'] ?? null,
-            'adresse' => $data['adresse_destinataire'] ?? null,
+            'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe']?? '',
+            'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+            'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
+            'tel' => $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '',
+            'agence' => $data['agence_destination'] ?? $data['agence_destination_societe'] ??'',
+            'adresse' => $data['adresse_destinataire']?? $data['adresse_destinataire_societe'] ?? '',
         ];
+        // dd($expediteurData, $destinataireData);
 
         try {
             $expediteur = Expediteur::create($expediteurData);
@@ -756,11 +904,16 @@ class ColisController extends Controller
             
             $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
 
+            $dernierIdReference = Colis::max('id_reference') ?? 0;
+            $id_reference = $dernierIdReference + 1;
+
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
                     'devise' => $data['devise'] ?? null,
                     'reference_colis' => $referenceColisPrincipale,
+                     'id_reference' => $id_reference,
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                    'quantite_colis' => 1,
                     'quantite_colis' => 1,
                     'service' => $data['service'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
@@ -860,6 +1013,7 @@ class ColisController extends Controller
             'devise' => optional($firstColis?->expediteur)->devise,
         ];
 
+        // dd($firstInfo);
         $totalQuantitePhysique = $colisEnregistresCollection->count();
         $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
 
@@ -2517,16 +2671,42 @@ public function getColisInfo($reference)
         return response()->json(null); // Or return an appropriate error code
     }
 }
+
 public function cargaison_ferme(Request $request)
 {
     // Récupérer les agences de destination
     $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
 
-    // Récupérer les références de conteneurs fermés, sans doublons
-    $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
+    // Étape 1 : Récupérer tous les colis fermés
+    $colisFermes = Colis::where('etat', 'Fermé')->get(['reference_contenaire', 'reference_vol']);
 
-    // Obtenir le mois et l'année actuels
-    $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
+    // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
+    $referencesColis = collect($colisFermes)
+        ->flatMap(function ($colis) {
+            return [$colis->reference_contenaire, $colis->reference_vol];
+        })
+        ->filter()  // Supprimer les valeurs nulles
+        ->unique()
+        ->values()
+        ->toArray();
+
+    // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
+    $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
+        ->selectRaw('reference_conteneur, COUNT(*) as total')
+        ->groupBy('reference_conteneur')
+        ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
+        ->toArray();
+
+    // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
+    $referenceFermes = collect($referencesColis)
+        ->filter(function ($ref) use ($referencesBateauxCounts) {
+            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+        })
+        ->values()
+        ->toArray();
+
+    // Mois et année
+    $mois = Carbon::now()->translatedFormat('F');
     $annee = Carbon::now()->year;
 
     return view('admin.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));

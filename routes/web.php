@@ -280,6 +280,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/cinetpay/notify', [ColisController::class, 'cinetpayNotify'])->name('cinetpay.notify');
         Route::get('/generer/qrcode.colis', [ColisController::class, 'generer_qrcode'])->name('generer.qrcode');
 
+        //Generer Reference colis
+        Route::get('/generer-reference/{mode}', [ColisController::class, 'genererReferenceSelonMode']);
 
         Route::get('/create/colis', [ColisController::class, 'createStep1'])->name('create.step1');
         Route::get('/create/step1', [ColisController::class, 'createStep1'])->name('create.step1');
@@ -677,6 +679,11 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/create/colis-aft-louis-b', [AftlbColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-aft-louis-b', [AftlbColisController::class, 'store_colis'])->name('store.colis');
 
+
+
+
+
+           Route::get('/generer-reference/{mode}', [AftlbColisController::class, 'genererReferenceSelonMode']);
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft-louis-b', [AftlbColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payement');
@@ -1368,6 +1375,9 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/create/colis-aft_chine', [ChineColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-aft_chine', [ChineColisController::class, 'store_colis'])->name('store.colis');
 
+
+
+        Route::get('/generer-reference/{mode}', [ChineColisController::class, 'genererReferenceSelonMode']);
         // Gestion du paiement et génération de QR code
         Route::get('/create/payement-aft_chine', [ChineColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payement');
