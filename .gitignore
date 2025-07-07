@@ -1,6 +1,7 @@
 vendor
 .env
-#public/storage
+public/storage
+public/qrcodes
 # Laravel specific
 Homestead.yaml
 Homestead.json

@@ -348,12 +348,12 @@ $(document).ready(function () {
         // Confirmation avec SweetAlert
         Swal.fire({
             title: 'Êtes-vous sûr?',
-            html: `Voulez-vous vraiment archiver le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
+            html: `Voulez-vous vraiment supprimer le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33', // Rouge pour la suppression/archivage
             cancelButtonColor: '#3085d6', // Bleu pour annuler
-            confirmButtonText: 'Oui, archiver!',
+            confirmButtonText: 'Oui, supprimer!',
             cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -365,14 +365,14 @@ $(document).ready(function () {
                     dataType: 'json', // Attendre une réponse JSON
                     success: function (response) {
                         Swal.fire(
-                            'Archivé!',
-                            response.success || `Le(s) colis avec la référence ${reference} ont été archivés.`,
+                            'Supprimer!',
+                            response.success || `Le(s) colis avec la référence ${reference} ont été supprimés.`,
                             'success'
                         );
                         table.ajax.reload(null, false); // Recharger la table sans réinitialiser
                     },
                     error: function (xhr, status, error) {
-                        let errorMsg = 'Une erreur est survenue lors de l\'archivage.';
+                        let errorMsg = 'Une erreur est survenue lors de la suppression.';
                         if(xhr.responseJSON && xhr.responseJSON.error) {
                             errorMsg = xhr.responseJSON.error;
                         } else {

@@ -1706,13 +1706,14 @@ public function get_colis_hold(Request $request)
             }
     
             foreach ($colisList as $colis) {
-                $colis->archived_at = now();
-                $colis->save();
+                // $colis->archived_at = now();
+                // $colis->save();
+                  $colis->delete();
             }
     
-            return response()->json(['success' => 'Colis archivés avec succès !']);
+            return response()->json(['success' => 'Colis supprimé avec succès !']);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Erreur lors de la suppression : ' . $e->getMessage()], 500);
         }
     }
 

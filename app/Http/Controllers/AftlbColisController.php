@@ -2074,8 +2074,9 @@ public function enregistrerPaiement(Request $request)
             }
     
             foreach ($colisList as $colis) {
-                $colis->archived_at = now();
-                $colis->save();
+                $colis->delete();
+                // $colis->archived_at = now();
+                // $colis->save();
             }
     
             return response()->json(['success' => 'Colis archivés avec succès !']);

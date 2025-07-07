@@ -2163,29 +2163,27 @@ public function enregistrerPaiement(Request $request)
 
 
     // function de suppression des colis validés
+
 public function destroy_colis_valide($reference)
 {
     try {
-        // Récupère tous les colis avec la même référence
-        $colisList = Colis::where('reference_colis', $reference)
-            ->whereNull('archived_at') // éviter de réarchiver
-            ->get();
-            // dd($colisList);
+        // Récupérer tous les colis ayant la même référence
+        $colisList = Colis::where('reference_colis', $reference)->get();
 
         if ($colisList->isEmpty()) {
             return response()->json(['error' => 'Aucun colis trouvé pour cette référence.'], 404);
         }
 
         foreach ($colisList as $colis) {
-            $colis->archived_at = now();
-            $colis->save();
+            $colis->delete(); // Suppression définitive
         }
 
-        return response()->json(['success' => 'Colis archivés avec succès !']);
+        return response()->json(['success' => 'Colis supprimés avec succès !']);
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
+        return response()->json(['error' => 'Erreur lors de la suppression : ' . $e->getMessage()], 500);
     }
 }
+
 
 
 
