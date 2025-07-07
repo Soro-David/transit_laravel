@@ -1363,17 +1363,6 @@ public function store_colis(Request $request)
             // Valider la requête
             $validatedData = $request->validate($rules, $messages);
     
-            // --- La validation manuelle ci-dessous n'est plus nécessaire ---
-            // // Validation supplémentaire pour le montant en espèces
-            // if ($request->mode_payement === 'cash') {
-            //    // $prixColis = session('step1.prix.0'); // Incorrect
-            //    if ($request->montant_reçu > $totalPrice) { // Utiliser $totalPrice
-            //        return response()->json([
-            //            'success' => false,
-            //            'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le montant total ('.$totalPrice.')']]
-            //        ], 422);
-            //    }
-            // }
             // --- Fin validation manuelle ---
     
             // Stocker uniquement les données validées pertinentes en session step2
@@ -2085,8 +2074,9 @@ public function enregistrerPaiement(Request $request)
             }
     
             foreach ($colisList as $colis) {
-                $colis->archived_at = now();
-                $colis->save();
+                $colis->delete();
+                // $colis->archived_at = now();
+                // $colis->save();
             }
     
             return response()->json(['success' => 'Colis archivés avec succès !']);
@@ -2520,21 +2510,6 @@ public function enregistrerPaiement(Request $request)
         return redirect()->route('aftlb_colis.cargaison.ferme')->with('success', 'Bateau modifié avec succès.');
     }
     
-
-// public function cargaison_ferme(Request $request)
-// {
-//  // Récupérer les agences de destination
-//  $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
-
-//  // Récupérer les références de conteneurs fermés, sans doublons
-//  $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
-
-//  // Obtenir le mois et l'année actuels
-//  $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
-//  $annee = Carbon::now()->year;
-
-//     return view('AFT_LOUIS_BLERIOT.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
-// }
 
 public function cargaison_ferme(Request $request)
 {

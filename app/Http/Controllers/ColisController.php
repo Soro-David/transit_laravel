@@ -313,45 +313,7 @@ class ColisController extends Controller
         return $baseReference;
     }
     
-    
-    // private function generateReferenceVol()
-    // {
-    //     $user = Auth::user();
-
-    //     if (!$user) {
-            
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-
-    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-    //     $contenaireRef = DB::table('colis')
-    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-    //         ->orderByDesc('id')
-    //         ->value('reference_vol');
-
-    //     if (!$contenaireRef) {
-    //         $contenaireRef = $this->generateReferenceContenaire();
-    //         if (!$contenaireRef) {
-    //             throw new \Exception("Impossible de générer une référence de conteneur.");
-    //         }
-    //     }
-
-    //     $lastId = DB::table('colis')->max('id');
-
-    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-    //     dd($reference);
-
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
+ 
 
 
         private function generateReferenceVol()
@@ -741,17 +703,7 @@ class ColisController extends Controller
             // Valider la requête
             $validatedData = $request->validate($rules, $messages);
     
-            // --- La validation manuelle ci-dessous n'est plus nécessaire ---
-            // // Validation supplémentaire pour le montant en espèces
-            // if ($request->mode_payement === 'cash') {
-            //    // $prixColis = session('step1.prix.0'); // Incorrect
-            //    if ($request->montant_reçu > $totalPrice) { // Utiliser $totalPrice
-            //        return response()->json([
-            //            'success' => false,
-            //            'errors' => ['montant_reçu' => ['Le montant reçu ne peut pas dépasser le montant total ('.$totalPrice.')']]
-            //        ], 422);
-            //    }
-            // }
+          
             // --- Fin validation manuelle ---
     
             // Stocker uniquement les données validées pertinentes en session step2
@@ -2073,26 +2025,23 @@ class ColisController extends Controller
 public function destroy_colis_valide($reference)
 {
     try {
-        // Récupère tous les colis avec la même référence
-        $colisList = Colis::where('reference_colis', $reference)
-            ->whereNull('archived_at') // éviter de réarchiver
-            ->get();
-            // dd($colisList);
+        // Récupérer tous les colis ayant la même référence
+        $colisList = Colis::where('reference_colis', $reference)->get();
 
         if ($colisList->isEmpty()) {
             return response()->json(['error' => 'Aucun colis trouvé pour cette référence.'], 404);
         }
 
         foreach ($colisList as $colis) {
-            $colis->archived_at = now();
-            $colis->save();
+            $colis->delete(); // Suppression définitive
         }
 
-        return response()->json(['success' => 'Colis archivés avec succès !']);
+        return response()->json(['success' => 'Colis supprimés avec succès !']);
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
+        return response()->json(['error' => 'Erreur lors de la suppression : ' . $e->getMessage()], 500);
     }
 }
+
 
 
 
@@ -2379,50 +2328,7 @@ public function get_colis_hold(Request $request)
         return view('admin.colis.edit_colis_valide', compact('colis'));
     }
 
-    // public function update_hold(Request $request) // Suppression de $id ici
-    // {
-    //     // Validation des données (important pour la sécurité)
-    //     $validatedData = $request->validate([
-    //         'colis.*.prix_transit_colis' => 'required|numeric|min:0',
-    //         // Ajoutez d'autres règles de validation pour chaque champ modifiable.
-    //     ]);
-
-    //     $colisData = $request->input('colis');
-
-    //     foreach ($colisData as $colisId => $data) {
-    //         try {
-    //             $colis = Colis::findOrFail($colisId);
-    //             $numero_expediteur = $colis->expediteur->tel;
-    //             dd($numero_expediteur);
-    //             // Mise à jour des champs autorisés (sécurité !)
-    //             $colis->prix_transit_colis = $data['prix_transit_colis'];
-    //             $colis->status = 'payé';
-    //             $colis->etat = 'Devis';
-    //             $colis->save();
-
-    //             // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
-    //             $qrData = [
-    //                 'Référence colis' => $colis->reference_colis,
-    //                 'Statut' => $colis->status,
-    //                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-    //                 'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-    //                 'Téléphone Destinataire' => $colis->destinataire->tel,
-    //                 'Agence Destination' => $colis->destinataire->agence ?? '',
-    //                 'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-    //             ];
-    //             // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
-    //             Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
-    //         } catch (\Exception $e) {
-    //             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //         }
-    //     }
-
-    //     // Redirection avec un message de succès
-    //     return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
-    // }
-    
+ 
     public function update_hold(Request $request, InfobipService $infobipService)
     {
         $validatedData = $request->validate([

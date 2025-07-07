@@ -169,6 +169,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
     Route::get('/managers/agence', [AdminController::class, 'gestion_agence'])->name('managers.agence');
     Route::post('/managers',[adminController::class, 'store'])->name('managers.store');
+    Route::get('admin/dashboard/total-revenue', [AdminController::class, 'getTotalPrixTransit'])->name('admin_colis.prix-total');
     Route::resource('products', ProductController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
