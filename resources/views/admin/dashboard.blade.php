@@ -96,14 +96,19 @@
 
         // Fetch total price transit data
         function fetchTotalPrixTransit() {
-            fetch('{{ route('admin_colis.prix-total') }}')
-                .then(response => response.json())
-                .then(data => {
-                    const totalPrixTransitElement = document.getElementById('totalPrixTransit');
-                    totalPrixTransitElement.textContent = data.totalPrixTransit.toFixed(2);
-                })
-                .catch(error => console.error('Erreur lors de la récupération des données:', error));
-        }
+    fetch('{{ route('admin_colis.prix-total') }}')
+        .then(response => response.json())
+        .then(data => {
+            const totalPrixTransitElement = document.getElementById('totalPrixTransit');
+            // Formatage avec séparateur de milliers
+            totalPrixTransitElement.textContent = 
+                Number(data.totalPrixTransit).toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+        })
+        .catch(error => console.error('Erreur lors de la récupération des données:', error));
+}
 
         // Call function every 10 seconds
         setInterval(fetchTotalPrixTransit, 10000);

@@ -15,6 +15,7 @@ use App\Models\Agent;
 use App\Models\Agence;
 use ConsoleTVs\Charts\Classes\Chartjs\Chart;
 use App\Models\Colis;
+use App\Services\CurrencyConverterService;
 use App\Models\Expediteur;
 use App\Models\Destinataire;
 use Carbon\Carbon;
@@ -42,8 +43,20 @@ public function index()
  
  
                      
-         $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
-                     ->sum('prix_transit_colis');
+      // Remplacer l'ancien calcul de $totalPrixTransit par :
+      $rate = CurrencyConverterService::FCFA_TO_EUR_RATE;
+    
+      $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+          ->with('agent.agence')
+          ->get()
+          ->sum(function ($colis) use ($rate) {
+              if ($colis->agent && $colis->agent->agence && $colis->agent->agence->pays_agence === "France") {
+                  return $colis->prix_transit_colis * $rate;
+              }
+              return $colis->prix_transit_colis;
+          });
+
+                    
          $volCargaisonCount = Colis::where('mode_transit', 'aérien')
                      ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
                      ->count();
@@ -300,6 +313,23 @@ public function destroy($nom, $prenom, $tel, $email)
     $client->save();
      // Rediriger vers la liste des clients avec un message de succès
      return redirect()->route('clients.index')->with('success', 'Client mis à jour avec succès.');
+}
+
+public function getTotalPrixTransit()
+{
+    $rate = CurrencyConverterService::FCFA_TO_EUR_RATE;
+    
+    $total = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+        ->with('agent.agence')
+        ->get()
+        ->sum(function ($colis) use ($rate) {
+            if ($colis->agent && $colis->agent->agence && $colis->agent->agence->pays_agence === "France") {
+                return $colis->prix_transit_colis * $rate;
+            }
+            return $colis->prix_transit_colis;
+        });
+
+    return response()->json(['totalPrixTransit' => $total]);
 }
 }
 
