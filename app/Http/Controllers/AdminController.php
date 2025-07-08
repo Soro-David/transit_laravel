@@ -44,18 +44,32 @@ public function index()
  
                      
       // Remplacer l'ancien calcul de $totalPrixTransit par :
-      $rate = CurrencyConverterService::FCFA_TO_EUR_RATE;
-    
+      $converter = new CurrencyConverterService();
+
       $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
           ->with('agent.agence')
           ->get()
-          ->sum(function ($colis) use ($rate) {
-              if ($colis->agent && $colis->agent->agence && $colis->agent->agence->pays_agence === "France") {
-                  return $colis->prix_transit_colis * $rate;
+          ->sum(function ($colis) use ($converter) {
+              // 1) Conversion EUR → FCFA si nécessaire
+              if ($colis->devise === 'EUR') {
+                  return $converter->convertEurToCfa($colis->prix_transit_colis);
               }
+  
+              // 2) Ancienne logique basée sur le pays de l'agence (France)
+              if (
+                  $colis->agent &&
+                  $colis->agent->agence &&
+                  $colis->agent->agence->pays_agence === 'France'
+              ) {
+                  // ici on repart de FCFA → EUR ? 
+                  // ou EUR → FCFA selon votre besoin initial : 
+                  // je garde votre ancienne formule :
+                  return $colis->prix_transit_colis * CurrencyConverterService::FCFA_TO_EUR_RATE;
+              }
+  
+              // 3) Par défaut, on renvoie tel quel (on suppose déjà en FCFA)
               return $colis->prix_transit_colis;
           });
-
                     
          $volCargaisonCount = Colis::where('mode_transit', 'aérien')
                      ->whereIn('etat', ['Validé', 'En entrepôt', 'Chargé'])
@@ -317,15 +331,24 @@ public function destroy($nom, $prenom, $tel, $email)
 
 public function getTotalPrixTransit()
 {
-    $rate = CurrencyConverterService::FCFA_TO_EUR_RATE;
-    
+    $converter = new CurrencyConverterService();
+
     $total = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
         ->with('agent.agence')
         ->get()
-        ->sum(function ($colis) use ($rate) {
-            if ($colis->agent && $colis->agent->agence && $colis->agent->agence->pays_agence === "France") {
-                return $colis->prix_transit_colis * $rate;
+        ->sum(function ($colis) use ($converter) {
+            if ($colis->devise === 'EUR') {
+                return $converter->convertEurToCfa($colis->prix_transit_colis);
             }
+
+            if (
+                $colis->agent &&
+                $colis->agent->agence &&
+                $colis->agent->agence->pays_agence === 'France'
+            ) {
+                return $colis->prix_transit_colis * CurrencyConverterService::FCFA_TO_EUR_RATE;
+            }
+
             return $colis->prix_transit_colis;
         });
 
