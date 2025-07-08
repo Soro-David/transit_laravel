@@ -465,6 +465,8 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
 
             // Route::post('/store', [AgenceController::class,'store'])->name('store'); 
 
+            Route::get('/generer-reference/{mode}', [CustomerColisController::class, 'genererReferenceSelonMode']);
+
             Route::get('/create/colis/add', [CustomerColisController::class, 'add_colis'])->name('create.colis');
             Route::post('/store/colis/store/customer', [CustomerColisController::class, 'store_colis'])->name('store.colis');
             Route::get('/create/payement/colis', [ColisController::class, 'stepPayment'])->name('create.payement');
@@ -1062,7 +1064,8 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::post('/store/payment-IPMS', [ApmsAngreColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-IPMS', [ApmsAngreColisController::class, 'generer_qrcode'])->name('generer.qrcode');
         Route::post('/store-produit-ajax',[ApmsAngreColisController::class, 'storeProduit'])->name('store.produit');
-        Route::get('/autocomplete/produit', [ApmsAngreColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+         Route::get('/autocomplete/produit-chine', [ApmsAngreColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+
         Route::get('/colis-valide-IPMS', [ApmsAngreColisController::class, 'colis_valide'])->name('colis.valide');
         Route::get('/get-colis-valide-IPMS', [ApmsAngreColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::get('/create/colis-IPMS', [ApmsAngreColisController::class, 'add_colis'])->name('create.colis');
