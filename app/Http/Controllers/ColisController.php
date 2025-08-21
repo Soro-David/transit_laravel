@@ -851,6 +851,7 @@ class ColisController extends Controller
 
             $hauteur = $data['hauteur'][$index] ?? null;
             $largeur = $data['largeur'][$index] ?? null;
+
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
@@ -881,7 +882,7 @@ class ColisController extends Controller
                     'agent_id' => $agentId,
                     'qr_code_path' => null,
                 ];
-                // dd($colisItemData);
+                // dd($colisItemData); 
                 try {
                     $colisModel = Colis::create($colisItemData);
 
@@ -1321,6 +1322,8 @@ class ColisController extends Controller
             'totalMontantPaye',
             'restePaye',
             'devise'
+
+            
         ));
     }
 
@@ -1620,7 +1623,7 @@ class ColisController extends Controller
             'telephone' => $request->telephone,
             'adresse' => $request->adresse,
             'agence' => $request->agence,
-            'type_client' => $request->type_client ?? 'destinataire', // Par défaut 'destinataire'
+            'type_client' => $request->type_client ?? 'destinataire',
         ]);
         return redirect()->back()->with('success', 'expediteur cree avec succès !');
     }
@@ -2591,7 +2594,7 @@ public function cargaison_ferme(Request $request)
         ->flatMap(function ($colis) {
             return [$colis->reference_contenaire, $colis->reference_vol];
         })
-        ->filter()  // Supprimer les valeurs nulles
+        ->filter()
         ->unique()
         ->values()
         ->toArray();
@@ -2600,7 +2603,7 @@ public function cargaison_ferme(Request $request)
     $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
         ->selectRaw('reference_conteneur, COUNT(*) as total')
         ->groupBy('reference_conteneur')
-        ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
+        ->pluck('total', 'reference_conteneur')
         ->toArray();
 
     // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
