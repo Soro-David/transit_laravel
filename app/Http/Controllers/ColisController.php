@@ -39,6 +39,8 @@ use App\Services\InfobipService;
 use Barryvdh\DomPDF\Facade;
 use PDF;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ColisValidatedMail;
 
 
 class ColisController extends Controller
@@ -977,6 +979,25 @@ class ColisController extends Controller
 
 
         session()->forget(['step1', 'step2']);
+
+        try {
+            // Envoi du SMS à l'expéditeur
+            if (!empty($expediteur->tel)) {
+                $message = "Bonjour " . $expediteur->nom . ", votre dossier (Réf: " . $firstColis->reference_colis . ") a été créé. Montant total: " . number_format($paiementPrincipal->montant, 0, ',', ' ') . " F CFA. Merci de votre confiance.";
+                $infobipService->sendSms($expediteur->tel, $message);
+                Log::info('SMS de création de dossier envoyé à ' . $expediteur->tel);
+            }
+
+            // dd($message);
+            // Envoi de l'email à l'expéditeur
+            if (!empty($expediteur->email)) {
+                Mail::to($expediteur->email)->send(new ColisValidatedMail($paiementPrincipal, $colisEnregistresCollection));
+                Log::info('Email de création de dossier envoyé à ' . $expediteur->email);
+            }
+        } catch (\Exception $e) {
+            Log::error('Échec de l\'envoi des notifications pour le dossier ' . ($firstColis->reference_colis ?? 'N/A') . ': ' . $e->getMessage());
+            // Important : Ne pas bloquer l'utilisateur si les notifications échouent. On logue l'erreur et c'est tout.
+        }
 
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
@@ -2344,7 +2365,7 @@ public function get_colis_hold(Request $request)
         foreach ($colisData as $colisId => $data) {
             try {
                 $colis = Colis::findOrFail($colisId);
-                $numero_expediteur = +2250546158376;
+                 $numero_expediteur = $colis->expediteur->tel; 
                 // dd($numero_expediteur);
                 // dd( $colis);
                 // Mise à jour du colis
