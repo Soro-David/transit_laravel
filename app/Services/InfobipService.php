@@ -37,21 +37,22 @@ class InfobipService
         // Assurez-vous que le numéro est au bon format (retire le '+' s'il est présent)
         $to = ltrim($to, '+');
 
-        $response = Http::withHeaders([
-            'Authorization' => 'App ' . $this->apiKey,
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])->post('https://' . $this->baseUrl . '/sms/2/text/advanced', [ // Assurez-vous d'avoir https://
-            'messages' => [
-                [
-                    'from' => $this->from,
-                    'destinations' => [
-                        ['to' => $to],
+         $response = Http::withHeaders([
+                'Authorization' => 'App ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->post($this->baseUrl . '/sms/2/text/advanced', [
+                'messages' => [
+                    [
+                        'from' => $this->from,
+                        'destinations' => [
+                            ['to' => $to],
+                        ],
+                        'text' => $message,
                     ],
-                    'text' => $message,
                 ],
-            ],
-        ]);
+            ]);
+
 
         // Gestion des erreurs de la réponse
         if ($response->failed()) {

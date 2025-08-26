@@ -38,8 +38,9 @@ return [
     'infobip' => [
         'api_key' => env('INFOBIP_API_KEY'),
         'base_url' => env('INFOBIP_BASE_URL'),
-        'from' => env('INFOBIP_FROM', 'InfoSMS'), // 'InfoSMS' est un expéditeur de test par défaut. Remplacez par le vôtre.
+        'from'    => env('INFOBIP_FROM'),
     ],
+
 
     
 

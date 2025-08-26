@@ -70,6 +70,29 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 
+use App\Services\InfobipService;
+
+Route::get('/test-sms', function(InfobipService $infobipService) {
+    try {
+        // Remplacez par un numéro de téléphone de test VALIDE au format international
+        $testPhoneNumber = '2250160003513'; 
+        $testMessage = 'Ceci est un message de test depuis mon application Laravel. ' . now();
+
+        echo "Tentative d'envoi à : " . $testPhoneNumber . "<br>";
+        
+        // Appelez directement votre service
+        $response = $infobipService->sendSms($testPhoneNumber, $testMessage);
+
+        echo "Le service a été appelé. Réponse : <br>";
+        dump($response); // Affichez la réponse brute d'Infobip
+
+    } catch (\Exception $e) {
+        echo "Une erreur est survenue ! <br>";
+        // Affichez l'erreur directement sur la page pour un débogage facile
+        dd($e->getMessage(), $e);
+    }
+});
+
 
 Route::get('/', function () { return redirect('/accueil'); });
 Route::get('/login', function () { return redirect('/login'); });
