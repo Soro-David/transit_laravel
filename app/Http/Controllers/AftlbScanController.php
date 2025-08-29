@@ -20,10 +20,14 @@ use Illuminate\Support\Facades\Storage;
 use Endroid\QrCode\Builder\Builder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+// use App\Services\SmsService;
+use App\Services\SmsService;
 
 
 class AftlbScanController extends Controller
 {
+
+    protected $smsService;
     /**
      * Display a listing of the resource.
      *
@@ -499,66 +503,196 @@ class AftlbScanController extends Controller
     }
     
     
-public function updateColisDecharge(Request $request)
-{
+// public function updateColisDecharge(Request $request)
+// {
         
-    if (!$request->has('colisId') || !$request->has('id')) {
-        $missingParams = [];
-        if (!$request->has('colisId')) {
-            $missingParams[] = 'colisId';
+//     if (!$request->has('colisId') || !$request->has('id')) {
+//         $missingParams = [];
+//         if (!$request->has('colisId')) {
+//             $missingParams[] = 'colisId';
+//         }
+//         if (!$request->has('id')) {
+//             $missingParams[] = 'id';
+//         }
+//         return response()->json([
+//             'success'  => false,
+//             'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+//         ], 400);
+//     }
+
+
+//     // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+//     $colisList = Colis::where('reference_colis', $request->colisId)
+//                       ->where('id', $request->id)
+//                     //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+//                       ->get();
+
+//     // Vérifier si des colis ont été trouvés
+//     if ($colisList->isEmpty()) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+//         ], 404);
+//     }
+
+//     $messages = [];
+//     $updatedColis = [];
+
+//     // Parcourir chaque colis trouvé
+//     foreach ($colisList as $colis) {
+//         if ($colis->etat === 'Dechargé') {
+//             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
+//         } elseif ($colis->etat === 'Fermé') {
+//             // Modifier l'état du colis en "En entrepot"
+//             $colis->etat = 'Déchargé';
+//             $colis->save();
+//             $updatedColis[] = [
+//                 'etat'        => $colis->etat,
+//             ];
+//             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
+//         } else {
+//             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Arrivé. Impossible de le mettre déchargé.";
+//         }
+//     }
+
+//         //    $expediteurTelForSms = $expediteurTel;
+//         $destinataireTelForSms = $colisList->first()->destinataire_tel;
+
+//         // dd($expediteurTelForSms, $destinataireTelForSms);
+        
+
+        
+//         $colisReferences = $colisList->pluck('id_reference')->implode(', ');
+//         $messageSms = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été créé avec succès et est en attente d'expédition. Merci de nous faire confiance.";
+
+
+//         // Envoi du SMS au destinataire
+//         if ($destinataireTelForSms) { // Utilisation du numéro complet
+//             try {
+//                 $smsService->sendSms($destinataireTelForSms, $messageSms);
+//                 Log::info("SMS envoyé au destinataire {$destinataireTelForSms} pour le colis {$colisReferences}.");
+//             } catch (\RuntimeException $e) {
+//                 Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS au destinataire: " . $e->getMessage(), [
+//                     'phone_number' => $destinataireTelForSms,
+//                     'message' => $messageSms
+//                 ]);
+//             } catch (\Throwable $e) {
+//                 Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS au destinataire ! " . $e->getMessage(), [
+//                     'phone_number' => $destinataireTelForSms,
+//                     'message' => $messageSms,
+//                     'trace' => $e->getTraceAsString()
+//                 ]);
+//             }
+//         }
+
+//     return response()->json([
+//         'success'  => !empty($updatedColis),
+//         'messages' => $messages,
+//         'colis'    => $updatedColis,
+//     ]);
+//     // dd( $updatedColis);
+
+// }
+
+
+    // Injection de dépendance du service SMS
+    // public function __construct(SmsService $smsService)
+    // {
+    //     $this->smsService = $smsService;
+    // }
+
+    public function updateColisDecharge(Request $request)
+    {
+        if (!$request->has('colisId') || !$request->has('id')) {
+            $missingParams = [];
+            if (!$request->has('colisId')) {
+                $missingParams[] = 'colisId';
+            }
+            if (!$request->has('id')) {
+                $missingParams[] = 'id';
+            }
+            return response()->json([
+                'success'  => false,
+                'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
+            ], 400);
         }
-        if (!$request->has('id')) {
-            $missingParams[] = 'id';
+
+        // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
+        $colisList = Colis::where('reference_colis', $request->colisId)
+                          ->where('id', $request->id)
+                          ->get();
+
+        // Vérifier si des colis ont été trouvés
+        if ($colisList->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
+            ], 404);
         }
-        return response()->json([
-            'success'  => false,
-            'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
-        ], 400);
-    }
 
+        $messages = [];
+        $updatedColis = [];
+        $colisSuccessfullyDecharged = [];
 
-    // Rechercher tous les colis correspondant à la référence et à l'identifiant fournis
-    $colisList = Colis::where('reference_colis', $request->colisId)
-                      ->where('id', $request->id)
-                    //   ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-                      ->get();
+        // Parcourir chaque colis trouvé
+        foreach ($colisList as $colis) {
+            if ($colis->etat === 'Dechargé') {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà déchargé.";
+            } elseif ($colis->etat === 'Fermé' || $colis->etat === 'Arrivé') {
+                
+                $colis->etat = 'Déchargé';
+                $colis->save();
+                $updatedColis[] = [
+                    'etat'        => $colis->etat,
+                    'reference_colis' => $colis->reference_colis,
+                    'id'          => $colis->id,
+                ];
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé avec succès.";
+                $colisSuccessfullyDecharged[] = $colis;
+            } else {
+                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas dans un état permettant le déchargement (actuellement : {$colis->etat}).";
+            }
+        }
 
-    // Vérifier si des colis ont été trouvés
-    if ($colisList->isEmpty()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
-        ], 404);
-    }
+        // Envoi du SMS UNIQUEMENT si des colis ont été réellement déchargés
+        if (!empty($colisSuccessfullyDecharged)) {
+            $destinataireTelForSms = $colisSuccessfullyDecharged[0]->destinataire_tel;
+            $colisReferences = collect($colisSuccessfullyDecharged)->pluck('reference_colis')->implode(', ');
+            $messageSms = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) est arrivé à destination et a été déchargé. Vous pouvez le récupérer. Merci de nous faire confiance.";
 
-    $messages = [];
-    $updatedColis = [];
-
-    // Parcourir chaque colis trouvé
-    foreach ($colisList as $colis) {
-        if ($colis->etat === 'Dechargé') {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
-        } elseif ($colis->etat === 'Fermé') {
-            // Modifier l'état du colis en "En entrepot"
-            $colis->etat = 'Déchargé';
-            $colis->save();
-            $updatedColis[] = [
-                'etat'        => $colis->etat,
-            ];
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé succès.";
+            // Envoi du SMS au destinataire 
+            if ($destinataireTelForSms) {
+                try {
+                    $this->smsService->sendSms($destinataireTelForSms, $messageSms);
+                    Log::info("SMS envoyé au destinataire {$destinataireTelForSms} pour les colis {$colisReferences} (Déchargés).");
+                    $messages[] = "Un SMS de notification de déchargement a été envoyé au destinataire.";
+                } catch (\RuntimeException $e) {
+                    Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS au destinataire: " . $e->getMessage(), [
+                        'phone_number' => $destinataireTelForSms,
+                        'message' => $messageSms
+                    ]);
+                    $messages[] = "Erreur lors de l'envoi du SMS de notification au destinataire (configuration).";
+                } catch (\Throwable $e) {
+                    Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS au destinataire ! " . $e->getMessage(), [
+                        'phone_number' => $destinataireTelForSms,
+                        'message' => $messageSms,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    $messages[] = "Erreur inattendue lors de l'envoi du SMS de notification au destinataire.";
+                }
+            } else {
+                $messages[] = "Numéro de téléphone du destinataire non trouvé pour l'envoi du SMS de notification.";
+            }
         } else {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Arrivé. Impossible de le mettre déchargé.";
+            $messages[] = "Aucun colis n'a été nouvellement déchargé, donc aucun SMS n'a été envoyé.";
         }
+
+        return response()->json([
+            'success'  => !empty($updatedColis),
+            'messages' => $messages,
+            'colis'    => $updatedColis,
+        ]);
     }
-
-    return response()->json([
-        'success'  => !empty($updatedColis),
-        'messages' => $messages,
-        'colis'    => $updatedColis,
-    ]);
-    // dd( $updatedColis);
-
-}
 
 
 }

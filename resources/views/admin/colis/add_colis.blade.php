@@ -103,9 +103,23 @@
                             <label for="email_societe_expediteur" class="form-label">Email</label>
                             <input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control">
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label for="contact_societe_expediteur" class="form-label">Contact</label>
-                            <input type="text" name="tel_expediteur_societe" id="contact_societe_expediteur" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
                          <div class="col-md-6 mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
@@ -143,17 +157,33 @@
                             <label for="email_expediteur" class="form-label">Email</label>
                             <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
                         </div>
+
+                        <!-- Indicatif et téléphone sur la même ligne -->
                         <div class="col-md-6 mb-3">
-                            <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+
+
                         <div class="col-md-6 mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
                             <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control">
                         </div>
-                        
                         <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_expediteur" class="form-label">Agence d'expedition</label>
+                            <label for="agence_particulier_expediteur" class="form-label">Agence d'expédition</label>
                             <select name="agence_particulier_expediteur" id="agence_particulier_expediteur" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez l'agence --</option>
                                 @foreach ($agencesExpedition as $agence)
@@ -162,12 +192,14 @@
                             </select>
                         </div>
                     </div>
-                            {{-- Boutons navigation --}}
+
+                    {{-- Boutons navigation --}}
                     <div class="text-end mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
                         <button type="button" class="btn btn-primary btn-next">Suivant</button>
                     </div>
                 </div>
+
             </div>
         </fieldset>
 
@@ -187,10 +219,25 @@
                             <label for="email_societe_destinataire" class="form-label">Email</label>
                             <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contact_societe_destinataire" class="form-label">Contact</label>
-                            <input type="text" name="tel_destinataire_societe" id="contact_societe_destinataire" class="form-control">
+
+                         <div class="col-md-6 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+                      
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
                             <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control">
@@ -219,10 +266,25 @@
                             <label for="email_destinataire" class="form-label">Email</label>
                             <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
                             <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
@@ -378,6 +440,19 @@
 </section>
 
 <script>
+
+document.querySelector("form").addEventListener("submit", function(e){
+    // Expéditeur particulier
+    const countryParticulier = document.querySelector("#country_code_expediteur").value;
+    const telParticulier = document.querySelector("#tel_expediteur").value.replace(/\D/g,''); // enlever espaces
+    document.querySelector("#tel_expediteur").value = countryParticulier + telParticulier;
+
+    // Expéditeur société
+    const countrySociete = document.querySelector("#country_code_societe").value;
+    const telSociete = document.querySelector("#contact_societe_expediteur").value.replace(/\D/g,'');
+    document.querySelector("#contact_societe_expediteur").value = countrySociete + telSociete;
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const modeTransitSelect = document.getElementById('mode_transit');
     const refMaritime = document.getElementById('ref_maritime');

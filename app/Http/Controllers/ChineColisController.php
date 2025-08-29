@@ -36,7 +36,7 @@ use Infobip\Configuration;
 use Infobip\Models\SmsAdvancedTextualRequest;
 use Infobip\Models\SmsDestination;
 use Infobip\Models\SmsTextualMessage;
-use App\Services\InfobipService;
+use App\Services\InfobipSmsService;
 use Barryvdh\DomPDF\Facade;
 use PDF;
 use Illuminate\Support\Collection; 
@@ -240,91 +240,6 @@ class ChineColisController extends Controller
     
         return $baseReference;// Retourner la référence finale
     }
-
-    // private function generateReferenceColisComplet()
-    // {
-    //     $user = Auth::user();
-
-    //     if (!$user) {
-            
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-
-    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-    //     $contenaireRef = DB::table('colis')
-    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-    //         ->orderByDesc('id')
-    //         ->value('reference_contenaire');
-
-    //     if (!$contenaireRef) {
-    //         $contenaireRef = $this->generateReferenceContenaire();
-    //         if (!$contenaireRef) {
-    //             throw new \Exception("Impossible de générer une référence de conteneur.");
-    //         }
-    //     }
-
-    //     $lastId = DB::table('colis')->max('id');
-
-    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
-
-
-
-
-//     private function generateReferenceParMode(string $mode_transit)
-// {
-//     $user = Auth::user();
-//     if (!$user) {
-//         throw new \Exception("Utilisateur non connecté.");
-//     }
-
-//     // Initiales : ex SE
-//     $initiales = strtoupper(
-//         substr($user->last_name ?? 'X', 0, 1) .
-//         substr($user->first_name ?? 'X', 0, 1)
-//     );
-
-//     // Agence fixée
-//     $agence = 'Agence de Chine';
-
-//     // 🔍 Requête avec correction TRIM et LOWER
-//     $lastIdRef = DB::table('colis')
-//         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-//         ->where('colis.mode_transit', $mode_transit)
-//         ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
-//         ->max('colis.id_reference');
-
-//     // 🚀 Incrément
-//     $nextIdRef = ($lastIdRef ?? 0) + 1;
-
-//     // 📦 Conteneur actif
-//     $contenaireRef = DB::table('colis')
-//         ->where('mode_transit', $mode_transit)
-//         ->where('etat', '!=', 'Fermé')
-//         ->orderByDesc('id')
-//         ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-
-//     // 🔢 Format
-//     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-//     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-//     return [
-//         'reference_colis' => $reference,
-//         'id_reference' => $nextIdRef,
-//         'reference_contenaire' => $contenaireRef
-//     ];
-// }
 
 private function generateReferenceParMode(string $mode_transit)
 {
@@ -659,7 +574,7 @@ public function vol_fermer(Request $request)
     }
 
 
-    public function generer_qrcode(Request $request, InfobipService $infobipService)
+    public function generer_qrcode(Request $request, InfobipSmsService $InfobipSmsService)
     {
         // 1. Récupération et validation des données de session
         $data = array_merge(
@@ -673,29 +588,37 @@ public function vol_fermer(Request $request)
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
         }
     
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
-        
-        // Utilisation d'une transaction pour garantir que tout est créé ou rien n'est créé
-        DB::beginTransaction();
+       
+        // Construction des numéros de téléphone complets avec indicatif
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? '';
+        $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
+
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? '';
+        $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
+
         
         try {
             // 2. Création de l'expéditeur et du destinataire
             $expediteur = Expediteur::create([
-                    'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
-                    'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ??'',
-                    'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
-                    'tel' => $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '',
-                    'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'],
-                    'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur'] ?? 'null',
+                'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+                'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
+                'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
+                'tel' => $expediteurTel, // Utilise le numéro complet
+                'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
-            // dd($expediteur);
+
             $destinataire = Destinataire::create([
-                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe']?? '',
+                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
                 'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
-                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
-                'tel' => $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '',
-                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'],
-                'adresse' => $data['adresse_destinataire']?? $data['adresse_destinataire_societe'] ?? '',
+                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
+                'tel' => $destinataireTel, // Utilise le numéro complet
+                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
     
             // dd($destinataire);
@@ -734,9 +657,7 @@ public function vol_fermer(Request $request)
                 'montant_paye' => $montantPaiementTransaction,
                 'colis_id' => null,
             ]);
-    
-            // dd($paiementPrincipal);
-            // 4. Boucle de création des colis physiques
+
             $colisEnregistres = [];
             $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
             // dd($colisEnregistres);
@@ -761,8 +682,6 @@ public function vol_fermer(Request $request)
 
                 $id_reference = ($lastIdRef ?? 0) + 1;
 
-                // Calculer le prix pour UN SEUL colis physique en divisant le prix total par la quantité
-                // On ajoute une sécurité pour éviter la division par zéro
                 $prixParColisPhysique = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
                 
                 // Boucle pour créer un enregistrement par colis physique
@@ -863,6 +782,38 @@ public function vol_fermer(Request $request)
     
         // Vider la session après utilisation
         session()->forget(['step1', 'step2']);
+                    // Préparation des SMS après le commit
+            $expediteurTelForSms = $expediteurTel;
+            $destinataireTelForSms = $destinataireTel;
+            // dd($expediteurTelForSms,$destinataireTelForSms);
+
+
+
+            $colisReferences = $colisEnregistresCollection
+                                ->pluck('reference_colis')
+                                ->unique()
+                                ->implode(', ');
+            $messageSmsDestinataire = "Bonjour, un colis (Réf: {$colisReferences}) vous est destiné. Il a été créé par {$expediteur->nom} et est en attente d'expédition. Vous serez notifié(e) de son avancement.";
+
+            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de nous faire confiance. Suivi : https://aft-app.com";
+            // Envoi du SMS à l'expéditeur
+            if ($expediteurTel) { 
+                try {
+                    $InfobipSmsService->sendSms($expediteurTel, $messageSmsExpediteur);
+                    Log::info("SMS envoyé à l'expéditeur {$expediteurTel} pour le colis {$colisReferences}.");
+                } catch (\RuntimeException $e) {
+                    Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS à l'expéditeur: " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS à l'expéditeur ! " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
     
         return view('AGENCE_CHINE.colis.add.complete', [
             'colis' => $colisEnregistresCollection, // Collection de tous les colis physiques créés
@@ -1767,7 +1718,7 @@ public function vol_fermer(Request $request)
     //     return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
     // }
 
-    public function update_hold(Request $request, InfobipService $infobipService)
+    public function update_hold(Request $request, InfobipSmsService $InfobipSmsService)
     {
         $validatedData = $request->validate([
             'colis.*.prix_transit_colis' => 'required|numeric|min:0',
@@ -1791,7 +1742,7 @@ public function vol_fermer(Request $request)
                 $message = "Bonjour " . $colis->expediteur->nom . ", le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. Connectez-vous pour effectuer votre paiement.";
 
                 // Envoi du SMS
-                $response = $infobipService->sendSms($numero_expediteur, $message);
+                $response = $InfobipSmsService->sendSms($numero_expediteur, $message);
                 Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
     
             } catch (\Exception $e) {

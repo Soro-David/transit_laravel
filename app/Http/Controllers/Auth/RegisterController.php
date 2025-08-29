@@ -57,13 +57,14 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'adresse' => ['required', 'string', 'max:255'],
-            'tel' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:4', 'confirmed'],
-        ]);
+            'first_name'  => ['required', 'string', 'max:255'],
+            'last_name'   => ['required', 'string', 'max:255'],
+            'adresse'     => ['required', 'string', 'max:255'],
+            'tel'         => ['required', 'string', 'max:20'],
+            'country_code_destinataire_particulier' => ['required', 'string', 'max:5'],
+            'email'       => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'    => ['required', 'string', 'min:4', 'confirmed'],
+            ]);
     }
 
     /**
@@ -72,41 +73,20 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \App\User
      */
+    
     protected function create(array $data)
     {
         return DB::transaction(function () use ($data) {
-            // 1. Create the user
-            // dd($data);
+            $fullPhone = $data['country_code_destinataire_particulier'] . $data['tel'];
+
             $user = User::create([
                 'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'],
-                'tel' => $data['tel'],
-                'adresse' => $data['adresse'],
-                'password' => Hash::make($data['password']),
-                // 'agence_id' => $data['agence_id'],
+                'last_name'  => $data['last_name'],
+                'email'      => $data['email'],
+                'tel'        => $fullPhone,
+                'adresse'    => $data['adresse'],
+                'password'   => Hash::make($data['password']),
             ]);
-
-            // // 2. Create the customer record (si nécessaire)
-            // Client::create([
-            //     'nom' => $data['first_name'],
-            //     'prenom' => $data['last_name'],
-            //     'email' => $data['email'],
-            //     'user_id' => $user->id,
-            //     'telephone' => $data['tel'],
-            //     'adresse' => $data['adresse'],
-            //     // 'agence' => Agence::find($data['agence_id'])->nom_agence,
-            // ]);
-
-            // // 3. Create the expediteur record
-            // Expediteur::create([
-            //     'nom' => $data['first_name'], // Ré-ajout du nom
-            //     'prenom' => $data['last_name'],
-            //     'email' => $data['email'],
-            //     'tel' => $data['tel'],
-            //     'adresse' => $data['adresse'],
-            //     // 'agence' => Agence::find($data['agence_id'])->nom_agence,
-            // ]);
 
             return $user;
         });

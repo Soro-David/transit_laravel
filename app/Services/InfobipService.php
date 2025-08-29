@@ -12,12 +12,20 @@ class InfobipService
     protected $baseUrl;
     protected $from;
 
-    public function __construct()
+   public function __construct()
     {
-        $this->apiKey = config('services.infobip.api_key');
-        $this->baseUrl = config('services.infobip.base_url');
-        $this->from = config('services.infobip.from');
+        $this->apiKey = config('services.infobip.api_key') ?? '92a3800cbe103bade12be7c66950ae7c-274e2f79-0f64-41f4-8c5a-e381034b269b';
+        $this->baseUrl = config('services.infobip.base_url') ?? 'https://38m35m.api.infobip.com';
+        $this->from   = config('services.infobip.from') ?? 'AFT_IMPORT';
+
+        logger()->info('Infobip Config', [
+            'apiKey' => $this->apiKey,
+            'baseUrl' => $this->baseUrl,
+            'from' => $this->from,
+        ]);
     }
+
+
 
     /**
      * Envoie un SMS à un destinataire.
@@ -65,4 +73,5 @@ class InfobipService
 
         return $response->json();
     }
+
 }

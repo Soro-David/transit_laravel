@@ -68,28 +68,56 @@ use App\Http\Controllers\AftController;
 use App\Http\Controllers\ChineController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\InfobipSmsService;
+use App\Mail\DevisCreatedMail;
+use Infobip\Api\Model\SmsTextualMessage; 
+use Illuminate\Support\Facades\Mail;
 
 
-use App\Services\InfobipService;
+Route::get('/test-mail', function () {
+    $emailData = [
+        'reference_colis_principale' => 'TEST-12345',
+        'expediteur' => ['nom' => 'Test', 'prenom' => 'User', 'email' => 'contact@aft-app.com', 'tel' => '00000000', 'agence' => 'Agence de Chine'],
+        'destinataire' => ['nom' => 'Client', 'prenom' => 'Test', 'email' => 'contact@aft-app.com', 'tel' => '11111111', 'agence' => 'AFT Agence Louis Bleriot'],
+        'nombre_colis' => 1,
+        'premier_colis' => ['service' => 'Express', 'prix_transit_colis' => 100, 'poids_colis' => 10, 'description_colis' => 'Test Colis'],
+    ];
 
-Route::get('/test-sms', function(InfobipService $infobipService) {
     try {
-        // Remplacez par un numéro de téléphone de test VALIDE au format international
-        $testPhoneNumber = '2250160003513'; 
-        $testMessage = 'Ceci est un message de test depuis mon application Laravel. ' . now();
+        Mail::to('contact@aft-app.com')->send(new DevisCreatedMail($emailData));
+        return "✅ Test email envoyé !";
+    } catch (\Throwable $e) {
+        return "❌ Erreur : " . $e->getMessage();
+    }
+});
 
-        echo "Tentative d'envoi à : " . $testPhoneNumber . "<br>";
-        
-        // Appelez directement votre service
-        $response = $infobipService->sendSms($testPhoneNumber, $testMessage);
 
-        echo "Le service a été appelé. Réponse : <br>";
-        dump($response); // Affichez la réponse brute d'Infobip
 
-    } catch (\Exception $e) {
-        echo "Une erreur est survenue ! <br>";
-        // Affichez l'erreur directement sur la page pour un débogage facile
-        dd($e->getMessage(), $e);
+Route::get('/test-sms-infobip', function (InfobipSmsService $infobipSmsService) {
+    try {
+        $testPhoneNumber = '+2250160003513';
+        $testMessage = 'Ceci est un message de test SMS depuis Laravel via Infobip. ' . now();
+
+        echo "Tentative d'envoi SMS à : " . $testPhoneNumber . "<br>";
+        echo "Message : " . $testMessage . "<br><br>";
+
+        // dd(config('infobip'));
+        $success = $infobipSmsService->sendSms($testPhoneNumber, $testMessage);
+
+        if ($success) {
+            echo "✅ Le SMS a été initié avec succès ! Consultez les logs pour le statut final.<br>";
+        } else {
+            echo "❌ L'envoi du SMS a échoué. Consultez les logs pour plus de détails.<br>";
+        }
+    } catch (\RuntimeException $e) {
+        echo "⚠️ Erreur de configuration Infobip: " . $e->getMessage() . "<br>";
+        Log::error("Erreur de configuration Infobip dans la route: " . $e->getMessage());
+    } catch (\Throwable $e) {
+        echo "⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS ! <br>";
+        Log::error("Erreur générale dans la route /test-sms-infobip: " . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+        echo "Veuillez consulter les logs du serveur pour plus de détails.<br>";
     }
 });
 

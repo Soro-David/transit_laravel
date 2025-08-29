@@ -294,34 +294,43 @@ class ApmsColisController extends Controller
 
     public function generer_qrcode(Request $request)
     {
-        // Fusionner toutes les données de session dans un tableau
+        // Fusionner toutes les données de session dans un tableau 
         $data = array_merge(
             session('step1', []),
             session('step2', [])
         );
-    // dd($data);
+        // dd($data);
         // Ajouter le statut au tableau de données
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
-    
-        // Vérifiez que les données sont bien réparties pour chaque table
-        $expediteurData = [
-            'nom' => $data['nom_expediteur'],
-            'prenom' => $data['prenom_expediteur'],
-            'email' => $data['email_expediteur'],
-            'tel' => $data['tel_expediteur'],
-            'agence' => $data['agence_expedition'],
-            'adresse' => $data['adresse_expediteur'],
-        ];
-    
-        $destinataireData = [
-            'nom' => $data['nom_destinataire'],
-            'prenom' => $data['prenom_destinataire'],
-            'email' => $data['email_destinataire'],
-            'tel' => $data['tel_destinataire'],
-            'agence' => $data['agence_destination'],
-            'adresse' => $data['adresse_destinataire'],
-        ];
+       
+        // Construction des numéros de téléphone complets avec indicatif
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? '';
+        $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
+
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? '';
+        $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
+
+
+                    $expediteur = Expediteur::create([
+                'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+                'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
+                'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
+                'tel' => $expediteurTel, // Utilise le numéro complet
+                'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+            ]);
+
+            $destinataire = Destinataire::create([
+                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
+                'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
+                'tel' => $destinataireTel, // Utilise le numéro complet
+                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+            ]);
     
         // Initialisation du tableau pour stocker les données des colis
         $colisData = [];
@@ -356,7 +365,7 @@ class ApmsColisController extends Controller
             ];
         }
         
-    // dd($colisData);
+          // dd($colisData);
         $nombreQuantiteColis = count($data['quantite_colis']);
     
         $payementData = [
@@ -369,7 +378,7 @@ class ApmsColisController extends Controller
             'numero_tel' => $data['numero_tel'],
             'numero_cheque' => $data['numero_cheque'],
         ];
-    // dd($payementData);
+        // dd($payementData);
         // Insérer les données dans chaque table
         $expediteur = Expediteur::create($expediteurData);
         $destinataire = Destinataire::create($destinataireData);
@@ -430,7 +439,35 @@ class ApmsColisController extends Controller
         // Réinitialiser les sessions après traitement
         session()->forget(['step1', 'step2']);
     
-        // Retourner la vue avec les informations nécessaires
+                    // Préparation des SMS après le commit
+            $colisReferences = $colisEnregistresCollection
+                                ->pluck('reference_colis')
+                                ->unique()
+                                ->implode(', ');
+
+            $messageSmsDestinataire = "Bonjour, un colis (Réf: {$colisReferences}) vous est destiné. Il a été créé par {$expediteur->nom} et est en attente d'expédition. Vous serez notifié(e) de son avancement.";
+
+            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de nous faire confiance. Suivi : https://aft-app.com";
+
+            // Envoi du SMS à l'expéditeur
+            if ($expediteurTel) { 
+                try {
+                    $infobipService->sendSms($expediteurTel, $messageSmsExpediteur);
+                    Log::info("SMS envoyé à l'expéditeur {$expediteurTel} pour le colis {$colisReferences}.");
+                } catch (\RuntimeException $e) {
+                    Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS à l'expéditeur: " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS à l'expéditeur ! " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
+        // Retourner la vue avec les informations nécessaires 
         return view('IPMS_SIMEXCI.colis.add.complete', compact('colis', 'filePath', 'fullPath', 'result'));
     }
 
@@ -609,18 +646,48 @@ class ApmsColisController extends Controller
         foreach ($colisData as $colisId => $data) {
             try {
                 $colis = Colis::findOrFail($colisId);
-                $numero_expediteur = +2250546158376;
-                // dd($numero_expediteur);
-                // dd( $colis);
-                // Mise à jour du colis
-                $colis->prix_transit_colis = $data['prix_transit_colis'];
-                $colis->status = 'payé';
-                $colis->etat = 'Devis';
-                $colis->save();
-    
-                // Message SMS
-                $message = "Bonjour " . $colis->expediteur->nom . ", le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA. Connectez-vous pour effectuer votre paiement.";
 
+                $numero_expediteur = optional($colis->expediteur)->tel;
+
+            if (!$numero_expediteur) {
+                Log::warning("❌ Aucun numéro de téléphone trouvé pour l'expéditeur du colis {$colisId}");
+                continue;
+            }
+
+            // Mise à jour du colis
+            $colis->prix_transit_colis = $data['prix_transit_colis'];
+            $colis->status = 'payé';
+            $colis->etat = 'Devis';
+    
+              // Préparer le message
+            $message = "Bonjour " . optional($colis->expediteur)->nom . ",
+                le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès.
+                Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA.
+                Connectez-vous pour effectuer votre paiement.";
+
+
+
+            try {
+                $response = $infobipService->sendSms($numero_expediteur, $message);
+                Log::info("✅ SMS envoyé à {$numero_expediteur} pour colis ID {$colisId}: " . json_encode($response));
+            } catch (\RuntimeException $e) {
+                Log::error("⚠️ Erreur Infobip lors de l'envoi SMS au {$numero_expediteur} (Colis ID {$colisId}) : " . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error("⚠️ Erreur inattendue SMS au {$numero_expediteur} (Colis ID {$colisId}) : " . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+
+            // Génération des données QR Code (si besoin)
+            $qrData = [
+                'Référence colis' => $colis->reference_colis,
+                'Statut' => $colis->status,
+                'Nom Expéditeur' => optional($colis->expediteur)->nom . ' ' . optional($colis->expediteur)->prenom,
+                'Nom Destinataire' => optional($colis->destinataire)->nom . ' ' . optional($colis->destinataire)->prenom,
+                'Téléphone Destinataire' => optional($colis->destinataire)->tel,
+                'Agence Destination' => optional($colis->destinataire)->agence,
+                'Lieu de Destination' => optional($colis->destinataire)->lieu_destination,
+            ];
                 // Envoi du SMS
                 $response = $infobipService->sendSms($numero_expediteur, $message);
                 Log::info('SMS envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
@@ -1530,12 +1597,13 @@ public function print_facture($id)
             return DB::transaction(function () use ($request) {
                 $bateau = Bateaux::where('reference_conteneur', $request->reference_conteneur)->first();
 
+                // dd($bateau);
                 if (!$bateau) {
                     throw new Exception('🚢 Bateau non trouvé.');
                 }
 
                 // Vérifier si le bateau est déjà récupéré
-                if ($bateau->recuperer === 'oui') {
+                if ($bateau->recuperer === 'oui' & $bateau->type === 'bateau') {
                     throw new Exception('⚠️ Ce bateau a déjà été récupéré.');
                 }
 
