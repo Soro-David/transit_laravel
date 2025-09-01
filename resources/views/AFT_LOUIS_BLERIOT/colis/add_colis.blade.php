@@ -66,7 +66,7 @@
                     <div class="col-md-6" id="ref_maritime" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Maritime)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -74,7 +74,7 @@
                     <div class="col-md-6" id="ref_aerien" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Aérien)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -87,7 +87,7 @@
         </fieldset>
 
         <!-- Étape 2 : Informations de l'Expéditeur -->
-        {{-- ================== EXPÉDITEUR ================== --}}
+        {{-- ================== EXPÉDITEUR ================== --}} 
         <fieldset>
             <div class="form-section">
                 <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
@@ -103,11 +103,26 @@
                             <label for="email_societe_expediteur" class="form-label">Email</label>
                             <input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control">
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label for="contact_societe_expediteur" class="form-label">Contact</label>
-                            <input type="text" name="tel_expediteur_societe" id="contact_societe_expediteur" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        {{-- <option value="+1">USA (+1)</option> --}}
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_expediteur_societe" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
-                         <div class="col-md-6 mb-3">
+                        
+                        <div class="col-md-6 mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
                             <input type="text" name="adresse_expediteur_societe" id="adresse_expediteur" class="form-control">
                         </div>
@@ -143,10 +158,25 @@
                             <label for="email_expediteur" class="form-label">Email</label>
                             <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="adresse_expediteur" class="form-label">Adresse</label>
                             <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control">
@@ -188,9 +218,23 @@
                             <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="contact_societe_destinataire" class="form-label">Contact</label>
-                            <input type="text" name="tel_destinataire_societe" id="contact_societe_destinataire" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+                     
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
                             <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control">
@@ -220,9 +264,23 @@
                             <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+33" selected>France (+33)</option>
+                                        <option value="+225">Côte d'Ivoire (+225)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        {{-- <option value="+1">USA (+1)</option> --}}
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
+                                </div>
+                            </div>
                         </div>
+                       
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire" class="form-label">Adresse</label>
                             <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
@@ -360,94 +418,95 @@
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modeTransitSelect = document.getElementById('mode_transit');
-    const refMaritime = document.getElementById('ref_maritime');
-    const refAerien = document.getElementById('ref_aerien');
-    const categorieClientSelect = document.getElementById('categorie_client');
 
-    // Agences destinataires avec IDs différents
-    const agenceSelectParticulier = document.getElementById('agence_particulier_destinataire_particulier');
-    const agenceSelectSociete = document.getElementById('agence_particulier_destinataire_societe');
+    document.addEventListener('DOMContentLoaded', function () {
+        const modeTransitSelect = document.getElementById('mode_transit');
+        const refMaritime = document.getElementById('ref_maritime');
+        const refAerien = document.getElementById('ref_aerien');
+        const categorieClientSelect = document.getElementById('categorie_client');
 
-    const societeExpediteurSection = document.getElementById('societe_expediteur_section');
-    const particulierExpediteurSection = document.getElementById('particulier_expediteur_section');
-    const societeDestinataireSection = document.getElementById('societe_destinataire_section');
-    const particulierDestinataireSection = document.getElementById('particulier_destinataire_section');
+        // Agences destinataires avec IDs différents
+        const agenceSelectParticulier = document.getElementById('agence_particulier_destinataire_particulier');
+        const agenceSelectSociete = document.getElementById('agence_particulier_destinataire_societe');
 
-    // Options agences selon mode de transit
-    const agenceOptionsTransit = {
-        maritime: { value: "IPMS-SIMEX-CI", label: "Carrefour Angré" },
-        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "Angre 8ème Tranche" }
-    };
+        const societeExpediteurSection = document.getElementById('societe_expediteur_section');
+        const particulierExpediteurSection = document.getElementById('particulier_expediteur_section');
+        const societeDestinataireSection = document.getElementById('societe_destinataire_section');
+        const particulierDestinataireSection = document.getElementById('particulier_destinataire_section');
 
-    // Affichage des champs référence selon mode
-    function toggleReferenceFields(mode) {
-        refMaritime.style.display = mode === 'maritime' ? 'block' : 'none';
-        refAerien.style.display = mode === 'aerien' ? 'block' : 'none';
-    }
+        // Options agences selon mode de transit
+        const agenceOptionsTransit = {
+            maritime: { value: "IPMS-SIMEX-CI", label: "Carrefour Angré" },
+            aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "Angre 8ème Tranche" }
+        };
 
-    // Récupération référence via fetch AJAX
-    function fetchReference(mode) {
-        fetch(`/AFT_LOUIS_BLERIOT/colis/generer-reference/${mode}`)
-            .then(res => res.json())
-            .then(data => {
-                if (mode === 'maritime') {
-                    document.querySelector('input[name="reference_colis_maritime"]').value = data.reference_colis;
-                } else if (mode === 'aerien') {
-                    document.querySelector('input[name="reference_colis_aerien"]').value = data.reference_colis;
-                }
-            })
-            .catch(err => console.error('Erreur génération référence :', err));
-    }
+        // Affichage des champs référence selon mode
+        function toggleReferenceFields(mode) {
+            refMaritime.style.display = mode === 'maritime' ? 'block' : 'none';
+            refAerien.style.display = mode === 'aerien' ? 'block' : 'none';
+        }
 
-    // Met à jour les options agences destinataires selon mode de transit
-    function updateAgenceOptionsByMode(mode) {
-        if (!agenceOptionsTransit[mode]) return;
+        // Récupération référence via fetch AJAX
+        function fetchReference(mode) {
+            fetch(`/AFT_LOUIS_BLERIOT/colis/generer-reference/${mode}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (mode === 'maritime') {
+                        document.querySelector('input[name="reference_colis"]').value = data.reference_colis;
+                    } else if (mode === 'aerien') {
+                        document.querySelector('input[name="reference_colis"]').value = data.reference_colis;
+                    }
+                })
+                .catch(err => console.error('Erreur génération référence :', err));
+        }
 
-        // Remise à zéro + ajout option unique dans les deux select
-        [agenceSelectParticulier, agenceSelectSociete].forEach(select => {
-            if (!select) return;
-            select.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
-            const option = document.createElement('option');
-            option.value = agenceOptionsTransit[mode].value;
-            option.textContent = agenceOptionsTransit[mode].label;
-            select.appendChild(option);
-            select.value = option.value; // sélection automatique
+        // Met à jour les options agences destinataires selon mode de transit
+        function updateAgenceOptionsByMode(mode) {
+            if (!agenceOptionsTransit[mode]) return;
+
+            // Remise à zéro + ajout option unique dans les deux select
+            [agenceSelectParticulier, agenceSelectSociete].forEach(select => {
+                if (!select) return;
+                select.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
+                const option = document.createElement('option');
+                option.value = agenceOptionsTransit[mode].value;
+                option.textContent = agenceOptionsTransit[mode].label;
+                select.appendChild(option);
+                select.value = option.value; // sélection automatique
+            });
+        }
+
+        // Affiche/masque les sections selon la catégorie client
+        function toggleCategorieClientFields(categorie) {
+            const isSociete = categorie === 'societe';
+            societeExpediteurSection.style.display = isSociete ? 'block' : 'none';
+            particulierExpediteurSection.style.display = isSociete ? 'none' : 'block';
+            societeDestinataireSection.style.display = isSociete ? 'block' : 'none';
+            particulierDestinataireSection.style.display = isSociete ? 'none' : 'block';
+        }
+
+        // Écouteur changement mode transit
+        modeTransitSelect.addEventListener('change', function () {
+            const selectedMode = this.value;
+            toggleReferenceFields(selectedMode);
+            fetchReference(selectedMode);
+            updateAgenceOptionsByMode(selectedMode);
         });
-    }
 
-    // Affiche/masque les sections selon la catégorie client
-    function toggleCategorieClientFields(categorie) {
-        const isSociete = categorie === 'societe';
-        societeExpediteurSection.style.display = isSociete ? 'block' : 'none';
-        particulierExpediteurSection.style.display = isSociete ? 'none' : 'block';
-        societeDestinataireSection.style.display = isSociete ? 'block' : 'none';
-        particulierDestinataireSection.style.display = isSociete ? 'none' : 'block';
-    }
+        // Écouteur changement catégorie client
+        categorieClientSelect.addEventListener('change', function () {
+            toggleCategorieClientFields(this.value);
+        });
 
-    // Écouteur changement mode transit
-    modeTransitSelect.addEventListener('change', function () {
-        const selectedMode = this.value;
-        toggleReferenceFields(selectedMode);
-        fetchReference(selectedMode);
-        updateAgenceOptionsByMode(selectedMode);
+        // Initialisation au chargement si valeurs déjà sélectionnées
+        if (modeTransitSelect.value) {
+            toggleReferenceFields(modeTransitSelect.value);
+            updateAgenceOptionsByMode(modeTransitSelect.value);
+        }
+        if (categorieClientSelect.value) {
+            toggleCategorieClientFields(categorieClientSelect.value);
+        }
     });
-
-    // Écouteur changement catégorie client
-    categorieClientSelect.addEventListener('change', function () {
-        toggleCategorieClientFields(this.value);
-    });
-
-    // Initialisation au chargement si valeurs déjà sélectionnées
-    if (modeTransitSelect.value) {
-        toggleReferenceFields(modeTransitSelect.value);
-        updateAgenceOptionsByMode(modeTransitSelect.value);
-    }
-    if (categorieClientSelect.value) {
-        toggleCategorieClientFields(categorieClientSelect.value);
-    }
-});
 
 $(document).ready(function() {
     initAutocomplete($(document));

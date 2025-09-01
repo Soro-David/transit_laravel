@@ -4,6 +4,16 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-12 col-lg-12">
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
                 <div class="card-header bg-primary text-white text-center">
                     <h4>Connectez-vous</h4>
                 </div>

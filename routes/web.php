@@ -68,15 +68,67 @@ use App\Http\Controllers\AftController;
 use App\Http\Controllers\ChineController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\InfobipSmsService;
+use App\Mail\DevisCreatedMail;
+use Infobip\Api\Model\SmsTextualMessage; 
+use Illuminate\Support\Facades\Mail;
 
+
+Route::get('/test-mail', function () {
+    $emailData = [
+        'reference_colis_principale' => 'TEST-12345',
+        'expediteur' => ['nom' => 'Test', 'prenom' => 'User', 'email' => 'contact@aft-app.com', 'tel' => '00000000', 'agence' => 'Agence de Chine'],
+        'destinataire' => ['nom' => 'Client', 'prenom' => 'Test', 'email' => 'contact@aft-app.com', 'tel' => '11111111', 'agence' => 'AFT Agence Louis Bleriot'],
+        'nombre_colis' => 1,
+        'premier_colis' => ['service' => 'Express', 'prix_transit_colis' => 100, 'poids_colis' => 10, 'description_colis' => 'Test Colis'],
+    ];
+
+    try {
+        Mail::to('contact@aft-app.com')->send(new DevisCreatedMail($emailData));
+        return "✅ Test email envoyé !";
+    } catch (\Throwable $e) {
+        return "❌ Erreur : " . $e->getMessage();
+    }
+});
+
+
+
+Route::get('/test-sms-infobip', function (InfobipSmsService $infobipSmsService) {
+    try {
+        $testPhoneNumber = '+2250160003513';
+        $testMessage = 'Ceci est un message de test SMS depuis Laravel via Infobip. ' . now();
+
+        echo "Tentative d'envoi SMS à : " . $testPhoneNumber . "<br>";
+        echo "Message : " . $testMessage . "<br><br>";
+
+        // dd(config('infobip'));
+        $success = $infobipSmsService->sendSms($testPhoneNumber, $testMessage);
+
+        if ($success) {
+            echo "✅ Le SMS a été initié avec succès ! Consultez les logs pour le statut final.<br>";
+        } else {
+            echo "❌ L'envoi du SMS a échoué. Consultez les logs pour plus de détails.<br>";
+        }
+    } catch (\RuntimeException $e) {
+        echo "⚠️ Erreur de configuration Infobip: " . $e->getMessage() . "<br>";
+        Log::error("Erreur de configuration Infobip dans la route: " . $e->getMessage());
+    } catch (\Throwable $e) {
+        echo "⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS ! <br>";
+        Log::error("Erreur générale dans la route /test-sms-infobip: " . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+        echo "Veuillez consulter les logs du serveur pour plus de détails.<br>";
+    }
+});
 
 
 Route::get('/', function () { return redirect('/accueil'); });
 Route::get('/login', function () { return redirect('/login'); });
 // Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Route::get('/accueil', function () { return redirect('/login_admin'); });
-
+Route::get('/politique-de-confidentialite', function () {
+    return view('privacy_policy');
+})->name('privacy.policy');
 
 // Store mail 
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -178,16 +230,30 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/managers/data',[adminController::class, 'get_users'])->name('managers.getUsers'); //DataTable route
     Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
 
+
+    // Route::prefix('client')->name('client.')->group(function () {
+    //     Route::get('/', [AdminController::class, 'clients'])->name('index');
+    //     Route::put('/deactivate/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'deactivateAccount'])->name('deactivate');
+
+    //     Route::post('/send-message/{tel}', [AdminController::class, 'sendMessageToClient'])->name('sendMessage');
+
+    //     Route::post('/send-global-message', [AdminController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
+    //     Route::get('/edit/{id}', [AdminController::class, 'edit'])->name('edit');
+    //     Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
+
+    // });
+
     Route::prefix('client')->name('client.')->group(function () {
-      
-        Route::get('/', [AdminController::class, 'clients'])->name('index'); // Renamed to 'client.index'
-        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
-        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
-        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
-        Route::get('/edit/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'edit'])->name('edit');
-        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'destroy'])->name('destroy');
-        Route::put('/update/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'update'])->name('update');
+        Route::get('/', [AdminController::class, 'clients'])->name('index');
+        // Route::put('/deactivate/{id}', [AdminController::class, 'deactivateAccount'])->name('deactivate');
+        Route::put('/deactivate/{id}', [AdminController::class, 'deactivateAccount'])->name('deactivate');
+        Route::put('/toggle-activation/{id}', [AdminController::class, 'toggleActivation'])->name('toggleActivation');
+        Route::post('/send-message/{id}', [AdminController::class, 'sendMessageToClient'])->name('sendMessage');
+        Route::post('/send-global-message', [AdminController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
+        Route::get('/edit/{id}', [AdminController::class, 'edit'])->name('edit');
+        Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
     });
+
     
 
     Route::prefix('invoice')->name('invoice.')->group(function(){
@@ -578,19 +644,19 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         }
 
         return response()->json(array_values($data));
-    })->name('colis.valides-par-mois');;
+    })->name('colis.valides-par-mois');
 
     Route::prefix('aft_client')->name('aft_client.')->group(function () {
-      
-        Route::get('/', [AftController::class, 'clients'])->name('index'); // Renamed to 'client.index'
-        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
-        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
-        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
-        Route::get('/edit/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'edit'])->name('edit');
-        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'destroy'])->name('destroy');
-        Route::put('/update/{nom}/{prenom}/{tel}/{email}-aft-louis-b', [AftController::class, 'update'])->name('update');
+        Route::get('/', [AftController::class, 'clients'])->name('index');
+        Route::put('/deactivate/{id}', [AftController::class, 'deactivateAccount'])->name('deactivate');
+        Route::put('/toggle-activation/{id}', [AftController::class, 'toggleActivation'])->name('toggleActivation');
+        Route::post('/send-message/{id}', [AftController::class, 'sendMessageToClient'])->name('sendMessage');
+        Route::post('/send-global-message', [AftController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
+        Route::get('/edit/{id}', [AftController::class, 'edit'])->name('edit');
+        Route::put('/update/{id}', [AftController::class, 'update'])->name('update');
     });
     
+
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('aftlb_colis')->name('aftlb_colis.')->group(function(){
         Route::get('/', [AftlbColisController::class, 'index'])->name('index'); 
@@ -842,7 +908,18 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         }
 
         return response()->json(array_values($data));
-    })->name('ipms_colis.valides-par-mois');;
+    })->name('ipms_colis.valides-par-mois');
+
+
+    Route::prefix('ipms_client')->name('ipms_client.')->group(function () {
+        Route::get('/', [AdminController::class, 'clients_ipms'])->name('index');
+        Route::put('/deactivate/{id}', [AdminController::class, 'deactivateAccount_ipms'])->name('deactivate');
+        Route::put('/toggle-activation/{id}', [AdminController::class, 'toggleActivation_ipms'])->name('toggleActivation');
+        Route::post('/send-message/{id}', [AdminController::class, 'sendMessageToClient_ipms'])->name('sendMessage');
+        Route::post('/send-global-message', [AdminController::class, 'sendGlobalMessage_ipms'])->name('sendGlobalMessage');
+        Route::get('/edit/{id}', [AdminController::class, 'edit_ipms'])->name('edit');
+        Route::put('/update/{id}', [AdminController::class, 'update_ipms'])->name('update');
+    });
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
         
@@ -1046,7 +1123,19 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         }
     
         return response()->json(array_values($data));
-    })->name('ipms_angre_colis.valides-par-mois');;
+    })->name('ipms_angre_colis.valides-par-mois');
+
+
+    Route::prefix('ipms_angre_client')->name('ipms_angre_client.')->group(function () {
+        Route::get('/', [HomeController::class, 'clients_ipms_angre'])->name('index');
+        Route::put('/deactivate/{id}', [HomeController::class, 'deactivateAccount_ipms_angre'])->name('deactivate');
+        Route::put('/toggle-activation/{id}', [HomeController::class, 'toggleActivation_ipms_angre'])->name('toggleActivation');
+        Route::post('/send-message/{id}', [HomeController::class, 'sendMessageToClient_ipms_angre'])->name('sendMessage');
+        Route::post('/send-global-message', [HomeController::class, 'sendGlobalMessage_ipms_angre'])->name('sendGlobalMessage');
+        Route::get('/edit/{id}', [HomeController::class, 'edit_ipms_angre'])->name('edit');
+        Route::put('/update/{id}', [HomeController::class, 'update_ipms_angre'])->name('update');
+    });
+
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_angre_colis')->name('ipms_angre_colis.')->group(function(){
         Route::get('/', [ApmsAngreColisController::class, 'index'])->name('index'); 
@@ -1275,15 +1364,14 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         })->name('chine_colis.valides-par-mois');
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('chine_client')->name('chine_client.')->group(function () {
-      
-        Route::get('/', [ChineController::class, 'clients'])->name('index'); // Renamed to 'client.index'
-        // Route::get('/get-clients', [AdminController::class, 'get_clients'])->name('get.client'); // Route corrigée
-        // Route::get('/clients/{type_client}/{id}/edit', [AdminController::class, 'edit'])->name('edit');  // Renamed to 'client.edit'
-        // Route::get('/clients/{type_client}/{id}/show', [AdminController::class, 'show'])->name('show');  // Renamed to 'client.show'
-        Route::get('/edit/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'edit'])->name('edit');
-        Route::delete('/destroy/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'destroy'])->name('destroy');
-        Route::put('/update/{nom}/{prenom}/{tel}/{email}-aft_chine', [ChineController::class, 'update'])->name('update');
-    });
+            Route::get('/', [ChineController::class, 'clients'])->name('index'); // Renamed to 'client.index'
+            Route::put('/deactivate/{id}', [ChineController::class, 'deactivateAccount'])->name('deactivate');
+            Route::put('/toggle-activation/{id}', [ChineController::class, 'toggleActivation'])->name('toggleActivation');
+            Route::post('/send-message/{id}', [ChineController::class, 'sendMessageToClient'])->name('sendMessage');
+            Route::post('/send-global-message', [ChineController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
+            Route::get('/edit/{id}', [AftControlChineControllerler::class, 'edit'])->name('edit');
+            Route::put('/update/{id}', [ChineController::class, 'update'])->name('update');
+        });
     Route::prefix('chine_colis')->name('chine_colis.')->group(function(){
         Route::get('/', [ChineColisController::class, 'index'])->name('index'); 
         Route::get('/on-hold-aft_chine', [ChineColisController::class, 'hold'])->name('hold'); 

@@ -365,7 +365,7 @@ private function generateReferenceParMode(string $mode_transit)
         if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
             // Rediriger vers la première étape avec une erreur si les données sont manquantes
             // Remplacez 'route.vers.etape1' par le nom réel de votre route pour l'étape 1
-            return redirect()->route('ipms_angre_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+            return redirect()->route('ipms_angre_colis.create.colis')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
         }
 
         // Calculer le montant total en additionnant tous les prix du tableau 'prix'
@@ -455,38 +455,39 @@ private function generateReferenceParMode(string $mode_transit)
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
         }
 
-        $data['status'] = $data['mode_payement'] ?? 'non payé'; // Status paiement global
+        $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
+       
+        // Construction des numéros de téléphone complets avec indicatif
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? '';
+        $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
-        $expediteurData = [
-                    'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
-                    'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ??'',
-                    'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
-                    'tel' => $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '',
-                    'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'],
-                    'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur'] ?? 'null',
-        ];
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? '';
+        $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
-        $destinataireData = [
-                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe']?? '',
+        // dd($expediteurTel, $destinataireTel);
+
+          $expediteur = Expediteur::create([
+                'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+                'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
+                'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
+                'tel' => $expediteurTel, // Utilise le numéro complet
+                'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+            ]);
+
+            $destinataire = Destinataire::create([
+                'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
                 'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
-                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
-                'tel' => $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '',
-                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'],
-                'adresse' => $data['adresse_destinataire']?? $data['adresse_destinataire_societe'] ?? '',
-        ];
-
-        // --- Création Expediteur & Destinataire (une seule fois) --- 
-        try {
-            $expediteur = Expediteur::create($expediteurData);
-            $destinataire = Destinataire::create($destinataireData);
-        } catch (\Exception $e) {
-            \Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
-        }
+                'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
+                'tel' => $destinataireTel, // Utilise le numéro complet
+                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+            ]);
 
 
-       // --- Données de Paiement ---
         $payementDataSession = session('step2', []);
         $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
 
@@ -501,10 +502,6 @@ private function generateReferenceParMode(string $mode_transit)
             // Pour paiement à la livraison, le montant payé initialement est 0
             $montantPaiement = 0;
         } elseif ($modePaiement) {
-            // Pour les autres modes (bank, mobile_money, cheque), on assume que le paiement
-            // couvre le montant total (ou a été géré par un processus externe comme CinetPay).
-            // Si CinetPay est utilisé, $transactionId et le statut devraient confirmer.
-            // Pour l'instant, on garde l'hypothèse du paiement total pour ces cas.
             $montantPaiement = $montantTotalEstime;
         }
 
@@ -558,8 +555,7 @@ private function generateReferenceParMode(string $mode_transit)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
 
-        
-             $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
+            $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
             $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
 
             //    dd($agence);
@@ -572,24 +568,24 @@ private function generateReferenceParMode(string $mode_transit)
                 $id_reference = ($lastIdRef ?? 0) + 1;
 
             $colisItemData = [
-                'devise' => 'FCFA', // Devise par défaut
+                'devise' => 'FCFA',
                 'reference_colis' => $referenceColis,
                 'id_reference' => $id_reference,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
-                'prix_transit_colis' => $data['prix'][$index] ?? 0, // Mettre 0 par défaut
+                'prix_transit_colis' => $data['prix'][$index] ?? 0,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
-                'status' => $data['status'], // Statut paiement global (sera mis à jour par paiement?)
-                'etat' => $data['etat'], // Etat colis global
+                'status' => $data['status'],
+                'etat' => $data['etat'],
                 'type_colis' => $data['type_colis'][$index] ?? null,
-                'dimension_result' => $dimension_result, // Calculé ci-dessus
+                'dimension_result' => $dimension_result,
                 'description_colis' => $data['description_colis'][$index] ?? null,
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
                 'agent_id' => $agentId,
-                'qr_code_path' => null, // Initialisé à null
+                'qr_code_path' => null,
                 // 'montant_payé' => $data['etat'], // Initialisé à null
             ];
             try {
@@ -620,7 +616,7 @@ private function generateReferenceParMode(string $mode_transit)
                 $result = $writer->write($qrCode);
                 $pngData = $result->getString();
 
-                // Chemin fichier (utiliser ID et référence pour unicité)
+                // Chemin fichier (utiliser ID et référence pour unicité) 
                 $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colisModel->reference_colis);
                 $filePath = 'qrcodes/colis_' . $safeRef . '_' . $colisModel->id . '.png';
                 $fullPath = public_path($filePath);
@@ -629,7 +625,7 @@ private function generateReferenceParMode(string $mode_transit)
                 // dd($colisModel);
 
                 if (!File::exists($directory)) {
-                    File::makeDirectory($directory, 0755, true, true); // Ajout du dernier true
+                    File::makeDirectory($directory, 0755, true, true); // Ajout du dernier true 
                 }
                 file_put_contents($fullPath, $pngData);
 
@@ -689,6 +685,58 @@ private function generateReferenceParMode(string $mode_transit)
         $restePaye = $totalMontant - $totalMontantPaye;
 
         session()->forget(['step1', 'step2']);
+
+            $expediteurTelForSms = $expediteurTel;
+            $destinataireTelForSms = $destinataireTel;
+
+            $colisReferences = $colisEnregistres
+                                ->pluck('reference_colis')
+                                ->unique()
+                                ->implode(', ');
+                                
+            $messageSmsDestinataire = "Bonjour, un colis (Réf: {$colisReferences}) vous est destiné. Il a été créé par {$expediteur->nom} et est en attente d'expédition. Vous serez notifié(e) de son avancement.";
+
+            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de votre confiance. Suivi : https://aft-app.com";
+            // dd($expediteurTelForSms, $destinataireTelForSms, $messageSmsExpediteur, $messageSmsDestinataire);
+            // Envoi du SMS à l'expéditeur
+            if ($expediteurTel) { 
+                try {
+                    $infobipService->sendSms($expediteurTel, $messageSmsExpediteur);
+                    Log::info("SMS envoyé à l'expéditeur {$expediteurTel} pour le colis {$colisReferences}.");
+                } catch (\RuntimeException $e) {
+                    Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS à l'expéditeur: " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS à l'expéditeur ! " . $e->getMessage(), [
+                        'phone_number' => $expediteurTel,
+                        'message' => $messageSmsExpediteur,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
+
+            // Envoi du SMS au destinataire
+            // if ($destinataireTel) {
+            //     try {
+            //         $infobipService->sendSms($destinataireTel, $messageSmsDestinataire);
+            //         Log::info("SMS envoyé au destinataire {$destinataireTel} pour le colis {$colisReferences}.");
+            //     } catch (\RuntimeException $e) {
+            //         Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS au destinataire: " . $e->getMessage(), [
+            //             'phone_number' => $destinataireTel,
+            //             'message' => $messageSmsDestinataire
+            //         ]);
+            //     } catch (\Throwable $e) {
+            //         Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS au destinataire ! " . $e->getMessage(), [
+            //             'phone_number' => $destinataireTel,
+            //             'message' => $messageSmsDestinataire,
+            //             'trace' => $e->getTraceAsString()
+            //         ]);
+            //     }
+            // }
+
+
 
         return view('IPMS_SIMEXCI_ANGRE.colis.add.complete',[
             'colis' => $colisEnregistres,
@@ -844,7 +892,7 @@ private function generateReferenceParMode(string $mode_transit)
             'mode_transit' => $request->input('mode_transit'),
             'poids_colis' => $request->input('poids_colis'),
             'prix_transit_colis' => $request->input('prix_transit_colis'),
-            'status' => 'payé', // Ajout du statut
+            'status' => 'payé',
             'etat' => 'Devis', // Ajout du statut
         ]);
         // Redirection avec un message de succès
@@ -2067,15 +2115,17 @@ public function validerBallon(Request $request)
         return DB::transaction(function () use ($request) {
             $ballon = Bateaux::where('reference_conteneur', $request->reference_conteneur)->first();
 
+            // dd($ballon);
             if (!$ballon) {
                 throw new Exception('🚢 Bateau non trouvé.');
             }
 
             // Vérifier si le bateau est déjà récupéré
-            if ($ballon->recuperer === 'oui') {
+            if ($ballon->recuperer === 'oui' && $ballon->type === 'ballon') {
                 throw new Exception('⚠️ Ce bateau a déjà été récupéré.');
             }
 
+            // dd($ballon);
             $referenceConteneur = $ballon->reference_conteneur;
 
             // Récupérer tous les colis liés à ce conteneur
@@ -2113,10 +2163,11 @@ public function get_ballon(Request $request)
             'reference_bateau',
             'created_at as date_depart',
             'date_arriver'
-        )->where('agence_expedition', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+        )->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
         ->where('recuperer', '=', 'oui')
         ->get();
 
+        // dd($ballon);
         return DataTables::of($ballon)
             ->editColumn('date_depart', function ($row) {
                 return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';

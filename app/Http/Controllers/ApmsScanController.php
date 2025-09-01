@@ -24,11 +24,15 @@ use App\Services\InfobipService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Paiement;
 use Illuminate\Support\Facades\DB;
+// use App\Services\SmsService;
+use App\Services\InfobipSmsService;
+use App\Services\InfobipEmailService;
 
 
 
 class ApmsScanController extends Controller
 {
+     protected $smsService;
     /**
      * Display a listing of the resource.
      *
@@ -543,102 +547,95 @@ class ApmsScanController extends Controller
     }
 
 
-public function updateColisDecharge(Request $request) // Nom de variable standardisé
-{
-    // dd($request->all()); // Debug pour voir les données reçues
-    if (!$request->has('colisId') || !$request->has('id')) {
-        $missingParams = [];
-        if (!$request->has('colisId')) $missingParams[] = 'Référence (colisId)';
-        if (!$request->has('id')) $missingParams[] = 'Identifiant (id)';
-        return response()->json([
-            'success'  => false,
-            'messages' => ['Paramètre(s) manquant(s) : ' . implode(" et ", $missingParams)] // Message plus précis
-        ], 400); // Bad Request
-    }
-
-    $referenceColis = $request->input('colisId');
-    $identifiantColis = $request->input('id');
-    $agenceCible = 'IPMS-SIMEX-CI'; // Nom de l'agence cible ->where('destinations.agence', 'IPMS-SIMEX-CI')
-
-    try {
-        $colis = Colis::with('expediteur', 'destinataire') // Pré-charger les relations pour le SMS
-                    ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                    ->where('colis.reference_colis', $referenceColis)
-                    ->where('colis.id', $identifiantColis)
-                    ->where('destinataires.agence', $agenceCible)
-                    ->select('colis.*') // Sélectionner uniquement les colonnes de colis après la jointure
-                    ->firstOrFail(); // Lance une exception ModelNotFoundException si non trouvé
-
-        $messages = [];
-        $updated = false; // Flag pour savoir si une mise à jour a eu lieu
-
-        if ($colis->etat === 'Dechargé') {
-            // Cas : Déjà déchargé
-            $messages[] = "SUCCÈS : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) a été déchargé.";
-
-        } elseif ($colis->etat === 'Fermé' || $colis->etat === 'Arrivé') { // États permettant le déchargement
-            // Cas : Peut être déchargé
-            $colis->etat = 'Déchargé';
-            $colis->save(); // Sauvegarder le changement d'état
-            $updated = true; // Marquer qu'une mise à jour a été effectuée
-            $messages[] = "SUCCÈS : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) a été déchargé.";
-
-            // 4. Envoyer le SMS UNIQUEMENT si la mise à jour a été faite
-            if ($colis->expediteur && $colis->expediteur->tel) {
-                $numero_expediteur = $colis->expediteur->tel; // !! Utilisation du VRAI numéro !!
-                $nom_expediteur = $colis->expediteur->nom ?? '';
-                $prenom_expediteur = $colis->expediteur->prenom ?? '';
-                $agence_dest = $colis->destinataire->agence ?? $agenceCible; // Nom de l'agence
-
-                $messageSms = "Bonjour {$nom_expediteur} {$prenom_expediteur}, votre colis (Réf: {$colis->reference_colis}) a bien été déchargé à l'agence {$agence_dest}. AFT IMPORT/EXPORT vous remercie.";
-
-                try {
-                    // Utilisation du service injecté
-                    $response = $this->infobipService->sendSms($numero_expediteur, $messageSms);
-                    Log::info('SMS de déchargement envoyé à ' . $numero_expediteur . ': ' . json_encode($response));
-                    $messages[] = "SMS de notification envoyé à l'expéditeur.";
-                } catch (\Exception $e) {
-                    Log::error("Erreur lors de l'envoi du SMS de déchargement pour colis ID {$colis->id} à {$numero_expediteur}: " . $e->getMessage());
-                    // Informer l'utilisateur sans bloquer la réponse principale
-                    $messages[] = "ATTENTION : Erreur lors de l'envoi du SMS de notification à l'expéditeur.";
-                }
-            } else {
-                 Log::warning("Impossible d'envoyer le SMS de déchargement pour colis ID {$colis->id}: informations expéditeur ou téléphone manquantes.");
-                 $messages[] = "ATTENTION : Informations expéditeur/téléphone manquantes, SMS non envoyé.";
-            }
-
-        } else {
-            // Cas : État ne permettant pas le déchargement
-            $messages[] = "ERREUR : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) est dans l'état '{$colis->etat}'. Il ne peut pas être déchargé directement.";
-            // Pas de mise à jour, pas de SMS
+    public function updateColisDecharge(Request $request, InfobipSmsService $smsService)
+    {
+        // 1. Validation des paramètres d'entrée
+        if (!$request->has('colisId') || !$request->has('id')) {
+            $missingParams = [];
+            if (!$request->has('colisId')) $missingParams[] = 'Référence (colisId)';
+            if (!$request->has('id')) $missingParams[] = 'Identifiant (id)';
+            return response()->json([
+                'success'  => false,
+                'messages' => ['Paramètre(s) manquant(s) : ' . implode(" et ", $missingParams)]
+            ], 400);
         }
 
-        // 5. Retourner la réponse JSON
-        return response()->json([
-            'success'  => $updated, // Vrai seulement si l'état a été changé en 'Déchargé'
-            'messages' => $messages, // Tous les messages collectés
-            'colis'    => $updated ? [['id' => $colis->id, 'etat' => $colis->etat]] : [] // Renvoyer l'info si mis à jour
-        ]);
+        $referenceColis = $request->input('colisId');
+        $identifiantColis = $request->input('id');
+        $agenceCible = 'IPMS-SIMEX-CI'; // Définir l'agence cible
 
-    } catch (ModelNotFoundException $e) {
-        // Cas : Colis non trouvé avec ces critères (ID, Réf, Agence)
-         Log::warning("Tentative de déchargement échouée: Colis non trouvé ou pas pour l'agence '{$agenceCible}'. Ref: {$referenceColis}, ID: {$identifiantColis}");
-        return response()->json([
-            'success' => false,
-            // Utiliser 'messages' (pluriel et tableau) pour la cohérence avec le JS
-            'messages' => ["ERREUR : Aucun colis trouvé avec la Réf '{$referenceColis}' (ID: {$identifiantColis}) pour l'agence '{$agenceCible}'."]
-        ], 404); // Not Found
+        try {
+            // 2. Recherche du colis avec les relations nécessaires
+            $colis = Colis::with(['expediteur', 'destinataire'])
+                        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                        ->where('colis.reference_colis', $referenceColis)
+                        ->where('colis.id', $identifiantColis)
+                        ->where('destinataires.agence', $agenceCible) // Filtrer par l'agence du destinataire
+                        ->select('colis.*') // Sélectionnez toutes les colonnes de la table colis
+                        ->firstOrFail();
 
-    } catch (\Exception $e) {
-        // Cas : Autre erreur inattendue (DB, etc.)
-        Log::error("Erreur inattendue lors du déchargement du colis Ref: {$referenceColis}, ID: {$identifiantColis}: " . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'messages' => ["ERREUR : Une erreur technique est survenue lors du traitement. Veuillez réessayer."]
-        ], 500); // Internal Server Error
+            $messages = [];
+            $updated = false;
+            $colisData = []; // Pour stocker les données du colis mis à jour
+
+            // 3. Vérification et mise à jour de l'état du colis
+            if ($colis->etat === 'Déchargé') {
+                $messages[] = "SUCCÈS : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) est déjà déchargé.";
+            } elseif ($colis->etat === 'Fermé' || $colis->etat === 'Arrivé') {
+                $colis->etat = 'Déchargé';
+                $colis->save();
+                $updated = true;
+                $messages[] = "SUCCÈS : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) a été déchargé.";
+
+                // 4. Envoi du SMS à l'expéditeur
+                if ($colis->expediteur && $colis->expediteur->tel) {
+                    $tel = $colis->expediteur->tel;
+
+                    $nom_expediteur = $colis->expediteur->nom ?? '';
+                    $prenom_expediteur = $colis->expediteur->prenom ?? '';
+                    $agence_dest = $colis->destinataire->agence ?? $agenceCible; // Utilise l'agence du destinataire ou l'agence cible par défaut
+
+                    $messageSms = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence Carrefour Angre (Abidjan,Côte d'Ivoire), AFT vous remercie de votre confiance. Suivi: https://aft-app.com .";
+
+                    try {
+                        $smsService->sendSms($tel, $messageSms);
+                        $messages[] = "SMS envoyé à l'expéditeur {$tel}.";
+                    } catch (\Exception $e) {
+                        Log::error("Erreur SMS pour {$tel} (colis ID: {$colis->id}, Ref: {$colis->reference_colis}): " . $e->getMessage());
+                        $messages[] = "ERREUR : L'envoi du SMS à {$tel} a échoué.";
+                    }
+                }
+                $colisData = [['id' => $colis->id, 'etat' => $colis->etat, 'reference_colis' => $colis->reference_colis]];
+            } else {
+                // Si l'état n'est ni 'Déchargé', ni 'Fermé', ni 'Arrivé'
+                $messages[] = "INFO : Le colis Réf {$colis->reference_colis} (ID: {$colis->id}) ne peut pas être déchargé car son état actuel est '{$colis->etat}'.";
+            }
+
+            // 5. Retourne la réponse JSON
+            return response()->json([
+                'success'  => $updated,
+                'messages' => $messages,
+                'colis'    => $colisData
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            // Gérer le cas où aucun colis n'est trouvé
+            Log::warning("Tentative de déchargement échouée: Colis non trouvé ou pas pour l'agence '{$agenceCible}'. Ref: {$referenceColis}, ID: {$identifiantColis}");
+            return response()->json([
+                'success' => false,
+                'messages' => ["ERREUR : Aucun colis trouvé avec la Réf '{$referenceColis}' (ID: {$identifiantColis}) pour l'agence '{$agenceCible}'."]
+            ], 404);
+
+        } catch (\Exception $e) {
+            // Gérer toutes les autres exceptions inattendues
+            Log::error("Erreur inattendue lors du déchargement du colis Ref: {$referenceColis}, ID: {$identifiantColis}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'messages' => ["ERREUR : Une erreur technique est survenue lors du traitement. Veuillez réessayer. Détails: " . $e->getMessage()]
+            ], 500);
+        }
     }
-} 
-   
+
 
 public function updateColisLivre(Request $request)
 {

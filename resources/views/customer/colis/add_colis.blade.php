@@ -94,7 +94,7 @@
                     <div class="col-md-6" id="ref_maritime" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Maritime)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -102,7 +102,7 @@
                     <div class="col-md-6" id="ref_aerien" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Aérien)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -140,12 +140,24 @@
                             <input type="email" name="email_expediteur" id="email_expediteur" value="{{$user->email }}" class="form-control">
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="tel_expediteur" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" required>
+                    <div class="col-md-6 mb-3">
+                        <div class="row g-2">
+                            {{-- <div class="col-md-4">
+                                <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
+                                <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
+                                    <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                    <option value="+33">France (+33)</option>
+                                    <option value="+86">Chine (+86)</option>
+                                    <option value="+1">USA (+1)</option>
+                                </select>
+                            </div> --}}
+                            <div class="col-md-12">
+                                <label for="tel_expediteur" class="form-label">Téléphone</label>
+                                <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" placeholder="Ex: 0123456789">
+                            </div>
                         </div>
                     </div>
+
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -217,81 +229,112 @@
         </fieldset>
 
          {{-- ================== DESTINATAIRE ================== --}}
-        <fieldset style="display: none;">
-            <div class="form-section">
-                <h5 class="text-center mb-4">Informations du destinataire</h5>
+<fieldset>
+    <div class="form-section">
+        <h5 class="text-center mb-4">Informations du destinataire</h5>
 
-                {{-- ===== SOCIÉTÉ DESTINATAIRE ===== --}}
-                <div id="societe_destinataire_section" style="display: none;">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
-                            <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_societe_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="contact_societe_destinataire" class="form-label">Contact</label>
-                            <input type="text" name="tel_destinataire_societe" id="contact_societe_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="agence_destinataire_societe" class="form-label">Agence de destination</label>
-                            <select name="agence_destinataire_societe" id="agence_destinataire_societe" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
-                                <option value="Agence de Chine">Agence de Chine</option>
+        {{-- Section pour le destinataire SOCIÉTÉ --}}
+        <div id="societe_destinataire_section" style="display: none;">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
+                    <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="email_societe_destinataire" class="form-label">Email</label>
+                    <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label for="country_code_destinataire_societe" class="form-label">Indicatif pays</label>
+                            <select name="country_code_destinataire_societe" id="country_code_destinataire_societe" class="form-control">
+                                <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                <option value="+33">France (+33)</option>
+                                <option value="+86">Chine (+86)</option>
+                                <option value="+1">USA (+1)</option>
                             </select>
                         </div>
-
-                    </div>
-                </div>
-
-                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
-                <div id="particulier_destinataire_section">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
-                                <select name="agence_destinataire_societe" id="agence_destinataire_societe" class="form-control">
-                                    <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                    <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
-                                    <option value="Agence de Chine">Agence de Chine</option>
-                                </select>
+                        <div class="col-md-8">
+                            <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
                         </div>
                     </div>
                 </div>
-                    {{-- Boutons navigation --}}
-                <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                    <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                <div class="col-md-6 mb-3">
+                    <label for="adresse_destinataire_societe" class="form-label">Adresse</label>
+                    <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control">
+                </div>
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="agence_destination_societe" class="form-label">Agence de Destination</label>
+                        <select name="agence_destination_societe" id="agence_destination_societe" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </fieldset>
+        </div>
+
+        {{-- Section pour le destinataire PARTICULIER --}}
+        <div id="particulier_destinataire_section">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nom_destinataire" class="form-label">Nom</label>
+                    <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="prenom_destinataire" class="form-label">Prénom</label>
+                    <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="email_destinataire" class="form-label">Email</label>
+                    <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label for="country_code_destinataire_particulier" class="form-label">Indicatif pays</label>
+                            <select name="country_code_destinataire_particulier" id="country_code_destinataire_particulier" class="form-control">
+                                <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                <option value="+33">France (+33)</option>
+                                <option value="+86">Chine (+86)</option>
+                                <option value="+1">USA (+1)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="tel_destinataire" class="form-label">Téléphone</label>
+                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="adresse_destinataire" class="form-label">Adresse</label>
+                    <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="agence_destination_particulier" class="form-label">Agence de Destination</label>
+                        <select name="agence_destination_particulier" id="agence_destination_particulier" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Boutons navigation --}}
+        <div class="text-end mt-4 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+            <button type="button" class="btn btn-primary btn-next">Suivant</button>
+        </div>
+    </div>
+</fieldset>
+
 
         <!-- Étape 4 : Informations du Colis -->
         <fieldset id="colisTemplate" style="display: none;">
@@ -468,15 +511,63 @@
     });
 
             // Fonction pour mettre à jour l'agence de destination selon le mode de transit sélectionné
-    document.getElementById('mode_transit').addEventListener('change', function() {
-        var modeTransit = this.value;
-        var agenceDestination = document.getElementById('agence_destination');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Supprimez le style="display: none;" du fieldset si vous voulez qu'il soit visible par défaut
+        // document.querySelector('fieldset').style.display = 'block';
 
-        if (modeTransit === 'maritime') {
-            agenceDestination.value = 'IPMS-SIMEX-CI'; // Sélectionner l'agence maritime
-        } else if (modeTransit === 'aerien') {
-            agenceDestination.value = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // Sélectionner l'agence aérienne
+        // Gérer le changement du mode de destinataire (particulier/société)
+        // Vous aurez besoin d'un élément de sélection ou de boutons radio pour cela.
+        // Par exemple, si vous avez un select avec l'ID 'type_destinataire':
+        var typeDestinataireSelect = document.getElementById('type_destinataire'); // Assurez-vous que cet ID existe dans votre HTML principal
+        var societeSection = document.getElementById('societe_destinataire_section');
+        var particulierSection = document.getElementById('particulier_destinataire_section');
+
+        // Fonction pour afficher/masquer les sections
+        function toggleDestinataireSections() {
+            if (typeDestinataireSelect && typeDestinataireSelect.value === 'societe') {
+                societeSection.style.display = 'block';
+                particulierSection.style.display = 'none';
+            } else { // Par défaut ou si 'particulier' est sélectionné
+                societeSection.style.display = 'none';
+                particulierSection.style.display = 'block';
+            }
         }
+
+        // Appeler au chargement de la page et lors du changement
+        if (typeDestinataireSelect) {
+            typeDestinataireSelect.addEventListener('change', toggleDestinataireSections);
+            toggleDestinataireSections(); // Appeler une fois au chargement pour définir l'état initial
+        }
+
+
+        // Gérer le changement du mode de transit pour les agences de destination
+        // Assurez-vous que l'élément 'mode_transit' existe dans votre HTML principal
+        var modeTransitSelect = document.getElementById('mode_transit');
+        var agenceDestinationSociete = document.getElementById('agence_destination_societe');
+        var agenceDestinationParticulier = document.getElementById('agence_destination_particulier');
+
+        if (modeTransitSelect) {
+            modeTransitSelect.addEventListener('change', function() {
+                var modeTransit = this.value;
+
+                // Réinitialiser les valeurs pour éviter des sélections incorrectes
+                agenceDestinationSociete.value = '';
+                agenceDestinationParticulier.value = '';
+
+                if (modeTransit === 'maritime') {
+                    agenceDestinationSociete.value = 'IPMS-SIMEX-CI';
+                    agenceDestinationParticulier.value = 'IPMS-SIMEX-CI';
+                } else if (modeTransit === 'aerien') {
+                    agenceDestinationSociete.value = 'IPMS-SIMEX-CI Angre 8ème Tranche';
+                    agenceDestinationParticulier.value = 'IPMS-SIMEX-CI Angre 8ème Tranche';
+                }
+            });
+        }
+
+        // Gestion de la navigation (btn-prev, btn-next) - vous devrez implémenter la logique
+        // pour passer d'un fieldset à l'autre si vous avez plusieurs fieldsets.
+        // Pour un seul fieldset, ces boutons peuvent contrôler l'affichage du fieldset lui-même
+        // ou des étapes internes si votre form-section est une étape.
     });
 
     $(document).ready(function () {
@@ -842,140 +933,140 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
 
 </script>
 <style>
-body {
-    background-color: #f7f7f7;
-}
-
-fieldset + fieldset {
-    border-top: 2px solid #ccc;
-    padding-top: 15px;
-    margin-top: 15px;
-}
-
-.form-container {
-    max-width: 95%;
-    margin: auto;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.form-section {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.progress-bar {
-    display: flex; /* Utilise flexbox pour aligner les éléments */
-    justify-content: space-between; /* Espace égal entre les étapes */
-    list-style: none; /* Supprime les puces de la liste */
-    background: #fff; /* Couleur de fond */
-    padding: 0; 
-    margin: 50px; /* Supprime les marges */
-}
-.progress-bar-container {
-    margin-bottom: 20px;
-    display: flex; /* Use flexbox for centering */
-    justify-content: center; /* Center the progress bar */
-    width: 100%; /* Prend toute la largeur disponible */
-}
-
-.progress-bar::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: #ddd;
-    z-index: -1;
-    transform: translateY(-50%);
-}
-
-.step {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    background: #ddd;
-    color: #333;
-    text-align: center;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
-    position: relative;
-    /* z-index: 1; */
-}
-
-.step.active {
-    background: #05a805;
-    color: #fff;
-}
-/* Permettre le défilement horizontal si nécessaire */
-.progress-bar-container {
-  overflow-x: auto;
-}
-
-/* Les listes de progression sont déjà en flex via Bootstrap ;
-   on peut ajouter quelques réglages pour améliorer l’affichage */
-.progress-bar {
-  flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
-  margin: 0 auto;  /* centrer */
-}
-
-/* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
-.progress-bar li.step {
-  flex: 1;              /* prend une part égale de l’espace disponible */
-  min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
-  text-align: center;   /* centrer le contenu */
-  font-size: 1rem;      /* taille de police par défaut */
-}
-
-/* Sur écrans moyens à grands, on peut augmenter la taille de police */
-@media (min-width: 768px) {
-  .progress-bar li.step {
-    font-size: 1.25rem;
-  }
-}
-
-
-.step::after {
-    content: ''; /* Create a line after each step */
-    position: absolute; /* Position the line absolutely */
-    top: 50%; /* Center vertically */
-    left: 100%; /* Position to the right of the step */
-    width: 100%; /* Width of the line */
-    height: 4px; /* Height of the line */
-    background-color: #ddd; /* Color of the line */
-    z-index: -1; /* Send the line behind the text */
-}
-
-.step:last-child::after {
-    content: none; /* Remove the line after the last step */
-}
-
-.step.active {
-    font-weight: bold; /* Bold the active step */
-    color: #ffffff; /* Color of the active step */
-}
-
-.row.align-items-end.mb-3 > .col-md-3,
-    .row.align-items-end.mb-3 > .col-md-9 {
-        display: flex;
-        align-items: flex-end;
+    body {
+        background-color: #f7f7f7;
     }
 
-    .col-md-3 .form-label,
-    .col-md-9 .form-label {
+    fieldset + fieldset {
+        border-top: 2px solid #ccc;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+
+    .form-container {
+        max-width: 95%;
+        margin: auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        display: flex; /* Utilise flexbox pour aligner les éléments */
+        justify-content: space-between; /* Espace égal entre les étapes */
+        list-style: none; /* Supprime les puces de la liste */
+        background: #fff; /* Couleur de fond */
+        padding: 0; 
+        margin: 50px; /* Supprime les marges */
+    }
+    .progress-bar-container {
+        margin-bottom: 20px;
+        display: flex; /* Use flexbox for centering */
+        justify-content: center; /* Center the progress bar */
+        width: 100%; /* Prend toute la largeur disponible */
+    }
+
+    .progress-bar::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
         width: 100%;
+        height: 5px;
+        background: #ddd;
+        z-index: -1;
+        transform: translateY(-50%);
     }
 
-    .col-md-3 .form-control,
-    .col-md-9 .form-control {
-        width: 100%;
+    .step {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background: #ddd;
+        color: #333;
+        text-align: center;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        position: relative;
+        /* z-index: 1; */
     }
+
+    .step.active {
+        background: #05a805;
+        color: #fff;
+    }
+    /* Permettre le défilement horizontal si nécessaire */
+    .progress-bar-container {
+    overflow-x: auto;
+    }
+
+    /* Les listes de progression sont déjà en flex via Bootstrap ;
+    on peut ajouter quelques réglages pour améliorer l’affichage */
+    .progress-bar {
+    flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
+    margin: 0 auto;  /* centrer */
+    }
+
+    /* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
+    .progress-bar li.step {
+    flex: 1;              /* prend une part égale de l’espace disponible */
+    min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
+    text-align: center;   /* centrer le contenu */
+    font-size: 1rem;      /* taille de police par défaut */
+    }
+
+    /* Sur écrans moyens à grands, on peut augmenter la taille de police */
+    @media (min-width: 768px) {
+    .progress-bar li.step {
+        font-size: 1.25rem;
+    }
+    }
+
+
+    .step::after {
+        content: ''; /* Create a line after each step */
+        position: absolute; /* Position the line absolutely */
+        top: 50%; /* Center vertically */
+        left: 100%; /* Position to the right of the step */
+        width: 100%; /* Width of the line */
+        height: 4px; /* Height of the line */
+        background-color: #ddd; /* Color of the line */
+        z-index: -1; /* Send the line behind the text */
+    }
+
+    .step:last-child::after {
+        content: none; /* Remove the line after the last step */
+    }
+
+    .step.active {
+        font-weight: bold; /* Bold the active step */
+        color: #ffffff; /* Color of the active step */
+    }
+
+    .row.align-items-end.mb-3 > .col-md-3,
+        .row.align-items-end.mb-3 > .col-md-9 {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .col-md-3 .form-label,
+        .col-md-9 .form-label {
+            width: 100%;
+        }
+
+        .col-md-3 .form-control,
+        .col-md-9 .form-control {
+            width: 100%;
+        }
 </style>
 
 @endsection

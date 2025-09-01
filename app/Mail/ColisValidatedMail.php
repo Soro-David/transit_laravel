@@ -3,24 +3,27 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
+use App\Models\Paiement; // Assurez-vous que le chemin vers votre modèle Paiement est correct
 
 class ColisValidatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $colis;
+    public Paiement $paiement;
+    public Collection $colisCollection;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($colis)
+    public function __construct(Paiement $paiement, Collection $colisCollection)
     {
-        $this->colis = $colis;
+        $this->paiement = $paiement;
+        $this->colisCollection = $colisCollection;
     }
 
     /**
@@ -28,8 +31,9 @@ class ColisValidatedMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $reference = $this->colisCollection->first()->reference_colis ?? 'N/A';
         return new Envelope(
-            subject: 'Votre Colis a été Validé - Référence: ' . $this->colis->reference_colis,
+            subject: 'Confirmation de votre dossier - Référence: ' . $reference,
         );
     }
 
@@ -38,24 +42,26 @@ class ColisValidatedMail extends Mailable
      */
     public function content(): Content
     {
+        $firstColis = $this->colisCollection->first();
+        $expediteur = $this->paiement->expediteur;
+        $destinataire = $firstColis->destinataire;
+
         return new Content(
             view: 'emails.colis_validated',
             with: [
-                'expediteur_nom' => $this->colis->expediteur->nom . ' ' . $this->colis->expediteur->prenom,
-                'reference_colis' => $this->colis->reference_colis,
-                'agence_expedition' => $this->colis->destinataire->agence ?? 'N/A', // Assuming destinataire has agence for sender's agency info on form
-                'agence_destination' => $this->colis->destinataire->agence ?? 'N/A',
-                'mode_transit' => $this->colis->mode_transit ?? 'N/A',
-                'description_colis' => $this->colis->description_colis ?? 'N/A',
-                'prix_transit_colis' => $this->colis->prix_transit_colis ?? 'N/A',
+                'expediteur_nom' => $expediteur->nom . ' ' . $expediteur->prenom,
+                'reference_colis' => $firstColis->reference_colis,
+                'agence_expedition' => $expediteur->agence,
+                'agence_destination' => $destinataire->agence,
+                'mode_transit' => $firstColis->mode_transit,
+                'paiement' => $this->paiement,
+                'colisDetails' => $this->colisCollection,
             ],
         );
     }
 
     /**
      * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
     {

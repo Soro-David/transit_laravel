@@ -26,6 +26,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail; // Importez la façade Mail
+use App\Mail\DevisCreatedMail; // Importez votre Mailable
+
 
 
 class CustomerColisController extends Controller
@@ -212,6 +215,7 @@ class CustomerColisController extends Controller
         substr($user->first_name ?? 'X', 0, 1)
     );
 
+    // dd($initiales); 
     // Agence cible
     // $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
 
@@ -222,8 +226,8 @@ class CustomerColisController extends Controller
         // ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
         ->max('colis.id_reference');
 
-    // Incrémentation de l'ID de référence
-    $nextIdRef = ($lastIdRef ?? 0) + 1;
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
+        // dd($nextIdRef);
 
     // Déterminer la bonne référence de conteneur ou vol selon le mode
     if ($mode_transit === 'maritime') {
@@ -254,6 +258,7 @@ class CustomerColisController extends Controller
         'reference_contenaire' => $contenaireRef
     ];
 }
+
 
 
 
@@ -296,69 +301,49 @@ class CustomerColisController extends Controller
         ));
     }
 
-    // public function add_colis(Request $request)
-    // {
-    //     $id = auth()->user()->getIdUSer();
-
-    //     $user = User::findOrfail($id);
-      
-    //     $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')
-    //                         ->distinct()
-    //                         ->pluck('pays_agence');
-
-
-    //     $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
-    //     $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
-    //     $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-
-    //     $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
-    //     $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
-    //     // $referenceColis = $request->input('reference_colis', $this->generateReferenceColis());
-    //     $referenceColis = $this->generateReferenceColisComplet();
-    //     return view('customer.colis.add_colis', compact('agences','agencesExpedition','agencesDestination','paysUniques','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
-    // }
-
-
-    public function end_colis(Request $request)
-    {
-        $id = auth()->user()->getIdUSer();
-        // dd($id);
-        $user = User::findOrfail($id);
-        // Chargement des données
-        // dd($user);
-        $agences = Agence::select('nom_agence', 'id')->get();
-        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
-        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
-
-        $referenceColis = $this->generateReferenceColisComplet();
-
-        return view('customer.colis.fin_colis', compact('agences','referenceColis', 'client_expediteurs', 'client_destinataires','user'));
-    }
 
     public function store_colis(Request $request)
     {
         $data = $request->all();
 
+        // dd($data);
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'En attente';
 
-        $expediteurData = [
-            'nom' => $data['nom_expediteur'] ?? null,
-            'prenom' => $data['prenom_expediteur'] ?? null,
-            'email' => $data['email_expediteur'] ?? null,
-            'tel' => $data['tel_expediteur'] ?? null,
-            'agence' => $data['agence_expedition'] ?? null,
-            'adresse' => $data['adresse_expediteur'] ?? null,
+
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur'] ?? '';
+        $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
+
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire'] ?? '';
+        $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
+
+        $userId = Auth::id();
+
+
+        // dd($destinataireCountryCode, $expediteurCountryCode);
+           $expediteurData = [
+            'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+            'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
+            'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
+            'tel' => $expediteurTel,
+            'user_id' => $userId,
+            'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
+            'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
 
         $destinataireData = [
-            'nom' => $data['nom_destinataire'] ?? null,
-            'prenom' => $data['prenom_destinataire'] ?? null,
-            'email' => $data['email_destinataire'] ?? null,
-            'tel' => $data['tel_destinataire'] ?? null,
-            'agence' => $data['agence_destination'] ?? null,
-            'adresse' => $data['adresse_destinataire'] ?? null,
+            'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
+            'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+            'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
+            'tel' => $destinataireTel, // numéro complet avec indicatif
+            'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
+            'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
         ];
+
+
+        // dd($expediteurData, $destinataireData);
 
         try {
             $expediteur = Expediteur::create($expediteurData);
@@ -370,7 +355,25 @@ class CustomerColisController extends Controller
 
         $colisEnregistres = [];
         $erreursCreation = [];
-        $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        $referenceColisPrincipale = '';
+
+            if ($data['mode_transit'] === 'maritime') {
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+            } elseif ($data['mode_transit'] === 'aerien') {
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+            } else {
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+            }
+        $nombreTotalColisCrees = 0;
+
+        
+        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+
+        // Extraire la partie numérique (ex: "0001")
+        preg_match('/\d+/', $referenceColisPrincipale, $matches);
+        $id_reference = isset($matches[0]) ? (int)$matches[0] : null;
+        // dd($id_reference);
 
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -380,20 +383,21 @@ class CustomerColisController extends Controller
             $largeur = $data['largeur'][$index] ?? null;
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
-            
+
             $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
 
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
                     'devise' => $data['devise'] ?? null,
                     'reference_colis' => $referenceColisPrincipale,
+                    'id_reference' => $id_reference,
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1,
                     'service' => $data['service'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids_colis'][$index] ?? null,
                     'mode_transit' => $data['mode_transit'] ?? null,
-                    'status' => $data['status'], 
+                    'status' => $data['status'],
                     'etat' => $data['etat'],
                     'type_colis' => $data['type_colis'][$index] ?? null,
                     'dimension_result' => $dimension_result,
@@ -405,18 +409,59 @@ class CustomerColisController extends Controller
                 ];
                 try {
                     $colisModel = Colis::create($colisItemData);
-
+                    $colisEnregistres[] = $colisModel;
+                    $nombreTotalColisCrees++;
                 } catch (\Exception $e) {
                     Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
                     $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
                 }
             }
-        }     
+        }
+
+
+         // Envoi de l'email de notification avec les détails du devis
+        if (!empty($colisEnregistres)) {
+            $recipientEmail = null;
+            $agenceExpedition = $expediteurData['agence'] ?? null;
+
+            if ($agenceExpedition === 'Agence de Chine') {
+                $recipientEmail = 'douane@aft-app.com';
+            } elseif ($agenceExpedition === 'AFT Agence Louis Bleriot') {
+                $recipientEmail = 'entrepot.paris@aft-app.com';
+            } elseif ($agenceExpedition === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                $recipientEmail = 'entrepot.abidjan@aft-app.com'; 
+            }
+
+           
+            if (is_null($recipientEmail)) {
+                $recipientEmail = config('mail.from.address');
+                Log::warning('Aucune adresse e-mail spécifique trouvée pour l\'agence d\'expédition: ' . $agenceExpedition . '. Envoi à l\'adresse par défaut: ' . $recipientEmail);
+            }
+
+
+            $emailData = [
+                'reference_colis_principale' => $referenceColisPrincipale,
+                'expediteur' => $expediteurData,
+                'destinataire' => $destinataireData,
+                'nombre_colis' => $nombreTotalColisCrees,
+                'premier_colis' => $colisEnregistres[0]->toArray() ?? null,
+            ];
+
+            try {
+                    Mail::to($recipientEmail)->send(new DevisCreatedMail($emailData));
+                    Log::info("✅ Email envoyé à {$recipientEmail} pour le devis {$referenceColisPrincipale}");
+                } catch (\Throwable $e) {
+                    Log::error("❌ Erreur envoi mail Hostinger : " . $e->getMessage(), [
+                        'recipient' => $recipientEmail,
+                        'reference' => $referenceColisPrincipale,
+                    ]);
+                }
+
+        }
 
         return redirect()->route('customer_colis.hold')
                 ->with('success', ' colis individuels ont été enregistrés avec succès.');
     }
-
 
     /**
      * Display the specified resource.
@@ -672,86 +717,6 @@ class CustomerColisController extends Controller
         ]);
     }
 
-    //    // function pour le payement
-    //    public function step_payement(Request $request, $id)
-    //    {
-    //        // Vérifier que la requête est bien une requête AJAX
-    //        if (!$request->ajax()) {
-    //            return response()->json(['message' => 'Requête non valide'], 400);
-    //        }
-   
-    //        // Valider les données du formulaire (adapté à tous les types de paiement)
-    //        $validatedData = $request->validate([
-    //            'mode_payement'         => 'required|string',
-    //            'numero_compte'        => 'nullable|string',
-    //            'nom_banque'           => 'nullable|string',
-    //            'transaction_id'       => 'nullable|string',
-    //            'numero_tel'           => 'nullable|string',
-    //            'operateur_mobile'     => 'nullable|string',
-    //            'numero_cheque'        => 'nullable|string',
-    //            'montant_reçu'         => 'nullable|numeric', // Pour paiement en espèces
-    //            'cinetpay_transaction_id' => 'nullable|string', // Pour CinetPay
-    //        ]);
-   
-    //        // Récupérer le colis en utilisant le paramètre $id
-    //        $colis = Colis::findOrFail($id);
-   
-    //        // Préparer les données pour la table paiements
-    //        $paiementData = [
-    //            'colis_id'          => $id,
-    //            'methode_paiement'  => $validatedData['mode_payement'],
-    //            'expediteur_id'     => $colis->expediteur_id, // Récupérer expediteur_id du colis
-    //            'date_validation'   => now(), // Date de validation du paiement
-    //            'statut_paiement'   => 'Payé', // Statut de paiement mis à 'Payé'
-    //            // **Récupérer l'agent_id du colis et l'assigner au paiement**
-    //            'agent_id'          => $colis->agent_id, // Récupérer agent_id du colis
-    //        ];
-   
-    //        // Remplir les champs spécifiques en fonction du mode de paiement
-    //        if ($validatedData['mode_payement'] === 'bank') {
-    //            $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
-    //            $paiementData['NumeroPaiement'] = $validatedData['numero_compte'] ?? null;
-    //            $paiementData['id_transaction'] = $validatedData['transaction_id'] ?? null;
-    //        } elseif ($validatedData['mode_payement'] === 'mobile_money') {
-    //            $paiementData['operateur']      = $validatedData['operateur_mobile'] ?? null;
-    //            $paiementData['NumeroPaiement'] = $validatedData['numero_tel'] ?? null;
-    //            // Priorité à la transaction CinetPay si elle existe, sinon transaction ID classique
-    //            $paiementData['id_transaction'] = $validatedData['cinetpay_transaction_id'] ?? $validatedData['transaction_id'] ?? null;
-    //        } elseif ($validatedData['mode_payement'] === 'cheque') {
-    //            $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
-    //            $paiementData['NumeroPaiement'] = $validatedData['numero_cheque'] ?? null;
-    //        } elseif ($validatedData['mode_payement'] === 'cash') {
-    //            $paiementData['montant']        = $validatedData['montant_reçu'] ?? null; // Enregistrer le montant reçu pour les espèces
-    //        }
-   
-    //        // Enregistrer le montant du colis dans la table paiement
-    //        $paiementData['montant'] = $colis->prix_transit_colis;
-   
-   
-    //        // Vérifier si un paiement a déjà été effectué pour ce colis (optionnel, selon votre logique)
-    //        $existingPayment = Paiement::where('colis_id', $id)->first();
-    //        if ($existingPayment) {
-    //            return response()->json(['message' => 'Le paiement a déjà été effectué pour ce colis.'], 400);
-    //        }
-   
-    //        // Créer le paiement
-    //        Paiement::create($paiementData);
-   
-    //        // Mettre à jour le champ 'etat' du colis en le marquant comme "Validé"
-    //        $colis->etat = 'Validé';
-    //        $colis->save();
-   
-    //         // Envoyer l'email de confirmation de paiement
-    //         try {
-    //            \Mail::to($colis->expediteur->email)->send(new \App\Mail\PaymentConfirmedMail($colis, $paiementData));
-    //        } catch (\Exception $e) {
-    //            Log::error('Erreur lors de l\'envoi de l\'email de confirmation de paiement pour le colis ' . $colis->id . ': ' . $e->getMessage());
-    //            // Log l'erreur, mais ne bloque pas le processus principal
-    //        }
-   
-    //        return response()->json(['message' => 'Paiement enregistré avec succès et colis marqué comme validé !']);
-    //        return redirect()->route('customer_colis.index'); // Redirection à ajuster si nécessaire
-    //    }
     public function edit_payement($id)
     {
         // Récupérer le colis par son ID

@@ -34,10 +34,14 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+
     'infobip' => [
-    'api_key' => env('INFOBIP_API_KEY'),
-    'base_url' => env('INFOBIP_BASE_URL'),
-    'from_number' => env('INFOBIP_FROM_NUMBER'),
+        'api_key' => env('INFOBIP_API_KEY'),
+        'base_url' => env('INFOBIP_BASE_URL'),
+        'from'    => env('INFOBIP_FROM'),
     ],
+
+
+    
 
 ];
