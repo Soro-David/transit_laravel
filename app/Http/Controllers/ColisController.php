@@ -2392,10 +2392,7 @@ public function update_hold(Request $request, InfobipSmsService $InfobipSmsServi
             $colis->save();
 
             // Message SMS
-            $message = "Bonjour " . $colis->expediteur->nom . ",
-                        le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès.
-                        Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA.
-                        Connectez-vous pour effectuer votre paiement.";
+            $message = "Bonjour " . $colis->expediteur->nom . ",le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Veuillez vous connecter à votre espace client pour le paiement. Merci de votre confiance.";
 
             if ($numero_expediteur) {
                 try {

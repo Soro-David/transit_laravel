@@ -713,7 +713,7 @@ class ApmsAngreScanController extends Controller
 
                         // Stocker le message par numéro de téléphone unique
                         if (!isset($expediteursToNotify[$tel])) {
-                            $expediteursToNotify[$tel] = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence Angre 8ème Tranche (Abidjan, Côte d'Ivoire), AFT vous remercie. Suivi: https://aft-app.com .";
+                            $expediteursToNotify[$tel] = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence Angre 8ème Tranche (Abidjan, Côte d'Ivoire), AFT vous remercie de votre confiance. Suivi: https://aft-app.com .";
                         }
                     
                     }

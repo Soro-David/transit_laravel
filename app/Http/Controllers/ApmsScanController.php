@@ -595,7 +595,7 @@ class ApmsScanController extends Controller
                     $prenom_expediteur = $colis->expediteur->prenom ?? '';
                     $agence_dest = $colis->destinataire->agence ?? $agenceCible; // Utilise l'agence du destinataire ou l'agence cible par défaut
 
-                    $messageSms = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence Carrefour Angre (Abidjan,Côte d'Ivoire), AFT vous remercie. Suivi: https://aft-app.com .";
+                    $messageSms = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence Carrefour Angre (Abidjan,Côte d'Ivoire), AFT vous remercie de votre confiance. Suivi: https://aft-app.com .";
 
                     try {
                         $smsService->sendSms($tel, $messageSms);

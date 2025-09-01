@@ -696,7 +696,7 @@ private function generateReferenceParMode(string $mode_transit)
                                 
             $messageSmsDestinataire = "Bonjour, un colis (Réf: {$colisReferences}) vous est destiné. Il a été créé par {$expediteur->nom} et est en attente d'expédition. Vous serez notifié(e) de son avancement.";
 
-            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de nous faire confiance. Suivi : https://aft-app.com";
+            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de votre confiance. Suivi : https://aft-app.com";
             // dd($expediteurTelForSms, $destinataireTelForSms, $messageSmsExpediteur, $messageSmsDestinataire);
             // Envoi du SMS à l'expéditeur
             if ($expediteurTel) { 
