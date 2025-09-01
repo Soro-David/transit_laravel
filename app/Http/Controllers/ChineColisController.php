@@ -124,6 +124,7 @@ class ChineColisController extends Controller
                             ->where('agence', 'Agence de chine')
                             ->limit(15)
                             ->get(['id', 'description', 'prix']);
+                            
                         // Sélectionner les champs à renvoyer
         return response()->json($produits);
     }

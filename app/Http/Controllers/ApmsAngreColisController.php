@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Versement;
-use App\Models\Product;
+use App\Models\Produit;
 use App\Models\Agence;
 use App\Models\Client;
 use App\Models\Les_colis;
@@ -326,12 +326,15 @@ private function generateReferenceParMode(string $mode_transit)
 
 
     
+ 
     public function autocompleteProduit(Request $request)
     {
         $query = $request->get('query');
         $produits = Produit::where('description', 'like', '%' . $query . '%')
-                        ->limit(15)
-                        ->get(['id', 'description', 'prix']); // Sélectionner les champs à renvoyer
+                            ->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                            ->limit(15)
+                            ->get(['id', 'description', 'prix']);
+                            
         return response()->json($produits);
     }
 
@@ -706,12 +709,14 @@ private function generateReferenceParMode(string $mode_transit)
             'description' => 'required|string|max:255',
             'categorie' => 'required|string|max:100|in:Colis,Service,Remise',
             'prix' => 'required|numeric|min:0',
+             'agence' => 'required|string|max:255',
         ]);
     
         Produit::create([
             'description' => $request->description,
             'categorie' => $request->categorie,
             'prix' => $request->prix,
+            'agence' => $request->agence,
         ]);
     
         return response()->json(['message' => 'Produit ajouté avec succès !'], 201);

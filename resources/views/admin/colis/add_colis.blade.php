@@ -285,7 +285,6 @@
                             <select name="devise" id="devise" class="form-control">
                                 <option value="" disabled selected>-- Devise --</option>
                                 <option value="EUR">EUR</option>
-                                <option value="YUAN">YUAN</option>
                                 <option value="FCFA">FCFA</option>
                             </select>
                         </div>

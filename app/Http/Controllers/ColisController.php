@@ -316,7 +316,7 @@ class ColisController extends Controller
  
 
 
-        private function generateReferenceVol()
+    private function generateReferenceVol()
     {
         $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
         $letterIndex = 0; // Commencer par 'A'

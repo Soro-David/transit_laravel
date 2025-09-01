@@ -122,7 +122,7 @@
                             </select>
                         </div>
                     </div>
-                             {{-- Boutons navigation --}}
+                        {{-- Boutons navigation --}}
                     <div class="text-end mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
                         <button type="button" class="btn btn-primary btn-next">Suivant</button>
@@ -452,7 +452,7 @@ $(document).ready(function() {
     // Initialisation de l'autocomplétion sur les champs existants
     initAutocomplete($(document));
 
-    function initAutocomplete(element) {
+        function initAutocomplete(element) {
         $(element).find(".produit-input").off("keyup").on("keyup", function() {
             let query = $(this).val().trim();
             let input = $(this);
@@ -509,7 +509,6 @@ $(document).ready(function() {
             }
         });
     }
-
     // Met à jour le prix total lors de la modification de la quantité
     $(document).on('input', '.quantite-colis', function() {
         let row = $(this).closest('.row');
@@ -702,6 +701,7 @@ $(document).ready(function() {
                 description: description,
                 categorie: categorie,
                 prix: prix,
+                agence: agence,
             }),
             success: function (response) {
                 alert(response.message); // Affichage du message de succès
