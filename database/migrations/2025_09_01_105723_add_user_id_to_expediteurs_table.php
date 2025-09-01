@@ -22,7 +22,6 @@ return new class extends Migration
             // Dans tous les cas, on s'assure que la clé étrangère est bien posée
             $table->foreign('user_id')
                 ->nullable()
-                ->references('id')
                 ->constrained('users') 
                 ->onDelete('cascade');
         });
