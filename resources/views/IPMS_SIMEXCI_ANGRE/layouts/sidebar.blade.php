@@ -140,7 +140,7 @@
 
                 <li class="nav-item"> <!-- Supprimé has-treeview si c'est un lien direct -->
                     <!-- Définissez une route pour les clients, ex: 'clients.index' -->
-                    <a href="{{-- route('clients.index') --}}" class="nav-link {{-- isActiveRoute('clients.index') --}} {{-- isActiveRoute('clients.*') --}}">
+                    <a href="{{ route('ipms_angre_client.index') }}" class="nav-link {{ isActiveRoute('ipms_angre_client.index') }}')">
                         <i class="nav-icon fas fa-users"></i>
                         <p>Clients</p>
                     </a>

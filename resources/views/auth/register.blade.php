@@ -1,4 +1,5 @@
 @extends('admin.layouts.app')
+
 @section('content')
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -69,22 +70,6 @@
                                     @enderror
                                 </div>
                             </div>
-
-                            
-                            {{-- <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="tel">Téléphone</label>
-                                    <input id="tel" type="tel" 
-                                           class="form-control form-control-lg @error('tel') is-invalid @enderror"
-                                           name="tel" value="{{ old('tel') }}" 
-                                           required autocomplete="tel" autofocus>
-                                    @error('tel')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
-                                </div>
-                            </div> --}}
                         </div>
                         <div class="row">
                             <div class="col-md-12 mb-3">
@@ -135,6 +120,26 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Section ajoutée pour la politique de confidentialité --}}
+                        <div class="form-group form-check mt-3">
+                            <input type="checkbox" 
+                                class="form-check-input @error('privacy_policy') is-invalid @enderror" 
+                                id="privacy_policy" 
+                                name="privacy_policy" 
+                                >
+                            <label class="form-check-label" for="privacy_policy">
+                                J'ai lu et j'accepte la <a href="{{ route('privacy.policy') }}" target="_blank">Politique de Confidentialité</a>
+                            </label>
+                            @error('privacy_policy')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+
+                        {{-- Fin de la section ajoutée --}}
+
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary btn-block btn-lg btn-hover-orange">
                                 S'inscrire
@@ -154,69 +159,69 @@
 @endsection
 @section('css')
 <style>
-    .btn-hover-orange:hover {
-    background-color: #ff9800 !important; /* Orange */
-    border-color: #e68900 !important;
-}
-   body {
-    background-image: url('{{ asset('images/login2.png') }}'); 
-    background-size: auto; 
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+            .btn-hover-orange:hover {
+            background-color: #ff9800 !important; /* Orange */
+            border-color: #e68900 !important;
+        }
+        body {
+            background-image: url('{{ asset('images/login2.png') }}'); 
+            background-size: auto; 
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.card-body{
-    width: 100%;
-    max-width: 600px; /
-}
+        .card-body{
+            width: 100%;
+            max-width: 600px; /
+        }
 
-.card {
-    margin: 2rem auto;
-    border-radius: 15px;
-    overflow: hidden;
-    width: 100%;
-    max-width: 600px; /* Limite la largeur du formulaire */
-    background-color: rgba(255, 255, 255, 0.8); /* Arrière-plan semi-transparent pour contraster avec l'image */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre subtile pour le formulaire */
-}
+        .card {
+            margin: 2rem auto;
+            border-radius: 15px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 600px; /* Limite la largeur du formulaire */
+            background-color: rgba(255, 255, 255, 0.8); /* Arrière-plan semi-transparent pour contraster avec l'image */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre subtile pour le formulaire */
+        }
 
-.container {
-    padding: 10px;
-    width: 100%;
-}
+        .container {
+            padding: 10px;
+            width: 100%;
+        }
 
-.card-header {
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    background-color: #007bff; /* Couleur de fond du header */
-    color: white;
-}
+        .card-header {
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            background-color: #007bff; /* Couleur de fond du header */
+            color: white;
+        }
 
-.invalid-feedback {
-    display: block;
-}
+        .invalid-feedback {
+            display: block;
+        }
 
-.form-group {
-    margin-bottom: 1.5rem;
-}
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-.form-check-label {
-    font-size: 0.875rem;
-}
+        .form-check-label {
+            font-size: 0.875rem;
+        }
 
-.form-control {
-    border-radius: 0.25rem; /* Arrondir les bords des champs de texte */
-}
+        .form-control {
+            border-radius: 0.25rem; /* Arrondir les bords des champs de texte */
+        }
 
-@media (min-width: 1200px) {
-    .card {
-        max-width: 1200px; /* Peut augmenter la taille du formulaire sur des écrans plus larges */
-    }
-}
+        @media (min-width: 1200px) {
+            .card {
+                max-width: 1200px; /* Peut augmenter la taille du formulaire sur des écrans plus larges */
+            }
+        }
 
 </style>
 @endsection

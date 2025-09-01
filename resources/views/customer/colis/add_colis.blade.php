@@ -142,7 +142,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="row g-2">
-                            <div class="col-md-4">
+                            {{-- <div class="col-md-4">
                                 <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
                                 <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
                                     <option value="+225" selected>Côte d'Ivoire (+225)</option>
@@ -150,8 +150,8 @@
                                     <option value="+86">Chine (+86)</option>
                                     <option value="+1">USA (+1)</option>
                                 </select>
-                            </div>
-                            <div class="col-md-8">
+                            </div> --}}
+                            <div class="col-md-12">
                                 <label for="tel_expediteur" class="form-label">Téléphone</label>
                                 <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" placeholder="Ex: 0123456789">
                             </div>

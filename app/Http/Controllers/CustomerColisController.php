@@ -319,6 +319,8 @@ class CustomerColisController extends Controller
         $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
+        $userId = Auth::id();
+
 
         // dd($destinataireCountryCode, $expediteurCountryCode);
            $expediteurData = [
@@ -326,6 +328,7 @@ class CustomerColisController extends Controller
             'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
+            'user_id' => $userId,
             'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
             'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
@@ -352,11 +355,20 @@ class CustomerColisController extends Controller
 
         $colisEnregistres = [];
         $erreursCreation = [];
-        $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        $referenceColisPrincipale = '';
+
+            if ($data['mode_transit'] === 'maritime') {
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+            } elseif ($data['mode_transit'] === 'aerien') {
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+            } else {
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+            }
         $nombreTotalColisCrees = 0;
 
         
-        $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
 
         // Extraire la partie numérique (ex: "0001")
         preg_match('/\d+/', $referenceColisPrincipale, $matches);

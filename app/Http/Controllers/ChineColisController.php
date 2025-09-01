@@ -659,7 +659,18 @@ public function vol_fermer(Request $request)
             ]);
 
             $colisEnregistres = [];
-            $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+            // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+
+            $referenceColisPrincipale = '';
+
+            if ($data['mode_transit'] === 'maritime') {
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+            } elseif ($data['mode_transit'] === 'aerien') {
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+            } else {
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+            }
+            
             // dd($colisEnregistres);
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -816,8 +827,8 @@ public function vol_fermer(Request $request)
             }
     
         return view('AGENCE_CHINE.colis.add.complete', [
-            'colis' => $colisEnregistresCollection, // Collection de tous les colis physiques créés
-            'first' => $firstInfo, // Info basée sur le premier colis
+            'colis' => $colisEnregistresCollection,
+            'first' => $firstInfo,
             'totalQuantite' => $totalQuantitePhysique,
             'totalPrixTransit' => $totalPrixTransit,
             'restePaye' => $restePaye,

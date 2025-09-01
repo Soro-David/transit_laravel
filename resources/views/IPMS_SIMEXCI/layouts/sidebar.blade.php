@@ -92,12 +92,12 @@
                     </ul>
                 </li>
                 {{-- endRDV --}}
-                <li class="nav-item has-treeview">
-                    <a href="" class="nav-link {{ activeSegment('customers') }}">
+                {{-- <li class="nav-item has-treeview">
+                    <a href="{{ route('ipms_client.index') }}" class="nav-link {{ activeSegment('ipms_client') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>Clients</p>
                     </a>
-                </li>
+                </li> --}}
                 {{-- progammz de transport --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">

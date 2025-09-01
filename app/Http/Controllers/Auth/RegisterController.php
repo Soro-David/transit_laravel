@@ -64,6 +64,11 @@ class RegisterController extends Controller
             'country_code_destinataire_particulier' => ['required', 'string', 'max:5'],
             'email'       => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password'    => ['required', 'string', 'min:4', 'confirmed'],
+            'privacy_policy' => ['required', 'accepted'],
+                [
+                    'privacy_policy.required' => 'Vous devez accepter la politique de confidentialité pour créer un compte.',
+                    'privacy_policy.accepted' => 'Vous devez accepter la politique de confidentialité pour créer un compte.',
+                ]
             ]);
     }
 
@@ -86,6 +91,7 @@ class RegisterController extends Controller
                 'tel'        => $fullPhone,
                 'adresse'    => $data['adresse'],
                 'password'   => Hash::make($data['password']),
+                'is_active'  => true,
             ]);
 
             return $user;

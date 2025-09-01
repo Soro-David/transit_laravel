@@ -555,8 +555,7 @@ private function generateReferenceParMode(string $mode_transit)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
 
-        
-             $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
+            $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
             $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
 
             //    dd($agence);
@@ -569,24 +568,24 @@ private function generateReferenceParMode(string $mode_transit)
                 $id_reference = ($lastIdRef ?? 0) + 1;
 
             $colisItemData = [
-                'devise' => 'FCFA', // Devise par défaut
+                'devise' => 'FCFA',
                 'reference_colis' => $referenceColis,
                 'id_reference' => $id_reference,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,
-                'prix_transit_colis' => $data['prix'][$index] ?? 0, // Mettre 0 par défaut
+                'prix_transit_colis' => $data['prix'][$index] ?? 0,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
                 'mode_transit' => $data['mode_transit'] ?? null,
-                'status' => $data['status'], // Statut paiement global (sera mis à jour par paiement?)
-                'etat' => $data['etat'], // Etat colis global
+                'status' => $data['status'],
+                'etat' => $data['etat'],
                 'type_colis' => $data['type_colis'][$index] ?? null,
-                'dimension_result' => $dimension_result, // Calculé ci-dessus
+                'dimension_result' => $dimension_result,
                 'description_colis' => $data['description_colis'][$index] ?? null,
                 'expediteur_id' => $expediteur->id,
                 'destinataire_id' => $destinataire->id,
                 'agent_id' => $agentId,
-                'qr_code_path' => null, // Initialisé à null
+                'qr_code_path' => null,
                 // 'montant_payé' => $data['etat'], // Initialisé à null
             ];
             try {
@@ -617,7 +616,7 @@ private function generateReferenceParMode(string $mode_transit)
                 $result = $writer->write($qrCode);
                 $pngData = $result->getString();
 
-                // Chemin fichier (utiliser ID et référence pour unicité)
+                // Chemin fichier (utiliser ID et référence pour unicité) 
                 $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colisModel->reference_colis);
                 $filePath = 'qrcodes/colis_' . $safeRef . '_' . $colisModel->id . '.png';
                 $fullPath = public_path($filePath);
@@ -626,7 +625,7 @@ private function generateReferenceParMode(string $mode_transit)
                 // dd($colisModel);
 
                 if (!File::exists($directory)) {
-                    File::makeDirectory($directory, 0755, true, true); // Ajout du dernier true
+                    File::makeDirectory($directory, 0755, true, true); // Ajout du dernier true 
                 }
                 file_put_contents($fullPath, $pngData);
 

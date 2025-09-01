@@ -470,9 +470,10 @@ class AftlbColisController extends Controller
         try {
             $validated = $request->all();
 
-            dd($validated); 
+            // dd($validated); 
             $request->session()->put('step1', $validated);
 
+            // dd(session('step1'));
             return redirect()->route('aftlb_colis.create.payement');
         } catch (\Exception $e) {
             \Log::error('Erreur lors de l\'enregistrement du colis : ' . $e->getMessage());
@@ -507,42 +508,14 @@ class AftlbColisController extends Controller
     public function storePayment(Request $request)
     {
         try {
-            $validatedData = $request->validate([
-            //     'mode_payement' => 'required|in:bank,mobile_money,cheque,cash',
-            //     'numero_compte' => 'required_if:mode_payement,bank|max:255',
-            //     'nom_banque' => 'required_if:mode_payement,bank,cheque|max:255',
-            //     'transaction_id' => 'required_if:mode_payement,bank,mobile_money|max:255',
-            //     'numero_tel' => 'required_if:mode_payement,mobile_money|regex:/^\d{10,15}$/',
-            //     'operateur_mobile' => 'required_if:mode_payement,mobile_money|in:mtn,orange,airtel',
-            //     'numero_cheque' => 'required_if:mode_payement,cheque|max:255',
-            //    'montant_reçu' => 'required_if:mode_payement,cash|numeric|min:1',
-            // ], [
-            //     'required' => 'Le champ :attribute est obligatoire.',
-            //     'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
-            //     'numeric' => 'Le champ :attribute doit être un nombre.',
-            //     'min' => 'Le champ :attribute doit être au moins :min.',
-    
-            //     'mode_payement.required' => 'Veuillez sélectionner un mode de paiement.',
-            //     'mode_payement.in' => 'Le mode de paiement sélectionné est invalide.',
-    
-            //     'numero_compte.required_if' => 'Le numéro de compte est requis pour les paiements bancaires.',
-            //     'nom_banque.required_if' => 'Le nom de la banque est requis pour ce mode de paiement.',
-            //     'transaction_id.required_if' => 'L\'identifiant de transaction est obligatoire pour ce mode de paiement.',
-            //     'numero_tel.required_if' => 'Le numéro de téléphone est requis pour les paiements mobile.',
-            //     'numero_tel.regex' => 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.',
-            //     'operateur_mobile.required_if' => 'Veuillez sélectionner un opérateur mobile.',
-            //     'operateur_mobile.in' => 'L\'opérateur mobile sélectionné est invalide.',
-            //     'numero_cheque.required_if' => 'Le numéro de chèque est requis pour les paiements par chèque.',
-            //     'montant_reçu.required_if' => 'Le montant reçu est obligatoire pour les paiements en espèces.',
-            //     'montant_reçu.min' => 'Le montant reçu doit être supérieur à zéro.',
-            ]);
+            $validatedData = $request->validate([]);
     
             // Stocker les données en session
-            
             session(['step2' => $request->only([
                 'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
                 'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
             ])]);
+            // dd(session('step1'), session('step2'));
             return response()->json([
                 'success' => true,
                 'redirect' => route('aftlb_colis.generer.qrcode'),
@@ -569,6 +542,7 @@ class AftlbColisController extends Controller
         // 1. Récupération et validation des données de session
         $data = array_merge(session('step1', []), session('step2', []));
 
+        // dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -587,7 +561,7 @@ class AftlbColisController extends Controller
         $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'];
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
-        dd($data, $expediteurTel, $destinataireTel);
+        // dd($data, $expediteurTel, $destinataireTel);
         try {
             // 2. Création de l'expéditeur et du destinataire
             $expediteur = Expediteur::create([
@@ -645,8 +619,21 @@ class AftlbColisController extends Controller
 
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
-            $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+            // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
 
+
+            $referenceColisPrincipale = '';
+
+            if ($data['mode_transit'] === 'maritime') {
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+            } elseif ($data['mode_transit'] === 'aerien') {
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+            } else {
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+            }
+
+
+            // dd($referenceColisPrincipale);
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int) $quantite_pour_ligne_article;
                 if ($quantite_pour_ligne_article <= 0) {

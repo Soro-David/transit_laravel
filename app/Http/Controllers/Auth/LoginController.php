@@ -48,6 +48,33 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
+protected function attemptLogin(Request $request)
+{
+    \Log::info('Tentative login : '.$request->email);
+    \Log::info('User actif ? : '.(int)(\App\Models\User::where('email', $request->email)->value('is_active')));
+
+    return $this->guard()->attempt(
+        $this->credentials($request) + ['is_active' => true], // <-- C'est ici que la vérification est ajoutée
+        $request->filled('remember')
+    );
+}
+
+
+protected function sendFailedLoginResponse(Request $request)
+{
+    $user = \App\Models\User::where('email', $request->email)->first();
+
+    if ($user && !$user->is_active) { // <-- Gère le cas où is_active est false
+        return redirect()->back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => 'Votre compte est désactivé, Veillez contacter l\'administrateur de AFT.']);
+    }
+
+    return redirect()->back()
+        ->withInput($request->only('email'))
+        ->withErrors(['email' => trans('auth.failed')]);
+}
+
     /**
      * Redirige les utilisateurs après leur authentification selon leur rôle.
      *
@@ -78,10 +105,10 @@ class LoginController extends Controller
                 case 'Agence de Chine':
                     return redirect()->route('AGENCE_CHINE.dashboard');
                 default:
-                    return redirect()->route('agent.dashboard');
+                    return redirect()->route('login');
             }
         }
-        return redirect()->route('agent.dashboard');
+        return redirect()->route('login');
     } elseif ($user->role === 'chauffeur') {
         return redirect()->route('chauffeur.dashboard');
     }

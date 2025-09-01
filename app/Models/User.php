@@ -24,6 +24,7 @@ class User extends Authenticatable
         'agence_id',
         'tel',
         'adresse',
+        'is_active',
     ];
 
     /**
@@ -33,6 +34,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password', 'remember_token',
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -84,6 +86,16 @@ class User extends Authenticatable
     public function agent() 
     {
         return $this->hasOne(Agent::class, 'email', 'email'); // En supposant que 'email' est la colonne de liaison
+    }
+
+    public function expediteur()
+    {
+        return $this->hasOne(Expediteur::class);
+    }
+
+    public function destinataire()
+    {
+        return $this->hasOne(Destinataire::class);
     }
     
 }

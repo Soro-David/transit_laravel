@@ -66,7 +66,7 @@
                     <div class="col-md-6" id="ref_maritime" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Maritime)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_marine" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -74,7 +74,7 @@
                     <div class="col-md-6" id="ref_aerien" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Aérien)</label>
-                            <input type="text" name="reference_colis" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
 
