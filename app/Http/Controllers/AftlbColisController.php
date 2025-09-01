@@ -729,7 +729,7 @@ class AftlbColisController extends Controller
                                 ->implode(', ');
             $messageSmsDestinataire = "Bonjour, un colis (Réf: {$colisReferences}) vous est destiné. Il a été créé par {$expediteur->nom} et est en attente d'expédition. Vous serez notifié(e) de son avancement.";
 
-            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de nous faire confiance. Suivi : https://aft-app.com";
+            $messageSmsExpediteur = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de votre confiance. Suivi : https://aft-app.com";
             // Envoi du SMS à l'expéditeur
             if ($expediteurTel) { 
                 try {
@@ -827,10 +827,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
             $colis->save();
 
             // Préparer le message
-            $message = "Bonjour " . optional($colis->expediteur)->nom . ",
-                le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès.
-                Le prix est de " . number_format($colis->prix_transit_colis, 2, ',', ' ') . " CFA.
-                Connectez-vous pour effectuer votre paiement.";
+            $message = "Bonjour " . optional($colis->expediteur)->nom . ",le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Veuillez vous connecter à votre espace client pour le paiement. Merci de votre confiance.";
 
             // Envoi SMS avec gestion d’erreurs
             try {
