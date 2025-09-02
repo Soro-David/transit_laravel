@@ -2122,7 +2122,7 @@ public function validerBallon(Request $request)
 
             // Vérifier si le bateau est déjà récupéré
             if ($ballon->recuperer === 'oui' && $ballon->type === 'ballon') {
-                throw new Exception('⚠️ Ce bateau a déjà été récupéré.');
+                throw new Exception('⚠️ Ce ballon a déjà été récupéré.');
             }
 
             // dd($ballon);

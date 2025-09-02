@@ -34,7 +34,7 @@
                             <!-- Type de véhicule -->
                             <div class="col-md-3">
                                 <label for="type" class="form-label fw-bold">Véhicule de navigation:</label>
-                                <select id="type" name="type" class="form-select" onchange="toggleFields(); generateReference();">
+                                <select id="type" name="type" class="form-select" onchange="toggleFields(); generateReference(); updateAgenceDestinationOptions();">
                                     <option value="" disabled selected>Choisir un type</option>
                                     <option value="bateau">BATEAU</option>
                                     <option value="ballon">AVION</option>
@@ -81,7 +81,10 @@
                                 <select id="agence_destination" name="agence_destination" class="form-select">
                                     <option value="" disabled selected>-- Sélectionnez l'agence --</option>
                                     @foreach ($agencesDestination as $agence)
-                                        <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                                        <option value="{{ $agence->nom_agence }}"
+                                            data-type="{{ strpos($agence->nom_agence, 'Angre 8ème Tranche') !== false ? 'ballon' : 'bateau' }}">
+                                            {{ $agence->nom_agence }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -122,6 +125,24 @@
 
 <!-- Script JavaScript -->
 <script>
+    // Stocke toutes les agences de destination initiales
+    const allAgencesDestinationOptions = [];
+    document.addEventListener('DOMContentLoaded', function() {
+        const agenceDestinationSelect = document.getElementById("agence_destination");
+        agenceDestinationSelect.querySelectorAll('option').forEach(option => {
+            if (option.value !== "") { // Exclure l'option "Sélectionnez l'agence"
+                allAgencesDestinationOptions.push({
+                    value: option.value,
+                    text: option.text,
+                    type: option.dataset.type // Récupère le type défini dans l'HTML
+                });
+            }
+        });
+
+        // Appelle la fonction de mise à jour au chargement pour s'assurer de l'état initial
+        updateAgenceDestinationOptions();
+    });
+
     function generateReference() {
         const type = document.getElementById("type").value;
         const referenceConteneur = document.getElementById("reference_conteneur").value;
@@ -139,33 +160,105 @@
 
     function toggleFields() {
         const type = document.getElementById("type").value;
-        const agenceDestinationSelect = document.getElementById("agence_destination");
-        
         const bateauFields = document.querySelectorAll(".bateau-fields");
         const ballonFields = document.querySelectorAll(".ballon-fields");
 
         if (type === "bateau") {
             bateauFields.forEach(field => field.style.display = "block");
             ballonFields.forEach(field => field.style.display = "none");
-            
-            // Sélectionne automatiquement "IPMS-SIMEX-CI" pour le bateau
-            agenceDestinationSelect.value = "IPMS-SIMEX-CI";
-
         } else if (type === "ballon") {
             bateauFields.forEach(field => field.style.display = "none");
             ballonFields.forEach(field => field.style.display = "block");
-            
-            // *** CORRECTION APPLIQUÉE ICI ***
-            // Sélectionne automatiquement "IPMS-SIMEX-CI Angre 8ème Tranche" pour l'avion
-            agenceDestinationSelect.value = "IPMS-SIMEX-CI Angre 8ème Tranche";
-
         } else {
             bateauFields.forEach(field => field.style.display = "none");
             ballonFields.forEach(field => field.style.display = "none");
-            
-            // Réinitialise la sélection si aucune option n'est choisie
-            agenceDestinationSelect.value = "";
         }
+    }
+
+    // Nouvelle fonction pour mettre à jour les options de l'agence de destination
+    function updateAgenceDestinationOptions() {
+        const type = document.getElementById("type").value;
+        const agenceDestinationSelect = document.getElementById("agence_destination");
+        
+        // Nettoie les options actuelles
+        agenceDestinationSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
+
+        let filteredOptions = [];
+
+        if (type === "bateau") {
+            // Affiche seulement "IPMS-SIMEX-CI" et la sélectionne
+            const optionBateau = allAgencesDestinationOptions.find(opt => opt.value === "IPMS-SIMEX-CI");
+            if (optionBateau) {
+                filteredOptions.push(optionBateau);
+            }
+            // Mettez à jour l'affichage de l'agence si le type est "bateau"
+            document.getElementById('agence_destination').value = "IPMS-SIMEX-CI";
+            // Affiche "carrefour angre" au lieu de l'agence complète si c'est IPMS-SIMEX-CI
+            if (optionBateau && agenceDestinationSelect.value === "IPMS-SIMEX-CI") {
+                const newOption = document.createElement('option');
+                newOption.value = optionBateau.value;
+                newOption.textContent = "carrefour angre"; // Modifie le texte affiché
+                newOption.selected = true;
+                agenceDestinationSelect.appendChild(newOption);
+            } else {
+                // Ajouter l'option normale si non trouvé ou si l'affichage n'est pas "carrefour angre"
+                filteredOptions.forEach(option => {
+                    const newOption = document.createElement('option');
+                    newOption.value = option.value;
+                    newOption.textContent = option.text;
+                    newOption.dataset.type = option.type;
+                    if (option.value === "IPMS-SIMEX-CI") {
+                        newOption.selected = true;
+                    }
+                    agenceDestinationSelect.appendChild(newOption);
+                });
+            }
+
+
+        } else if (type === "ballon") {
+            // Affiche seulement "IPMS-SIMEX-CI Angre 8ème Tranche" et la sélectionne
+            const optionBallon = allAgencesDestinationOptions.find(opt => opt.value === "IPMS-SIMEX-CI Angre 8ème Tranche");
+            if (optionBallon) {
+                filteredOptions.push(optionBallon);
+            }
+            // Mettez à jour l'affichage de l'agence si le type est "ballon"
+            document.getElementById('agence_destination').value = "IPMS-SIMEX-CI Angre 8ème Tranche";
+            // Affiche "angre 8ème tranche" au lieu de l'agence complète si c'est IPMS-SIMEX-CI Angre 8ème Tranche
+            if (optionBallon && agenceDestinationSelect.value === "IPMS-SIMEX-CI Angre 8ème Tranche") {
+                const newOption = document.createElement('option');
+                newOption.value = optionBallon.value;
+                newOption.textContent = "angre 8ème tranche"; // Modifie le texte affiché
+                newOption.selected = true;
+                agenceDestinationSelect.appendChild(newOption);
+            } else {
+                // Ajouter l'option normale si non trouvé ou si l'affichage n'est pas "angre 8ème tranche"
+                filteredOptions.forEach(option => {
+                    const newOption = document.createElement('option');
+                    newOption.value = option.value;
+                    newOption.textContent = option.text;
+                    newOption.dataset.type = option.type;
+                    if (option.value === "IPMS-SIMEX-CI Angre 8ème Tranche") {
+                        newOption.selected = true;
+                    }
+                    agenceDestinationSelect.appendChild(newOption);
+                });
+            }
+
+        } else {
+            // Si aucun type n'est sélectionné, affiche toutes les options
+            filteredOptions = allAgencesDestinationOptions;
+            agenceDestinationSelect.value = ""; // Réinitialise la sélection
+
+            // Ajoute les options filtrées à la liste déroulante
+            filteredOptions.forEach(option => {
+                const newOption = document.createElement('option');
+                newOption.value = option.value;
+                newOption.textContent = option.text;
+                newOption.dataset.type = option.type;
+                agenceDestinationSelect.appendChild(newOption);
+            });
+        }
+        
     }
 </script>
 
