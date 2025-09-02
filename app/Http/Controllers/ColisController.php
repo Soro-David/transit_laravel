@@ -641,26 +641,33 @@ class ColisController extends Controller
 
     public function stepPayement()
     {
-       // Récupérer les données de l'étape 1 depuis la session
+        // Récupérer les données de l'étape 1 depuis la session
         $step1Data = session('step1');
 
         // Vérifier si les données existent et contiennent les prix
         if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
-            return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+            return redirect()->route('colis.create')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
         }
 
-        // Calculer le montant total en additionnant tous les prix du tableau 'prix'
+        // Calculer le montant total
         $totalPrice = collect($step1Data['prix'])->sum();
 
-        // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
-        session(['step1.total_prix' => $totalPrice]);
+        // Récupérer la devise
+        $devise = $step1Data['devise'] ?? 'EUR'; // fallback EUR si absent
 
-        // Retourner la vue de paiement en lui passant le montant total calculé
-        return view('admin.colis.add.payement', [
-            'totalPrice' => $totalPrice
+        // Stocker aussi en session (optionnel)
+        session([
+            'step1.total_prix' => $totalPrice,
+            'step1.devise' => $devise
         ]);
-        
+
+        // Retourner la vue de paiement en passant total + devise
+        return view('admin.colis.add.payement', [
+            'totalPrice' => $totalPrice,
+            'devise' => $devise
+        ]);
     }
+
 
     public function storePayement(Request $request) // Renommée depuis storePayment pour correspondre à la route utilisée dans le JS
     {
