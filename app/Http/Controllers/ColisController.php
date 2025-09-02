@@ -851,6 +851,7 @@ class ColisController extends Controller
             } else {
                 $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
             }
+            dd($referenceColisPrincipale);
         // --- CORRECTION 1 : Création du paiement principal en amont ---
         // Cet enregistrement représente la transaction globale.
         $paiementPrincipal = null;
