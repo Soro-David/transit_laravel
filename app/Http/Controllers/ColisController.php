@@ -775,11 +775,11 @@ class ColisController extends Controller
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
        
-        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur_societe'] ?? '';
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
         $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
         $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
-        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire_societe'] ?? '';
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
         $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
@@ -812,6 +812,7 @@ class ColisController extends Controller
             return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
         }
 
+        // dd($expediteur, $destinataire);
         $payementDataSession = session('step2', []);
         $montantTotalEstime = collect($data['prix'] ?? [])->map(function ($prixItem, $index) use ($data) {
             $quantite_ligne = $data['quantite_colis'][$index] ?? 0;

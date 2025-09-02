@@ -441,18 +441,6 @@
 
 <script>
 
-document.querySelector("form").addEventListener("submit", function(e){
-    // Expéditeur particulier
-    const countryParticulier = document.querySelector("#country_code_expediteur").value;
-    const telParticulier = document.querySelector("#tel_expediteur").value.replace(/\D/g,''); // enlever espaces
-    document.querySelector("#tel_expediteur").value = countryParticulier + telParticulier;
-
-    // Expéditeur société
-    const countrySociete = document.querySelector("#country_code_societe").value;
-    const telSociete = document.querySelector("#contact_societe_expediteur").value.replace(/\D/g,'');
-    document.querySelector("#contact_societe_expediteur").value = countrySociete + telSociete;
-});
-
 document.addEventListener('DOMContentLoaded', function () {
     const modeTransitSelect = document.getElementById('mode_transit');
     const refMaritime = document.getElementById('ref_maritime');
