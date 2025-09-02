@@ -114,7 +114,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="mb-3">
-                <label for="montant_reçu" class="form-label">Montant reçu (Montant total: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)</label>
+                <label for="montant_reçu" class="form-label">Montant reçu (Montant total: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }})</label>
                 <input type="number" name="montant_reçu" id="montant_reçu"
                        class="form-control"
                        placeholder="Entrez le montant reçu (max: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)"

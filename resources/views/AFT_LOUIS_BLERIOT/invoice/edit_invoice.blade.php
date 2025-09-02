@@ -450,7 +450,7 @@
                     color: #000; /* Corrigé ici */
                     letter-spacing: 1px;
                 }
- /* NOUVEAU/MODIFIÉ */
+        /* NOUVEAU/MODIFIÉ */
             .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
             .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
             .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */

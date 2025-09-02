@@ -116,8 +116,8 @@
                                     </select>
                                 </div>
                                 <div class="col-md-8">
-                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
+                                    <label for="tel_expediteur_societe" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>
@@ -225,15 +225,15 @@
                                 <div class="col-md-4">
                                     <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
                                     <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
-                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
                                         <option value="+86">Chine (+86)</option>
                                         <option value="+1">USA (+1)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8">
-                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
+                                    <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>
@@ -272,10 +272,10 @@
                                 <div class="col-md-4">
                                     <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
                                     <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
-                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
                                         <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
+                                        {{-- <option value="+1">USA (+1)</option> --}}
                                     </select>
                                 </div>
                                 <div class="col-md-8">

@@ -768,14 +768,15 @@ class ColisController extends Controller
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
        
-        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur_societe'] ?? '';
         $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
         $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
-        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire_societe'] ?? '';
         $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
+        // dd($expediteurTel, $destinataireTel);
 
         // dd($destinataireCountryCode, $expediteurCountryCode);
            $expediteurData = [
@@ -979,6 +980,7 @@ class ColisController extends Controller
 
         $colisEnregistresCollection = collect($colisEnregistres);
         $firstColis = $colisEnregistresCollection->first(); 
+        $devise = $firstColis->devise ?? 'EUR';
 
         session()->forget(['step1', 'step2']);
 
@@ -1019,6 +1021,7 @@ class ColisController extends Controller
             }
         }
 
+        // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
             'first' => $firstColis, 
@@ -1027,6 +1030,7 @@ class ColisController extends Controller
             'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
             'totalMontantPaye' => $montantPaiementTransaction,
+            'devise' => $firstColis['devise'],
         ]);
     }
 
@@ -1500,6 +1504,7 @@ class ColisController extends Controller
                     'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
                     // Optionally store other details from the first item if needed (like type_colis)
                     'type_colis'        => $colis->type_colis ?? 'N/A',
+                    
                 ];
             } else {
                  // Optional: You might want to check if the unit price is consistent here.
@@ -1548,6 +1553,8 @@ class ColisController extends Controller
              ]);
         }
 
+        $devise = $firstColis['devise'];
+
         // --- Pass data to the view ---
         // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
         $prix_total = $prix_total_invoice;
@@ -1565,7 +1572,8 @@ class ColisController extends Controller
             'numero_facture',
             // 'totalMontant' is redundant if it's the same as 'prix_total'
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise'
         ));
     }
 
@@ -2094,6 +2102,7 @@ public function destroy_colis_valide($reference)
     {
         $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
         
+        dd($colis);
         // Retournez une vue pour l'impression
         return view('admin.colis.colis_facture', compact('colis'));
     }
