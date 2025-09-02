@@ -769,11 +769,11 @@ class ColisController extends Controller
         $data['etat'] = $data['etat'] ?? 'Validé';
        
         $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
-        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
         $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
         $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
-        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
 

@@ -459,12 +459,12 @@ private function generateReferenceParMode(string $mode_transit)
         $data['etat'] = $data['etat'] ?? 'Validé';
        
         // Construction des numéros de téléphone complets avec indicatif
-        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
         $expediteurPhoneNumber = $data['tel_expediteur'] ?? '';
         $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
         $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
-        $destinatairePhoneNumber = $data['tel_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
         // dd($expediteurTel, $destinataireTel);
