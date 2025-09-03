@@ -538,11 +538,10 @@ class AftlbColisController extends Controller
     {
         DB::beginTransaction(); // Démarre la transaction ici pour englober toutes les opérations
 
-        // dd($request->all());
         // 1. Récupération et validation des données de session
         $data = array_merge(session('step1', []), session('step2', []));
 
-        // dd($data);
+        dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -769,20 +768,11 @@ class AftlbColisController extends Controller
             // }
 
 
+            // dd($firstColis);
             // 8. Affichage de la page de confirmation
             return view('AFT_LOUIS_BLERIOT.colis.add.complete', [
                 'colis' => $colisEnregistresCollection,
-                'first' => [
-                    'id' => $firstColis?->id,
-                    'reference_colis' => $firstColis?->reference_colis,
-                    'nom_destinataire' => optional($firstColis?->destinataire)->nom,
-                    'prenom_destinataire' => optional($firstColis?->destinataire)->prenom,
-                    'tel_destinataire' => optional($firstColis?->destinataire)->tel,
-                    'nom_expediteur' => optional($firstColis?->expediteur)->nom,
-                    'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
-                    'tel_expediteur' => optional($firstColis?->expediteur)->tel,
-                    'devise' => optional($firstColis)->devise,
-                ],
+                'first' => $firstColis,
                 'totalQuantite' => $colisEnregistresCollection->count(),
                 'totalPrixTransit' => $paiementPrincipal->montant,
                 'restePaye' => $paiementPrincipal->montant - $paiementPrincipal->montant_paye,
@@ -1405,6 +1395,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
     
         $restePaye = $totalMontant - $totalMontantPaye;
     
+        // dd($firstInfo);
         return view('AFT_LOUIS_BLERIOT.invoice.edit', [
             'colis' => $colisEnregistres,
             'first' => $firstInfo,
