@@ -110,10 +110,9 @@
                                 <div class="col-md-4">
                                     <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
                                     <select name="country_code_expediteur" id="country_code_expediteur" class="form-control">
-                                        <option value="+86" selected>Chine (+86)</option>
+                                        <option value="+86">Chine (+86)</option>
                                         <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
-                                        <option value="+1">USA (+1)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8">
@@ -168,7 +167,6 @@
                                         <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
                                         <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8">
@@ -224,10 +222,9 @@
                                 <div class="col-md-4">
                                     <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
                                     <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+86">Chine (+86)</option>
                                         <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8">
@@ -270,10 +267,9 @@
                                 <div class="col-md-4">
                                     <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
                                     <select name="country_code_destinataire" id="country_code_destinataire" class="form-control">
+                                        <option value="+86">Chine (+86)</option>
                                         <option value="+225">Côte d'Ivoire (+225)</option>
                                         <option value="+33">France (+33)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8">

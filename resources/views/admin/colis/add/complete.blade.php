@@ -38,19 +38,25 @@
                          <h4 class="card-title text-center mb-0 fw-bold">Expédition</h4>
                      </div>
                      <div class="card-body p-4">
-                         @if(isset($first))
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-50">Nom :</label>
-                             <span class="form-control-plaintext w-50">{{ $first['nom_expediteur'] ?? '' }} {{ $first['prenom_expediteur'] ?? '' }} {{ $first['prenom_expediteur_societe'] ?? '' }}</span>
-                         </div>
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-50">Téléphone :</label>
-                             <span class="form-control-plaintext w-50">{{ $first['tel_expediteur'] ?? '' }} {{ $first['tel_expediteur_societe'] ?? '' }}</span>
-                         </div>
-                         @else
-                          <p class="text-muted">Aucune information d'expéditeur.</p>
-                         @endif
-                     </div>
+                        @if(!empty($first))
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-50">Nom :</label>
+                                <span class="form-control-plaintext w-50">
+                                    {{ $first->nom_expediteur ?? $first->expediteur->nom ?? '' }}
+                                    {{ $first->prenom_expediteur_societe ?? '' }}
+                                </span>
+                            </div>
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-50">Téléphone :</label>
+                                <span class="form-control-plaintext w-50">
+                                    {{ $first->tel_expediteur ?? $first->expediteur->tel ?? '' }}
+                                </span>
+                            </div>
+                        @else
+                            <p class="text-muted">Aucune information d'expéditeur.</p>
+                        @endif
+                    </div>
+
                  </div>
              </div>
             {{-- Carte Destinataire --}}
@@ -63,11 +69,11 @@
                          @if(isset($first))
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Nom :</label>
-                             <span class="form-control-plaintext w-50">{{ $first['nom_destinataire'] ?? '' }}</span>
+                             <span class="form-control-plaintext w-50">{{ $first['nom_destinataire']}} {{ $first->destinataire->nom ?? '' }}</span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-50">Téléphone:</label>
-                             <span class="form-control-plaintext w-50">{{ $first['tel_destinataire'] ?? '' }} {{ $first['tel_destinataire_societe'] ?? '' }}</span>
+                             <span class="form-control-plaintext w-50">{{ $first['tel_destinataire'] ?? '' }}  {{ $first->destinataire->tel ?? '' }}</span>
                          </div>
                           @else
                            <p class="text-muted">Aucune information de destinataire.</p>

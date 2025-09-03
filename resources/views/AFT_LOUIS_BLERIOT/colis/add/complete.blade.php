@@ -41,11 +41,18 @@
                          @if(isset($first))
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }}</span>
+                             <span class="form-control-plaintext w-60">
+                                    {{ $first->nom_expediteur ?? $first->expediteur->nom ?? 'N/A' }}
+                                    {{ $first->prenom_expediteur ?? '' }}
+                                {{-- {{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }} --}}
+                             </span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-40">Téléphone :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
+                             <span class="form-control-plaintext w-60">
+                                {{ $first->tel_expediteur ?? $first->expediteur->tel ?? 'N/A' }}
+                                {{-- {{ $first['tel_expediteur'] ?? 'N/A' }}  --}}
+                            </span>
                          </div>
                          @else
                           <p class="text-muted">Aucune information d'expéditeur.</p>
@@ -63,11 +70,16 @@
                          @if(isset($first))
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_destinataire'] ?? 'N/A' }} {{ $first['prenom_destinataire'] ?? '' }}</span>
+                             <span class="form-control-plaintext w-60">
+                                {{ $first->nom_destinataire ?? $first->destinataire->nom ?? 'N/A' }}
+                                {{ $first->prenom_destinataire ?? '' }}
+                             </span>
                          </div>
                          <div class="mb-3 d-flex align-items-center">
                              <label class="form-label fw-bold w-40">Téléphone:</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
+                             <span class="form-control-plaintext w-60">
+                                {{ $first->tel_destinataire ?? $first->destinataire->tel ?? 'N/A' }}
+                             </span>
                          </div>
                           @else
                            <p class="text-muted">Aucune information de destinataire.</p>

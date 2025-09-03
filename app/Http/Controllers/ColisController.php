@@ -1029,6 +1029,7 @@ class ColisController extends Controller
             }
         }
 
+        // dd($firstColis->destinataire->tel);
         // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
