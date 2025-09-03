@@ -541,7 +541,7 @@ class AftlbColisController extends Controller
         // 1. Récupération et validation des données de session
         $data = array_merge(session('step1', []), session('step2', []));
 
-        dd($data);
+        // dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
