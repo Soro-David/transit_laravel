@@ -26,10 +26,7 @@
             font-size: 3em;
             font-weight: bold;
         }
-        .container {
-            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
-        }
-        
+
         h2 {
             color: #333; /* Couleur du titre */
             margin-bottom: 20px;
@@ -115,9 +112,7 @@
             opacity: 0.7;
             font-size: 13px;
         }
-        .container {
-            max-width: 1200px; /* Ajustez la largeur maximale selon vos besoins */
-        }
+
         
         h2 {
             color: #333; /* Couleur du titre */
@@ -336,9 +331,6 @@
             color: #6c757d;
         }
 
-        .container {
-            max-width: 960px;
-        }
     </style>
 </head>
     <header>
