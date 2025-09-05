@@ -123,11 +123,11 @@
         @else
             <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré pour cette transaction.</p>
         @endif
-        <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+        {{-- <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <a href="{{ url()->previous() }}" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2"></i> Retour
             </a>
-        </div>
+        </div> --}}
     </div>
 </section>
 
