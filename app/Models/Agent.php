@@ -32,6 +32,12 @@ class Agent extends Model
          return $this->hasMany(OperationComptable::class);
      }
 
+     public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+
    
      
 }

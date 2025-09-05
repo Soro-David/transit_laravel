@@ -85,18 +85,20 @@ class GestionAgentController extends Controller
   
     public function edit($id)
     {
-        $users = Agent::findOrFail($id);
-        
-        // dd($users );
-        return view('admin.gestion.agent.edit', compact('users'));
+        $agent = Agent::findOrFail($id);
+        $users = User::findOrFail($agent->user_id);
+
+        return view('admin.gestion.agent.edit', compact('users', 'agent'));
     }
 
     public function show($id)
     {
-        $users = Agent::findOrFail($id);
-        // dd($users );
-        return view('admin.gestion.agent.show', compact('users'));
+        $agent = Agent::findOrFail($id);
+        $users = User::findOrFail($agent->user_id);
+
+        return view('admin.gestion.agent.show', compact('users', 'agent'));
     }
+
 
     /**
      * Update the specified resource in storage.
