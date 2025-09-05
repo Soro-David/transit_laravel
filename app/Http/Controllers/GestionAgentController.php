@@ -86,7 +86,7 @@ class GestionAgentController extends Controller
     public function edit($id)
     {
         // dd($id);
-        $users = User::findOrFail($id);
+        $users = Agent::findOrFail($id);
         
         dd($users );
         return view('admin.gestion.agent.edit', compact('users'));
@@ -95,7 +95,7 @@ class GestionAgentController extends Controller
     public function show($id)
     {
         // dd($id);
-        $users = User::findOrFail($id);
+        $users = Agent::findOrFail($id);
         dd($users );
         return view('admin.gestion.agent.show', compact('users'));
     }
