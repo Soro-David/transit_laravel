@@ -30,11 +30,45 @@ class GestionAgentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create(Request $request)
-    {
-        
-       
+    {  
 
     }
+
+    public function add_agent()
+    {
+        $agences = Agence::select('nom_agence', 'id')->get();
+        return view('admin.gestion.agent.index', compact('agences'));
+    }
+
+    public function get_users(Request $request) // Renommer en get_agents serait plus cohérent
+{
+    if ($request->ajax()) {
+        // 1. On charge la relation 'agence' avec with() pour optimiser la requête.
+        // On sélectionne toutes les colonnes de la table 'agents' explicitement.
+        $data = Agent::with('agence')->select('agents.*');
+
+        return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                // Vos URLs de routes
+                $editUrl = route('agence.agent.edit', $row->id);
+                $showUrl = route('agence.agent.show', $row->id);
+                $deleteUrl = route('agence.agent.destroy', $row->id);
+
+                return '
+                    <a href="' . $showUrl . '" class="btn btn-sm btn-info" title="Voir"><i class="fas fa-eye"></i></a>
+                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-pencil-alt"></i></a>
+                    <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '"><i class="fas fa-trash"></i></button>
+                ';
+            })
+            // 2. On ajoute une nouvelle colonne pour le nom de l'agence
+            ->addColumn('agence', function ($agent) {
+                // On utilise l'opérateur "nullsafe" (?->) pour éviter une erreur si un agent n'a pas d'agence
+                return $agent->agence?->nom_agence ?? 'N/A';
+            })
+            ->rawColumns(['action']) // Indique à DataTables que la colonne 'action' contient du HTML
+            ->make(true);
+    }
+}
 
         public function update(Request $request, $id)
     {
@@ -134,35 +168,35 @@ class GestionAgentController extends Controller
 
 
 
-public function get_users(Request $request) // Renommer en get_agents serait plus cohérent
-{
-    if ($request->ajax()) {
-        // 1. On charge la relation 'agence' avec with() pour optimiser la requête.
-        // On sélectionne toutes les colonnes de la table 'agents' explicitement.
-        $data = Agent::with('agence')->select('agents.*');
+// public function get_users(Request $request)
+// {
+//     if ($request->ajax()) {
+//         // 1. On charge la relation 'agence' avec with() pour optimiser la requête.
+//         // On sélectionne toutes les colonnes de la table 'agents' explicitement.
+//         $data = Agent::with('agence')->select('agents.*');
 
-        return DataTables::of($data)
-            ->addColumn('action', function ($row) {
-                // Vos URLs de routes
-                $editUrl = route('agence.agent.edit', $row->id);
-                $showUrl = route('agence.agent.show', $row->id);
-                $deleteUrl = route('agence.agent.destroy', $row->id);
+//         return DataTables::of($data)
+//             ->addColumn('action', function ($row) {
+//                 // Vos URLs de routes
+//                 $editUrl = route('agence.agent.edit', $row->id);
+//                 $showUrl = route('agence.agent.show', $row->id);
+//                 $deleteUrl = route('agence.agent.destroy', $row->id);
 
-                return '
-                    <a href="' . $showUrl . '" class="btn btn-sm btn-info" title="Voir"><i class="fas fa-eye"></i></a>
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-pencil-alt"></i></a>
-                    <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '"><i class="fas fa-trash"></i></button>
-                ';
-            })
-            // 2. On ajoute une nouvelle colonne pour le nom de l'agence
-            ->addColumn('agence', function ($agent) {
-                // On utilise l'opérateur "nullsafe" (?->) pour éviter une erreur si un agent n'a pas d'agence
-                return $agent->agence?->nom_agence ?? 'N/A';
-            })
-            ->rawColumns(['action']) // Indique à DataTables que la colonne 'action' contient du HTML
-            ->make(true);
-    }
-}
+//                 return '
+//                     <a href="' . $showUrl . '" class="btn btn-sm btn-info" title="Voir"><i class="fas fa-eye"></i></a>
+//                     <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-pencil-alt"></i></a>
+//                     <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '"><i class="fas fa-trash"></i></button>
+//                 ';
+//             })
+//             // 2. On ajoute une nouvelle colonne pour le nom de l'agence
+//             ->addColumn('agence', function ($agent) {
+//                 // On utilise l'opérateur "nullsafe" (?->) pour éviter une erreur si un agent n'a pas d'agence
+//                 return $agent->agence?->nom_agence ?? 'N/A';
+//             })
+//             ->rawColumns(['action']) // Indique à DataTables que la colonne 'action' contient du HTML
+//             ->make(true);
+//     }
+// }
 
     
 }
