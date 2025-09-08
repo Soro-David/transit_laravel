@@ -494,6 +494,8 @@
                      <br>
                      <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
                      <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
+                     <p>Adresse de Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
+
                  </div>
                  <div class="invoice-meta">
                      <table>

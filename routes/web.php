@@ -71,7 +71,9 @@ use Carbon\Carbon;
 use App\Services\InfobipSmsService;
 use App\Mail\DevisCreatedMail;
 use Infobip\Api\Model\SmsTextualMessage; 
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Mail; 
+use App\Http\Controllers\InfoAUtoController;
+use App\Http\Controllers\ProspectController;
 
 
 Route::get('/test-mail', function () {
@@ -157,6 +159,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('home');
     Route::post('/logout', [LoginController::class, 'showLoginForm'])->name('logout');
      //DataTable route
+
 
     Route::get('/colis-admin/count', function () {
         $colisCount = Colis::where('etat', 'Validé')
@@ -254,6 +257,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
     });
 
+    Route::prefix('prospects')->name('prospects.')->group(function(){
+        Route::resource('/', ProspectController::class)->parameters(['' => 'prospect']); // Assurez-vous que le paramètre est 'prospect' pour le resource
+    });
+
     
 
     Route::prefix('invoice')->name('invoice.')->group(function(){
@@ -268,6 +275,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         });
         
+    
     Route::prefix('colis')->name('colis.')->group(function(){
         Route::get('/', [ColisController::class,'index'])->name('index'); 
         Route::get('/on-hold', [ColisController::class,'hold'])->name('hold'); 

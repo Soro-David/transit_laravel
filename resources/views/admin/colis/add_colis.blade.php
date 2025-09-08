@@ -239,9 +239,33 @@
                         </div>
                       
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control">
+                            <label for="adresse_destinataire" class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control" required>
+                                    <option value="Pas de livraison">Pas de Livraison</option>
+                                    <option value="Abobo">Abobo</option>
+                                    <option value="Adjamé">Adjamé</option>
+                                    <option value="Attécoubé">Attécoubé</option>
+
+                                    <option value="Cocody">Cocody</option>
+                                    <option value="Cocody">Palmeraie</option>
+                                    <option value="Koumassi">Koumassi</option>
+                                    <option value="Marcory">Marcory</option>
+                                    <option value="Plateau">Plateau</option>
+                                    <option value="Port-Bouët">Port-Bouët</option>
+                                    <option value="Treichville">Treichville</option>
+                                    <option value="Yopougon">Yopougon</option>
+                                    <option value="Songon">Songon</option>
+                                    <option value="Bingerville">Bingerville</option>
+                                    <option value="Anyama">Anyama</option>
+                                    <option value="Grand-Bassam">Grand-Bassam</option>
+                                    <option value="Dabou">Dabou</option>
+                                    <option value="Alépé">Alépé</option>
+                                    <option value="Azaguié">Azaguié</option>
+                                    <option value="Jacqueville">Jacqueville</option>
+                                    <option value="Agboville">Agboville</option>
+                            </select>
                         </div>
+
                         <div class="col-md-12 mb-3">
                             <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
                             <select name="agence_destinataire_societe" id="agence_particulier_destinataire_societe" class="form-control">
@@ -286,9 +310,33 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
+                            <label for="adresse_destinataire" class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control" required>
+                                <option value="">-- Sélectionnez une commune --</option>
+                                    <option value="Pas de livraison">Pas de Livraison</option>
+                                    <option value="Abobo">Abobo</option>
+                                    <option value="Adjamé">Adjamé</option>
+                                    <option value="Attécoubé">Attécoubé</option>
+                                    <option value="Cocody">Cocody</option>
+                                    <option value="Cocody">Palmeraie</option>
+                                    <option value="Koumassi">Koumassi</option>
+                                    <option value="Marcory">Marcory</option>
+                                    <option value="Plateau">Plateau</option>
+                                    <option value="Port-Bouët">Port-Bouët</option>
+                                    <option value="Treichville">Treichville</option>
+                                    <option value="Yopougon">Yopougon</option>
+                                    <option value="Songon">Songon</option>
+                                    <option value="Bingerville">Bingerville</option>
+                                    <option value="Anyama">Anyama</option>
+                                    <option value="Grand-Bassam">Grand-Bassam</option>
+                                    <option value="Dabou">Dabou</option>
+                                    <option value="Alépé">Alépé</option>
+                                    <option value="Azaguié">Azaguié</option>
+                                    <option value="Jacqueville">Jacqueville</option>
+                                    <option value="Agboville">Agboville</option>
+                            </select>
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
                             <select name="agence_particulier_destinataire" id="agence_particulier_destinataire_particulier" class="form-control">
@@ -423,7 +471,7 @@
                         <label for="agence" class="form-label">Agence de destination</label>
                         <select name="agence" id="agence" class="form-control">
                             <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angre 8ème Tranche</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option>
                             <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
                             <option value="Agence de Chine">Agence de Chine</option>
                         </select>
@@ -440,6 +488,323 @@
 </section>
 
 <script>
+    
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Fonctions utilitaires pour récupérer et mettre à jour les champs ---
+
+    /**
+     * Récupère un élément du DOM de manière sécurisée.
+     * @param {string} id L'ID de l'élément.
+     * @returns {HTMLElement|null} L'élément trouvé ou null.
+     */
+    function getElement(id) {
+        return document.getElementById(id);
+    }
+
+    /**
+     * Met à jour la valeur d'un champ s'il existe.
+     * @param {string} id L'ID du champ.
+     * @param {any} value La valeur à définir.
+     */
+    function updateFieldValue(id, value) {
+        const element = getElement(id);
+        if (element) {
+            element.value = value || ''; // Définit la valeur, ou une chaîne vide si null/undefined
+        }
+    }
+
+    /**
+     * Sélectionne une option dans un <select> s'il existe et si l'option est présente.
+     * @param {string} selector Le sélecteur CSS du <select>.
+     * @param {string} value La valeur de l'option à sélectionner.
+     */
+    function setSelectedOption(selector, value) {
+        const selectElement = document.querySelector(selector);
+        if (selectElement && value) {
+            const optionExists = Array.from(selectElement.options).some(option => option.value === value);
+            if (optionExists) {
+                selectElement.value = value;
+            }
+        }
+    }
+
+    /**
+     * Gère l'affichage des sections Particulier/Société.
+     * @param {HTMLElement} radioParticulier Le bouton radio "Particulier".
+     * @param {HTMLElement} radioSociete Le bouton radio "Société".
+     * @param {HTMLElement} sectionParticulier La section "Particulier".
+     * @param {HTMLElement} sectionSociete La section "Société".
+     */
+    function setupTypeSwitcher(radioParticulier, radioSociete, sectionParticulier, sectionSociete) {
+        if (!radioParticulier || !radioSociete || !sectionParticulier || !sectionSociete) {
+            console.warn('Certains éléments pour le switcher Particulier/Société sont manquants.');
+            return;
+        }
+
+        const toggleSections = () => {
+            if (radioParticulier.checked) {
+                sectionParticulier.style.display = 'block';
+                sectionSociete.style.display = 'none';
+            } else if (radioSociete.checked) {
+                sectionParticulier.style.display = 'none';
+                sectionSociete.style.display = 'block';
+            } else {
+                // Par défaut, masquer les deux ou montrer l'un si aucun n'est coché initialement
+                sectionParticulier.style.display = 'none';
+                sectionSociete.style.display = 'none';
+            }
+        };
+
+        // Initialisation
+        toggleSections();
+
+        // Écouteurs d'événements
+        radioParticulier.addEventListener('change', toggleSections);
+        radioSociete.addEventListener('change', toggleSections);
+    }
+
+
+    // --- Fonctions de récupération et de remplissage pour l'EXPÉDITEUR ---
+
+    const nomExpediteurInput = getElement('nom_expediteur');
+    const prenomExpediteurInput = getElement('prenom_expediteur');
+    const nomSocieteExpediteurInput = getElement('nom_societe_expediteur'); // Assurez-vous d'avoir cet ID
+
+    async function fetchExpediteurData() {
+        let nom = '';
+        let prenom = '';
+        let type = ''; // 'particulier' ou 'societe'
+
+        const radioParticulierExpediteur = getElement('type_expediteur_particulier');
+        const radioSocieteExpediteur = getElement('type_expediteur_societe');
+
+        if (radioParticulierExpediteur && radioParticulierExpediteur.checked) {
+            nom = nomExpediteurInput ? nomExpediteurInput.value.trim() : '';
+            prenom = prenomExpediteurInput ? prenomExpediteurInput.value.trim() : '';
+            type = 'particulier';
+        } else if (radioSocieteExpediteur && radioSocieteExpediteur.checked) {
+            nom = nomSocieteExpediteurInput ? nomSocieteExpediteurInput.value.trim() : ''; // Le nom de la société
+            // Pas de prénom pour une société, mais on peut passer le nom comme paramètre unique
+            type = 'societe';
+        } else {
+            console.log('Aucun type d\'expéditeur sélectionné.');
+            return;
+        }
+
+        if ((type === 'particulier' && (nom.length === 0 || prenom.length === 0)) ||
+            (type === 'societe' && nom.length === 0)) {
+            return; // Ne pas faire d'appel si les champs requis sont vides
+        }
+
+        console.log(`Recherche de l'expéditeur (${type}): ${nom} ${type === 'particulier' ? prenom : ''}`);
+
+        try {
+            const endpoint = type === 'particulier' ? `/api/expediteur?nom=${nom}&prenom=${prenom}` : `/api/expediteur-societe?nom_societe=${nom}`;
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.log(`Aucun expéditeur (${type}) trouvé avec les informations fournies.`);
+                } else {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                // Nettoyer les champs si aucun expéditeur n'est trouvé
+                clearExpediteurFields(type);
+                return;
+            }
+            const data = await response.json();
+
+            if (data && (data.nom || data.nom_societe)) { // Vérifie si des données valides sont retournées
+                console.log('Expéditeur trouvé:', data);
+
+                if (type === 'particulier') {
+                    updateFieldValue('email_expediteur', data.email);
+                    setSelectedOption('#particulier_expediteur_section select[name="country_code_expediteur"]', data.country_code);
+                    updateFieldValue('tel_expediteur', data.telephone);
+                    updateFieldValue('adresse_expediteur', data.adresse); // ID du champ d'adresse direct
+                    setSelectedOption('#agence_particulier_expediteur', data.agence);
+                } else { // type === 'societe'
+                    updateFieldValue('email_societe_expediteur', data.email); // ID du champ email pour société
+                    setSelectedOption('#societe_expediteur_section select[name="country_code_societe_expediteur"]', data.country_code); // ID du select indicatif pour société
+                    updateFieldValue('tel_societe_expediteur', data.telephone); // ID du champ tel pour société
+                    updateFieldValue('adresse_societe_expediteur', data.adresse); // ID du champ d'adresse pour société
+                    updateFieldValue('numero_siret_expediteur', data.siret); // Assurez-vous d'avoir cet ID
+                    setSelectedOption('#agence_societe_expediteur', data.agence); // ID du select agence pour société
+                }
+            } else {
+                console.log(`Aucun expéditeur (${type}) trouvé avec les informations fournies.`);
+                clearExpediteurFields(type);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération de l\'expéditeur:', error);
+            clearExpediteurFields(type);
+        }
+    }
+
+    function clearExpediteurFields(type) {
+        if (type === 'particulier') {
+            updateFieldValue('email_expediteur', '');
+            setSelectedOption('#particulier_expediteur_section select[name="country_code_expediteur"]', '');
+            updateFieldValue('tel_expediteur', '');
+            updateFieldValue('adresse_expediteur', '');
+            setSelectedOption('#agence_particulier_expediteur', '');
+        } else { // type === 'societe'
+            updateFieldValue('email_societe_expediteur', '');
+            setSelectedOption('#societe_expediteur_section select[name="country_code_societe_expediteur"]', '');
+            updateFieldValue('tel_societe_expediteur', '');
+            updateFieldValue('adresse_societe_expediteur', '');
+            updateFieldValue('numero_siret_expediteur', '');
+            setSelectedOption('#agence_societe_expediteur', '');
+        }
+    }
+
+    // Écouteurs d'événements pour l'expéditeur
+    if (nomExpediteurInput) nomExpediteurInput.addEventListener('blur', fetchExpediteurData);
+    if (prenomExpediteurInput) prenomExpediteurInput.addEventListener('blur', fetchExpediteurData);
+    if (nomSocieteExpediteurInput) nomSocieteExpediteurInput.addEventListener('blur', fetchExpediteurData);
+
+
+    // --- Fonctions de récupération et de remplissage pour le DESTINATAIRE ---
+
+    const nomDestinataireInput = getElement('nom_destinataire');
+    const prenomDestinataireInput = getElement('prenom_destinataire');
+    const nomSocieteDestinataireInput = getElement('nom_societe_destinataire'); // Assurez-vous d'avoir cet ID
+
+    async function fetchDestinataireData() {
+        let nom = '';
+        let prenom = '';
+        let type = '';
+
+        const radioParticulierDestinataire = getElement('type_destinataire_particulier');
+        const radioSocieteDestinataire = getElement('type_destinataire_societe');
+
+        if (radioParticulierDestinataire && radioParticulierDestinataire.checked) {
+            nom = nomDestinataireInput ? nomDestinataireInput.value.trim() : '';
+            prenom = prenomDestinataireInput ? prenomDestinataireInput.value.trim() : '';
+            type = 'particulier';
+        } else if (radioSocieteDestinataire && radioSocieteDestinataire.checked) {
+            nom = nomSocieteDestinataireInput ? nomSocieteDestinataireInput.value.trim() : '';
+            type = 'societe';
+        } else {
+            console.log('Aucun type de destinataire sélectionné.');
+            return;
+        }
+
+        if ((type === 'particulier' && (nom.length === 0 || prenom.length === 0)) ||
+            (type === 'societe' && nom.length === 0)) {
+            return;
+        }
+
+        console.log(`Recherche du destinataire (${type}): ${nom} ${type === 'particulier' ? prenom : ''}`);
+
+        try {
+            const endpoint = type === 'particulier' ? `/api/destinataire?nom=${nom}&prenom=${prenom}` : `/api/destinataire-societe?nom_societe=${nom}`;
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.log(`Aucun destinataire (${type}) trouvé avec les informations fournies.`);
+                } else {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                clearDestinataireFields(type);
+                return;
+            }
+            const data = await response.json();
+
+            if (data && (data.nom || data.nom_societe)) {
+                console.log('Destinataire trouvé:', data);
+
+                if (type === 'particulier') {
+                    updateFieldValue('email_destinataire', data.email);
+                    setSelectedOption('#particulier_destinataire_section select[name="country_code_destinataire"]', data.country_code);
+                    updateFieldValue('tel_destinataire', data.telephone);
+                    // Pour l'adresse de livraison (select ou input direct)
+                    // Si c'est un select:
+                    setSelectedOption('#particulier_destinataire_section select[name="adresse_destinataire_societe"]', data.adresse);
+                    // Si c'est un input text direct:
+                    updateFieldValue('adresse_destinataire', data.adresse); // Si l'input a cet ID
+                    setSelectedOption('select[name="agence_particulier_destinataire_particulier"]', data.agence);
+                } else { // type === 'societe'
+                    updateFieldValue('email_societe_destinataire', data.email);
+                    setSelectedOption('#societe_destinataire_section select[name="country_code_societe_destinataire"]', data.country_code);
+                    updateFieldValue('tel_societe_destinataire', data.telephone);
+                    updateFieldValue('adresse_societe_destinataire', data.adresse);
+                    updateFieldValue('numero_siret_destinataire', data.siret);
+                    setSelectedOption('select[name="agence_societe_destinataire"]', data.agence);
+                }
+            } else {
+                console.log(`Aucun destinataire (${type}) trouvé avec les informations fournies.`);
+                clearDestinataireFields(type);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération du destinataire:', error);
+            clearDestinataireFields(type);
+        }
+    }
+
+    function clearDestinataireFields(type) {
+        if (type === 'particulier') {
+            updateFieldValue('email_destinataire', '');
+            setSelectedOption('#particulier_destinataire_section select[name="country_code_destinataire"]', '');
+            updateFieldValue('tel_destinataire', '');
+            setSelectedOption('#particulier_destinataire_section select[name="adresse_destinataire_societe"]', '');
+            updateFieldValue('adresse_destinataire', '');
+            setSelectedOption('select[name="agence_particulier_destinataire_particulier"]', '');
+        } else { // type === 'societe'
+            updateFieldValue('email_societe_destinataire', '');
+            setSelectedOption('#societe_destinataire_section select[name="country_code_societe_destinataire"]', '');
+            updateFieldValue('tel_societe_destinataire', '');
+            updateFieldValue('adresse_societe_destinataire', '');
+            updateFieldValue('numero_siret_destinataire', '');
+            setSelectedOption('select[name="agence_societe_destinataire"]', '');
+        }
+    }
+
+
+    // Écouteurs d'événements pour le destinataire
+    if (nomDestinataireInput) nomDestinataireInput.addEventListener('blur', fetchDestinataireData);
+    if (prenomDestinataireInput) prenomDestinataireInput.addEventListener('blur', fetchDestinataireData);
+    if (nomSocieteDestinataireInput) nomSocieteDestinataireInput.addEventListener('blur', fetchDestinataireData);
+
+
+    // --- Logique pour les sélecteurs de type (Particulier/Société) ---
+
+    // Expéditeur
+    setupTypeSwitcher(
+        getElement('type_expediteur_particulier'),
+        getElement('type_expediteur_societe'),
+        getElement('particulier_expediteur_section'),
+        getElement('societe_expediteur_section')
+    );
+
+    // Destinataire
+    setupTypeSwitcher(
+        getElement('type_destinataire_particulier'),
+        getElement('type_destinataire_societe'),
+        getElement('particulier_destinataire_section'),
+        getElement('societe_destinataire_section')
+    );
+
+    // Déclenche la recherche lors du changement de type pour pré-remplir si l'utilisateur a déjà tapé
+    const radioExpediteurParticulier = getElement('type_expediteur_particulier');
+    const radioExpediteurSociete = getElement('type_expediteur_societe');
+    if (radioExpediteurParticulier) radioExpediteurParticulier.addEventListener('change', fetchExpediteurData);
+    if (radioExpediteurSociete) radioExpediteurSociete.addEventListener('change', fetchExpediteurData);
+
+    const radioDestinataireParticulier = getElement('type_destinataire_particulier');
+    const radioDestinataireSociete = getElement('type_destinataire_societe');
+    if (radioDestinataireParticulier) radioDestinataireParticulier.addEventListener('change', fetchDestinataireData);
+    if (radioDestinataireSociete) radioDestinataireSociataire.addEventListener('change', fetchDestinataireData);
+
+    // --- Suppression de la simulation de l'API Backend ---
+    // En production, nous allons réellement utiliser les routes Laravel.
+    // Retire le bloc `const mockDatabase = {...};` et `window.fetch = function(...)`
+    // qui simulent l'API.
+});
+
+
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
     const modeTransitSelect = document.getElementById('mode_transit');
@@ -458,8 +823,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Options agences selon mode de transit
     const agenceOptionsTransit = {
-        maritime: { value: "IPMS-SIMEX-CI", label: "Carrefour Angré" },
-        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "Angre 8ème Tranche" }
+        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
+        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
     };
 
     // Affichage des champs référence selon mode

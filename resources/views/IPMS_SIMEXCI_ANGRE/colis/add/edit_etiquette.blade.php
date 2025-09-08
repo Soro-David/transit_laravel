@@ -246,7 +246,7 @@
                                 </td>
                                 <td class="exp-cell">
                                     <span>{{ optional($exp)->nom }} {{ optional($exp)->prenom }}</span><br>
-                                    <span class="sub-info">{{ optional($exp)->tel ? str_replace([' ', '-'], '', $exp->tel) : 'N/A' }}</span>
+                                    {{-- <span class="sub-info">{{ optional($exp)->tel ? str_replace([' ', '-'], '', $exp->tel) : 'N/A' }}</span> --}}
                                 </td>
                             </tr>
                         </tbody>

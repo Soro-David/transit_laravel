@@ -147,7 +147,7 @@
                <li class="nav-item has-treeview">
                     <a href="{{ route('colis.liste_ballon') }}" class="nav-link">
                         <i class="fas fa-ship"></i>
-                        <p>{{ __('Ballon Arrivés') }}</p>
+                        <p>{{ __('Avion & Bateau Arrivés') }}</p>
                     </a>
                 </li>
                 {{-- Scan --}}
@@ -205,6 +205,13 @@
                     <a href="{{ route('client.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>{{ __('Clients') }}</p>
+                    </a>
+                </li>
+
+                 <li class="nav-item has-treeview">
+                    <a href="{{ route('prospects.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>{{ __('Prospect') }}</p>
                     </a>
                 </li>
                 {{-- Transport --}}

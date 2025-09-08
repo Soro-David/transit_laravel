@@ -314,13 +314,13 @@ class ApmsColisController extends Controller
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
 
-                    $expediteur = Expediteur::create([
+            $expediteur = Expediteur::create([
                 'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
                 'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
                 'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
                 'tel' => $expediteurTel, // Utilise le numéro complet
                 'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+                'lieu_expedition' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
 
             $destinataire = Destinataire::create([
@@ -329,7 +329,7 @@ class ApmsColisController extends Controller
                 'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
                 'tel' => $destinataireTel, // Utilise le numéro complet
                 'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+                'lieu_destination' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
     
         // Initialisation du tableau pour stocker les données des colis
@@ -1099,6 +1099,7 @@ public function editInvoice($id)
         'nom_destinataire' => optional($firstColis->destinataire)->nom,
         'prenom_destinataire' => optional($firstColis->destinataire)->prenom,
         'tel_destinataire' => optional($firstColis->destinataire)->tel,
+        'adresse_destinataire' => optional($firstColis->destinataire)->lieu_destination,
         'nom_expediteur' => optional($firstColis->expediteur)->nom,
         'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
         'tel_expediteur' => optional($firstColis->expediteur)->tel,
@@ -1352,6 +1353,7 @@ public function imprimerFacture($id)
     $tel_expediteur = optional($firstColis->expediteur)->tel;
     $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
     $tel_destinataire = optional($firstColis->destinataire)->tel;
+    $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
     $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
 
@@ -1428,7 +1430,8 @@ public function imprimerFacture($id)
         'invoiceItems',
         'numero_facture',
         'totalMontantPaye',
-        'restePaye'
+        'restePaye',
+        'adresse_destinataire'
     ));
 }
 

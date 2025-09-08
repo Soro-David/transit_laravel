@@ -188,7 +188,7 @@
             if (optionBateau) {
                 const newOption = document.createElement('option');
                 newOption.value = optionBateau.value;
-                newOption.textContent = "carrefour angre"; // Afficher "carrefour angre"
+                newOption.textContent = "DS Translog Carrefour Angre"; // Afficher "carrefour angre"
                 agenceDestinationSelect.appendChild(newOption);
                 selectedValue = optionBateau.value;
             }
@@ -198,7 +198,7 @@
             if (optionBallon) {
                 const newOption = document.createElement('option');
                 newOption.value = optionBallon.value;
-                newOption.textContent = "angre 8ème tranche"; // Afficher "angre 8ème tranche"
+                newOption.textContent = "DS Translog Angré 8ème Tranche"; // Afficher "angre 8ème tranche"
                 agenceDestinationSelect.appendChild(newOption);
                 selectedValue = optionBallon.value;
             }

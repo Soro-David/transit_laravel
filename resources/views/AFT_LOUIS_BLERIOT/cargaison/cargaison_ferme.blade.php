@@ -151,7 +151,7 @@
                 if (agence) {
                     const option = document.createElement("option");
                     option.value = agence.nom_agence;
-                    option.textContent = "Carrefour Angré"; // Afficher "Carrefour Angré"
+                    option.textContent = "DS Translog Carrefour Angré"; // Afficher "Carrefour Angré"
                     option.selected = true; // Sélectionner automatiquement
                     agenceDestinationSelect.appendChild(option);
                 }
@@ -161,7 +161,7 @@
                 if (agence) {
                     const option = document.createElement("option");
                     option.value = agence.nom_agence;
-                    option.textContent = "Angré 8ème Tranche"; // Afficher "Angré 8ème Tranche"
+                    option.textContent = "DS Translog Angré 8ème Tranche"; // Afficher "Angré 8ème Tranche"
                     option.selected = true; // Sélectionner automatiquement
                     agenceDestinationSelect.appendChild(option);
                 }

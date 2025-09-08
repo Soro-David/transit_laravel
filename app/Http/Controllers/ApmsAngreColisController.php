@@ -475,7 +475,7 @@ private function generateReferenceParMode(string $mode_transit)
                 'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
                 'tel' => $expediteurTel, // Utilise le numéro complet
                 'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+                'lieu_expedition' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
 
             $destinataire = Destinataire::create([
@@ -484,7 +484,7 @@ private function generateReferenceParMode(string $mode_transit)
                 'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
                 'tel' => $destinataireTel, // Utilise le numéro complet
                 'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+                'lieu_destination' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
 
 
@@ -665,6 +665,7 @@ private function generateReferenceParMode(string $mode_transit)
             'nom_destinataire' => optional($firstColis?->destinataire)->nom,
             'prenom_destinataire' => optional($firstColis?->destinataire)->prenom,
             'tel_destinataire' => optional($firstColis?->destinataire)->tel,
+            'adresse_destinataire' => optional($firstColis?->destinataire)->lieu_destination,
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis?->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis?->expediteur)->tel,
@@ -2300,6 +2301,7 @@ public function editInvoice($id)
         'nom_destinataire' => optional($firstColis->destinataire)->nom,
         'prenom_destinataire' => optional($firstColis->destinataire)->prenom,
         'tel_destinataire' => optional($firstColis->destinataire)->tel,
+        'adresse_destinataire' => optional($firstColis->destinataire)->lieu_destination,
         'nom_expediteur' => optional($firstColis->expediteur)->nom,
         'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
         'tel_expediteur' => optional($firstColis->expediteur)->tel,
@@ -2399,6 +2401,7 @@ public function editFacture($id)
     $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
     $tel_expediteur = optional($firstColis->expediteur)->tel;
     $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+    $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination; ;
     $tel_destinataire = optional($firstColis->destinataire)->tel;
     $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
@@ -2480,6 +2483,7 @@ public function editFacture($id)
         'totalMontantPaye',
         'restePaye',
         'devise',
+        'adresse_destinataire',
     ));
 }
 
@@ -2555,6 +2559,7 @@ public function imprimerFacture($id)
     $tel_expediteur = optional($firstColis->expediteur)->tel;
     $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
     $tel_destinataire = optional($firstColis->destinataire)->tel;
+    $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
     $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
     $reference_colis = $firstColis->reference_colis;
     $devise = $firstColis->devise;
@@ -2633,7 +2638,8 @@ public function imprimerFacture($id)
         'numero_facture',
         'totalMontantPaye',
         'restePaye',
-        'devise'
+        'devise',
+        'adresse_destinataire',
     ));
 }
 public function enregistrerPaiement(Request $request)

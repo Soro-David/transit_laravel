@@ -185,63 +185,103 @@ class AftlbColisController extends Controller
         return $baseReference; 
     }
    
+    // private function generateReferenceContenaire()
+    // {
+    //     $alphabet = range('A', 'Z');
+    //     $letterIndex = 0;
+    //     $increment = 1;
+    
+    //     do {
+    //         $currentLetter = $alphabet[$letterIndex];
+    //         $baseReference = "{$currentLetter}{$increment}";
+    
+    //         $exists = DB::table('colis')
+    //                     ->where('reference_contenaire', $baseReference)
+    //                     ->exists();
+    
+    //         if ($exists) {
+    //             $increment++;
+    //             if ($increment > 5) {
+    //                 $increment = 1;
+    //                 $letterIndex++;
+    //             }
+    //         }
+    //     } while ($exists && $letterIndex < count($alphabet));
+    
+    //     if ($letterIndex >= count($alphabet)) {
+    //         throw new \Exception("Plus de références de conteneur disponibles.");
+    //     }
+    
+    //     return $baseReference;
+    // }
+    
+    
+    // private function generateReferenceVol()
+    // {
+    //     $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
+    //     $letterIndex = 0; // Commencer par 'A'
+    //     $increment = 1; // Commencer par 1
+    
+    //     do {
+    //         $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
+    //         $baseReference = "{$currentLetter}{$increment}";
+    
+    //         // Vérifier si la référence existe dans la table `colis`
+    //         $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
+    
+    //         if ($exists) {
+    //             $increment++; // Incrémenter le numéro
+    
+    //             if ($increment > 5) {
+    //                 $increment = 1;
+    //                 $letterIndex++;
+    //             }
+    //         }
+    //     } while ($exists && $letterIndex < count($alphabet));
+    
+    //     return $baseReference;
+    // }
+
     private function generateReferenceContenaire()
     {
-        $alphabet = range('A', 'Z');
-        $letterIndex = 0;
-        $increment = 1;
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex];
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            $exists = DB::table('colis')
-                        ->where('reference_contenaire', $baseReference)
-                        ->exists();
-    
-            if ($exists) {
-                $increment++;
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        if ($letterIndex >= count($alphabet)) {
-            throw new \Exception("Plus de références de conteneur disponibles.");
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "TC")
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur
+            $newNumber = 1;
         }
-    
-        return $baseReference;
-    }
-    
-    
-    private function generateReferenceVol()
-    {
-        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
-        $increment = 1; // Commencer par 1
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-            if ($exists) {
-                $increment++; // Incrémenter le numéro
-    
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        return $baseReference;
+
+        return "TC" . $newNumber;
     }
 
+
+    private function generateReferenceVol()
+    {
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_vol')
+            ->orderByDesc('id')
+            ->value('reference_vol');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "A")
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol
+            $newNumber = 1;
+        }
+
+        return "A" . $newNumber;
+    }
 
     private function generateReferenceParMode(string $mode_transit)
     {
@@ -569,7 +609,7 @@ class AftlbColisController extends Controller
                 'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
                 'tel' => $expediteurTel, // Utilise le numéro complet
                 'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+                'lieu_expedition' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
 
             $destinataire = Destinataire::create([
@@ -578,7 +618,7 @@ class AftlbColisController extends Controller
                 'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
                 'tel' => $destinataireTel, // Utilise le numéro complet
                 'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+                'lieu_destination' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
 
             // 3. Préparation et création du dossier de paiement principal
@@ -988,6 +1028,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
         $tel_expediteur = $firstColis->expediteur->tel;
         $tel_destinataire = $firstColis->destinataire->tel;
         $destinataire = $firstColis->destinataire->nom . ' ' . $firstColis->destinataire->prenom;
+        $adresse_destinataire = $firstColis->destinataire->lieu_destination;
         $numero_facture = '00' . str_pad($firstColis->id, 3, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         
@@ -1061,6 +1102,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
             'totalMontantPaye',
             'restePaye',
             'colisCollection',
+            'adresse_destinataire'
 
         ));
     }
@@ -1088,6 +1130,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adesse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
@@ -1169,6 +1212,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
             'totalMontantPaye',
             'restePaye',
             'devise',
+            'adesse_destinataire'
         ));
     }
 
@@ -1273,6 +1317,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
@@ -1353,6 +1398,7 @@ public function update_hold(Request $request, InfobipService $infobipService)
             'totalMontantPaye',
             'restePaye',
             'devise',
+            'adresse_destinataire'
         ));
     }
 

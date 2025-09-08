@@ -135,26 +135,35 @@ class AgenceController extends Controller
     public function get_agence(Request $request)
     {
         if ($request->ajax()) {
-            $agence = Agence::select(['id','nom_agence', 'adresse_agence', 'pays_agence', 'devise_agence', 'prix_au_kg']);
+            $agence = Agence::select(['id', 'nom_agence', 'adresse_agence', 'pays_agence', 'devise_agence', 'created_at']);
+
             return DataTables::of($agence)
+                ->addColumn('displayed_nom_agence', function ($row) {
+                    if ($row->nom_agence === 'IPMS-SIMEX-CI') {
+                        return 'DS Translog Carrefour Angré';
+                    } elseif ($row->nom_agence === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'DS Translog Angré 8ème Tranche';
+                    }
+                    return $row->nom_agence;
+                })
                 ->addColumn('action', function ($row) {
-                    $editUrl = route('agence.agence.edit', ['id' => $row->id]);
-                    $showUrl = route('agence.agence.show', ['id' => $row->id]);
-                    $deleteUrl = route('agence.agence.destroy', ['id' => $row->id]);  // Route pour supprimer (à adapter)
-    
+                    $editUrl = route('agence.agence.edit', $row->id);
+                    $showUrl = route('agence.agence.show', $row->id);
+                    $deleteUrl = route('agence.agence.destroy', $row->id);
+
                     return '
-                        <a href="' . $showUrl . '" class="btn btn-sm btn-primary" title="Edit" data-bs-target="#editModal">
-                            <i class="fas fa-edit"></i>
+                        <a href="' . $showUrl . '" class="btn btn-sm btn-primary" title="Voir">
+                            <i class="fas fa-eye"></i>
                         </a>
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modify" data-bs-target="#modifModal">
+                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
-                         <button class="btn btn-sm btn-danger delete-btn" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">
-                                <i class="fas fa-trash"></i>
-                         </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-url="' . $deleteUrl . '">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     ';
                 })
-                ->rawColumns(['action']) // Permet de rendre le HTML
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }

@@ -203,9 +203,9 @@
                 name: 'destinataire_agence.nom_agence',
                 render: function(data, type, row) {
                     if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                        return 'Angre 8 ème Tranche';
+                        return 'DS Translog Angré 8ème Tranche';
                     } else if (data === 'IPMS-SIMEX-CI') {
-                        return 'Carrefour Angré';
+                        return 'DS Translog Carrefour Angré';
                     }
                     return data;
                 }

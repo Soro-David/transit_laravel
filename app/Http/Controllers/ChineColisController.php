@@ -185,60 +185,43 @@ class ChineColisController extends Controller
    
     private function generateReferenceContenaire()
     {
-        $alphabet = range('A', 'Z');
-        $letterIndex = 0;
-        $increment = 1;
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex];
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            $exists = DB::table('colis')
-                        ->where('reference_contenaire', $baseReference)
-                        ->exists();
-    
-            if ($exists) {
-                $increment++;
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        if ($letterIndex >= count($alphabet)) {
-            throw new \Exception("Plus de références de conteneur disponibles.");
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "TC")
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur
+            $newNumber = 1;
         }
-    
-        return $baseReference;
+
+        return "TC" . $newNumber;
     }
-    
-    
+
+
     private function generateReferenceVol()
     {
-        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
-        $increment = 1; // Commencer par 1
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-            if ($exists) {
-                $increment++; // Incrémenter le numéro
-    
-                // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
-                if ($increment > 5) {
-                    $increment = 1; // Réinitialiser le numéro
-                    $letterIndex++; // Passer à la lettre suivante
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
-    
-        return $baseReference;// Retourner la référence finale
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_vol')
+            ->orderByDesc('id')
+            ->value('reference_vol');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "A")
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol
+            $newNumber = 1;
+        }
+
+        return "A" . $newNumber;
     }
 
 private function generateReferenceParMode(string $mode_transit)
@@ -609,7 +592,7 @@ public function vol_fermer(Request $request)
                 'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
                 'tel' => $expediteurTel, // Utilise le numéro complet
                 'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
+                'lieu_expedition' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
 
             $destinataire = Destinataire::create([
@@ -618,7 +601,7 @@ public function vol_fermer(Request $request)
                 'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
                 'tel' => $destinataireTel, // Utilise le numéro complet
                 'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
-                'adresse' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
+                'lieu_destination' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
     
             // dd($destinataire);
@@ -779,6 +762,7 @@ public function vol_fermer(Request $request)
             'id' => $firstColis?->id,
             'reference_colis' => $firstColis?->reference_colis,
             'nom_destinataire' => optional($firstColis?->destinataire)->nom,
+            'adresse_destinataire' => optional($firstColis?->destinataire)->lieu_destination,
             'prenom_destinataire' => optional($firstColis?->destinataire)->prenom,
             'tel_destinataire' => optional($firstColis?->destinataire)->tel,
             'nom_expediteur' => optional($firstColis?->expediteur)->nom,
@@ -834,6 +818,7 @@ public function vol_fermer(Request $request)
             'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
             'totalMontantPaye' => $montantPaiementTransaction, // Montant effectivement payé pour la transaction
+            
         ]);
     }
 
@@ -898,6 +883,7 @@ public function vol_fermer(Request $request)
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
@@ -914,7 +900,8 @@ public function vol_fermer(Request $request)
             $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
     
             $groupKey = $serviceDescription;
-            // dd($groupKey);
+            // dd($groupKey); 
+
             if (!isset($groupedItems[$groupKey])) {
                 $groupedItems[$groupKey] = [
                     'service'           => $serviceDescription,
@@ -978,6 +965,7 @@ public function vol_fermer(Request $request)
             'totalMontantPaye',
             'restePaye',
             'devise',
+            'adresse_destinataire',
         ));
     }
 
@@ -1294,6 +1282,7 @@ public function vol_fermer(Request $request)
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
@@ -1373,6 +1362,7 @@ public function vol_fermer(Request $request)
             'totalMontantPaye',
             'restePaye',
             'devise',
+            'adresse_destinataire',
         ));
     }
 
@@ -1396,6 +1386,7 @@ public function vol_fermer(Request $request)
             'nom_destinataire' => optional($firstColis->destinataire)->nom,
             'prenom_destinataire' => optional($firstColis->destinataire)->prenom,
             'tel_destinataire' => optional($firstColis->destinataire)->tel,
+            'adresse_destinataire' => optional($firstColis->destinataire)->lieu_destination,
             'nom_expediteur' => optional($firstColis->expediteur)->nom,
             'prenom_expediteur' => optional($firstColis->expediteur)->prenom,
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
@@ -1422,6 +1413,7 @@ public function vol_fermer(Request $request)
             'restePaye' => $restePaye,
             'mode_payement' => $mode_payement,
             'totalMontantPaye' => $totalMontantPaye,
+            
             // 'devise' => $firstColis->devise,
         ]);
     }
@@ -1674,61 +1666,6 @@ public function vol_fermer(Request $request)
     }
 
 
-    // public function edit_hold($id)
-    // {
-    //     // dd($id);
-    //     $colis = Colis::findOrFail($id);
-    //     // dd($colis);
-    //     return view('AGENCE_CHINE.colis.edit_hold', compact('colis'));
-    // }
-
-
-
-
-    // public function update_hold(Request $request) // Suppression de $id ici
-    // {
-    //     // Validation des données (important pour la sécurité)
-    //     $validatedData = $request->validate([
-    //         'colis.*.prix_transit_colis' => 'required|numeric|min:0',
-    //         // Ajoutez d'autres règles de validation pour chaque champ modifiable.
-    //     ]);
-
-    //     $colisData = $request->input('colis');
-
-    //     foreach ($colisData as $colisId => $data) {
-    //         try {
-    //             $colis = Colis::findOrFail($colisId);
-
-    //             // Mise à jour des champs autorisés (sécurité !)
-    //             $colis->prix_transit_colis = $data['prix_transit_colis'];
-    //             $colis->status = 'payé';
-    //             $colis->etat = 'Devis';
-    //             $colis->save();
-
-    //             // Reconstitution des données du QR Code (Déplacer hors de la boucle si les données ne changent pas)
-    //             $qrData = [
-    //                 'Référence colis' => $colis->reference_colis,
-    //                 'Statut' => $colis->status,
-    //                 'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-    //                 'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-    //                 'Téléphone Destinataire' => $colis->destinataire->tel,
-    //                 'Agence Destination' => $colis->destinataire->agence ?? '',
-    //                 'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-    //             ];
-
-    //             // Logique du QR code ici si nécessaire (vous pouvez logguer, enregistrer, etc.)
-    //             Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
-    //         } catch (\Exception $e) {
-    //             Log::error('Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //             return back()->with('error', 'Erreur lors de la mise à jour du colis ' . $colisId . ': ' . $e->getMessage());
-    //         }
-    //     }
-
-    //     // Redirection avec un message de succès
-    //     return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
-    // }
-
     public function update_hold(Request $request, InfobipSmsService $InfobipSmsService)
     {
         $validatedData = $request->validate([
@@ -1765,38 +1702,6 @@ public function vol_fermer(Request $request)
         return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
     }
 
-    // Fonction update pour les colis en attente
-    // public function update_hold(Request $request, $id)
-    // {
-
-    //     // Validation des données
-    //     $request->validate([
-    //         // 'destinataire_agence' => 'required|string|max:255',
-    //         // 'destinataire_tel' => 'required|string|max:255',
-    //         // 'quantite_colis' => 'required|numeric',
-    //         // 'valeur_colis' => 'required|numeric',
-    //         // 'mode_transit' => 'required|string|max:255',
-    //         // 'poids_colis' => 'required|numeric',
-    //         // 'prix_transit_colis' => 'required|numeric',
-    //     ]);
-    
-    //     // Récupération du colis
-    //     $colis = Colis::findOrFail($id);
-    //     // Mise à jour des champs
-    //     $colis->update([
-    //         'destinataire_agence' => $request->input('destinataire_agence'),
-    //         'destinataire_tel' => $request->input('destinataire_tel'),
-    //         'quantite_colis' => $request->input('quantite_colis'),
-    //         'valeur_colis' => $request->input('valeur_colis'),
-    //         'mode_transit' => $request->input('mode_transit'),
-    //         'poids_colis' => $request->input('poids_colis'),
-    //         'prix_transit_colis' => $request->input('prix_transit_colis'),
-    //         'status' => 'payé', // Ajout du statut
-    //         'etat' => 'Devis', // Ajout du statut
-    //     ]);
-    //     // Redirection avec un message de succès
-    //     return redirect()->route('chine_colis.hold')->with('success', 'Colis mis à jour avec succès !');
-    // }
 
     /**
      * Remove the specified resource from storage.

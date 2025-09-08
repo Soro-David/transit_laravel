@@ -100,8 +100,8 @@
     <script>
         // Tableau des agences de destination
         const agencesData = {
-            'IPMS-SIMEX-CI': 'Carrefour Angre',
-            'IPMS-SIMEX-CI Angre 8ème Tranche': 'Angre 8ème Tranche'
+            'IPMS-SIMEX-CI': 'DS Translog Carrefour Angre',
+            'IPMS-SIMEX-CI Angre 8ème Tranche': 'DS Translog Angré 8ème Tranche'
         };
 
         function generateReferenceBateau() {

@@ -475,7 +475,7 @@
                      <h2>AFT IMPORT EXPORT</h2>
                      <p>7 AVENUE LOUIS BLERIOT LA COURNEUVE</p>
                      <p>93120 France</p>
-                     <p>Tel. +33171894351</p>
+                     <p>Tel: +33171894351</p>
                  </div>
              </div>
 
@@ -493,6 +493,7 @@
                      <br>
                      <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
                      <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
+                     <p>Adresse de Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
                  </div>
                  <div class="invoice-meta">
                      <table>

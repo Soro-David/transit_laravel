@@ -288,137 +288,48 @@ class ColisController extends Controller
         return $baseReference; // Retourne la référence unique pour ce colis
     }
    
+
+
     private function generateReferenceContenaire()
     {
-        $alphabet = range('A', 'Z');
-        $letterIndex = 0;
-        $increment = 1;
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex];
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            $exists = DB::table('colis')
-                        ->where('reference_contenaire', $baseReference)
-                        ->exists();
-    
-            if ($exists) {
-                $increment++;
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        if ($letterIndex >= count($alphabet)) {
-            throw new \Exception("Plus de références de conteneur disponibles.");
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "TC")
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur
+            $newNumber = 1;
         }
-    
-        return $baseReference;
+
+        return "TC" . $newNumber;
     }
-    
- 
 
 
     private function generateReferenceVol()
     {
-        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
-        $increment = 1; // Commencer par 1
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-            if ($exists) {
-                $increment++; // Incrémenter le numéro
-    
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        return $baseReference;
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_vol')
+            ->orderByDesc('id')
+            ->value('reference_vol');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "A")
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol
+            $newNumber = 1;
+        }
+
+        return "A" . $newNumber;
     }
-
-    // private function generateReferenceColisComplet()
-    // {
-    //     $user = Auth::user();
-
-    //     if (!$user) {
-            
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-
-    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-    //     $contenaireRef = DB::table('colis')
-    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-    //         ->orderByDesc('id')
-    //         ->value('reference_contenaire');
-
-    //     if (!$contenaireRef) {
-    //         $contenaireRef = $this->generateReferenceContenaire();
-    //         if (!$contenaireRef) {
-    //             throw new \Exception("Impossible de générer une référence de conteneur.");
-    //         }
-    //     }
-
-    //     $lastId = DB::table('colis')->max('id');
-
-    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
-
-    // private function generateReferenceParMode(string $mode_transit)
-    // {
-    //     $user = Auth::user();
-    //     if (!$user) {
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-
-    //     // Récupérer les initiales utilisateur
-    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-
-    //     // Récupérer le dernier id_reference pour ce mode de transit
-    //     $lastIdRef = DB::table('colis')
-    //         ->where('mode_transit', $mode_transit)
-    //         ->max('id_reference');
-
-    //     $nextIdRef = $lastIdRef ? $lastIdRef + 1 : 1;
-
-    //     // Récupérer ou générer le conteneur
-    //     $contenaireRef = DB::table('colis')
-    //         ->where('mode_transit', $mode_transit)
-    //         ->where('etat', '!=', 'Fermé')
-    //         ->orderByDesc('id')
-    //         ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-
-    //     // Construction finale
-    //     $numero = str_pad($nextIdRef, 3, '0', STR_PAD_LEFT); // 001, 002, ...
-    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'id_reference' => $nextIdRef,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
 
 
     private function generateReferenceParMode(string $mode_transit)
@@ -498,7 +409,7 @@ class ColisController extends Controller
         // $referenceColis = $this->generateReferenceParMode();
         $referenceColis_maritime = $this->generateReferenceParMode('maritime');
         $referenceColis_aerien = $this->generateReferenceParMode('aerien');
-        // dd($referenceColis);
+        // dd($referenceColis_maritime);
         return view('admin.colis.add_colis', compact(
             'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis_maritime','referenceColis_aerien'
         ));
@@ -792,7 +703,7 @@ class ColisController extends Controller
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
             'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
-            'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
+            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
 
         $destinataireData = [
@@ -801,7 +712,7 @@ class ColisController extends Controller
             'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
             'tel' => $destinataireTel, // numéro complet avec indicatif
             'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
-            'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
+            'lieu_destination' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
         ];
 
         try {
@@ -993,7 +904,7 @@ class ColisController extends Controller
         session()->forget(['step1', 'step2']);
 
         $totalQuantitePhysique = $colisEnregistresCollection->count();
-        $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
+        $totalPrixTransit = $firstColis->prix_transit_colis;
         $restePaye = $totalPrixTransit - $montantPaiementTransaction;
         if ($modePaiement === 'delivery') {
             $restePaye = $totalPrixTransit;
@@ -1003,8 +914,6 @@ class ColisController extends Controller
         $expediteurTelForSms = $expediteurTel;
         $destinataireTelForSms = $destinataireTel;
 
-        // dd($expediteurTelForSms, $destinataireTelForSms);
-        
         $colisReferences = $colisEnregistresCollection
             ->pluck('reference_colis')
             ->unique()
@@ -1029,8 +938,6 @@ class ColisController extends Controller
             }
         }
 
-        // dd($firstColis->destinataire->tel);
-        // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
             'first' => $firstColis, 
@@ -1279,6 +1186,7 @@ class ColisController extends Controller
         $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
@@ -1375,7 +1283,8 @@ class ColisController extends Controller
             'numero_facture',
             'totalMontantPaye',
             'restePaye',
-            'devise'
+            'devise',
+            'adresse_destinataire'
 
             
         ));
@@ -1483,6 +1392,7 @@ class ColisController extends Controller
         $tel_expediteur = optional($firstColis->expediteur)->tel;
         $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
@@ -1583,6 +1493,7 @@ class ColisController extends Controller
             'totalMontantPaye',
             'restePaye',
             'devise'
+            ,'adresse_destinataire'
         ));
     }
 
@@ -2111,7 +2022,7 @@ public function destroy_colis_valide($reference)
     {
         $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
         
-        dd($colis);
+        // dd($colis);
         // Retournez une vue pour l'impression
         return view('admin.colis.colis_facture', compact('colis'));
     }

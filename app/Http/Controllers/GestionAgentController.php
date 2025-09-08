@@ -47,7 +47,7 @@ class GestionAgentController extends Controller
             'last_name'  => 'required|string|max:255',
             'email'      => 'required|email',
             'role'       => 'required|string',
-            'password'   => 'nullable|string|min:6|confirmed', // mot de passe facultatif
+            'password'   => 'nullable|string|min:6|confirmed',
         ]);
 
         // Récupération de l'utilisateur
