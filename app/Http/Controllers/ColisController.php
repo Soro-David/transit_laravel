@@ -814,10 +814,7 @@ class ColisController extends Controller
 
         // dd($expediteur, $destinataire);
         $payementDataSession = session('step2', []);
-        $montantTotalEstime = collect($data['prix'] ?? [])->map(function ($prixItem, $index) use ($data) {
-            $quantite_ligne = $data['quantite_colis'][$index] ?? 0;
-            return (float)($prixItem ?? 0) * (int)$quantite_ligne;
-        })->sum();
+        $montantTotalEstime = collect($data['prix'] ?? [])->sum();
         
         $modePaiement = $payementDataSession['mode_payement'] ?? null;
         $montantPaiementTransaction = 0;
@@ -898,12 +895,15 @@ class ColisController extends Controller
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
-            $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
+            $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
+    // On s'assure de ne pas diviser par zéro
+    $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
+    
 
-            for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-                $id_reference = $dernierIdReference + 1; // Incrémente pour chaque colis individuel
-                $dernierIdReference++;
-
+    for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
+        $id_reference = $dernierIdReference + 1;
+        $dernierIdReference++;
+        
                 $colisItemData = [
                     'devise' => $data['devise'] ?? null,
                     'reference_colis' => $referenceColisPrincipale,

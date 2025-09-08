@@ -346,11 +346,22 @@ class CustomerColisController extends Controller
         // dd($expediteurData, $destinataireData);
 
         try {
-            $expediteur = Expediteur::create($expediteurData);
+            // --- CORRECTION MAJEURE ICI ---
+            // Cherche un expéditeur avec le user_id de l'utilisateur connecté.
+            // S'il existe, met à jour ses infos. Sinon, le crée.
+            $expediteur = Expediteur::updateOrCreate(
+                ['user_id' => $userId], // Critères de recherche (clé unique)
+                $expediteurData        // Données à mettre à jour ou à insérer
+            );
+            
+            // Pour le destinataire, on continue de créer un nouvel enregistrement
+            // car un utilisateur peut envoyer à de multiples destinataires différents.
             $destinataire = Destinataire::create($destinataireData);
+            // --- FIN DE LA CORRECTION ---
+    
         } catch (\Exception $e) {
-            Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
+            Log::error('Erreur création/màj Expediteur/Destinataire: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations.');
         }
 
         $colisEnregistres = [];

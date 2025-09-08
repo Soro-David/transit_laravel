@@ -2,23 +2,81 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // <-- IMPORTANT : Ajoutez cette ligne
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Colis;
+use App\Models\Expediteur;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    //
     public function __construct()
     {
         $this->middleware('role:user');
     }
 
-    public function index()
+    // On injecte "Request" pour pouvoir lire les paramètres de l'URL
+    public function index(Request $request)
     {
-        $id=request();
-        // dd(request());
-        return view('customer.dashboard');
-    }
+        $user = Auth::user();
+        $expediteurIds = Expediteur::where('user_id', $user->id)->pluck('id');
 
+        // Les compteurs globaux en haut de la page ne changent pas
+        $devisEnAttenteCount = Colis::whereIn('expediteur_id', $expediteurIds)->where('etat', 'En attente')->distinct('reference_colis')->count();
+        $colisEnCoursCount = Colis::whereIn('expediteur_id', $expediteurIds)->whereIn('etat', ['Validé', 'En entrepot', 'Chargé', 'En transit', 'Dechargé'])->distinct('reference_colis')->count();
+        $colisLivresCount = Colis::whereIn('expediteur_id', $expediteurIds)->where('etat', 'Livré')->distinct('reference_colis')->count();
+
+        // --- SECTION MODIFIÉE POUR LE FILTRE ---
+
+        // 1. On récupère le filtre de l'URL. Par défaut, on affiche 'en_cours'.
+        $filter = $request->input('filter', 'en_cours');
+
+        // 2. On prépare la requête de base pour le suivi
+        $suiviQuery = Colis::select('reference_colis', DB::raw('MAX(updated_at) as last_updated_at'))
+            ->whereIn('expediteur_id', $expediteurIds)
+            ->where('etat', '!=', 'En attente') // On exclut toujours les devis non validés
+            ->groupBy('reference_colis');
+
+        // 3. On applique le filtre sur la requête
+        if ($filter === 'livre') {
+            // Si on veut voir les colis livrés, on ne prend que ceux avec l'état 'Livré' ou 'Fermé'
+            $suiviQuery->whereIn('etat', ['Livré', 'Fermé']);
+        } else { // Par défaut, 'en_cours'
+            // Sinon, on prend tous les colis qui NE SONT PAS 'Livré' ou 'Fermé'
+            $suiviQuery->whereNotIn('etat', ['Livré', 'Fermé']);
+        }
+
+        // 4. On exécute la requête finale
+        $references = $suiviQuery->orderBy('last_updated_at', 'desc')
+                                ->limit(10) // On peut augmenter la limite si besoin
+                                ->pluck('reference_colis');
+        
+        // --- FIN DE LA SECTION MODIFIÉE ---
+
+        $colisPourSuivi = [];
+        foreach ($references as $reference) {
+            $latestColis = Colis::where('reference_colis', $reference)
+                                ->orderBy('updated_at', 'desc')
+                                ->first();
+            
+            if ($latestColis) {
+                $colisPourSuivi[] = [
+                    'reference' => $latestColis->reference_colis,
+                    'etat' => $latestColis->etat,
+                    'mode_transit' => $latestColis->mode_transit,
+                ];
+            }
+        }
+        
+        return view('customer.dashboard', compact(
+            'devisEnAttenteCount', 
+            'colisEnCoursCount',
+            'colisLivresCount',
+            'colisPourSuivi',
+            'filter' // On passe le filtre actuel à la vue pour savoir quel bouton est actif
+        ));
+    }
     public function update_profile_photo(Request $request)
     {
         // Étape 1 : Validation de l'entrée

@@ -11,6 +11,7 @@ use App\Models\Agent;
 use App\Models\Produit;
 use App\Models\Colis;
 use App\Models\Expediteur;
+use App\Services\CurrencyConverterService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -120,41 +121,52 @@ class BilanController extends Controller
         $agentTotals = ['totalPrix' => '0.00', 'totalPaye' => '0.00', 'totalResteAPayer' => '0.00'];
 
         if ($selectedAgentId) {
-            $agentColisCollection = Colis::with(['paiement'])
+            // Récupérer les colis de l'agent avec leurs paiements
+            $colisCollection = Colis::with('paiements')
                 ->where('etat', 'Validé')
                 ->where('agent_id', $selectedAgentId)
                 ->get();
-
-            $agentColis = $agentColisCollection->map(function ($colis) {
-                $montantPaye = optional($colis->paiement)->montant ?? 0;
-                $prixColis = $colis->prix_transit_colis;
-                $resteAPayer = max(0, $prixColis - $montantPaye);
-
-                return [
-                    'reference_colis' => $colis->reference_colis,
-                    'date_paiement' => optional($colis->paiement)->date_validation ?? 'Non payé',
-                    'mode_transit' => $colis->mode_transit,
-                    'prix_colis' => number_format($prixColis, 2),
-                    'montant_paye' => number_format($montantPaye, 2),
-                    'reste_a_payer' => number_format($resteAPayer, 2),
+        
+            // Grouper les colis par leur référence
+            $colisGroupes = $colisCollection->groupBy('reference_colis');
+        
+            $agentColis = []; // Tableau final pour la vue
+        
+            // Itérer sur chaque groupe de colis (ex: tous les colis 'CA-0001-A1')
+            foreach ($colisGroupes as $reference => $colisDuGroupe) {
+                
+                // --- NOUVELLE LOGIQUE ---
+                // 1. Récupérer tous les paiements liés au groupe et les dédoublonner
+                $paiementsUniques = $colisDuGroupe->flatMap(function ($colis) {
+                    return $colis->paiements;
+                })->unique('id'); // 'id' est la clé primaire de la table paiements
+        
+                // 2. Calculer les totaux à partir de la table PAIEMENTS uniquement
+                // Le "Prix Total" est la somme de la colonne 'montant' des paiements
+                $prixTotalGroupe = $paiementsUniques->sum('montant');
+                
+                // Le "Montant Payé" est la somme de la colonne 'montant_paye' des paiements
+                $montantPayeGroupe = $paiementsUniques->sum('montant_paye');
+        
+                // 3. Calculer le reste à payer
+                $resteAPayerGroupe = $prixTotalGroupe - $montantPayeGroupe;
+        
+                // 4. Récupérer la date du paiement le plus récent pour l'affichage
+                $dernierPaiement = $paiementsUniques->sortByDesc('date_validation')->first();
+        
+                // 5. Assembler la ligne finale pour le tableau
+                $agentColis[] = [
+                    'reference_colis' => $reference,
+                    'date_paiement'   => $dernierPaiement ? $dernierPaiement->date_validation->format('Y-m-d H:i:s') : 'Non payé',
+                    'mode_transit'    => $colisDuGroupe->first()->mode_transit, // Le mode est le même pour tout le groupe
+                    'prix_colis'      => number_format($prixTotalGroupe, 2, '.', ''),
+                    'montant_paye'    => number_format($montantPayeGroupe, 2, '.', ''),
+                    'reste_a_payer'   => number_format($resteAPayerGroupe, 2, '.', ''),
                 ];
-            })->toArray();
-
-            // Calcul des totaux
-            $totalPrix = $agentColisCollection->sum('prix_transit_colis');
-            $totalPaye = $agentColisCollection->sum(function ($colis) {
-                return optional($colis->paiement)->montant ?? 0;
-            });
-            $totalResteAPayer = $agentColisCollection->sum(function ($colis) {
-                $montantPaye = optional($colis->paiement)->montant ?? 0;
-                return max(0, $colis->prix_transit_colis - $montantPaye);
-            });
-
-            $agentTotals = [
-                'totalPrix' => number_format($totalPrix, 2),
-                'totalPaye' => number_format($totalPaye, 2),
-                'totalResteAPayer' => number_format($totalResteAPayer, 2),
-            ];
+            }
+        
+            // On supprime le calcul des totaux globaux comme demandé
+            $agentTotals = null; 
         }
 
         // Récupérer les opérations comptables (les 10 dernières GLOBAL)
@@ -165,15 +177,44 @@ class BilanController extends Controller
             ->whereNotNull('reference_contenaire')
             ->distinct()
             ->pluck('reference_contenaire'); // GLOBAL - plus de filtre agent
+// ================ CALCUL DES TOTAUX PAR AGENCE ================
+$etatsColisActifs = ['Validé', 'Fermé', 'En entrepôt', 'Chargé'];
 
+// Total pour l'agence Louis Bleriot
+$totalTransitLouisBleriot = Colis::whereIn('etat', $etatsColisActifs)
+    ->whereHas('agent.agence', function ($query) {
+        $query->where('nom_agence', 'AFT Agence Louis Bleriot');
+    })
+    ->sum('prix_transit_colis');
+
+// Total pour l'agence de Chine
+$totalTransitChine = Colis::whereIn('etat', $etatsColisActifs)
+    ->whereHas('agent.agence', function ($query) {
+        $query->where('nom_agence', 'Agence de Chine');
+    })
+    ->sum('prix_transit_colis');
+// --- NOUVELLES MODIFICATIONS ---
+
+        // 1. Instancier le service de conversion
+        $converter = new CurrencyConverterService();
+
+        // 2. Convertir le total de la Chine en Euros pour l'affichage secondaire
+        $totalTransitChineEnEuros = $converter->convertCfaToEur($totalTransitChine);
+
+        // 3. RECALCULER le total global en additionnant les montants DANS LA MÊME DEVISE (€)
+        $totalPrixTransitColis = $totalTransitLouisBleriot + $totalTransitChineEnEuros;
+
+        // --- FIN DES MODIFICATIONS ---
 
         return view('admin.bilan.bilan', compact(
             'colisData', 'moisNoms', 'customers_count', 'products_count',
-            'colisCount', 'totalPrixTransitColis',// Renommé pour éviter confusion
+            'colisCount', 'totalPrixTransitColis', // Cette variable contient maintenant le total correct
             'volCargaisonCount', 'colisAerienCount', 'volValideCount', 'volEnCoursCount',
             'volAnnuleCount', 'conteneurCount', 'colisMaritimeCount', 'conteneurValideCount',
             'conteneurEnCoursCount', 'conteneurAnnuleCount', 'agents', 'agentColis', 'agentTotals',
-            'selectedAgentId', 'operationsComptables', 'montantBilan', 'conteneursDisponibles'
+            'selectedAgentId', 'operationsComptables', 'montantBilan', 'conteneursDisponibles', 
+            'totalTransitLouisBleriot', 'totalTransitChine',
+            'totalTransitChineEnEuros' // On passe la nouvelle variable à la vue
         ));
     }
 
