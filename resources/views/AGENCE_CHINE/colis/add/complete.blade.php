@@ -32,49 +32,61 @@
                  </div>
              </div>
              {{-- Carte Expediteur --}}
-             <div class="col-md-5 col-lg-4">
-                 <div class="card border-0 rounded shadow-sm">
-                     <div class="card-header bg-light border-0">
-                         <h4 class="card-title text-center mb-0 fw-bold">Expéditeur</h4>
-                     </div>
-                     <div class="card-body p-4">
-                         @if(isset($first))
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_expediteur'] ?? 'N/A' }} {{ $first['prenom_expediteur'] ?? '' }}</span>
-                         </div>
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Téléphone :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_expediteur'] ?? 'N/A' }}</span>
-                         </div>
-                         @else
-                          <p class="text-muted">Aucune information d'expéditeur.</p>
-                         @endif
-                     </div>
-                 </div>
-             </div>
-            {{-- Carte Destinataire --}}
-             <div class="col-md-5 col-lg-4">
-                  <div class="card border-0 rounded shadow-sm">
-                     <div class="card-header bg-light border-0">
-                         <h4 class="card-title text-center mb-0 fw-bold">Destinataire</h4>
-                     </div>
+            <div class="col-md-5 col-lg-4">
+                <div class="card border-0 rounded shadow-sm">
+                    <div class="card-header bg-light border-0">
+                        <h4 class="card-title text-center mb-0 fw-bold">Expéditeur</h4>
+                    </div>
                     <div class="card-body p-4">
-                         @if(isset($first))
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Nom :</label>
-                             <span class="form-control-plaintext w-60">{{ $first['nom_destinataire'] ?? 'N/A' }} {{ $first['prenom_destinataire'] ?? '' }}</span>
-                         </div>
-                         <div class="mb-3 d-flex align-items-center">
-                             <label class="form-label fw-bold w-40">Téléphone:</label>
-                             <span class="form-control-plaintext w-60">{{ $first['tel_destinataire'] ?? 'N/A' }}</span>
-                         </div>
-                          @else
-                           <p class="text-muted">Aucune information de destinataire.</p>
-                          @endif
-                     </div>
-                 </div>
-             </div>
+                        @if(isset($first))
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-40">Nom :</label>
+                                <span class="form-control-plaintext w-60">
+                                    {{ $first->nom_expediteur ?? $first->expediteur->nom ?? 'N/A' }}
+                                    {{ $first->prenom_expediteur ?? '' }}
+                                </span>
+                            </div>
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-40">Téléphone :</label>
+                                <span class="form-control-plaintext w-60">
+                                    {{ $first->tel_expediteur ?? $first->expediteur->tel ?? 'N/A' }}
+                                </span>
+                            </div>
+                        @else
+                            <p class="text-muted">Aucune information d'expéditeur.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Carte Destinataire --}}
+            <div class="col-md-5 col-lg-4">
+                <div class="card border-0 rounded shadow-sm">
+                    <div class="card-header bg-light border-0">
+                        <h4 class="card-title text-center mb-0 fw-bold">Destinataire</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        @if(isset($first))
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-40">Nom :</label>
+                                <span class="form-control-plaintext w-60">
+                                    {{ $first->nom_destinataire ?? $first->destinataire->nom ?? 'N/A' }}
+                                    {{ $first->prenom_destinataire ?? '' }}
+                                </span>
+                            </div>
+                            <div class="mb-3 d-flex align-items-center">
+                                <label class="form-label fw-bold w-40">Téléphone :</label>
+                                <span class="form-control-plaintext w-60">
+                                    {{ $first->tel_destinataire ?? $first->destinataire->tel ?? 'N/A' }}
+                                </span>
+                            </div>
+                        @else
+                            <p class="text-muted">Aucune information de destinataire.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <hr>
@@ -117,11 +129,11 @@
         @else
             <p class="text-danger mt-3">Aucun colis spécifique n'a été enregistré pour cette transaction.</p>
         @endif
-        <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+        {{-- <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <a href="{{ url()->previous() }}" class="btn btn-secondary d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2"></i> Retour
             </a>
-        </div>
+        </div> --}}
     </div>
 </section>
 

@@ -224,7 +224,7 @@
                 //     return false; // Arrêter la soumission
                 // }
                 if (montantRecu > prixColis) { // Vérification du maximum
-                    alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' FCFA).');
+                    alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' EUR).');
                      $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
                     return false; // Arrêter la soumission
                 }
@@ -279,7 +279,7 @@
                 //     console.log(errorMessage); // Pour débogage
                  } else if (montantSaisi > prixColis) { // Vérification du maximum
                     isValid = false;
-                    errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' FCFA.';
+                    errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' EUR.';
                     console.log(errorMessage); // Pour débogage
                 }
             }

@@ -114,10 +114,13 @@
     <div class="row">
         <div class="col-md-6">
             <div class="mb-3">
-                <label for="montant_reçu" class="form-label">Montant reçu (Montant total: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)</label>
+               <label for="montant_reçu" class="form-label">
+                    Montant reçu (Montant total: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} {{ $devise }})
+                </label>
+
                 <input type="number" name="montant_reçu" id="montant_reçu"
                        class="form-control"
-                       placeholder="Entrez le montant reçu (max: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} FCFA)"
+                       placeholder="Entrez le montant reçu (max: {{ number_format($totalPrice ?? 0, 0, ',', ' ') }} {{$devise}})"
                        max="{{ $totalPrice ?? 0 }}" {{-- Utilisation de la variable $totalPrice --}}
                        min="0" {{-- Gardez si nécessaire --}}
                        step="1">
@@ -221,7 +224,7 @@
                 }
             
                 if (montantRecu > prixColis) { // Vérification du maximum
-                    alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' FCFA).');
+                    alert('Le montant reçu ne peut pas dépasser le prix du colis (' + prixColis + ' {{$devise}}).');
                      $('#montant_reçu').addClass('is-invalid').focus(); // Indiquer l'erreur
                     return false; // Arrêter la soumission
                 }
@@ -272,11 +275,11 @@
                     // On ne bloque pas ici pour un champ vide, mais on pourrait si on voulait
                 // } else if (montantSaisi < 100) { // <<<<----- Vérification du minimum
                 //     isValid = false;
-                //     errorMessage = 'Le montant doit être d\'au moins 100 FCFA.';
+                //     errorMessage = 'Le montant doit être d\'au moins 100 {{$devise}}.';
                 //     console.log(errorMessage); // Pour débogage
                 } else if (montantSaisi > prixColis) { // Vérification du maximum
                     isValid = false;
-                    errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' FCFA.';
+                    errorMessage = 'Le montant ne peut pas dépasser ' + prixColis + ' {{$devise}}.';
                     console.log(errorMessage); // Pour débogage
                 }
             }

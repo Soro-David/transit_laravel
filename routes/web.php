@@ -395,12 +395,13 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         Route::post('/store', [AgenceController::class,'store'])->name('store'); 
         // Routes pour les agences
-        Route::get('/agence/{id}/edit', [AgenceController::class, 'edit'])->name('agence.edit');
-        Route::get('/agence/{id}/show', [AgenceController::class, 'show'])->name('agence.show');
-        Route::put('/agence/{id}', [AgenceController::class, 'update'])->name('agence.update');
+        Route::get('/{id}/edit', [AgenceController::class, 'edit'])->name('agence.edit');
+        Route::get('/{id}/show', [AgenceController::class, 'show'])->name('agence.show');
+        Route::put('/{id}', [AgenceController::class, 'update'])->name('agence.update');
 
         // Route pour les agents
-        Route::get('/agent/data',[AdminController::class, 'get_users'])->name('get.agent');
+        Route::get('/agent/data',[GestionAgentController::class, 'get_users'])->name('get.agent');
+        Route::get('/agent',[GestionAgentController::class, 'add_agent'])->name('agent');
         Route::get('/agent/{id}/edit', [GestionAgentController::class, 'edit'])->name('agent.edit');
         Route::get('/agent/{id}/show', [GestionAgentController::class, 'show'])->name('agent.show');
         Route::put('/agent/{id}', [GestionAgentController::class, 'update'])->name('agent.update');

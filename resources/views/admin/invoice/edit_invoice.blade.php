@@ -451,7 +451,7 @@
                     color: #000; /* Corrigé ici */
                     letter-spacing: 1px;
                 }
- /* NOUVEAU/MODIFIÉ */
+         /* NOUVEAU/MODIFIÉ */
             .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
             .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
             .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */
@@ -528,8 +528,8 @@
                     <tr>
                         <th class="col-produit">Produit / Service</th>
                         <th class="col-qty">Qté</th>
-                        <th class="col-price">P.U. (FCFA)</th>
-                        <th class="col-montant">Montant (FCFA)</th>
+                        <th class="col-price">P.U. ({{ $devise ?? ' ' }})</th>
+                        <th class="col-montant">Montant ({{ $devise ?? ' ' }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -556,7 +556,7 @@
             <div class="totals-summary">
                 <table>
                     <tr><td>Sous total</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
-                    <tr><td>Montant total (FCFA)</td><td class="grand-total-header">{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
+                    <tr><td>Montant total ({{ $devise ?? ' ' }})</td><td class="grand-total-header">{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
                 </table>
             </div>
 
@@ -577,9 +577,9 @@
             <!-- Final Totals -->
              <div class="final-totals">
                  <table>
-                     <tr><td>Total (FCFA)</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
-                     <tr><td>Total Payé (FCFA)</td><td>{{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }}</td></tr>
-                     <tr class="reste-a-payer"><td>Reste à payer (FCFA)</td><td>{{ number_format($restePaye ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr><td>Total ({{ $devise ?? ' ' }})</td><td>{{ number_format($prix_total ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr><td>Total Payé ({{ $devise ?? ' ' }})</td><td>{{ number_format($totalMontantPaye ?? 0, 0, ',', ' ') }}</td></tr>
+                     <tr class="reste-a-payer"><td>Reste à payer (v)</td><td>{{ number_format($restePaye ?? 0, 0, ',', ' ') }}</td></tr>
                  </table>
                  <div class="simulated-barcode-small"></div>
              </div>

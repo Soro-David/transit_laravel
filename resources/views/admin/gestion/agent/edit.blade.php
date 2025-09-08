@@ -6,7 +6,7 @@
 @section('content')
 <section class="p-4 mx-auto">
     
-    <form action="{{route('agence.agent.update',['id' => $users->id]) }})}}" method="POST" class="form-container">
+    <form action="{{route('agence.agent.update',['id' => $users->id]) }}" method="POST" class="form-container">
         @csrf
         @method('PUT')
         <div class="form-section">
@@ -40,15 +40,20 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="agence" class="form-label">Rôle</label>
-                        <input type="text" name="agence" id="agence" 
-                                value="{{$users->agence->nom_agence}}" class="form-control" >
-                    </div>
+           <div class="row">
+                <div class="form-group mb-3 col-md-6">
+                    <label for="password">Mot de passe:</label>
+                    <input type="password" name="password" class="form-control" id="password" autocomplete="new-password">
+                    @error('password')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
+                </div>
+                <div class="form-group mb-3 col-md-6">
+                    <label for="password_confirmation">Confirmer le mot de passe:</label>
+                    <input type="password" name="password_confirmation" class="form-control mt-2" placeholder="Confirmer le mot de passe" autocomplete="new-password">
+                    @error('password')<div class="text-danger"><p>{{ $message }}</p></div>@enderror
                 </div>
             </div>
+
+
         </div>
         {{-- Boutons "Retour" et "Mise à jour" --}}
         <div class="d-flex justify-content-start gap-2 mt-4">
@@ -62,6 +67,14 @@
 
 </form>
 </section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("password").value = "";
+        document.getElementById("password_confirmation").value = "";
+    });
+</script>
+
 
 {{-- CSS Personnalisé --}}
 <style>

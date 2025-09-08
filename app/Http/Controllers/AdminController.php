@@ -128,6 +128,8 @@ public function index()
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'agence_id' => $request->agence_id,
+            'agence_id' => $request->agence_id,
+            'is_active'  => true,
         ]);
         // dd($user->id);
         // Créer un agent et lier au user créé juste avant

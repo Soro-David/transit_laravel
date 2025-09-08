@@ -5,13 +5,13 @@
 <section class="py-3">
             <div class="row justify-content-center">
                 <div class="col-md-12">
-                            <h2>Liste des utilisateurs</h2>
+                            <h2>Liste des Agences</h2>
                             <div class="table-responsive">
 
-                                <div class="text-right">
+                                {{-- <div class="text-right">
                                     <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#ajouter_agent">
                                         Ajouter une agence
-                                    </button>
+                                    </button> --}}
                                 </div><br>
                                 <table id="agence-table" class="table table-bordered">
                                     <thead>
@@ -20,7 +20,7 @@
                                             <th>ADRESSE</th>
                                             <th>PAYS</th>
                                             {{-- <th>DEVIS</th> --}}
-                                            <th>ACTIONS</th>
+                                            {{-- <th>ACTIONS</th> --}}
                                         </tr>
                                     </thead>
                                 </table>
@@ -159,37 +159,11 @@
                     { data: 'adresse_agence', name: 'adresse_agence' },
                     { data: 'pays_agence', name: 'pays_agence' },
                    // { data: 'devise_agence', name: 'devise_agence' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                  //  { data: 'action', name: 'action', orderable: false, searchable: false }
                     ]
             });
 
         });
-
-//  // Gestion de l'édition
-//  $(document).on('click', '.edit-btn', function () {
-//             const id = $(this).data('id');
-//             console.log(id);
-            
-//             $.get(`/agences/${id}/edit`, function (data) {
-//                 $('#editModal #nom_agence').val(data.nom_agence);
-//                 $('#editModal #adresse').val(data.adresse_agence);
-//                 $('#editModal #pays_agence').val(data.pays_agence);
-//                 $('#editModal #devise').val(data.devise_agence);
-//                 $('#editModal #prix_au_kg').val(data.prix_au_kg);
-//             });
-//         });
-
-//         // Gestion de la modification
-//         $(document).on('click', '.modif-btn', function () {
-//             const id = $(this).data('id');
-//             $.get(`/agences/${id}`, function (data) {
-//                 $('#modifModal #nom_agence').val(data.nom_agence);
-//                 $('#modifModal #adresse').val(data.adresse_agence);
-//                 $('#modifModal #pays_agence').val(data.pays_agence);
-//                 $('#modifModal #devise').val(data.devise_agence);
-//                 $('#modifModal #prix_au_kg').val(data.prix_au_kg);
-//             });
-//         });
 
 
 $(document).on('click', '.delete-btn', function () {

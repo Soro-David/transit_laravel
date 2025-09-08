@@ -641,26 +641,33 @@ class ColisController extends Controller
 
     public function stepPayement()
     {
-       // Récupérer les données de l'étape 1 depuis la session
+        // Récupérer les données de l'étape 1 depuis la session
         $step1Data = session('step1');
 
         // Vérifier si les données existent et contiennent les prix
         if (!$step1Data || !isset($step1Data['prix']) || !is_array($step1Data['prix'])) {
-            return redirect()->route('chine_colis.add')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
+            return redirect()->route('colis.create')->with('error', 'Données de colis manquantes ou invalides. Veuillez recommencer.');
         }
 
-        // Calculer le montant total en additionnant tous les prix du tableau 'prix'
+        // Calculer le montant total
         $totalPrice = collect($step1Data['prix'])->sum();
 
-        // Optionnel mais recommandé : stocker aussi le total en session pour usage ultérieur
-        session(['step1.total_prix' => $totalPrice]);
+        // Récupérer la devise
+        $devise = $step1Data['devise'] ?? 'EUR'; // fallback EUR si absent
 
-        // Retourner la vue de paiement en lui passant le montant total calculé
-        return view('admin.colis.add.payement', [
-            'totalPrice' => $totalPrice
+        // Stocker aussi en session (optionnel)
+        session([
+            'step1.total_prix' => $totalPrice,
+            'step1.devise' => $devise
         ]);
-        
+
+        // Retourner la vue de paiement en passant total + devise
+        return view('admin.colis.add.payement', [
+            'totalPrice' => $totalPrice,
+            'devise' => $devise
+        ]);
     }
+
 
     public function storePayement(Request $request) // Renommée depuis storePayment pour correspondre à la route utilisée dans le JS
     {
@@ -768,14 +775,15 @@ class ColisController extends Controller
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
        
-        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
-        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur'] ?? '';
+        $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
+        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
         $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
-        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
-        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire'] ?? '';
+        $destinataireCountryCode = $data['country_code_destinataire'] ?? '';
+        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
         $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
+        // dd($expediteurTel, $destinataireTel);
 
         // dd($destinataireCountryCode, $expediteurCountryCode);
            $expediteurData = [
@@ -804,6 +812,7 @@ class ColisController extends Controller
             return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
         }
 
+        // dd($expediteur, $destinataire);
         $payementDataSession = session('step2', []);
         $montantTotalEstime = collect($data['prix'] ?? [])->map(function ($prixItem, $index) use ($data) {
             $quantite_ligne = $data['quantite_colis'][$index] ?? 0;
@@ -851,6 +860,7 @@ class ColisController extends Controller
             } else {
                 $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
             }
+            // dd($referenceColisPrincipale);
         // --- CORRECTION 1 : Création du paiement principal en amont ---
         // Cet enregistrement représente la transaction globale.
         $paiementPrincipal = null;
@@ -978,6 +988,7 @@ class ColisController extends Controller
 
         $colisEnregistresCollection = collect($colisEnregistres);
         $firstColis = $colisEnregistresCollection->first(); 
+        $devise = $firstColis->devise ?? 'EUR';
 
         session()->forget(['step1', 'step2']);
 
@@ -1018,6 +1029,8 @@ class ColisController extends Controller
             }
         }
 
+        // dd($firstColis->destinataire->tel);
+        // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
             'first' => $firstColis, 
@@ -1026,6 +1039,7 @@ class ColisController extends Controller
             'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
             'totalMontantPaye' => $montantPaiementTransaction,
+            'devise' => $firstColis['devise'],
         ]);
     }
 
@@ -1499,6 +1513,7 @@ class ColisController extends Controller
                     'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
                     // Optionally store other details from the first item if needed (like type_colis)
                     'type_colis'        => $colis->type_colis ?? 'N/A',
+                    
                 ];
             } else {
                  // Optional: You might want to check if the unit price is consistent here.
@@ -1547,6 +1562,8 @@ class ColisController extends Controller
              ]);
         }
 
+        $devise = $firstColis['devise'];
+
         // --- Pass data to the view ---
         // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
         $prix_total = $prix_total_invoice;
@@ -1564,7 +1581,8 @@ class ColisController extends Controller
             'numero_facture',
             // 'totalMontant' is redundant if it's the same as 'prix_total'
             'totalMontantPaye',
-            'restePaye'
+            'restePaye',
+            'devise'
         ));
     }
 
@@ -2093,6 +2111,7 @@ public function destroy_colis_valide($reference)
     {
         $colis = Colis::with(['expediteur', 'destinataire'])->findOrFail($id);
         
+        dd($colis);
         // Retournez une vue pour l'impression
         return view('admin.colis.colis_facture', compact('colis'));
     }

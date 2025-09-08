@@ -30,27 +30,75 @@ class GestionAgentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create(Request $request)
-    {
-        
-       
+    {  
 
     }
 
-    
+    public function add_agent()
+    {
+        $agences = Agence::select('nom_agence', 'id')->get();
+        return view('admin.gestion.agent.index', compact('agences'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|email',
+            'role'       => 'required|string',
+            'password'   => 'nullable|string|min:6|confirmed', // mot de passe facultatif
+        ]);
+
+        // Récupération de l'utilisateur
+        $user = User::findOrFail($id);
+
+        // Mise à jour User
+        $user->first_name = $request->first_name;
+        $user->last_name  = $request->last_name;
+        $user->email      = $request->email;
+        $user->role       = $request->role;
+
+        if (!empty($request->password)) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        // Récupération de l’agent lié
+        $agent = Agent::where('user_id', $user->id)->first();
+
+        if ($agent) {
+            $agent->nom    = $request->first_name;
+            $agent->prenom = $request->last_name;
+            $agent->email  = $request->email;
+
+            if (!empty($request->password)) {
+                $agent->password = Hash::make($request->password);
+            }
+
+            $agent->save();
+        }
+
+        return redirect()->route('managers.agent')->with('success', 'Agent mis à jour avec succès!');
+    }
   
     public function edit($id)
     {
-        $users = User::findOrFail($id);
-        
-        return view('admin.gestion.agent.edit', compact('users'));
+        $agent = Agent::findOrFail($id);
+        $users = User::findOrFail($agent->user_id);
+
+        return view('admin.gestion.agent.edit', compact('users', 'agent'));
     }
 
     public function show($id)
     {
-        $users = User::findOrFail($id);
-        // dd($users );
-        return view('admin.gestion.agent.show', compact('users'));
+        $agent = Agent::findOrFail($id);
+        $users = User::findOrFail($agent->user_id);
+
+        return view('admin.gestion.agent.show', compact('users', 'agent'));
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -59,21 +107,6 @@ class GestionAgentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-{
-    $request->validate([
-        // 'nom_agence' => 'required|string|max:255',
-        // 'adresse_agence' => 'required|string|max:255',
-        // 'pays_agence' => 'required|string|max:255',
-        // 'devise_agence' => 'required|string|max:255',
-        // 'prix_au_kg' => 'required|numeric',
-    ]);
-
-    $agence = Agence::findOrFail($id);
-    $agence->update($request->all());
-
-    return redirect()->route('managers.agence')->with('success', 'Agent mise à jour avec succès!');
-}
 
     /**
      * Remove the specified resource from storage.
@@ -85,15 +118,30 @@ class GestionAgentController extends Controller
     {
         try {
             $agent = Agent::findOrFail($id);
+
+            // Supprimer l'utilisateur lié si présent
+            if ($agent->user) {
+                $agent->user->delete();
+            }
+
+            // Supprimer l'agent
             $agent->delete();
-            return response()->json(['success' => true, 'message' => 'Agence supprimée avec succès.']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Agent et utilisateur supprimés avec succès.'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Une erreur est survenue.']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue : ' . $e->getMessage()
+            ]);
         }
     }
 
 
-public function get_users(Request $request) // Renommer en get_agents serait plus cohérent
+
+public function get_users(Request $request)
 {
     if ($request->ajax()) {
         // 1. On charge la relation 'agence' avec with() pour optimiser la requête.

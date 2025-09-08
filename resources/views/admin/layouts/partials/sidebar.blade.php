@@ -28,7 +28,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('managers.agent') }}" class="nav-link">
+                            <a href="{{ route('agence.agent') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Agents') }}</p>
                             </a>

@@ -80,9 +80,7 @@
                                 <label for="agence_destination" class="form-label fw-bold">Agence de destination:</label>
                                 <select id="agence_destination" name="agence_destination" class="form-select">
                                     <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                    @foreach ($agencesDestination as $agence)
-                                        <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                    @endforeach
+                                    {{-- Les options seront ajoutées dynamiquement par JavaScript --}}
                                 </select>
                             </div>
                             <input type="hidden" name="agence_expedition" value="{{ old('agence_expedition', 'Agence de Chine') }}">
@@ -100,7 +98,12 @@
         
     <!-- Script JavaScript -->
     <script>
-        // *** FONCTION MODIFIÉE ***
+        // Tableau des agences de destination
+        const agencesData = {
+            'IPMS-SIMEX-CI': 'Carrefour Angre',
+            'IPMS-SIMEX-CI Angre 8ème Tranche': 'Angre 8ème Tranche'
+        };
+
         function generateReferenceBateau() {
             const type = document.getElementById("type").value;
             const referenceConteneur = document.getElementById("reference_conteneur").value;
@@ -109,7 +112,6 @@
             const referenceInput = document.getElementById("reference_bateau");
 
             if (referenceConteneur && type) {
-                // Change le préfixe en fonction du type (BAT pour bateau, AV pour avion/ballon)
                 const prefix = type === 'bateau' ? 'BAT' : 'AV';
                 referenceInput.value = `${prefix}-${referenceConteneur}-${mois}-${annee}`;
             } else {
@@ -117,34 +119,48 @@
             }
         }
 
-        // *** FONCTION MODIFIÉE ***
         function toggleFields() {
             const type = document.getElementById("type").value;
             const agenceDestinationSelect = document.getElementById("agence_destination");
-            
             const bateauFields = document.querySelectorAll(".bateau-fields");
             const ballonFields = document.querySelectorAll(".ballon-fields");
             
-            // Appelle la génération de référence à chaque changement de type
-            generateReferenceBateau();
+            generateReferenceBateau(); // Appelle la génération de référence à chaque changement de type
+
+            // Nettoie les options existantes
+            agenceDestinationSelect.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
 
             if (type === "bateau") {
                 bateauFields.forEach(field => field.style.display = "block");
                 ballonFields.forEach(field => field.style.display = "none");
-                // Sélectionne l'agence maritime
-                agenceDestinationSelect.value = "IPMS-SIMEX-CI";
+                
+                // Ajoute l'option pour l'agence maritime
+                const optionMaritime = document.createElement('option');
+                optionMaritime.value = "IPMS-SIMEX-CI";
+                optionMaritime.textContent = agencesData["IPMS-SIMEX-CI"]; // Affiche "Carrefour Angre"
+                agenceDestinationSelect.appendChild(optionMaritime);
+                agenceDestinationSelect.value = "IPMS-SIMEX-CI"; // Sélectionne automatiquement
+
             } else if (type === "ballon") {
                 bateauFields.forEach(field => field.style.display = "none");
                 ballonFields.forEach(field => field.style.display = "block");
-                // Sélectionne l'agence aérienne
-                agenceDestinationSelect.value = "IPMS-SIMEX-CI Angre 8ème Tranche";
+                
+                // Ajoute l'option pour l'agence aérienne
+                const optionAerienne = document.createElement('option');
+                optionAerienne.value = "IPMS-SIMEX-CI Angre 8ème Tranche";
+                optionAerienne.textContent = agencesData["IPMS-SIMEX-CI Angre 8ème Tranche"]; // Affiche "Angre 8ème Tranche"
+                agenceDestinationSelect.appendChild(optionAerienne);
+                agenceDestinationSelect.value = "IPMS-SIMEX-CI Angre 8ème Tranche"; // Sélectionne automatiquement
+
             } else {
                 bateauFields.forEach(field => field.style.display = "none");
                 ballonFields.forEach(field => field.style.display = "none");
-                // Réinitialise la sélection
-                agenceDestinationSelect.value = "";
+                agenceDestinationSelect.value = ""; // Réinitialise la sélection
             }
         }
+
+        // Appeler toggleFields au chargement de la page pour initialiser les champs et l'agence
+        document.addEventListener('DOMContentLoaded', toggleFields);
     </script>
 
     <div class="mt-4">
@@ -237,11 +253,10 @@
                 reader.onloadend = function () {
                     callback(reader.result);
                 };
-                reader.readAsDataURL(xhr.response);
+                xhr.open('GET', url);
+                xhr.responseType = 'blob';
+                xhr.send();
             };
-            xhr.open('GET', url);
-            xhr.responseType = 'blob';
-            xhr.send();
         }
     });
     </script>
