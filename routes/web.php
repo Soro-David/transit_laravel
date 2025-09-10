@@ -74,6 +74,7 @@ use Infobip\Api\Model\SmsTextualMessage;
 use Illuminate\Support\Facades\Mail; 
 use App\Http\Controllers\InfoAUtoController;
 use App\Http\Controllers\ProspectController;
+use App\Http\Controllers\ColisTrackingController;
 
 
 Route::get('/test-mail', function () {
@@ -134,6 +135,7 @@ Route::get('/politique-de-confidentialite', function () {
 
 // Store mail 
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('/colis-trancking', [ColisTrackingController::class, 'track'])->name('colis.tracking');
 
 
 Route::get('/', function () {

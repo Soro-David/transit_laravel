@@ -31,6 +31,6 @@ class DevisCreatedMail extends Mailable
     public function build()
     {
         return $this->subject('Nouveau Devis Créé - Référence: ' . $this->emailData['reference_colis_principale'])
-                    ->view('emails.devis_created'); // Créez ce fichier Blade
+                    ->view('emails.devis_created');
     }
 }

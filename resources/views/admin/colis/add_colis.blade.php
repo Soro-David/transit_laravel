@@ -1229,8 +1229,8 @@ $(document).ready(function () {
 
     // Fonction pour afficher une étape spécifique
     function showStep(step) {
-        fieldsets.hide().eq(step).show(); // Afficher uniquement l'étape actuelle
-        toggleButtons(step); // Gérer la visibilité des boutons
+        fieldsets.hide().eq(step).show();
+        toggleButtons(step);
     }
 
     // Fonction pour gérer la visibilité des boutons

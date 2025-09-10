@@ -914,7 +914,6 @@ public function vol_fermer(Request $request)
                  
             }
     
-    
             $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
             $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
     

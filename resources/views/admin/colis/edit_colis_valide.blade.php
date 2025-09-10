@@ -86,15 +86,15 @@
                         </div>
                         <div class="row">
                             <h4>Information colis</h4><hr>
-                            <div class="col-md-4">
+                            <div class="col-md-1">
                                 <div class="mb-3">
-                                    <label class="form-label">Quantité de colis</label>
+                                    <label class="form-label">Quantité</label>
                                     <input type="text" name="colis[{{ $colisItem->id }}][quantite_colis]" id="quantite_colis"
                                     value="{{ $colisItem->quantite_colis ?? '' }}" class="form-control"
                                      required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <div class="mb-3">
                                     <label class="form-label">Valeur du Colis</label>
                                     <input type="text" name="colis[{{ $colisItem->id }}][valeur_colis]" id="valeur_colis"
@@ -107,6 +107,14 @@
                                     <label for="mode_transit" class="form-label">Mode de transit</label>
                                     <input type="text" name="colis[{{ $colisItem->id }}][mode_transit]"
                                     id="mode_transit" value="{{ $colisItem->mode_transit ?? '' }}" class="form-control"
+                                    >
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="mb-3">
+                                    <label for="mode_transit" class="form-label">Produit ou Service</label>
+                                    <input type="text" name="colis[{{ $colisItem->id }}][mode_transit]"
+                                    id="mode_transit" value="{{ $colisItem->service ?? '' }}" class="form-control"
                                     >
                                 </div>
                             </div>
@@ -136,7 +144,7 @@
                                     required>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="prix_transit_colis" class="form-label">Prix du Colis</label>
                                     <input

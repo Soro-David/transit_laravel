@@ -13,6 +13,7 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
+            'contact' => 'required|string|max:50',
             'email' => 'required|email',
             'sujet' => 'required|string|max:255',
             'message' => 'required|string',
@@ -22,7 +23,7 @@ class ContactController extends Controller
         $contact = Contact::create($validated);
 
         // Envoyer un email
-        Mail::to('soroddavid63@gmail.com')->send(new \App\Mail\ContactMessage($contact));
+        Mail::to('contact@aft-app.com')->send(new ContactMessage($contact));
 
         return back()->with('success', 'Votre message a été envoyé avec succès !');
     }

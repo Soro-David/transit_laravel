@@ -1,8 +1,8 @@
 <?php
 
+
 namespace App\Mail;
 
-use App\Models\Contact;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -13,15 +13,16 @@ class ContactMessage extends Mailable
 
     public $contact;
 
-    public function __construct(Contact $contact)
+    public function __construct($contact)
     {
         $this->contact = $contact;
     }
 
     public function build()
     {
-        return $this->subject('Nouveau message de contact')
-                    ->view('emails.contact');
+        return $this->from(config('mail.from.address'), config('mail.from.name'))
+                    ->subject('Nouveau message de contact')
+                    ->view('emails.contact_message');
     }
 }
 
