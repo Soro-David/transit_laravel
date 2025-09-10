@@ -397,7 +397,7 @@
                     </div>
                     <div class="col-6 col-md-6 col-lg-6">
                         <div class="mb-3">
-                            <label for="description_colis" class="form-label">Commentaire</label>
+                            <label for="description_colis" class="form-label">Description Colis</label>
                             <textarea 
                             name="description_colis[]" 
                             id="description_colis" 
@@ -600,8 +600,12 @@
 $(document).on("click", ".add-colis", function (e) {
     e.preventDefault();
 
+    // MODIFICATION : Cacher le bouton "Ajouter" qui vient d'être cliqué
+    $(this).hide();
+
     const newColis = `
        <div class="colis-fieldset mb-4">
+            <div class="form-section">
                 <div class="row">
                     <div class="col-md-2">
                         <div class="mb-3">
@@ -616,21 +620,30 @@ $(document).on("click", ".add-colis", function (e) {
                         </div>
                         <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">valeur du colis</label>
                         <input type="number" name="valeur_colis[]" class="form-control prix-colis" placeholder="valeur colis">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
+                            <label for="type_colis" class="form-label">Type colis</label>
                             <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                                <option value="" disabled selected>-- Type de colis --</option>
                                 <option value="standard">Standard</option>
                                 <option value="fragile">Fragile</option>
                             </select>
                         </div>
                     </div>
-                    
+                    <div class="col-2 col-md-2 col-lg-2">
+                        <div class="mb-3">
+                            <label for="devise" class="form-label">Devise</label>
+                            <select name="devise" class="form-control">
+                                <option value="" disabled selected>-- Devise --</option>
+                                <option value="EUR">EUR</option>
+                                <option value="FCFA">FCFA</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 dimension-section">
@@ -648,28 +661,27 @@ $(document).on("click", ".add-colis", function (e) {
                     </div>
                     <div class="col-6 col-md-6 col-lg-6">
                         <div class="mb-3">
-                            <label for="description_colis" class="form-label">Description colis</label>
+                            <label for="description_colis" class="form-label">Description Colis</label>
                             <textarea 
                             name="description_colis[]" 
-                            id="description_colis" 
                             class="form-control" 
                             rows="4"
                             placeholder="Saisissez la description du colis"></textarea>
                         </div>
                     </div>
-                    
-                </div>
-                <div class="text-end mt-2">
-                    <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                    <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
                 </div>
             </div>
+            <div class="text-end mt-2">
+                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
+                <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
+            </div>
+        </div>
     `;
 
     const $newColis = $(newColis);
     $("#colisContainer").append($newColis);
     toggleFields();
-    attachDimensionListeners($newColis); // 👈 Active la logique sur les nouveaux champs
+    attachDimensionListeners($newColis);
 });
 
 // Fonction pour mettre à jour l'affichage des dimensions
@@ -704,22 +716,21 @@ $(document).ready(function () {
     });
 });
 
-// Lorsqu'on ajoute un nouveau colis
-$(document).on("click", ".add-colis", function (e) {
-    e.preventDefault();
-    const newColis = `...`; // Ton code HTML actuel (tu l'as déjà)
-    const $newElement = $(newColis);
-    $("#colisContainer").append($newElement);
-    toggleFields(); // Règle d'affichage éventuelle
-    attachDimensionListeners($newElement); // 👈 Active les listeners ici
-});
-
-
-
+    // MODIFICATION - Cette partie est déplacée plus haut pour éviter la redondance
+    // $(document).on("click", ".add-colis", function (e) { ... });
 
     // Supprimer un colis
     $(document).on("click", ".remove-colis", function () {
         $(this).closest(".colis-fieldset").remove();
+
+        // MODIFICATION : Après suppression, on affiche le bouton "Ajouter" du nouveau dernier formulaire
+        if ($("#colisContainer .colis-fieldset").length > 0) {
+            // S'il reste des formulaires ajoutés, on cible le dernier et on montre son bouton
+            $("#colisContainer .colis-fieldset:last").find('.add-colis').show();
+        } else {
+            // S'il n'y a plus de formulaire ajouté, on montre le bouton du formulaire original
+            $('#colisTemplate').find('.add-colis').show();
+        }
     });
 
     // Fonction pour appliquer les règles d'affichage sur les colis existants
@@ -1070,6 +1081,3 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
 </style>
 
 @endsection
-
-
-

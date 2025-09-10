@@ -599,6 +599,10 @@ $(document).ready(function() {
     // Ajouter un nouveau colis et initialiser l'autocomplétion
     $(document).on("click", ".add-colis", function(e) {
         e.preventDefault();
+
+        // MODIFICATION 1 : Cacher le bouton sur lequel on vient de cliquer
+        $(this).hide();
+
         const newColis = $(`
             <div class="colis-fieldset mb-4">
                 <div class="row">
@@ -673,6 +677,15 @@ $(document).ready(function() {
      // Supprimer un colis
      $(document).on("click", ".remove-colis", function () {
         $(this).closest(".colis-fieldset").remove();
+        
+        // MODIFICATION 2 : Afficher le bouton "Ajouter" sur le nouveau dernier formulaire
+        if ($("#colisContainer .colis-fieldset").length > 0) {
+            // S'il reste des formulaires dynamiques, on cible le dernier
+            $("#colisContainer .colis-fieldset:last").find('.add-colis').show();
+        } else {
+            // Sinon (plus aucun formulaire dynamique), on cible le formulaire original
+            $('#colisTemplate').find('.add-colis').show();
+        }
     });
 
     // Fonction pour appliquer les règles d'affichage sur les colis existants
@@ -1133,6 +1146,3 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
 </style>
 
 @endsection
-
-
-

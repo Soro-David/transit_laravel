@@ -68,7 +68,11 @@ $(document).ready(function() {
         serverSide: true,
         ajax: {
             url: '{{ route("customer_colis.get.colis.valide") }}',
-            type: 'GET' 
+            type: 'GET',
+            error: function(xhr, error, thrown) {
+                console.log('Erreur AJAX:', error, thrown);
+                console.log('Réponse:', xhr.responseText);
+            }
         },
         columns: [
             { data: 'reference_colis', name: 'reference_colis' },
@@ -81,10 +85,16 @@ $(document).ready(function() {
                     return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
                 }
             },
-            { data: 'destinataire_contact', name: 'destinataires.email' },
+            { data: 'destinataire_contact', name: 'destinataires.tel' }, // Correction: destinataires.tel au lieu de destinataires.email
             { data: 'destinataire_agence', name: 'destinataires.agence' },
-            { data: 'total_prix_devis', name: 'total_prix_devis', render: function(data, type, row){ return parseFloat(data).toFixed(2) + ' €'; } }, // Affichage du prix formaté
-            { data: 'etat_display', name: 'colis.etat' },
+            { 
+                data: 'total_prix_devis', 
+                name: 'total_prix_devis', 
+                render: function(data, type, row) { 
+                    return parseFloat(data).toFixed(2) + ' €'; 
+                } 
+            },
+            { data: 'etat_display', name: 'etat_display' }, // Modification du name
             {
                 data: 'last_updated_at',
                 name: 'last_updated_at',
@@ -103,6 +113,12 @@ $(document).ready(function() {
             },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
+        initComplete: function() {
+            console.log('DataTable initialisé');
+        },
+        error: function (xhr, error, thrown) {
+            console.log('Erreur DataTable:', error, thrown);
+        }
     });
 });
 </script>

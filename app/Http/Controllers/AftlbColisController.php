@@ -788,72 +788,76 @@ class AftlbColisController extends Controller
     }
 
 
-public function update_hold(Request $request, InfobipService $infobipService)
+    public function update_hold(Request $request, InfobipSmsService $infobipSmsService)
 {
     $validatedData = $request->validate([
-        'colis.*.prix_transit_colis' => 'required|numeric|min:0',
+        'groupes' => 'required|array',
+        'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
+        'groupes.*.colis_ids' => 'required|array',
+        'groupes.*.colis_ids.*' => 'exists:colis,id',
     ]);
 
-    $colisData = $request->input('colis');
+    $groupes = $validatedData['groupes'];
+    $allColisIds = [];
+    $prixTotalGeneral = 0;
 
-    foreach ($colisData as $colisId => $data) {
-        try {
-            $colis = Colis::findOrFail($colisId);
+    foreach ($groupes as $groupeData) {
+        $colisIds = $groupeData['colis_ids'];
+        $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
+        $nombreDeColisDansGroupe = count($colisIds);
+        
+        // On ajoute le prix de ce groupe au total général
+        $prixTotalGeneral += $prixTotalGroupe;
+        
+        if ($nombreDeColisDansGroupe > 0) {
+            $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
+            $allColisIds = array_merge($allColisIds, $colisIds); // Fusionner les IDs pour la collection finale
 
-            $numero_expediteur = optional($colis->expediteur)->tel;
-
-            if (!$numero_expediteur) {
-                Log::warning("❌ Aucun numéro de téléphone trouvé pour l'expéditeur du colis {$colisId}");
-                continue; // Passe au colis suivant
+            foreach ($colisIds as $colisId) {
+                $colis = Colis::find($colisId);
+                if ($colis) {
+                    $colis->update([
+                        'prix_transit_colis' => $prixUnitaire,
+                        'status' => 'non payé',
+                        'etat' => 'Validé',
+                    ]);
+                }
             }
-
-            // Mise à jour du colis
-            $colis->prix_transit_colis = $data['prix_transit_colis'];
-            $colis->status = 'payé';
-            $colis->etat = 'Devis';
-
-            // Associer l’agent connecté (s’il existe)
-            $colis->agent_id = optional(Auth::user()->agent)->id;
-            $colis->save();
-
-            // Préparer le message
-            $message = "Bonjour " . optional($colis->expediteur)->nom . ",le devis de votre colis (Réf: " . $colis->reference_colis . ") a été établi avec succès. Veuillez vous connecter à votre espace client pour le paiement. Merci de votre confiance.";
-
-            // Envoi SMS avec gestion d’erreurs
-            try {
-                $response = $infobipService->sendSms($numero_expediteur, $message);
-                Log::info("✅ SMS envoyé à {$numero_expediteur} pour colis ID {$colisId}: " . json_encode($response));
-            } catch (\RuntimeException $e) {
-                Log::error("⚠️ Erreur Infobip lors de l'envoi SMS au {$numero_expediteur} (Colis ID {$colisId}) : " . $e->getMessage());
-            } catch (\Throwable $e) {
-                Log::error("⚠️ Erreur inattendue SMS au {$numero_expediteur} (Colis ID {$colisId}) : " . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
-                ]);
-            }
-
-            // Génération des données QR Code (si besoin)
-            $qrData = [
-                'Référence colis' => $colis->reference_colis,
-                'Statut' => $colis->status,
-                'Nom Expéditeur' => optional($colis->expediteur)->nom . ' ' . optional($colis->expediteur)->prenom,
-                'Nom Destinataire' => optional($colis->destinataire)->nom . ' ' . optional($colis->destinataire)->prenom,
-                'Téléphone Destinataire' => optional($colis->destinataire)->tel,
-                'Agence Destination' => optional($colis->destinataire)->agence,
-                'Lieu de Destination' => optional($colis->destinataire)->lieu_destination,
-            ];
-
-            Log::info("📦 QR Code Data pour le colis {$colisId} : " . json_encode($qrData));
-
-        } catch (\Exception $e) {
-            Log::error("❌ Erreur lors de la mise à jour du colis {$colisId} : " . $e->getMessage());
-            return back()->with('error', "Erreur lors de la mise à jour du colis {$colisId} : " . $e->getMessage());
         }
     }
+    
+    // Pour l'email et le SMS, on utilise les informations du premier colis de la première liste
+    $premierColis = Colis::find($allColisIds[0]);
+    $colisCollection = Colis::whereIn('id', $allColisIds)->get();
 
-    return redirect()->route('aftlb_colis.hold')->with('success', '✅ Devis faits avec succès !');
+    // Création de l'objet paiement factice pour l'email
+    $paiementFactice = new Paiement();
+    $paiementFactice->montant = $prixTotalGeneral; // Utiliser le prix total général
+    $paiementFactice->montant_paye = 0;
+    $paiementFactice->statut_paiement = 'En attente';
+    $paiementFactice->methode_paiement = 'Non défini';
+    $paiementFactice->date_validation = now();
+    $paiementFactice->setRelation('expediteur', $premierColis->expediteur);
+
+    // Envoi de l'email
+    try {
+        Mail::to($premierColis->expediteur->email)->send(new ColisValidatedMail($paiementFactice, $colisCollection));
+        Log::info("Email de validation du devis envoyé à " . $premierColis->expediteur->email);
+    } catch (\Exception $e) {
+        Log::error("Erreur lors de l'envoi de l'email de validation du devis: " . $e->getMessage());
+    }
+
+    // Envoi du SMS
+    $message = "Bonjour " . $premierColis->expediteur->nom . ", le devis pour votre colis (Réf: " . $premierColis->reference_colis . ") est disponible. Montant Total: " . $prixTotalGeneral . " EUR/FCFA. Veuillez consulter vos emails.";
+    
+    try {
+        $infobipSmsService->sendSms($premierColis->expediteur->tel, $message);
+    } catch (\Exception $e) {
+        Log::error('Erreur envoi SMS: ' . $e->getMessage());
+    }
+
+    return redirect()->route('aftlb_colis.hold')->with('success', 'Devis validé et envoyé au client avec succès !');
 }
-
-
     public function editBon_livraison($id)
     {
         // dd($id);
@@ -1622,26 +1626,47 @@ public function update_hold(Request $request, InfobipService $infobipService)
  
     public function edit_hold($id)
     {
-        // Récupérer le colis principal avec l'ID donné
         $colis_principal = Colis::find($id);
-
-        // dd($colis_principal);
-        // Vérifier si le colis existe
         if (!$colis_principal) {
             return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
         }
-
-        // Récupérer tous les colis qui ont la même référence que le colis principal
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-        // Vérifier si des colis correspondants ont été trouvés
-        if ($colis->isEmpty()) {
-            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
+    
+        $colis_groupe_total = Colis::with(['expediteur', 'destinataire'])
+                                    ->where('reference_colis', $colis_principal->reference_colis)
+                                    ->get();
+    
+        if ($colis_groupe_total->isEmpty()) {
+            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
         }
-
-        return view('AFT_LOUIS_BLERIOT.colis.edit_hold', compact('colis'));
+        
+        // --- NOUVELLE LOGIQUE : REGROUPEMENT PAR SERVICE (NATURE DU COLIS) ---
+        $groupes_par_service = $colis_groupe_total->groupBy('service');
+    
+        $colis_recap_list = [];
+    
+        foreach ($groupes_par_service as $service => $groupe) {
+            $premier_colis_du_groupe = $groupe->first();
+    
+            $colis_recap_list[] = (object)[
+                'expediteur' => $premier_colis_du_groupe->expediteur,
+                'destinataire' => $premier_colis_du_groupe->destinataire,
+                'mode_transit' => $premier_colis_du_groupe->mode_transit,
+                'reference_colis' => $premier_colis_du_groupe->reference_colis,
+                'service' => $service,
+                
+                'quantite_colis' => $groupe->count(), // La quantité est le nombre d'enregistrements
+                'valeur_colis' => $groupe->sum('valeur_colis'),
+                'poids_colis' => $groupe->sum('poids_colis'),
+                'prix_transit_colis' => $groupe->sum('prix_transit_colis'),
+                'dimension_result' => $groupe->pluck('dimension_result')->unique()->implode(' | '),
+                'items' => $groupe
+            ];
+        }
+        // --- FIN DE LA NOUVELLE LOGIQUE ---
+    
+        // On envoie la LISTE des fiches récapitulatives à la vue
+        return view('AFT_LOUIS_BLERIOT.colis.edit_hold', ['colis_recap_list' => $colis_recap_list]);
     }
-
 
 
 
@@ -2111,80 +2136,131 @@ public function enregistrerPaiement(Request $request)
 
     public function updateMultipleColis(Request $request)
     {
-        // Validation globale (optionnelle, mais recommandée)
-        $request->validate([
-           
+        // 1. Valider toutes les données entrantes
+        $validatedData = $request->validate([
+            // Valider les informations communes (expéditeur/destinataire)
+            'nom_expediteur' => 'required|string|max:255',
+            'prenom_expediteur' => 'required|string|max:255',
+            'tel_expediteur' => 'required|string',
+            'agence_expediteur' => 'required|string',
+            'nom_destinataire' => 'required|string|max:255',
+            'prenom_destinataire' => 'required|string|max:255',
+            'tel_destinataire' => 'required|string',
+            'agence_destinataire' => 'required|string',
+    
+            // Valider la structure des groupes
+            'groupes' => 'required|array',
+            'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
+            'groupes.*.service' => 'nullable|string',
+            'groupes.*.colis_ids' => 'required|array',
+            'groupes.*.colis_ids.*' => 'exists:colis,id',
         ]);
-
-        $colisData = $request->input('colis'); // Récupère toutes les données des colis
-
-        foreach ($colisData as $colisId => $data) {
-            // Récupérer le colis correspondant
-            $colis = Colis::findOrFail($colisId);
-
-            // Mise à jour des données de l'expéditeur
-            $colis->expediteur->nom = $data['nom_expediteur'];
-            $colis->expediteur->prenom = $data['prenom_expediteur'];
-            $colis->expediteur->tel = $data['tel_expediteur'];
-            $colis->expediteur->agence = $data['agence_expediteur'];
-            $colis->expediteur->save();
-
-            // Mise à jour des données du destinataire
-            $colis->destinataire->nom = $data['nom_destinataire'];
-            $colis->destinataire->prenom = $data['prenom_destinataire'];
-            $colis->destinataire->tel = $data['tel_destinataire'];
-            $colis->destinataire->agence = $data['agence_destinataire'];
-            $colis->destinataire->save();
-
-            // Mise à jour des données du colis
-            $colis->quantite_colis = $data['quantite_colis'];
-            $colis->valeur_colis = $data['valeur_colis'];
-            $colis->mode_transit = $data['mode_transit'];
-            $colis->poids_colis = $data['poids_colis'];
-            $colis->prix_transit_colis = $data['prix_transit_colis'];
-            $colis->save();
-
-            // Reconstitution des données du QR Code (comme avant)
-            $qrData = [
-                'Identifiant' => $colisItem->id,
-                'Référence colis' => $colis->reference_colis,
-                'Statut' => $colis->status,
-                'Nom Expéditeur' => $colis->expediteur->nom . ' ' . $colis->expediteur->prenom,
-                'Nom Destinataire' => $colis->destinataire->nom . ' ' . $colis->destinataire->prenom,
-                'Téléphone Destinataire' => $colis->destinataire->tel,
-                'Agence Destination' => $colis->destinataire->agence ?? '',
-                'Lieu de Destination' => $colis->destinataire->lieu_destination ?? '',
-            ];
-
-            Log::info('QR Code Data pour le colis ' . $colisId . ': ' . json_encode($qrData));
-
+    
+        $groupes = $validatedData['groupes'];
+        
+        // 2. Mettre à jour les informations de l'expéditeur et du destinataire
+        // Ces informations sont communes à tous les colis, donc on ne le fait qu'une fois.
+        try {
+            // On récupère l'ID du tout premier colis pour trouver l'expéditeur/destinataire
+            $premierColisId = $groupes[0]['colis_ids'][0];
+            $premierColis = Colis::findOrFail($premierColisId);
+            
+            $premierColis->expediteur->update([
+                'nom' => $validatedData['nom_expediteur'],
+                'prenom' => $validatedData['prenom_expediteur'],
+                'tel' => $validatedData['tel_expediteur'],
+                'agence' => $validatedData['agence_expediteur'],
+            ]);
+    
+            $premierColis->destinataire->update([
+                'nom' => $validatedData['nom_destinataire'],
+                'prenom' => $validatedData['prenom_destinataire'],
+                'tel' => $validatedData['tel_destinataire'],
+                'agence' => $validatedData['agence_destinataire'],
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de la mise à jour de l'expéditeur/destinataire : " . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la mise à jour des informations de contact.');
         }
-
-
-        return redirect()->route('aftlb_colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
+    
+    
+        // 3. Boucler sur chaque groupe de colis (par "Nature") pour mettre à jour les prix
+        foreach ($groupes as $groupeData) {
+            $colisIds = $groupeData['colis_ids'];
+            $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
+            $nombreDeColisDansGroupe = count($colisIds);
+            
+            if ($nombreDeColisDansGroupe > 0) {
+                // Diviser le prix total du groupe par le nombre de colis dans CE groupe
+                $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
+    
+                // Mettre à jour chaque colis de ce groupe avec le prix unitaire calculé
+                // et la nature du colis si elle a été modifiée
+                foreach ($colisIds as $colisId) {
+                    $colis = Colis::find($colisId);
+                    if ($colis) {
+                        $colis->update([
+                            'prix_transit_colis' => $prixUnitaire,
+                            'service' => $groupeData['service'] // Mise à jour de la nature du colis
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // 4. Redirection avec un message de succès
+        return redirect()->route('aftlb_colis.colis.valide')->with('success', 'Les groupes de colis ont été mis à jour avec succès !');
+    }
+public function edit_colis_valide($id)
+{
+    $colis_principal = Colis::find($id);
+    if (!$colis_principal) {
+        return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
     }
 
+    // On récupère tous les colis de la même référence
+    $colis_groupe_total = Colis::with(['expediteur', 'destinataire'])
+                                ->where('reference_colis', $colis_principal->reference_colis)
+                                ->get();
 
-    public function edit_colis_valide($id)
-    {
-       // Vérifier si le colis existe
-        $colis_principal = Colis::find($id);
-        if (!$colis_principal) {
-            return redirect()->route('aftlb_colis.hold')->with('error', 'Colis non trouvé.');
-        }
-
-        // Récupérer tous les colis qui ont la même référence que le colis principal
-        $colis = Colis::where('reference_colis', $colis_principal->reference_colis)->get();
-
-        // Vérifier si des colis correspondants ont été trouvés
-        if ($colis->isEmpty()) {
-            return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun autre colis trouvé avec cette référence.');
-        }
-        // dd($colis);
-        return view('AFT_LOUIS_BLERIOT.colis.edit_colis_valide', compact('colis'));
+    if ($colis_groupe_total->isEmpty()) {
+        return redirect()->route('aftlb_colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
     }
+    
+    // --- NOUVELLE LOGIQUE : REGROUPEMENT PAR DESCRIPTION ---
+    // On groupe la collection par la colonne 'service' (Nature du colis)
+    $groupes_par_service = $colis_groupe_total->groupBy('service');
 
+    $colis_recap_list = []; // Un tableau pour stocker nos fiches récapitulatives
 
+    foreach ($groupes_par_service as $service => $groupe) {
+        $premier_colis_du_groupe = $groupe->first();
+
+        // Pour chaque groupe de service, on crée un objet récapitulatif
+        $colis_recap_list[] = (object)[
+            'expediteur' => $premier_colis_du_groupe->expediteur,
+            'destinataire' => $premier_colis_du_groupe->destinataire,
+            'mode_transit' => $premier_colis_du_groupe->mode_transit,
+            'reference_colis' => $premier_colis_du_groupe->reference_colis,
+            
+            'service' => $service, // La nature du colis (ex: 'ANANA', 'Arachides')
+            
+            // On somme les valeurs numériques de ce sous-groupe
+            'quantite_colis' => $groupe->sum('quantite_colis'),
+            'valeur_colis' => $groupe->sum('valeur_colis'),
+            'poids_colis' => $groupe->sum('poids_colis'),
+            'prix_transit_colis' => $groupe->sum('prix_transit_colis'),
+            'dimension_result' => $groupe->pluck('dimension_result')->unique()->implode(' | '),
+            
+            // On passe les items de ce sous-groupe
+            'items' => $groupe
+        ];
+    }
+    // --- FIN DE LA NOUVELLE LOGIQUE ---
+
+    // On envoie la LISTE des fiches récapitulatives à la vue
+    return view('AFT_LOUIS_BLERIOT.colis.edit_colis_valide', ['colis_recap_list' => $colis_recap_list]);
+}
     public function update_colis_valide(Request $request, $id)
     {
         // Validation des données
@@ -2214,6 +2290,8 @@ public function enregistrerPaiement(Request $request)
             'mode_transit' => 'nullable|string|max:255',
             'poids_colis' => 'required|numeric|min:0',
             'prix_transit_colis' => 'required|numeric|min:0',
+            'service' => 'required|numeric|min:0',
+            
         ]);
     
         // Mise à jour des informations du colis
@@ -2230,6 +2308,7 @@ public function enregistrerPaiement(Request $request)
             'valeur_colis' => $request->valeur_colis,
             'mode_transit' => $request->mode_transit,
             'poids_colis' => $request->poids_colis,
+            'service' => $request->service,
             'prix_transit_colis' => $request->prix_transit_colis,
         ]);
         // dd($colis);

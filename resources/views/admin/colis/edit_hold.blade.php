@@ -1,146 +1,90 @@
 @extends('admin.layouts.admin')
 
-@section('content-header')
-    {{-- <h2>Création de Colis</h2> --}}
-@endsection
-
 @section('content')
-    <section class="p-4 mx-auto">
+<section class="p-4 mx-auto">
+    <div class="all-forms-container">
         <form id="main-update-form" action="{{ route('colis.hold.update') }}" method="POST">
             @csrf
             @method('PUT')
 
-            @foreach($colis as $colis_item)
+            {{-- On boucle sur chaque groupe de colis (par service/nature) --}}
+            @foreach ($colis_recap_list as $index => $colis)
                 <div class="form-container">
                     <div class="form-section">
-                        <div class="row">
+                        {{-- Afficher les infos expéditeur/destinataire seulement pour le premier formulaire --}}
+                        @if($loop->first)
                             <h4>Information destinateur & expéditeur</h4>
                             <hr>
-                            <div class="col-md-4">
-                                <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Agence d'expédition</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][destinataire_agence]"
-                                           id="destinataire_agence_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->destinataire->agence ?? '' }}" class="form-control"
-                                           disabled required>
+                                    <input type="text" value="{{ $colis->expediteur->agence ?? '' }}" class="form-control" disabled>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Contact expéditeur</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][destinataire_tel]"
-                                           id="destinataire_tel_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->destinataire->tel ?? '' }}" class="form-control"
-                                           disabled required>
+                                    <input type="text" value="{{ $colis->expediteur->tel ?? '' }}" class="form-control" disabled>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Agence de destination</label>
+                                    <input type="text" value="{{ $colis->destinataire->agence ?? '' }}" class="form-control" disabled>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="destinataire_agence" class="form-label">Agence de destination</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][destinataire_agence_dest]"
-                                           id="destinataire_agence_dest_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->destinataire->agence ?? '' }}" class="form-control"
-                                           disabled>
-                                </div>
+                        @endif
+
+                        <h4 class="mt-4">Information colis</h4>
+                        <hr>
+                        
+                        {{-- On passe les IDs de ce sous-groupe en hidden --}}
+                        @foreach ($colis->items as $colis_item)
+                            <input type="hidden" name="groupes[{{ $index }}][colis_ids][]" value="{{ $colis_item->id }}">
+                        @endforeach
+                        
+                        {{-- Première ligne --}}
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Quantité</label>
+                                <input type="text" value="{{ $colis->quantite_colis }}" class="form-control" disabled>
                             </div>
-                        </div>
-                        <div class="row">
-                            <h4>Information colis</h4>
-                            <hr>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Quantité de colis</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][quantite_colis]"
-                                           id="quantite_colis_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->quantite_colis ?? '' }}" class="form-control"
-                                           disabled required>
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nature du colis</label>
+                                <input type="text" value="{{ $colis->service }}" class="form-control" disabled>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Valeur du Colis</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][valeur_colis]"
-                                           id="valeur_colis_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->valeur_colis ?? '' }}" class="form-control" disabled
-                                           required>
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Valeur totale</label>
+                                <input type="text" value="{{ $colis->valeur_colis }}" class="form-control" disabled>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="mode_transit" class="form-label">Mode de transit</label>
-                                    <input type="text" name="colis[{{ $colis_item->id }}][mode_transit]"
-                                           id="mode_transit_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->mode_transit ?? '' }}" class="form-control"
-                                           disabled>
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Poids total (Kg)</label>
+                                <input type="text" value="{{ $colis->poids_colis }}" class="form-control" disabled>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description du colis</label>
-                                    <textarea name="colis[{{ $colis_item->id }}][description]"
-                                              id="description_{{ $colis_item->id }}" cols="5" rows="5"
-                                              class="form-control"
-                                              disabled>{{ $colis_item->description_colis ?? '' }}</textarea>
-                                </div>
+
+                        {{-- Deuxième ligne --}}
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-3">
+                                <label class="form-label">Mode de transit</label>
+                                <input type="text" value="{{ $colis->mode_transit }}" class="form-control" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Dimensions</label>
+                                <input type="text" value="{{ $colis->dimension_result }}" class="form-control" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Prix du Devis (pour ce groupe)</label>
+                                <input type="number" step="0.01" name="groupes[{{ $index }}][prix_transit_colis]" class="form-control" placeholder="Entrez le prix pour ce groupe" required>
                             </div>
                         </div>
-                        <div class="row">
-                            <!-- Poids du Colis -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Poids du Colis</label>
-                                    <input type="text"
-                                           name="colis[{{ $colis_item->id }}][poids_colis]"
-                                           id="poids_colis_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->poids_colis ?? '' }}"
-                                           class="form-control"
-                                           disabled
-                                           required>
-                                </div>
-                            </div>
-                            <!-- Dimension -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Dimension</label>
-                                    <input type="text"
-                                           name="colis[{{ $colis_item->id }}][dimension_result]"
-                                           id="dimension_result_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->dimension_result ?? '' }}"
-                                           class="form-control"
-                                           disabled
-                                           required>
-                                </div>
-                            </div>
-                            <!-- Prix du Colis -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="prix_transit_colis_{{ $colis_item->id }}" class="form-label">Prix du Colis</label>
-                                    <input type="number"
-                                           name="colis[{{ $colis_item->id }}][prix_transit_colis]"
-                                           id="prix_transit_colis_{{ $colis_item->id }}"
-                                           value="{{ $colis_item->prix_transit_colis ?? '' }}"
-                                           class="form-control prix_transit_colis"
-                                           placeholder="Somme en CFA"
-                                           required>
-                                </div>
-                            </div>
-                        </div>                        
                     </div>
                 </div>
             @endforeach
-
-            <div class="d-flex justify-content-center gap-2 mt-4">
-                <!-- Bouton Retour -->
-                <a href="{{ route('colis.hold') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left" style="font-size: 18px; margin-right: 5px;"></i> Retour
-                </a>
-                <!-- Bouton Mise à jour -->
-                <button type="button" id="validate-btn" class="btn btn-primary">Valider</button>
-            </div>
         </form>
-    </section>
+
+        <div class="d-flex justify-content-center gap-2 mt-4">
+            <a href="{{ route('aftlb_colis.hold') }}" class="btn btn-secondary">Retour</a>
+            <button type="button" id="validate-btn" class="btn btn-primary">Valider</button>
+        </div>
+    </div>
+</section>
 
     {{-- Script SweetAlert --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -180,6 +124,15 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px; /* Ajout d'un espace entre les formulaires */
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        input[disabled] {
+            background-color: #f5f5f5 !important;
+            color: #555;
         }
     </style>
 @endsection
