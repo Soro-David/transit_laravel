@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail; // Importez la façade Mail
 use App\Mail\DevisCreatedMail; // Importez votre Mailable
-
+use App\Mail\ColisValidatedMail;
 
 
 class CustomerColisController extends Controller
@@ -203,62 +203,60 @@ class CustomerColisController extends Controller
 
 
     private function generateReferenceParMode(string $mode_transit)
-{
-    $user = Auth::user();
-    if (!$user) {
-        throw new \Exception("Utilisateur non connecté.");
-    }
+    {
+        $user = Auth::user();
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
 
-    // Initiales de l'utilisateur (ex: SE)
-    $initiales = strtoupper(
-        substr($user->last_name ?? 'X', 0, 1) .
-        substr($user->first_name ?? 'X', 0, 1)
-    );
+        $initiales = strtoupper(
+            substr($user->last_name ?? 'X', 0, 1) .
+            substr($user->first_name ?? 'X', 0, 1)
+        );
 
-    // dd($initiales); 
-    // Agence cible
-    // $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
+        if ($mode_transit === 'maritime') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+        } elseif ($mode_transit === 'aerien') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_vol') ?? $this->generateReferenceVol();
+        } else {
+            throw new \Exception("Mode de transit invalide : $mode_transit");
+        }
 
-    // Dernier identifiant de référence par mode + agence
-    $lastIdRef = DB::table('colis')
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->where('colis.mode_transit', $mode_transit)
-        // ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
-        ->max('colis.id_reference');
+        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
 
+        $lastIdRef = DB::table('colis')
+            ->where('colis.mode_transit', $mode_transit)
+            ->max('colis.id_reference');
+        
         $nextIdRef = ($lastIdRef ?? 0) + 1;
-        // dd($nextIdRef);
+        
+        $reference = '';
+        $exists = false;
 
-    // Déterminer la bonne référence de conteneur ou vol selon le mode
-    if ($mode_transit === 'maritime') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
-            ->orderByDesc('id')
-            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-    } elseif ($mode_transit === 'aerien') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
-            ->orderByDesc('id')
-            ->value('reference_vol') ?? $this->generateReferenceVol();
-    } else {
-        throw new \Exception("Mode de transit invalide : $mode_transit");
+        do {
+            $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+            $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+            $exists = DB::table('colis')->where('reference_colis', $reference)->exists();
+            if ($exists) {
+                $nextIdRef++;
+            }
+        } while ($exists);
+
+        return [
+            'reference_colis' => $reference,
+            'id_reference' => $nextIdRef,
+            'reference_contenaire' => $contenaireRef
+        ];
     }
-
-    // Format final de la référence du colis
-    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-    // dd($initiales, $numero, $contenaireRef);
-    $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
-    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    return [
-        'reference_colis' => $reference,
-        'id_reference' => $nextIdRef,
-        'reference_contenaire' => $contenaireRef
-    ];
-}
-
+    
 
 
 
@@ -346,11 +344,22 @@ class CustomerColisController extends Controller
         // dd($expediteurData, $destinataireData);
 
         try {
-            $expediteur = Expediteur::create($expediteurData);
+            // --- CORRECTION MAJEURE ICI ---
+            // Cherche un expéditeur avec le user_id de l'utilisateur connecté.
+            // S'il existe, met à jour ses infos. Sinon, le crée.
+            $expediteur = Expediteur::updateOrCreate(
+                ['user_id' => $userId], // Critères de recherche (clé unique)
+                $expediteurData        // Données à mettre à jour ou à insérer
+            );
+            
+            // Pour le destinataire, on continue de créer un nouvel enregistrement
+            // car un utilisateur peut envoyer à de multiples destinataires différents.
             $destinataire = Destinataire::create($destinataireData);
+            // --- FIN DE LA CORRECTION ---
+    
         } catch (\Exception $e) {
-            Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
+            Log::error('Erreur création/màj Expediteur/Destinataire: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations.');
         }
 
         $colisEnregistres = [];
@@ -399,6 +408,8 @@ class CustomerColisController extends Controller
                     'mode_transit' => $data['mode_transit'] ?? null,
                     'status' => $data['status'],
                     'etat' => $data['etat'],
+                    'valeur_colis' => $data['valeur_colis'][$index] ?? null,
+                    'poids_colis' => $data['poids_colis'][$index] ?? null,
                     'type_colis' => $data['type_colis'][$index] ?? null,
                     'dimension_result' => $dimension_result,
                     'description_colis' => $data['description_colis'][$index] ?? null,
@@ -701,6 +712,7 @@ class CustomerColisController extends Controller
         Paiement::create($paiementData);
 
         // Mettre à jour le champ 'etat' du colis en le marquant comme "Validé"
+        $colis->status = 'payé';
         $colis->etat = 'Validé';
         $colis->save();
 
@@ -729,28 +741,34 @@ class CustomerColisController extends Controller
         if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-
+    
         $email = auth()->user()->email;
-
-        $colis_grouped = Colis::select(
-            'colis.reference_colis',
-            DB::raw('COUNT(colis.id) as nombre_colis'),
-            DB::raw('MIN(expediteurs.agence) as expediteur_agence'),
-            DB::raw('MIN(CONCAT(destinataires.nom, " ", destinataires.prenom)) as destinataire_nom_complet'),
-            DB::raw('MIN(destinataires.tel) as destinataire_tel'),
-            DB::raw('MIN(destinataires.agence) as destinataire_agence'),
-            DB::raw('MAX(colis.updated_at) as last_updated_at') 
-        )
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-        ->where('expediteurs.email', $email)
-        ->where('colis.etat', 'En attente')
-        ->groupBy('colis.reference_colis')
-        ->get();
-
-        return DataTables::of($colis_grouped)
+    
+        // Construction de la requête de base
+        $query = Colis::select(
+                'colis.reference_colis',
+                DB::raw('COUNT(colis.id) as nombre_colis'),
+                'expediteurs.agence as expediteur_agence',
+                DB::raw('CONCAT(destinataires.nom, " ", destinataires.prenom) as destinataire_nom_complet'),
+                'destinataires.tel as destinataire_tel',
+                'destinataires.agence as destinataire_agence',
+                DB::raw('MAX(colis.updated_at) as last_updated_at')
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('expediteurs.email', $email)
+            ->where('colis.etat', 'En attente')
+            ->groupBy(
+                'colis.reference_colis',
+                'expediteurs.agence',
+                'destinataires.nom',
+                'destinataires.prenom',
+                'destinataires.tel',
+                'destinataires.agence'
+            );
+    
+        return DataTables::of($query)
             ->addColumn('action', function ($row) {
-                
                 $deleteUrl = route('customer_colis.delete', ['reference_colis' => $row->reference_colis]);
                 return '
                     <div class="btn-group">
@@ -760,7 +778,7 @@ class CustomerColisController extends Controller
                     </div>';
             })
             ->editColumn('last_updated_at', function ($row) {
-                 if ($row->last_updated_at) {
+                if ($row->last_updated_at) {
                     return \Carbon\Carbon::parse($row->last_updated_at)->format('d/m/Y H:i');
                 }
                 return '';
@@ -768,7 +786,6 @@ class CustomerColisController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     public function delete_colis_group(Request $request, $reference_colis)
     {
         if (!$request->ajax()) {
@@ -809,9 +826,9 @@ class CustomerColisController extends Controller
         if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-
+    
         $email = Auth::user()->email;
-
+    
         $query = Colis::query()
             ->select(
                 'colis.reference_colis',
@@ -829,7 +846,7 @@ class CustomerColisController extends Controller
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
             ->where('expediteurs.email', $email)
-            ->where('colis.etat', 'Devis')
+            ->where('colis.etat', 'validé') // Changement de 'Devis' à 'validé'
             ->groupBy(
                 'colis.reference_colis',
                 'expediteurs.agence',
@@ -839,10 +856,10 @@ class CustomerColisController extends Controller
                 'destinataires.tel',
                 'colis.etat'
             );
-
+    
         return DataTables::of($query)
             ->addColumn('etat_display', function ($row) {
-                return 'Devis validé';
+                return 'validé';
             })
             ->addColumn('action', function ($row) {
                 $editUrl = route('customer_colis.payement.edit', ['id' => $row->representative_colis_id]);

@@ -133,41 +133,52 @@ foreach ($operationsComptablesBilan as $operation) {
         $agentTotals = ['totalPrix' => '0.00', 'totalPaye' => '0.00', 'totalResteAPayer' => '0.00'];
 
         if ($selectedAgentId) {
-            $agentColisCollection = Colis::with(['paiement'])
+            // Récupérer les colis de l'agent avec leurs paiements
+            $colisCollection = Colis::with('paiements')
                 ->where('etat', 'Validé')
                 ->where('agent_id', $selectedAgentId)
                 ->get();
-
-            $agentColis = $agentColisCollection->map(function($colis) {
-                $montantPaye = optional($colis->paiement)->montant ?? 0;
-                $prixColis = $colis->prix_transit_colis;
-                $resteAPayer = max(0, $prixColis - $montantPaye);
-
-                return [
-                    'reference_colis' => $colis->reference_colis,
-                    'date_paiement' => optional($colis->paiement)->date_validation ?? 'Non payé',
-                    'mode_transit' => $colis->mode_transit,
-                    'prix_colis' => number_format($prixColis, 2),
-                    'montant_paye' => number_format($montantPaye, 2),
-                    'reste_a_payer' => number_format($resteAPayer, 2),
+        
+            // Grouper les colis par leur référence
+            $colisGroupes = $colisCollection->groupBy('reference_colis');
+        
+            $agentColis = []; // Tableau final pour la vue
+        
+            // Itérer sur chaque groupe de colis (ex: tous les colis 'CA-0001-A1')
+            foreach ($colisGroupes as $reference => $colisDuGroupe) {
+                
+                // --- NOUVELLE LOGIQUE ---
+                // 1. Récupérer tous les paiements liés au groupe et les dédoublonner
+                $paiementsUniques = $colisDuGroupe->flatMap(function ($colis) {
+                    return $colis->paiements;
+                })->unique('id'); // 'id' est la clé primaire de la table paiements
+        
+                // 2. Calculer les totaux à partir de la table PAIEMENTS uniquement
+                // Le "Prix Total" est la somme de la colonne 'montant' des paiements
+                $prixTotalGroupe = $paiementsUniques->sum('montant');
+                
+                // Le "Montant Payé" est la somme de la colonne 'montant_paye' des paiements
+                $montantPayeGroupe = $paiementsUniques->sum('montant_paye');
+        
+                // 3. Calculer le reste à payer
+                $resteAPayerGroupe = $prixTotalGroupe - $montantPayeGroupe;
+        
+                // 4. Récupérer la date du paiement le plus récent pour l'affichage
+                $dernierPaiement = $paiementsUniques->sortByDesc('date_validation')->first();
+        
+                // 5. Assembler la ligne finale pour le tableau
+                $agentColis[] = [
+                    'reference_colis' => $reference,
+                    'date_paiement'   => $dernierPaiement ? $dernierPaiement->date_validation->format('Y-m-d H:i:s') : 'Non payé',
+                    'mode_transit'    => $colisDuGroupe->first()->mode_transit, // Le mode est le même pour tout le groupe
+                    'prix_colis'      => number_format($prixTotalGroupe, 2, '.', ''),
+                    'montant_paye'    => number_format($montantPayeGroupe, 2, '.', ''),
+                    'reste_a_payer'   => number_format($resteAPayerGroupe, 2, '.', ''),
                 ];
-            })->toArray();
-
-            // Calcul des totaux
-            $totalPrix = $agentColisCollection->sum('prix_transit_colis');
-            $totalPaye = $agentColisCollection->sum(function($colis) {
-                return optional($colis->paiement)->montant ?? 0;
-            });
-            $totalResteAPayer = $agentColisCollection->sum(function($colis) {
-                $montantPaye = optional($colis->paiement)->montant ?? 0;
-                return max(0, $colis->prix_transit_colis - $montantPaye);
-            });
-
-            $agentTotals = [
-                'totalPrix' => number_format($totalPrix, 2),
-                'totalPaye' => number_format($totalPaye, 2),
-                'totalResteAPayer' => number_format($totalResteAPayer, 2),
-            ];
+            }
+        
+            // On supprime le calcul des totaux globaux comme demandé
+            $agentTotals = null; 
         }
 
         // Récupérer les opérations comptables avec l'agent associé

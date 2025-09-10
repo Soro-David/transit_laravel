@@ -3,8 +3,24 @@
 @section('content')
 <div class="container-fluid">
     <!-- Statistiques principales -->
+     <!-- Carte Principale Mise en Évidence -->
+     <div class="row mb-4">
+        <div class="col-12">
+            {{-- Note: La classe "text-white" est redondante car gérée par le CSS ci-dessous --}}
+            <div class="card text-dark text-center p-3" style="background-color: #ffb300;
+                <h5 class="card-title" style="font-size: 1.1rem; font-weight: 300;">
+                    <i class="fas fa-coins"></i> Total Transit Global
+                </h5>
+                <h2 class="card-text display-4" style="font-weight: 600;">
+                    {{ number_format($totalPrixTransitColis, 0, ',', '.') }}€
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques secondaires -->
     <div class="row mb-4">
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h5><i class="fas fa-users"></i> Expéditeurs</h5>
@@ -12,7 +28,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h5><i class="fas fa-cube"></i> Produits</h5>
@@ -20,7 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6">
+        <div class="col-md-4 col-sm-6">
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5><i class="fas fa-boxes"></i> Colis Validés</h5>
@@ -28,15 +44,29 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card bg-warning text-dark">
+    </div>
+
+    <!-- LIGNE POUR LES STATISTIQUES PAR AGENCE -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-sm-6">
+            <div class="card bg-dark text-white">
                 <div class="card-body">
-                    <h5><i class="fas fa-coins"></i> Total Transit</h5>
-                    <h2>{{ number_format($totalPrixTransitColis, 2) }} €</h2>
+                    <h5><i class="fas fa-coins"></i> Total Transit Louis Bleriot</h5>
+                    <h2>{{ number_format($totalTransitLouisBleriot, 0, ',', '.') }}€</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6">
+            <div class="card" style="background-color: #C70039; color: white;">
+                <div class="card-body">
+                    <h5><i class="fas fa-coins"></i> Total Transit Chine</h5>
+                    <h2>{{ number_format($totalTransitChine, 0, ',', '.') }}Fcfa</h2>
+                    <h6 class="mt-2" style="font-weight: 300;">Soit env. {{ number_format($totalTransitChineEnEuros, 2, ',', '.') }}€</h6>
                 </div>
             </div>
         </div>
     </div>
+    <!-- FIN DE LA LIGNE -->
 
     <!-- Section Transport -->
     <div class="row mb-4">
@@ -69,9 +99,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="mt-3">
-                        <canvas id="volChart" height="150"></canvas>
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -105,85 +132,12 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="mt-3">
-                        <canvas id="conteneurChart" height="150"></canvas>
-                    </div> -->
                 </div>
             </div>
         </div>
     </div>
 
-   <!-- Graphique mensuel -->
-   <!-- <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="far fa-chart-bar"></i>
-                            Colis par Mois (Année {{ now()->year }})
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart">
-                            <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-         <!--  AJOUT DU CODE JAVASCRIPT ET DE L'INCLUDE CHART.JS ICI -->
-         <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var areaChartData = {
-                    labels: @json($moisNoms),
-                    datasets: [{
-                        label: 'Colis',
-                        backgroundColor: 'rgba(60,141,188,0.9)',
-                        borderColor: 'rgba(60,141,188,0.8)',
-                        pointRadius: false,
-                        pointColor: '#3b8bba',
-                        pointStrokeColor: 'rgba(60,141,188,1)',
-                        pointHighlightFill: '#fff',
-                        pointHighlightStroke: 'rgba(60,141,188,1)',
-                        data: @json($colisData)
-                    }]
-                };
-
-                var barChartCanvas = document.getElementById('barChart').getContext('2d');
-                new Chart(barChartCanvas, {
-                    type: 'bar',
-                    data: areaChartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-            });
-        </script> -->
-        <!-- <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Répartition transport</h3>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info mb-3">
-                        Vols de cargaison: <strong>{{ $volCargaisonCount }}</strong>
-                    </div>
-                    <div class="alert alert-secondary">
-                        Conteneurs maritimes: <strong>{{ $conteneurCount }}</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
-            <!-- Section Opération Comptable et Montant Bilan (Collapsible) -->
+    <!-- Section Opération Comptable et Montant Bilan (Collapsible) -->
     <div class="card mb-4">
         <div class="card-header bg-lightblue" id="operationBilanHeader" data-toggle="collapse" data-target="#operationBilanCollapse" aria-expanded="true" aria-controls="operationBilanCollapse" style="cursor: pointer;">
             <h3 class="card-title d-flex align-items-center">
@@ -197,7 +151,7 @@
                         <h5 class="mb-3"><i class="fas fa-money-bill-wave mr-2"></i> Montant Total Présent dans Votre Bilan actuel</h5>
                         <div class="form-group">
                             <label for="montant_bilan">Montant de votre Bilan:</label>
-                            <input type="text" class="form-control" id="montant_bilan" value="{{ number_format($montantBilan, 2) }} €" readonly>
+                            <input type="text" class="form-control" id="montant_bilan" value="{{ number_format($montantBilan, 0, ',', '.') }}€" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -256,104 +210,55 @@
             </div>
         </div>
     </div>
-        <!-- Section Liste des Opérations Comptables (Collapsible) -->
-        <div class="card mb-4">
+
+    <!-- Section Liste des Opérations Comptables (Collapsible) -->
+    <div class="card mb-4">
         <div class="card-header bg-lightblue" id="listeOperationsHeader" data-toggle="collapse" data-target="#listeOperationsCollapse" aria-expanded="false" aria-controls="listeOperationsCollapse" style="cursor: pointer;">
             <h3 class="card-title d-flex align-items-center">
-                <i class="fas fa-list-alt mr-2"></i> Liste des Opérations comptables depuis le dernier encaissement du :
+                <i class="fas fa-list-alt mr-2"></i> Liste des Opérations comptables
             </h3>
         </div>
         <div id="listeOperationsCollapse" class="collapse" aria-labelledby="listeOperationsHeader">
             <div class="card-body">
-                <!-- Formulaire de filtrage -->
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Filtrer par :</h5>
-                        <form>
-                            <div class="row align-items-center">
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Bénéficiaire">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Objet">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select class="form-control">
-                                        <option value="">Type</option>
-                                        <option value="SORTIE D'ARGENT">SORTIE D'ARGENT</option>
-                                        <option value="ENTREE D'ARGENT">ENTREE D'ARGENT</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Montant">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <input type="text" class="form-control" placeholder="Dates">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select class="form-control">
-                                        <option value="">Conteneur | Frais</option>
-                                        <option value="FRAIS DE FONCTIONNEMENT">FRAIS DE FONCTIONNEMENT</option>
-                                        @foreach($conteneursDisponibles as $conteneur)
-                                            <option value="{{ $conteneur }}">{{ $conteneur }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                          
-                            <div class="card-body">
-                <!-- Formulaire de filtrage -->
-                <div class="card mb-3">
-                <div class="card-body">
-    </div>
-
-    <!-- **Link for Export (GET Request)** -->
-    <a href="{{ route('export.operations.comptables.bilan') }}" class="btn btn-success btn-sm ml-2">Exporter En Excel</a>
-</div>
-                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
+                <a href="{{ route('export.operations.comptables.bilan') }}" class="btn btn-success btn-sm mb-3">Exporter En Excel</a>
 
                 <!-- Tableau des opérations comptables -->
                 <div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead class="bg-dark text-white">
-            <tr>
-                <th>Date</th>
-                <th>Agent</th> {{-- **NOUVELLE COLONNE "Agent"** --}}
-                <th>Type</th>
-                <th>Bénéficiaire / Fournisseur</th>
-                <th>Objet</th>
-                <th>Montant (€)</th>
-                <th>Conteneur / Frais</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($operationsComptables as $operation)
-                <tr>
-                    <td>{{ $operation->date_operation }}</td>
-                    <td>{{ optional($operation->agent)->nom }}</td> {{-- **AFFICHER LE NOM DE L'AGENT** --}}
-                    <td>{{ $operation->type_operation }}</td>
-                    <td>{{ $operation->beneficiaire_fournisseur }}</td>
-                    <td>{{ $operation->objet }}</td>
-                    <td class="text-right">{{ number_format($operation->montant, 2) }}</td>
-                    <td>{{ $operation->conteneur_frais_fonction }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center">Vous n'avez pas encore d'encaissement enregistré</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                    <table class="table table-bordered table-striped">
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th>Date</th>
+                                <th>Agent</th>
+                                <th>Type</th>
+                                <th>Bénéficiaire / Fournisseur</th>
+                                <th>Objet</th>
+                                <th>Montant</th>
+                                <th>Conteneur / Frais</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($operationsComptables as $operation)
+                                <tr>
+                                    <td>{{ $operation->date_operation }}</td>
+                                    <td>{{ optional($operation->agent)->nom }}</td>
+                                    <td>{{ $operation->type_operation }}</td>
+                                    <td>{{ $operation->beneficiaire_fournisseur }}</td>
+                                    <td>{{ $operation->objet }}</td>
+                                    <td class="text-right">{{ number_format($operation->montant, 0, ',', '.') }}€</td>
+                                    <td>{{ $operation->conteneur_frais_fonction }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center">Aucune opération enregistrée</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
     <!-- Section Agent -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -415,9 +320,10 @@
                                         <span class="badge bg-secondary">Maritime</span>
                                     @endif
                                 </td>
-                                <td class="text-right">{{ $colis['prix_colis'] }}</td>
-                                <td class="text-right">{{ $colis['montant_paye'] }}</td>
-                                <td class="text-right">{{ $colis['reste_a_payer'] }}</td>
+                                <!-- NOTE: (float) est utilisé pour s'assurer que le re-formatage fonctionne -->
+                                <td class="text-right">{{ number_format((float)$colis['prix_colis'], 0, ',', '.') }}€</td>
+                                <td class="text-right">{{ number_format((float)$colis['montant_paye'], 0, ',', '.') }}€</td>
+                                <td class="text-right">{{ number_format((float)$colis['reste_a_payer'], 0, ',', '.') }}€</td>
                             </tr>
                         @empty
                             <tr>
@@ -425,21 +331,12 @@
                             </tr>
                         @endforelse
                     </tbody>
-                    <tfoot class="bg-light">
-                        <tr>
-                            <th colspan="3">Totaux</th>
-                            <th class="text-right">{{ $agentTotals['totalPrix'] }}</th>
-                            <th class="text-right">{{ $agentTotals['totalPaye'] }}</th>
-                            <th class="text-right">{{ $agentTotals['totalResteAPayer'] }}</th>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
         @endif
     </div>
 </div>
-
 <!-- Scripts -->
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -526,6 +423,25 @@
 
 @section('styles')
 <style>
+    /* Style pour la carte principale mise en évidence */
+    #total-transit-global-card {
+        /* NOUVEAU DÉGRADÉ ET AJOUT DE !important POUR FORCER LE STYLE */
+        background: linear-gradient(45deg, #0f2027, #203a43, #2c5364) !important;
+        border: none !important;
+        color: white !important; /* Force la couleur du texte en blanc */
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #total-transit-global-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Assure que le texte à l'intérieur hérite de la couleur blanche forcée */
+    #total-transit-global-card h5, #total-transit-global-card h2 {
+        color: white !important;
+    }
+
     .select2-container--default .select2-selection--single {
         height: 38px;
         padding-top: 4px;

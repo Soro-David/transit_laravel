@@ -100,10 +100,15 @@ class Colis extends Model
         'prenom' => ''
     ]);
 }
+
 public function agent()
 {
     // 'agent_id' est la clé étrangère dans la table 'colis'
     // 'id' est la clé primaire dans la table 'agents'
     return $this->belongsTo(Agent::class, 'agent_id');
+}
+public function paiements() // Notez le "s" à la fin
+{
+    return $this->hasMany(\App\Models\Paiement::class);
 }
 }
