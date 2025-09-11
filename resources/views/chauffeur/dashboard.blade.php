@@ -1,254 +1,217 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', config('app.name'))</title>
+@extends('chauffeur.layouts.index')
 
-    <!-- Fonts and Icons -->
-    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@section('title', 'Tableau de Bord')
 
-    <!-- App Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    @yield('css')
+@push('styles')
+<style>
+    body {
+        background-color: #f4f6f9;
+        /* Ajout pour s'assurer qu'aucun débordement n'est possible */
+        overflow-x: hidden; 
+    }
+    .content-wrapper {
+        /* On s'assure que le padding est bien géré */
+        padding: 1.5rem; 
+    }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+        border: none;
+        height: 100%; /* Pour que toutes les cartes aient la même hauteur */
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card .icon {
+        font-size: 2.5rem; /* Légèrement réduit pour un meilleur équilibre */
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-right: 20px;
+        flex-shrink: 0; /* Empêche l'icône de se réduire */
+    }
+    .stat-card .info h4 {
+        margin: 0;
+        font-size: 0.9rem; /* Légèrement ajusté */
+        font-weight: 500;
+        color: #888;
+        white-space: nowrap; /* Empêche le texte de passer à la ligne */
+    }
+    .stat-card .info p {
+        margin: 0;
+        font-size: 2rem; /* Légèrement ajusté */
+        font-weight: 700;
+        color: #333;
+    }
 
-    <script>
-        window.APP = @json([
-            'currency_symbol' => config('settings.currency_symbol'),
-            'warning_quantity' => config('settings.warning_quantity')
-        ]);
-    </script>
+    .icon-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+    .icon-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .icon-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
 
-    <style>
-                body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
+    .chart-card {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        height: 100%; /* Assure que les cartes de graphiques remplissent la hauteur */
+    }
+    .chart-card .card-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem; /* Ajoute de l'espace sous le titre */
+    }
+    
+    /* Conteneur pour le canvas pour une meilleure responsivité */
+    .chart-container {
+        position: relative;
+        height: 300px; /* Hauteur par défaut pour les graphiques */
+        width: 100%;
+    }
+</style>
+@endpush
 
-        .content-wrapper {
-            padding: 20px;
-        }
-
-        .card-box {
-            background-color: #fff;
-            border-radius: 15px;
-            padding: 10px !important;
-            margin: 10px 0 !important;
-        }
-
-        .card-box img {
-            max-width: 100%;
-            border-radius: 10px;
-        }
-
-        .card-box h4 {
-            font-size: 1.2rem;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-
-        .card-box p {
-            font-size: 0.95rem;
-            color: #666;
-        }
-
-        .small-box {
-            border-radius: 10px;
-            text-align: center;
-            color: white;
-            margin: 15px 0;
-            padding: 15px;
-        }
-
-        .small-box .inner h3 {
-            font-size: 1.5rem;
-        }
-
-        .small-box a {
-            display: block;
-            margin-top: 10px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-        }
-
-        /* Couleurs de fond centralisées */
-        .bg-red { background-color: #d9534f; }
-        .bg-primary { background-color: #007bff; }
-        .bg-green { background-color: #5cb85c; }
-        .bg-teal { background-color: #20c997; }
-
-        /* Dashboard bar */
-        .dashboard-bar h2 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            text-align: center;
-            color: #007bff;
-        }
-
-        .scrolling-container {
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .scrolling-agency {
-            white-space: nowrap;
-            display: inline-block;
-            font-size: 40px;
-            animation: scroll-left 20s linear infinite;
-        }
-
-        @keyframes scroll-left {
-            0% {
-                transform: translateX(100%);
-                color: green;
-            }
-            50% {
-                color: rgb(255, 128, 10);
-            }
-            100% {
-                transform: translateX(-100%);
-                color: green;
-            }
-        }
-
-        /* Media Queries */
-        @media (max-width: 1200px) {
-            .small-box {
-                margin-bottom: 20px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .dashboard-bar h2 {
-                font-size: 1.5rem;
-            }
-
-            .scrolling-agency {
-                font-size: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-bar h2 {
-                font-size: 1.2rem;
-            }
-
-            .scrolling-agency {
-                font-size: 25px;
-            }
-
-            .small-box .inner h3 {
-                font-size: 1.5rem;
-            }
-
-            .small-box .inner {
-                padding: 10px;
-            }
-
-            .card-box img {
-                max-width: 80%;
-            }
-
-            .row > [class^="col-"] {
-                margin-bottom: 20px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .scrolling-agency {
-                font-size: 20px;
-            }
-
-            .dashboard-bar h2 {
-                font-size: 1rem;
-            }
-
-            .small-box .inner h3 {
-                font-size: 1.2rem;
-            }
-
-            .small-box {
-                padding: 15px;
-            }
-        }
-    </style>
-
-</head>
-<body>
-    <div class="wrapper">
-        @include('chauffeur.layouts.partials.navbar')
-        @include('chauffeur.layouts.partials.sidebar')
-
-        <div class="content-wrapper">
-            <!-- Content Header -->
-            <section class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1>@yield('content-header')</h1>
-                        </div>
-                        <div class="col-sm-6 text-right">
-                            @yield('content-actions')
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            @include('chauffeur.layouts.partials.alert.success')
-            @include('chauffeur.layouts.partials.alert.error')
-
-            <!-- Main Content -->
-            <section class="content">
-                <!-- Dashboard -->
-                <div class="dashboard-bar">
-                    <h2 class="text-left text-primary m-0">Tableau de bord Chauffeur</h2>
-                    <div class="scrolling-container">
-                        <h6 class="scrolling-agency">
-                            Bienvenue chez AFT import/export,
-                            <span class="weight-600">{{ auth()->user()->getFullname() }}</span>
-                            
-                        </h6>
-                        <h4 class="text-center" style="font-28; weight-500; mb-10;">
-                            Votre partenaire de confiance dans l'import-export.
-                        </h4>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                {{-- <div class="row">
-                    @foreach([
-                        ['bg' => 'bg-red', 'icon' => 'fas fa-dolly-flatbed', 'text' => __('Mes Colis'), 'route' => 'products.index'],
-                        ['bg' => 'bg-primary', 'icon' => 'fas fa-chart-line', 'text' => __('Nombre de colis'), 'route' => 'orders.index'],
-                        ['bg' => 'bg-green', 'icon' => 'fas fa-dollar-sign', 'text' => __('trans.total_income'), 'route' => 'orders.index'],
-                        ['bg' => 'bg-teal', 'icon' => 'fas fa-money-check-alt', 'text' => __('Bateau en transit'), 'route' => 'orders.index']
-                    ] as $stat)
-                        <div class="col-lg-6 col-md-12">
-                            <div class="small-box {{ $stat['bg'] }}">
-                                <div class="inner">
-                                    <h3>{{ $stat['text'] }}</h3>
-                                </div>
-                                <div class="icon"><i class="{{ $stat['icon'] }}"></i></div>
-                                <a href="{{ route($stat['route']) }}" class="small-box-footer">
-                                    {{ __('trans.more_info') }} <i class="fas fa-arrow-circle-right"></i>
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
-                </div> --}}
-            </section>
+@section('content-header')
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="m-0">Tableau de Bord</h1>
+            <p class="text-muted">Bienvenue, {{ auth()->user()->prenom }} ! Voici un résumé de votre activité.</p>
         </div>
-        @include('chauffeur.layouts.partials.footer')
     </div>
-    <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    @yield('js')
-</body>
-</html>
+@endsection
+
+@section('content')
+{{-- ON RETIRE LE <div class="container-fluid"> QUI EST LA CAUSE DU BUG --}}
+
+<!-- Première rangée : Cartes de statistiques -->
+<div class="row">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="icon icon-primary">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="info">
+                <h4>Missions Aujourd'hui</h4>
+                <p>{{ $missionsAujourdhui }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="icon icon-success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="info">
+                <h4>Total RDV Effectués</h4>
+                <p>{{ $missionsEffectuees }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="icon icon-warning">
+                <i class="fas fa-euro-sign"></i>
+            </div>
+            <div class="info">
+                <h4>Total Encaissé</h4>
+                <p>{{ number_format($totalEncaisse, 2, ',', ' ') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deuxième rangée : Graphiques -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="chart-card">
+            <h5 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Activité des 7 derniers jours (RDV effectués)</h5>
+            {{-- Ajout d'un conteneur pour le canvas --}}
+            <div class="chart-container">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="chart-card">
+            <h5 class="card-title"><i class="fas fa-chart-pie mr-2"></i>Répartition des Statuts de RDV</h5>
+            {{-- Ajout d'un conteneur pour le canvas --}}
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- FIN DE LA ZONE DE CONTENU --}}
+@endsection
+
+@push('scripts')
+<!-- CDN de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Le code Javascript reste identique, il est déjà correct.
+    document.addEventListener('DOMContentLoaded', function () {
+        const barChartData = @json($barChartData);
+        const pieChartData = @json($pieChartData);
+
+        if (document.getElementById('barChart')) {
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: barChartData.labels,
+                    datasets: [{
+                        label: 'RDV Effectués',
+                        data: barChartData.data,
+                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        if (document.getElementById('pieChart')) {
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: pieChartData.labels,
+                    datasets: [{
+                        label: 'Statuts des RDV',
+                        data: pieChartData.data,
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.7)',
+                            'rgba(255, 193, 7, 0.7)',
+                            'rgba(0, 123, 255, 0.7)',
+                            'rgba(220, 53, 69, 0.7)'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    });
+</script>
+@endpush
