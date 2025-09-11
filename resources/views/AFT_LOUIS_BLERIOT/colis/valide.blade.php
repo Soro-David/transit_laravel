@@ -220,7 +220,46 @@ $(document).ready(function () {
         // Configuration des boutons d'exportation (si utilisés)
         dom: 'Bfrtip', // Afficher les boutons, le filtre, la table, les informations et la pagination
         buttons: [
-            'excel', 'pdf', 'print' // Boutons standards DataTables
+                // Bouton Excel
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exporter en Excel',
+                    title: 'FANIFESTE',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
+                    customize: function (xlsx) {
+                        console.log("Exportation Excel réussie sans image.");
+                    }
+                },
+
+                // Bouton Imprimer
+                {
+                    extend: 'print',
+                    text: 'Imprimer',
+                    title: 'FANIFESTE',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
+                    customize: function (win) {
+                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                        
+                        // Ajouter le logo
+                        $(win.document.body).prepend(logo);
+                        
+                        // Centrer le titre
+                        $(win.document.body).find('h1')
+                            .css('text-align', 'center')
+                            .css('margin-top', '10px');
+                            
+                        $(win.document.body).find('table').css('margin-top', '30px');
+                        
+                        // Cacher les colonnes non souhaitées
+                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
+                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
+                    }
+                }
         ],
          order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
     });

@@ -241,54 +241,48 @@ document.addEventListener("DOMContentLoaded", function () {
                     },
                 ],
             dom: 'Bfrtip', // Placement des boutons
-            buttons: [
+        buttons: [
                 // Bouton Excel
                 {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
-                    title: 'Liste des Colis en attente',
+                    title: 'FANIFESTE',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
                     customize: function (xlsx) {
                         console.log("Exportation Excel réussie sans image.");
                     }
                 },
-                // Bouton PDF
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exporter en PDF',
-                    title: 'Liste des Colis en attente',
-                    orientation: 'landscape', // Mode paysage
-                    pageSize: 'A4', // Taille de la page
-                    customize: function (doc) {
-                        // Ajout du logo encodé en Base64 dans le PDF
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        toDataURL(logoUrl, function (dataUrl) {
-                            // Ajout de l'image au début du contenu PDF
-                            console.log(dataUrl);
-                            doc.content.unshift({
-                                image: dataUrl,
-                                width: 100, // Taille du logo
-                                alignment: 'center',
-                                margin: [0, 0, 0, 10] // Espacement
-                            });
-                        });
-                    }
-                },
+
                 // Bouton Imprimer
                 {
                     extend: 'print',
                     text: 'Imprimer',
-                    title: 'Liste des Colis en attente',
+                    title: 'FANIFESTE',
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
                     customize: function (win) {
                         var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                         var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                        
+                        // Ajouter le logo
+                        $(win.document.body).prepend(logo);
+                        
+                        // Centrer le titre
                         $(win.document.body).find('h1')
                             .css('text-align', 'center')
                             .css('margin-top', '10px');
-                        $(win.document.body).find('h1').after(logo);
+                            
                         $(win.document.body).find('table').css('margin-top', '30px');
+                        
+                        // Cacher les colonnes non souhaitées
+                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
+                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
                     }
                 }
-            ]
+        ],
         });
 
     });

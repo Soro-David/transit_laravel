@@ -52,10 +52,7 @@
             color: rgb(255, 153, 0);
         }
         
-        p {
-           font-size: 1.25rem;
-            line-height: 1.6;
-        }
+
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -187,8 +184,9 @@
         }
 
         p {
-            color: #fffbfb;
-            line-height: 1.6;
+            font-size: 1.25rem;
+            line-height: 1.7;
+            color: #555;;
         }
 
         ul {

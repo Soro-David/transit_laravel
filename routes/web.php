@@ -94,6 +94,18 @@ Route::get('/test-mail', function () {
     }
 });
 
+Route::get('/test-email', function () {
+    try {
+        Mail::raw('Test email configuration', function ($message) {
+            $message->to('soroddavid63@gmail.com')
+                    ->subject('Test Email Configuration');
+        });
+        
+        return 'Email sent successfully!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
 
 
 Route::get('/test-sms-infobip', function (InfobipSmsService $infobipSmsService) {

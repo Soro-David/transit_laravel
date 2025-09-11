@@ -252,6 +252,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
                     title: 'Liste des Colis en attente',
+                     exportOptions: {
+                        columns: [0,1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
                     customize: function (xlsx) {
                         console.log("Exportation Excel réussie sans image.");
                     }

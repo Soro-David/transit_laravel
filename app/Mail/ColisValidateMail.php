@@ -8,9 +8,9 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
-use App\Models\Paiement; // Assurez-vous que le chemin vers votre modèle Paiement est correct
+use App\Models\Paiement;
 
-class ColisValidatedMail extends Mailable
+class ColisValidateMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -35,7 +35,6 @@ class ColisValidatedMail extends Mailable
         return new Envelope(
             subject: 'Confirmation de votre dossier - Référence: ' . $reference,
         );
-        // dd($reference);
     }
 
     /**
@@ -48,7 +47,7 @@ class ColisValidatedMail extends Mailable
         $destinataire = $firstColis->destinataire;
 
         return new Content(
-            view: 'emails.colis_validated',
+            view: 'emails.colis_valide',
             with: [
                 'expediteur_nom' => $expediteur->nom . ' ' . $expediteur->prenom,
                 'reference_colis' => $firstColis->reference_colis,

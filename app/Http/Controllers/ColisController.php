@@ -298,6 +298,7 @@ class ColisController extends Controller
             ->orderByDesc('id')
             ->value('reference_contenaire');
 
+            // dd($lastReference);
         if ($lastReference) {
             // Extraire le numéro (tout ce qui vient après "TC")
             $lastNumber = (int) str_replace('TC', '', $lastReference);
@@ -319,6 +320,7 @@ class ColisController extends Controller
             ->orderByDesc('id')
             ->value('reference_vol');
 
+            // dd($lastReference);
         if ($lastReference) {
             // Extraire le numéro (tout ce qui vient après "A")
             $lastNumber = (int) str_replace('A', '', $lastReference);
@@ -328,6 +330,7 @@ class ColisController extends Controller
             $newNumber = 1;
         }
 
+        // dd($newNumber);
         return "A" . $newNumber;
     }
 
@@ -703,7 +706,7 @@ class ColisController extends Controller
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
             'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
-            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
+            'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
 
         $destinataireData = [
@@ -712,9 +715,10 @@ class ColisController extends Controller
             'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
             'tel' => $destinataireTel, // numéro complet avec indicatif
             'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
-            'lieu_destination' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
+            'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
         ];
 
+        // dd($expediteurData, $destinataireData);
         try {
             $expediteur = Expediteur::create($expediteurData);
             $destinataire = Destinataire::create($destinataireData);
@@ -857,9 +861,6 @@ class ColisController extends Controller
 
                     $qrCodeContent = implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
 
-                    // Utilisation du builder si c'est votre configuration pour Endroid QR Code
-                    // Si vous utilisez SimpleSoftwareIO, la syntaxe serait différente.
-                    // Assurez-vous d'avoir bien configuré Endroid/qr-code pour utiliser cette approche.
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
                     $result = $writer->write($qrCode);
@@ -904,7 +905,7 @@ class ColisController extends Controller
         session()->forget(['step1', 'step2']);
 
         $totalQuantitePhysique = $colisEnregistresCollection->count();
-        $totalPrixTransit = $firstColis->prix_transit_colis;
+        $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
         $restePaye = $totalPrixTransit - $montantPaiementTransaction;
         if ($modePaiement === 'delivery') {
             $restePaye = $totalPrixTransit;
@@ -914,6 +915,8 @@ class ColisController extends Controller
         $expediteurTelForSms = $expediteurTel;
         $destinataireTelForSms = $destinataireTel;
 
+        // dd($expediteurTelForSms, $destinataireTelForSms);
+        
         $colisReferences = $colisEnregistresCollection
             ->pluck('reference_colis')
             ->unique()
@@ -938,6 +941,41 @@ class ColisController extends Controller
             }
         }
 
+                    // ENVOI DE L'EMAIL À L'EXPÉDITEUR
+            try {
+                Log::info("Tentative d'envoi d'email à: " . ($expediteur->email ?? 'NULL'));
+                
+                if (!empty($expediteur->email) && filter_var($expediteur->email, FILTER_VALIDATE_EMAIL)) {
+                    
+                    // Vérification supplémentaire
+                    Log::debug("Détails de l'email:", [
+                        'email' => $expediteur->email,
+                        'paiement_id' => $paiementPrincipal->id,
+                        'colis_count' => $colisEnregistresCollection->count()
+                    ]);
+
+                    // CORRECTION : Utilisation correcte du Mailable
+                    Mail::to($expediteur->email)
+                        ->send(new \App\Mail\ColisValidateMail($paiementPrincipal, $colisEnregistresCollection));
+                    
+                    Log::info("✅ Email de confirmation envoyé à: " . $expediteur->email);
+                    
+                } else {
+                    Log::warning("Email invalide ou manquant pour l'expéditeur ID: " . $expediteur->id, [
+                        'email' => $expediteur->email ?? 'non défini'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ Erreur lors de l'envoi de l'email: " . $e->getMessage(), [
+                    'email' => $expediteur->email ?? 'non défini',
+                    'exception' => $e->getTraceAsString(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
+
+        // dd($firstColis->destinataire->tel);
+        // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
             'first' => $firstColis, 
@@ -1181,7 +1219,6 @@ class ColisController extends Controller
 
         $firstColis = $colisCollection->first();
 
-        // --- Prepare base invoice data ---
         $date_facture = now();
         $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
         $tel_expediteur = optional($firstColis->expediteur)->tel;
@@ -1191,7 +1228,6 @@ class ColisController extends Controller
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
-        // dd($devise);
         // --- Group and Aggregate Colis Data by Service/Description ---
         $groupedItems = [];
         $prix_total_invoice = 0; // Initialize total for the entire invoice
@@ -1396,7 +1432,6 @@ class ColisController extends Controller
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
-        // dd($devise);
         // --- Group and Aggregate Colis Data by Service/Description ---
         $groupedItems = [];
         $prix_total_invoice = 0; // Initialize total for the entire invoice
@@ -1413,7 +1448,6 @@ class ColisController extends Controller
 
             // Define the group key based on the service description
             $groupKey = $serviceDescription;
-            // dd($groupKey);
             if (!isset($groupedItems[$groupKey])) {
                 // Initialize the group if it's the first time we see this service
                 $groupedItems[$groupKey] = [

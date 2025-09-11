@@ -186,7 +186,7 @@
             font-size: 1.4rem;
         }
         .service-item p {
-            font-size: 1.05rem;
+            font-size: 1.25rem;
             color: #555;
             line-height: 1.6;
         }

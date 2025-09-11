@@ -152,131 +152,100 @@
 
     <!-- JavaScript for DataTable and Export -->
     <script>
-        $(document).ready(function() {
-            // Initialisation de la table DataTable
-            var table = $("#productTable").DataTable({
-                responsive: true,
-                language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-                ajax: '{{ route("colis.get.colis.dump") }}', // Récupération des données via AJAX
-                columns: [{
-                        data: 'reference_colis'
-                    },
-                    {
-                        data: 'nombre_de_colis'
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row) {
-                            return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                        }
-                    },
-                    {
-                        data: 'expediteur_tel'
-                    },
-                    {
-                        data: 'expediteur_agence'
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row) {
-                            return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                        }
-                    },
-                    {
-                        data: 'destinataire_tel'
-                    },
-                    { 
-                        data: 'destinataire_agence',
-                        name: 'destinataire_agence.nom_agence',
-                        render: function(data, type, row) {
-                            if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                                return 'Angre 8 ème Tranche';
-                            } else if (data === 'IPMS-SIMEX-CI') {
-                                return 'Carrefour Angré';
-                            }
-                            return data;
-                        }
-                    },
-                    {
-                        data: 'etat'
-                    },
-                    {
-                        data: 'created_at'},
-
-                    // { data: 'action', orderable: false, searchable: false }
-                ],
-                dom: 'Bfrtip', // Placement des boutons
-                buttons: [
-                    // Bouton Excel
-                    {
-                        extend: 'excelHtml5',
-                        text: 'Exporter en Excel',
-                        title: 'Liste des Colis en attente',
-                        customize: function(xlsx) {
-                            console.log("Exportation Excel réussie sans image.");
-                        }
-                    },
-                    // Bouton PDF
-                    {
-                        extend: 'pdfHtml5',
-                        text: 'Exporter en PDF',
-                        title: 'Liste des Colis en attente',
-                        orientation: 'landscape', // Mode paysage
-                        pageSize: 'A4', // Taille de la page
-                        customize: function(doc) {
-                            // Ajout du logo encodé en Base64 dans le PDF
-                            var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                            toDataURL(logoUrl, function(dataUrl) {
-                                // Ajout de l'image au début du contenu PDF
-                                console.log(dataUrl);
-                                doc.content.unshift({
-                                    image: dataUrl,
-                                    width: 100, // Taille du logo
-                                    alignment: 'center',
-                                    margin: [0, 0, 0, 10] // Espacement
-                                });
-                            });
-                        }
-                    },
-                    // Bouton Imprimer
-                    {
-                        extend: 'print',
-                        text: 'Imprimer',
-                        title: 'Liste des Colis en attente',
-                        customize: function(win) {
-                            var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                            var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                            $(win.document.body).find('h1')
-                                .css('text-align', 'center')
-                                .css('margin-top', '10px');
-                            $(win.document.body).find('h1').after(logo);
-                            $(win.document.body).find('table').css('margin-top', '30px');
-                        }
+$(document).ready(function() {
+    // Initialisation de la table DataTable
+    var table = $("#productTable").DataTable({
+        responsive: true,
+        language: {
+            url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+        },
+        ajax: '{{ route("colis.get.colis.dump") }}', // Récupération des données via AJAX
+        columns: [{
+                data: 'reference_colis'
+            },
+            {
+                data: 'nombre_de_colis'
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
+                }
+            },
+            {
+                data: 'expediteur_tel'
+            },
+            {
+                data: 'expediteur_agence'
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
+                }
+            },
+            {
+                data: 'destinataire_tel'
+            },
+            { 
+                data: 'destinataire_agence',
+                name: 'destinataire_agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'Angre 8 ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'Carrefour Angré';
                     }
-                ]
-            });
-
-            /**
-             * Fonction pour convertir une image en Base64
-             * @param {string} url - L'URL de l'image
-             * @param {function} callback - Fonction de retour contenant l'image en Base64
-             */
-            function toDataURL(url, callback) {
-                var xhr = new XMLHttpRequest();
-                xhr.onload = function() {
-                    var reader = new FileReader();
-                    reader.onloadend = function() {
-                        callback(reader.result); // Retourne l'image encodée en Base64
-                    };
-                    reader.readAsDataURL(xhr.response);
-                };
-                xhr.open('GET', url);
-                xhr.responseType = 'blob'; // Type de réponse : Blob
-                xhr.send();
+                    return data;
+                }
+            },
+            {
+                data: 'etat'
+            },
+            {
+                data: 'created_at'
             }
-        });
+        ],
+        dom: 'Bfrtip', // Placement des boutons
+        buttons: [
+            // Bouton Excel
+            {
+                extend: 'excelHtml5',
+                text: 'Exporter en Excel',
+                title: 'Liste des Colis en attente',
+                exportOptions: {
+                    columns: ':visible' // Exporter toutes les colonnes visibles
+                },
+                customize: function(xlsx) {
+                    console.log("Exportation Excel réussie sans image.");
+                }
+            },
+            // Bouton Imprimer
+            {
+                extend: 'print',
+                text: 'Imprimer',
+                title: 'Liste des Colis en attente',
+                exportOptions: {
+                    columns: ':visible' // Imprimer toutes les colonnes visibles
+                },
+                customize: function(win) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
+                    
+                    // Ajouter le logo
+                    $(win.document.body).prepend(logo);
+                    
+                    // Centrer le titre
+                    $(win.document.body).find('h1')
+                        .css('text-align', 'center')
+                        .css('margin-top', '10px');
+                        
+                    $(win.document.body).find('table').css('margin-top', '30px');
+                }
+            }
+        ]
+    });
+});
     </script>
 
 

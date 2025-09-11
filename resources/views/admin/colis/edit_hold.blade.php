@@ -80,7 +80,7 @@
         </form>
 
         <div class="d-flex justify-content-center gap-2 mt-4">
-            <a href="{{ route('aftlb_colis.hold') }}" class="btn btn-secondary">Retour</a>
+            {{-- <a href="{{ route('aftlb_colis.hold') }}" class="btn btn-secondary">Retour</a> --}}
             <button type="button" id="validate-btn" class="btn btn-primary">Valider</button>
         </div>
     </div>

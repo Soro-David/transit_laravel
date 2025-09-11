@@ -223,7 +223,7 @@
         p {
             font-size: 1.25rem;
             line-height: 1.7;
-            color: #fffefc;
+            color: #555;;
         }
 
         .image-container {
@@ -374,7 +374,7 @@
             font-weight: 900;
             margin-right: 0.8rem;
             color: #28a745; /* Vert pour les avantages */
-            font-size: 1.1em;
+            font-size: 1.25em;
         }
         
         .features-list, .advantages-list {
@@ -512,7 +512,7 @@
         @media (max-width: 991px) {
             .hero-section { padding: 4rem 0; }
             .hero-section h1 { font-size: 2.5rem; }
-            .hero-section p { font-size: 1rem; }
+            .hero-section p { font-size: 1,25rem; }
 
             .service-list-card { padding: 2rem; }
             .service-list-card h3 { font-size: 1.5rem; }

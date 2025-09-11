@@ -718,24 +718,38 @@ private function generateReferenceParMode(string $mode_transit)
                 }
             }
 
-            // Envoi du SMS au destinataire
-            // if ($destinataireTel) {
-            //     try {
-            //         $infobipService->sendSms($destinataireTel, $messageSmsDestinataire);
-            //         Log::info("SMS envoyé au destinataire {$destinataireTel} pour le colis {$colisReferences}.");
-            //     } catch (\RuntimeException $e) {
-            //         Log::error("⚠️ Erreur de configuration Infobip lors de l'envoi SMS au destinataire: " . $e->getMessage(), [
-            //             'phone_number' => $destinataireTel,
-            //             'message' => $messageSmsDestinataire
-            //         ]);
-            //     } catch (\Throwable $e) {
-            //         Log::error("⚠️ Une erreur inattendue est survenue lors de l'envoi du SMS au destinataire ! " . $e->getMessage(), [
-            //             'phone_number' => $destinataireTel,
-            //             'message' => $messageSmsDestinataire,
-            //             'trace' => $e->getTraceAsString()
-            //         ]);
-            //     }
-            // }
+                        // ENVOI DE L'EMAIL À L'EXPÉDITEUR
+            try {
+                Log::info("Tentative d'envoi d'email à: " . ($expediteur->email ?? 'NULL'));
+                
+                if (!empty($expediteur->email) && filter_var($expediteur->email, FILTER_VALIDATE_EMAIL)) {
+                    
+                    // Vérification supplémentaire
+                    Log::debug("Détails de l'email:", [
+                        'email' => $expediteur->email,
+                        'paiement_id' => $paiementPrincipal->id,
+                        'colis_count' => $colisEnregistresCollection->count()
+                    ]);
+
+                    // CORRECTION : Utilisation correcte du Mailable
+                    Mail::to($expediteur->email)
+                        ->send(new \App\Mail\ColisValidateMail($paiementPrincipal, $colisEnregistresCollection));
+                    
+                    Log::info("✅ Email de confirmation envoyé à: " . $expediteur->email);
+                    
+                } else {
+                    Log::warning("Email invalide ou manquant pour l'expéditeur ID: " . $expediteur->id, [
+                        'email' => $expediteur->email ?? 'non défini'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ Erreur lors de l'envoi de l'email: " . $e->getMessage(), [
+                    'email' => $expediteur->email ?? 'non défini',
+                    'exception' => $e->getTraceAsString(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
 
 
 

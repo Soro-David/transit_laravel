@@ -31,7 +31,7 @@
                                                 <th>Téléphone</th>
                                                 <th>Agence Destinataire</th>
                                                 <th>Date</th>
-                                                <th>Action</th> <!-- ✅ NE PAS COMMENTER -->
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -43,7 +43,7 @@
                 </div>
         </form>
 
-    <!-- Modal for editing -->
+    <!-- Modal for editing --> 
     <div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
         <div class="modal-dialog" style="max-width: 600px;">
             <div class="modal-content">
@@ -245,6 +245,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
                     title: 'Liste des Colis en attente',
+                     exportOptions: {
+                        columns: [0,1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                    },
                     customize: function (xlsx) {
                         console.log("Exportation Excel réussie sans image.");
                     }

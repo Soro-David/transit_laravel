@@ -239,8 +239,8 @@
                         </div>
                       
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control" required>
+                            <label  class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_societe" class="form-control" >
                                     <option value="Pas de livraison">Pas de Livraison</option>
                                     <option value="Abobo">Abobo</option>
                                     <option value="Adjamé">Adjamé</option>
@@ -310,8 +310,8 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_societe" id="adresse_destinataire" class="form-control" required>
+                            <label class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire" class="form-control" >
                                 <option value="">-- Sélectionnez une commune --</option>
                                     <option value="Pas de livraison">Pas de Livraison</option>
                                     <option value="Abobo">Abobo</option>
@@ -713,26 +713,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data && (data.nom || data.nom_societe)) {
                 console.log('Destinataire trouvé:', data);
-
-                if (type === 'particulier') {
-                    updateFieldValue('email_destinataire', data.email);
-                    setSelectedOption('#particulier_destinataire_section select[name="country_code_destinataire"]', data.country_code);
-                    updateFieldValue('tel_destinataire', data.telephone);
-                    // Pour l'adresse de livraison (select ou input direct)
-                    // Si c'est un select:
-                    setSelectedOption('#particulier_destinataire_section select[name="adresse_destinataire_societe"]', data.adresse);
-                    // Si c'est un input text direct:
-                    updateFieldValue('adresse_destinataire', data.adresse); // Si l'input a cet ID
-                    setSelectedOption('select[name="agence_particulier_destinataire_particulier"]', data.agence);
-                } else { // type === 'societe'
-                    updateFieldValue('email_societe_destinataire', data.email);
-                    setSelectedOption('#societe_destinataire_section select[name="country_code_societe_destinataire"]', data.country_code);
-                    updateFieldValue('tel_societe_destinataire', data.telephone);
-                    updateFieldValue('adresse_societe_destinataire', data.adresse);
-                    updateFieldValue('numero_siret_destinataire', data.siret);
-                    setSelectedOption('select[name="agence_societe_destinataire"]', data.agence);
-                }
-            } else {
                 console.log(`Aucun destinataire (${type}) trouvé avec les informations fournies.`);
                 clearDestinataireFields(type);
             }
@@ -1032,7 +1012,6 @@ $(document).ready(function() {
                             <select name="devise" id="devise" class="form-control">
                                 <option value="" disabled selected>-- Devise --</option>
                                 <option value="EUR">EUR</option>
-                                <option value="YUAN">YUAN</option>
                                 <option value="FCFA">FCFA</option>
                             </select>
                         </div>

@@ -84,122 +84,49 @@ class CustomerColisController extends Controller
      *
      * @return string
      */
-    private function generateReferenceColis()
-    {
-        // Récupérer l'utilisateur connecté
-        $user = Auth::user();
-        // dd($user);
-        // Vérifier si l'utilisateur est connecté
-        if (!$user) {
-            throw new \Exception("Utilisateur non connecté.");
-        }
-    
-        // Récupérer la première lettre du nom et du prénom
-        $firstLetterNom = strtoupper(substr($user->last_name, 0, 1)); // Première lettre du nom
-        $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1)); // Première lettre du prénom
-        // dd($firstLetterNom, $firstLetterPrenom);
-        // Récupérer la première lettre du mois actuel
-        $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois
-    
-        // Initialiser le chiffre à 1
-        $increment = 1;
-    
-        // Construire la référence de base
-        $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-    
-        // Vérifier si la référence existe déjà dans la table colis
-        while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
-            // Incrémenter le chiffre
-            $increment++;
-            // Mettre à jour la référence avec le nouvel incrément
-            $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-        }
-    
-        return $baseReference; // Retourner la référence finale
-    }
-
-
-    private function generateParcelReference()
-    {
-        $user = Auth::user();
-        if (!$user) {
-            throw new \Exception("Utilisateur non connecté.");
-        }
-
-        $firstLetterNom = strtoupper(substr($user->last_name, 0, 1));
-        $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1));
-        $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois en anglais ('J' pour January, 'F' for February...)
-
-        $increment = 1;
-        $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-
-        // Boucle pour trouver la première référence non utilisée pour cette combinaison utilisateur/mois
-        while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
-            $increment++;
-            $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-        }
-
-        return $baseReference; // Retourne la référence unique pour ce colis
-    }
-   
     private function generateReferenceContenaire()
     {
-        $alphabet = range('A', 'Z');
-        $letterIndex = 0;
-        $increment = 1;
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex];
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            $exists = DB::table('colis')
-                        ->where('reference_contenaire', $baseReference)
-                        ->exists();
-    
-            if ($exists) {
-                $increment++;
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        if ($letterIndex >= count($alphabet)) {
-            throw new \Exception("Plus de références de conteneur disponibles.");
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+            // dd($lastReference);
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "TC")
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur
+            $newNumber = 1;
         }
-    
-        return $baseReference;
-    }
-    
-    
 
-        private function generateReferenceVol()
+        return "TC" . $newNumber;
+    }
+
+
+    private function generateReferenceVol()
     {
-        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
-        $increment = 1; // Commencer par 1
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-            if ($exists) {
-                $increment++; // Incrémenter le numéro
-    
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        return $baseReference;
-    }
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_vol')
+            ->orderByDesc('id')
+            ->value('reference_vol');
 
+            // dd($lastReference);
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "A")
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol
+            $newNumber = 1;
+        }
+
+        // dd($newNumber);
+        return "A" . $newNumber;
+    }
 
 
     private function generateReferenceParMode(string $mode_transit)
@@ -209,11 +136,25 @@ class CustomerColisController extends Controller
             throw new \Exception("Utilisateur non connecté.");
         }
 
+        // Initiales de l'utilisateur (ex: SE)
         $initiales = strtoupper(
             substr($user->last_name ?? 'X', 0, 1) .
             substr($user->first_name ?? 'X', 0, 1)
         );
 
+        // Agence cible
+      
+
+        // Dernier identifiant de référence par mode + agence
+        $lastIdRef = DB::table('colis')
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->where('colis.mode_transit', $mode_transit)
+            ->max('colis.id_reference');
+
+        // Incrémentation de l'ID de référence
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+        // Déterminer la bonne référence de conteneur ou vol selon le mode
         if ($mode_transit === 'maritime') {
             $contenaireRef = DB::table('colis')
                 ->where('mode_transit', $mode_transit)
@@ -230,25 +171,11 @@ class CustomerColisController extends Controller
             throw new \Exception("Mode de transit invalide : $mode_transit");
         }
 
+        // Format final de la référence du colis
+        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
         $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
-
-        $lastIdRef = DB::table('colis')
-            ->where('colis.mode_transit', $mode_transit)
-            ->max('colis.id_reference');
+        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
         
-        $nextIdRef = ($lastIdRef ?? 0) + 1;
-        
-        $reference = '';
-        $exists = false;
-
-        do {
-            $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-            $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-            $exists = DB::table('colis')->where('reference_colis', $reference)->exists();
-            if ($exists) {
-                $nextIdRef++;
-            }
-        } while ($exists);
 
         return [
             'reference_colis' => $reference,
@@ -256,10 +183,6 @@ class CustomerColisController extends Controller
             'reference_contenaire' => $contenaireRef
         ];
     }
-    
-
-
-
 
     public function genererReferenceSelonMode($mode)
     {

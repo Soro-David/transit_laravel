@@ -41,6 +41,7 @@ use App\Services\InfobipSmsService;
 use Barryvdh\DomPDF\Facade;
 use PDF;
 use App\Mail\ColisValidatedMail;
+use App\Mail\ColisValidateMail;
 use Illuminate\Support\Collection; 
 // use Barryvdh\DomPDF\Facade\Pdf; 
 
@@ -811,6 +812,39 @@ public function vol_fermer(Request $request)
                     ]);
                 }
             }
+
+            // ENVOI DE L'EMAIL À L'EXPÉDITEUR
+            try {
+                Log::info("Tentative d'envoi d'email à: " . ($expediteur->email ?? 'NULL'));
+                
+                if (!empty($expediteur->email) && filter_var($expediteur->email, FILTER_VALIDATE_EMAIL)) {
+                    
+                    // Vérification supplémentaire
+                    Log::debug("Détails de l'email:", [
+                        'email' => $expediteur->email,
+                        'paiement_id' => $paiementPrincipal->id,
+                        'colis_count' => $colisEnregistresCollection->count()
+                    ]);
+
+                    // CORRECTION : Utilisation correcte du Mailable
+                    Mail::to($expediteur->email)
+                        ->send(new \App\Mail\ColisValidateMail($paiementPrincipal, $colisEnregistresCollection));
+                    
+                    Log::info("✅ Email de confirmation envoyé à: " . $expediteur->email);
+                    
+                } else {
+                    Log::warning("Email invalide ou manquant pour l'expéditeur ID: " . $expediteur->id, [
+                        'email' => $expediteur->email ?? 'non défini'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ Erreur lors de l'envoi de l'email: " . $e->getMessage(), [
+                    'email' => $expediteur->email ?? 'non défini',
+                    'exception' => $e->getTraceAsString(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]);
+            }
     
         return view('AGENCE_CHINE.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
@@ -819,7 +853,7 @@ public function vol_fermer(Request $request)
             'totalPrixTransit' => $totalPrixTransit,
             'restePaye' => $restePaye,
             'mode_payement' => $modePaiement,
-            'totalMontantPaye' => $montantPaiementTransaction, // Montant effectivement payé pour la transaction
+            'totalMontantPaye' => $montantPaiementTransaction,
             
         ]);
     }
@@ -1743,7 +1777,7 @@ public function vol_fermer(Request $request)
     
         // Envoi de l'email
         try {
-            Mail::to($premierColis->expediteur->email)->send(new ColisValidatedMail($paiementFactice, $colisCollection));
+            Mail::to($premierColis->expediteur->email)->send(new ColisValidateMail($paiementFactice, $colisCollection));
             Log::info("Email de validation du devis envoyé à " . $premierColis->expediteur->email);
         } catch (\Exception $e) {
             Log::error("Erreur lors de l'envoi de l'email de validation du devis: " . $e->getMessage());
