@@ -1596,7 +1596,10 @@ Route::prefix('chauffeur')->middleware(['auth', 'role:chauffeur'])->group(functi
 //    Route::post('/login', [ChauffeurAuthController::class, 'login'])->name('chauffeur.login.post');
    Route::get('/dashboard', [ChauffeurAuthController::class, 'dashboard'])->name('chauffeur.dashboard');
    Route::get('/programme-chauffeur', [ChauffeurColisController::class, 'index'])->name('chauffeur.programme.index');
-   Route::patch('/chauffeur/{programme}/update-etat', [ChauffeurColisController::class, 'updateEtatRdv'])->name('chauffeur.programme.updateEtatRdv');
+   Route::patch('/programme/{programme}/update-etat-rdv', [App\Http\Controllers\ChauffeurColisController::class, 'updateEtatRdv'])
+    ->name('chauffeur.programme.updateEtatRdv');
+   Route::get('/payment-details/{reference_colis}', [App\Http\Controllers\ChauffeurColisController::class, 'getPaymentDetails'])->name('chauffeur.payment.details');
+   Route::post('/process-field-payment', [App\Http\Controllers\ChauffeurColisController::class, 'processFieldPayment'])->name('chauffeur.payment.process');
 });
 Route::get('/admin/colis/getColisInfo/{reference_colis}', [ColisController::class, 'getColisInfo']);
 

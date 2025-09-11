@@ -1,3 +1,4 @@
+// History.blade.php
 @extends('customer.layouts.index')
 
 @section('content-header')
@@ -52,77 +53,99 @@
 </section>
 
 <script>
-$(document).ready(function() {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
-    var table = $("#productTable").DataTable({
-        responsive: true,
-        language: {
-            url: "{{ asset('js/fr-FR.json') }}"
-        },
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("customer_colis.get.colis.valide") }}',
-            type: 'GET',
-            error: function(xhr, error, thrown) {
-                console.log('Erreur AJAX:', error, thrown);
-                console.log('Réponse:', xhr.responseText);
+    $(document).ready(function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
-        },
-        columns: [
-            { data: 'reference_colis', name: 'reference_colis' },
-            { data: 'nombre_colis_par_reference', name: 'nombre_colis_par_reference' },
-            { data: 'expediteur_agence', name: 'expediteurs.agence' },
-            {
-                data: null,
-                name: 'destinataire_nom_complet',
-                render: function(data, type, row) {
-                    return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
+        });
+    
+        var table = $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                url: "{{ asset('js/fr-FR.json') }}",
+                emptyTable: "Aucun devis validé trouvé",
+                zeroRecords: "Aucun résultat correspondant trouvé"
+            },
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("customer_colis.get.colis.valide") }}',
+                type: 'GET',
+                error: function(xhr, error, thrown) {
+                    console.log('Erreur AJAX:', error, thrown);
+                    console.log('Réponse:', xhr.responseText);
+                    
+                    // Afficher un message d'erreur convivial
+                    alert('Erreur lors du chargement des données. Veuillez actualiser la page.');
                 }
             },
-            { data: 'destinataire_contact', name: 'destinataires.tel' }, // Correction: destinataires.tel au lieu de destinataires.email
-            { data: 'destinataire_agence', name: 'destinataires.agence' },
-            { 
-                data: 'total_prix_devis', 
-                name: 'total_prix_devis', 
-                render: function(data, type, row) { 
-                    return parseFloat(data).toFixed(2) + ' €'; 
-                } 
-            },
-            { data: 'etat_display', name: 'etat_display' }, // Modification du name
-            {
-                data: 'last_updated_at',
-                name: 'last_updated_at',
-                render: function(data, type, row) {
-                    if (data) {
-                        var date = new Date(data);
-                        var day = ('0' + date.getDate()).slice(-2);
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                        var year = date.getFullYear();
-                        var hours = ('0' + date.getHours()).slice(-2);
-                        var minutes = ('0' + date.getMinutes()).slice(-2);
-                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+            columns: [
+                { data: 'reference_colis', name: 'reference_colis' },
+                { data: 'nombre_colis_par_reference', name: 'nombre_colis_par_reference' },
+                { data: 'expediteur_agence', name: 'expediteurs.agence' },
+                {
+                    data: null,
+                    name: 'destinataire_nom_complet',
+                    render: function(data, type, row) {
+                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
                     }
-                    return data;
+                },
+                { data: 'destinataire_contact', name: 'destinataires.tel' },
+                { data: 'destinataire_agence', name: 'destinataires.agence' },
+                { 
+                    data: 'total_prix_devis', 
+                    name: 'total_prix_devis', 
+                    render: function(data, type, row) { 
+                        return parseFloat(data).toFixed(2) + ' €'; 
+                    } 
+                },
+                { data: 'etat_display', name: 'etat_display' },
+                {
+                    data: 'last_updated_at',
+                    name: 'last_updated_at',
+                    render: function(data, type, row) {
+                        if (data) {
+                            var date = new Date(data);
+                            var day = ('0' + date.getDate()).slice(-2);
+                            var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                            var year = date.getFullYear();
+                            var hours = ('0' + date.getHours()).slice(-2);
+                            var minutes = ('0' + date.getMinutes()).slice(-2);
+                            return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+                        }
+                        return data;
+                    }
+                },
+                { 
+                    data: 'action', 
+                    name: 'action', 
+                    orderable: false, 
+                    searchable: false 
                 }
+            ],
+            initComplete: function() {
+                console.log('DataTable initialisé');
             },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
-        ],
-        initComplete: function() {
-            console.log('DataTable initialisé');
-        },
-        error: function (xhr, error, thrown) {
-            console.log('Erreur DataTable:', error, thrown);
-        }
+            error: function (xhr, error, thrown) {
+                console.log('Erreur DataTable:', error, thrown);
+                // Afficher un message d'erreur dans le tableau
+                $("#productTable").find('tbody').html(
+                    '<tr class="odd">' +
+                    '<td valign="top" colspan="10" class="dataTables_empty">' +
+                    'Erreur lors du chargement des données. Veuillez actualiser la page.' +
+                    '</td>' +
+                    '</tr>'
+                );
+            }
+        });
+        
+        // Rafraîchir automatiquement les données toutes les 30 secondes
+        setInterval(function() {
+            table.ajax.reload(null, false);
+        }, 30000);
     });
-});
-</script>
-
+    </script>
 <style>
     body {
         background-color: #f7f7f7;

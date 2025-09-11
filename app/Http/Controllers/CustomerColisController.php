@@ -573,38 +573,49 @@ class CustomerColisController extends Controller
     // function pour le payement
     public function step_payement(Request $request, $id)
     {
-        // Vérifier que la requête est bien une requête AJAX
         if (!$request->ajax()) {
             return response()->json(['message' => 'Requête non valide'], 400);
         }
-
-        // Valider les données du formulaire (adapté à tous les types de paiement)
+    
         $validatedData = $request->validate([
-            'mode_payement'         => 'required|string',
-            'numero_compte'        => 'nullable|string',
-            'nom_banque'           => 'nullable|string',
-            'transaction_id'       => 'nullable|string',
-            'numero_tel'           => 'nullable|string',
-            'operateur_mobile'     => 'nullable|string',
-            'numero_cheque'        => 'nullable|string',
-            'montant_reçu'         => 'nullable|numeric', // Pour paiement en espèces
-            'cinetpay_transaction_id' => 'nullable|string', // Pour CinetPay
+            'mode_payement'            => 'required|string|in:bank,mobile_money,cheque,cash,paiement_enlevement,paiement_livraison',
+            'numero_compte'           => 'nullable|string',
+            'nom_banque'              => 'nullable|string',
+            'transaction_id'          => 'nullable|string',
+            'numero_tel'              => 'nullable|string',
+            'operateur_mobile'        => 'nullable|string',
+            'numero_cheque'           => 'nullable|string',
+            'montant_reçu'            => 'nullable|numeric',
+            'cinetpay_transaction_id' => 'nullable|string',
         ]);
-
-        // Récupérer le colis en utilisant le paramètre $id
+    
         $colis = Colis::findOrFail($id);
-
-        // Préparer les données pour la table paiements
+    
+        // Récupérer tous les colis ayant la même référence et le même expéditeur
+        $colisWithSameReference = Colis::where('reference_colis', $colis->reference_colis)
+                                       ->where('expediteur_id', $colis->expediteur_id)
+                                       ->get();
+    
+        // Montant total pour tous les colis de la même référence
+        $totalAmount = $colisWithSameReference->sum('prix_transit_colis');
+    
+        $isPartiallyPaid = in_array($validatedData['mode_payement'], ['paiement_enlevement', 'paiement_livraison']);
+        $statusPaiement  = $isPartiallyPaid ? 'non payé' : 'Payé';
+        $statusColis     = $isPartiallyPaid ? 'non payé' : 'payé';
+    
+        // ✅ Ajout de 'colis_id' pour lier le paiement au colis concerné
         $paiementData = [
-            'colis_id'          => $id,
-            'methode_paiement'  => $validatedData['mode_payement'],
-            'expediteur_id'     => $colis->expediteur_id, // Récupérer expediteur_id du colis
-            'date_validation'   => now(), // Date de validation du paiement
-            'statut_paiement'   => 'Payé', // Statut de paiement mis à 'Payé'
-            'agent_id'          => null, // Vous pouvez récupérer l'agent connecté si nécessaire Auth::user()->id
+            'colis_id'        => $colis->id,
+            'methode_paiement'=> $validatedData['mode_payement'],
+            'expediteur_id'   => $colis->expediteur_id,
+            'date_validation' => now(),
+            'statut_paiement' => $statusPaiement,
+            'agent_id'        => null,
+            'montant'         => $totalAmount,                 // Montant total
+            'montant_paye'    => $isPartiallyPaid ? 0 : $totalAmount,
         ];
-
-        // Remplir les champs spécifiques en fonction du mode de paiement
+    
+        // Gestion des différents modes de paiement
         if ($validatedData['mode_payement'] === 'bank') {
             $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
             $paiementData['NumeroPaiement'] = $validatedData['numero_compte'] ?? null;
@@ -612,46 +623,62 @@ class CustomerColisController extends Controller
         } elseif ($validatedData['mode_payement'] === 'mobile_money') {
             $paiementData['operateur']      = $validatedData['operateur_mobile'] ?? null;
             $paiementData['NumeroPaiement'] = $validatedData['numero_tel'] ?? null;
-            // Priorité à la transaction CinetPay si elle existe, sinon transaction ID classique
-            $paiementData['id_transaction'] = $validatedData['cinetpay_transaction_id'] ?? $validatedData['transaction_id'] ?? null;
+            $paiementData['id_transaction'] = $validatedData['cinetpay_transaction_id']
+                                              ?? $validatedData['transaction_id']
+                                              ?? null;
         } elseif ($validatedData['mode_payement'] === 'cheque') {
             $paiementData['banque']         = $validatedData['nom_banque'] ?? null;
             $paiementData['NumeroPaiement'] = $validatedData['numero_cheque'] ?? null;
-        } elseif ($validatedData['mode_payement'] === 'cash') {
-            $paiementData['montant']        = $validatedData['montant_reçu'] ?? null; // Enregistrer le montant reçu pour les espèces
         }
-
-        // Enregistrer le montant du colis dans la table paiement
-        $paiementData['montant'] = $colis->prix_transit_colis;
-
-
-        // Vérifier si un paiement a déjà été effectué pour ce colis (optionnel, selon votre logique)
-        $existingPayment = Paiement::where('colis_id', $id)->first();
-        if ($existingPayment) {
-            return response()->json(['message' => 'Le paiement a déjà été effectué pour ce colis.'], 400);
+    
+        // Vérifier s'il existe déjà un paiement pour cette référence
+        $existingPaiement = null;
+        foreach ($colisWithSameReference as $colisItem) {
+            if ($colisItem->paiement_id) {
+                $existingPaiement = Paiement::find($colisItem->paiement_id);
+                break;
+            }
         }
-
-        // Créer le paiement
-        Paiement::create($paiementData);
-
-        // Mettre à jour le champ 'etat' du colis en le marquant comme "Validé"
-        $colis->status = 'payé';
-        $colis->etat = 'Validé';
-        $colis->save();
-
-         // Envoyer l'email de confirmation de paiement
-         try {
-            \Mail::to($colis->expediteur->email)->send(new \App\Mail\PaymentConfirmedMail($colis, $paiementData));
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'envoi de l\'email de confirmation de paiement pour le colis ' . $colis->id . ': ' . $e->getMessage());
-            // Log l'erreur, mais ne bloque pas le processus principal
+    
+        if ($existingPaiement) {
+            // Mise à jour du paiement existant
+            $existingPaiement->update($paiementData);
+            $paiement = $existingPaiement;
+        } else {
+            // Création d’un nouveau paiement
+            $paiement = Paiement::create($paiementData);
         }
-
+    
+        // Mise à jour de tous les colis liés à la même référence
+        foreach ($colisWithSameReference as $colisItem) {
+            $colisItem->status      = $statusColis;
+            $colisItem->etat        = 'Validé';
+            $colisItem->paiement_id = $paiement->id;
+            $colisItem->save();
+    
+            // Envoi de l'email de confirmation de paiement
+            try {
+                \Mail::to($colisItem->expediteur->email)
+                    ->send(new \App\Mail\PaymentConfirmedMail($colisItem, $paiementData));
+            } catch (\Exception $e) {
+                Log::error(
+                    'Erreur lors de l\'envoi de l\'email de confirmation de paiement pour le colis '
+                    . $colisItem->id . ': ' . $e->getMessage()
+                );
+            }
+        }
+    
+        $modeDePaiementTexte = ucfirst(str_replace('_', ' ', $validatedData['mode_payement']));
+        $message = $isPartiallyPaid
+            ? "La demande de \"{$modeDePaiementTexte}\" a bien été enregistrée !"
+            : 'Paiement enregistré avec succès.';
+    
         return response()->json([
-            'redirect' => route('customer_colis.history')
+            'redirect' => route('customer_colis.history'),
+            'message'  => $message
         ]);
     }
-
+    
     public function edit_payement($id)
     {
         // Récupérer le colis par son ID
@@ -752,6 +779,9 @@ class CustomerColisController extends Controller
     
         $email = Auth::user()->email;
     
+        // Désactiver temporairement le mode ONLY_FULL_GROUP_BY
+        DB::statement('SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode, "ONLY_FULL_GROUP_BY", ""))');
+    
         $query = Colis::query()
             ->select(
                 'colis.reference_colis',
@@ -764,21 +794,24 @@ class CustomerColisController extends Controller
                 'destinataires.prenom as destinataire_prenom',
                 'destinataires.agence as destinataire_agence',
                 'destinataires.tel as destinataire_contact',
-                'colis.etat'
+                'colis.etat',
+                'colis.status'
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->leftJoin('paiements', 'colis.id', '=', 'paiements.colis_id')
             ->where('expediteurs.email', $email)
-            ->where('colis.etat', 'validé') // Changement de 'Devis' à 'validé'
-            ->groupBy(
-                'colis.reference_colis',
-                'expediteurs.agence',
-                'destinataires.nom',
-                'destinataires.prenom',
-                'destinataires.agence',
-                'destinataires.tel',
-                'colis.etat'
-            );
+            ->where('colis.etat', 'validé')
+            // Exclure les colis complètement payés
+            ->where(function($query) {
+                $query->where('colis.status', '!=', 'payé')
+                      ->orWhereNull('colis.status');
+            })
+            ->where(function($query) {
+                $query->where('paiements.statut_paiement', '!=', 'payé')
+                      ->orWhereNull('paiements.statut_paiement');
+            })
+            ->groupBy('colis.reference_colis');
     
         return DataTables::of($query)
             ->addColumn('etat_display', function ($row) {
@@ -786,6 +819,8 @@ class CustomerColisController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $editUrl = route('customer_colis.payement.edit', ['id' => $row->representative_colis_id]);
+                
+                // Bouton toujours vert comme demandé
                 return '
                     <div class="btn-group">
                         <a href="' . $editUrl . '" class="btn btn-sm btn-success" title="Payer le devis">
@@ -796,7 +831,6 @@ class CustomerColisController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     public function get_colis_suivi(Request $request)
     {
         if (!$request->ajax()) {
