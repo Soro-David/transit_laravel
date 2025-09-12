@@ -240,12 +240,11 @@
                       
                         <div class="col-md-6 mb-3">
                             <label  class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_societe" class="form-control" >
+                            <select name="adresse_destinataire" class="form-control" >
                                     <option value="Pas de livraison">Pas de Livraison</option>
                                     <option value="Abobo">Abobo</option>
                                     <option value="Adjamé">Adjamé</option>
                                     <option value="Attécoubé">Attécoubé</option>
-
                                     <option value="Cocody">Cocody</option>
                                     <option value="Cocody">Palmeraie</option>
                                     <option value="Koumassi">Koumassi</option>
@@ -713,95 +712,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Écouteurs d'événements pour l'expéditeur
-    if (nomExpediteurInput) nomExpediteurInput.addEventListener('blur', fetchExpediteurData);
-    if (prenomExpediteurInput) prenomExpediteurInput.addEventListener('blur', fetchExpediteurData);
-    if (nomSocieteExpediteurInput) nomSocieteExpediteurInput.addEventListener('blur', fetchExpediteurData);
-
-
-    // --- Fonctions de récupération et de remplissage pour le DESTINATAIRE ---
-
-    const nomDestinataireInput = getElement('nom_destinataire');
-    const prenomDestinataireInput = getElement('prenom_destinataire');
-    const nomSocieteDestinataireInput = getElement('nom_societe_destinataire'); // Assurez-vous d'avoir cet ID
-
-    async function fetchDestinataireData() {
-        let nom = '';
-        let prenom = '';
-        let type = '';
-
-        const radioParticulierDestinataire = getElement('type_destinataire_particulier');
-        const radioSocieteDestinataire = getElement('type_destinataire_societe');
-
-        if (radioParticulierDestinataire && radioParticulierDestinataire.checked) {
-            nom = nomDestinataireInput ? nomDestinataireInput.value.trim() : '';
-            prenom = prenomDestinataireInput ? prenomDestinataireInput.value.trim() : '';
-            type = 'particulier';
-        } else if (radioSocieteDestinataire && radioSocieteDestinataire.checked) {
-            nom = nomSocieteDestinataireInput ? nomSocieteDestinataireInput.value.trim() : '';
-            type = 'societe';
-        } else {
-            console.log('Aucun type de destinataire sélectionné.');
-            return;
-        }
-
-        if ((type === 'particulier' && (nom.length === 0 || prenom.length === 0)) ||
-            (type === 'societe' && nom.length === 0)) {
-            return;
-        }
-
-        console.log(`Recherche du destinataire (${type}): ${nom} ${type === 'particulier' ? prenom : ''}`);
-
-        try {
-            const endpoint = type === 'particulier' ? `/api/destinataire?nom=${nom}&prenom=${prenom}` : `/api/destinataire-societe?nom_societe=${nom}`;
-            const response = await fetch(endpoint);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    console.log(`Aucun destinataire (${type}) trouvé avec les informations fournies.`);
-                } else {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                clearDestinataireFields(type);
-                return;
-            }
-            const data = await response.json();
-
-            if (data && (data.nom || data.nom_societe)) {
-                console.log('Destinataire trouvé:', data);
-                console.log(`Aucun destinataire (${type}) trouvé avec les informations fournies.`);
-                clearDestinataireFields(type);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la récupération du destinataire:', error);
-            clearDestinataireFields(type);
-        }
-    }
-
-    function clearDestinataireFields(type) {
-        if (type === 'particulier') {
-            updateFieldValue('email_destinataire', '');
-            setSelectedOption('#particulier_destinataire_section select[name="country_code_destinataire"]', '');
-            updateFieldValue('tel_destinataire', '');
-            setSelectedOption('#particulier_destinataire_section select[name="adresse_destinataire_societe"]', '');
-            updateFieldValue('adresse_destinataire', '');
-            setSelectedOption('select[name="agence_particulier_destinataire_particulier"]', '');
-        } else { // type === 'societe'
-            updateFieldValue('email_societe_destinataire', '');
-            setSelectedOption('#societe_destinataire_section select[name="country_code_societe_destinataire"]', '');
-            updateFieldValue('tel_societe_destinataire', '');
-            updateFieldValue('adresse_societe_destinataire', '');
-            updateFieldValue('numero_siret_destinataire', '');
-            setSelectedOption('select[name="agence_societe_destinataire"]', '');
-        }
-    }
-
-
-    // Écouteurs d'événements pour le destinataire
-    if (nomDestinataireInput) nomDestinataireInput.addEventListener('blur', fetchDestinataireData);
-    if (prenomDestinataireInput) prenomDestinataireInput.addEventListener('blur', fetchDestinataireData);
-    if (nomSocieteDestinataireInput) nomSocieteDestinataireInput.addEventListener('blur', fetchDestinataireData);
-
-
     // --- Logique pour les sélecteurs de type (Particulier/Société) ---
 
     // Expéditeur
@@ -831,10 +741,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (radioDestinataireParticulier) radioDestinataireParticulier.addEventListener('change', fetchDestinataireData);
     if (radioDestinataireSociete) radioDestinataireSociataire.addEventListener('change', fetchDestinataireData);
 
-    // --- Suppression de la simulation de l'API Backend ---
-    // En production, nous allons réellement utiliser les routes Laravel.
-    // Retire le bloc `const mockDatabase = {...};` et `window.fetch = function(...)`
-    // qui simulent l'API.
 });
 
 
@@ -1384,13 +1290,13 @@ $(document).on("input", ".hauteur, .largeur, .longueur", function () {
         }
 
         function toggleButtons(step) {
-        const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
+            const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
 
-        // Afficher ou masquer les boutons en fonction de l'étape
-        $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
-        $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
-        $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
-    }
+            // Afficher ou masquer les boutons en fonction de l'étape
+            $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
+            $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
+            $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
+        }
         // Handle next and previous buttons for multi-step form
         document.querySelectorAll(".btn-next").forEach(button => {
             button.addEventListener("click", (e) => {

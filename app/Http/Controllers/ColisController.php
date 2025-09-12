@@ -706,7 +706,7 @@ class ColisController extends Controller
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
             'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
-            'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
+            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
 
         $destinataireData = [
@@ -715,7 +715,7 @@ class ColisController extends Controller
             'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
             'tel' => $destinataireTel, // numéro complet avec indicatif
             'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
-            'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
+            'lieu_destination' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
         ];
 
         // dd($expediteurData, $destinataireData);
