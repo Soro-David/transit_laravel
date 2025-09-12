@@ -31,7 +31,7 @@
             <div class="card bg-warning text-dark">
                 <div class="card-body">
                     <h5><i class="fas fa-coins"></i> Total Transit</h5>
-                    <h2>{{ number_format($montantBilan, 0, ',', '.') }}€</h2>
+                    <h2>{{ number_format($totalPrixTransitColis, 0, ',', '.') }}€</h2>
                 </div>
             </div>
         </div>

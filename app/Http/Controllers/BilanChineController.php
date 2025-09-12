@@ -40,9 +40,10 @@ class BilanChineController extends Controller
             ->count();
             
         // Calcul du totalPrixTransit BASIQUE (basé sur les colis, comme avant)
-        $totalPrixTransitColis = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
-            ->when($agentId, fn($q) => $q->where('agent_id', $agentId))
-            ->sum('prix_transit_colis');
+        $totalPrixTransitColis = DB::table('paiements')
+        ->join('colis', 'paiements.colis_id', '=', 'colis.id')
+        ->where('colis.agent_id', $agentId)
+        ->sum('paiements.montant');
 
         // Récupérer TOUTES les opérations comptables de l'agent
         $operationsComptablesBilan = OperationComptable::where('agent_id', $agentId)->get();
