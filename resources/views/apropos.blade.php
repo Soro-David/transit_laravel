@@ -52,6 +52,17 @@
             color: rgb(255, 153, 0);
         }
         
+        /* CORRECTION: Titres h2 en vert */
+        h2 {
+            color: #388b00 !important; /* Vert */
+            margin-bottom: 20px;
+        }
+        
+        /* CORRECTION: Titres h3 en orange */
+        h3 {
+            color: orange !important; /* Orange */
+            margin-bottom: 20px;
+        }
 
         body {
             font-family: 'Arial', sans-serif;
@@ -180,11 +191,6 @@
         padding-right: 100px;
         }
 
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
         p {
             font-size: 1.25rem;
             line-height: 1.7;
@@ -234,7 +240,6 @@
             margin-bottom: 1.5rem;
         }
         .mission-vision-section h3 {
-            color: #007bff;
             margin-bottom: 1rem;
             font-weight: bold;
         }
@@ -317,7 +322,6 @@
         
         .mission-vision-section h3 {
             font-weight: 700;
-            color: var(--secondary-color);
             margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
             border-bottom: 3px solid var(--primary-color);
@@ -399,6 +403,20 @@
             .services-list > li {
                 padding: 1rem;
             }
+        }
+        .service-title {
+            margin-top: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+
+        }
+        .card-header {
+            /* background-color: orange; */
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -573,9 +591,9 @@
                                 <div class="card-body">
                                     <ul class="service-details">
                                         <li><i class="fas fa-map-marker-alt"></i> <strong>Maritime:</strong> CARREFOUR ANGRE</li>
-                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +86 13 67 89 15 049</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong>+225 0758069896</li>
                                         <li><i class="fas fa-map-marker-alt"></i> <strong>Aérien:</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +225 758069896</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +225 0758069896</li>
                                     </ul>
                                 </div>
                             </div>
