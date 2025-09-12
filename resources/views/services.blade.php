@@ -30,13 +30,36 @@
         }
 
 
-        h1, h2, h3, h4, h5, h6 {
+         h5, h6 {
             font-weight: 700;
             color: #2c3e50;
         }
 
+        h2 {
+           color: #28a745 !important;
+            font-weight: bold;
+            /* font-size: 1.2rem; */
+            text-align: center;
+        }
+
+         h4 {
+           color: orange !important;
+            font-weight: bold;
+            /* font-size: 1.2rem; */
+            text-align: center;
+        }
+
+        /* .text_orange{
+             color: orange;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+        } */
         /* ===================================== */
-        /*           Header Section              */
+        /*           Header Section    color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;           */
         /* ===================================== */
 
 
@@ -638,7 +661,7 @@
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 50px;
-            color: #2c3e50;
+            color: #28a745;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             position: relative;
@@ -653,7 +676,7 @@
             transform: translateX(-50%);
             width: 100px;
             height: 4px;
-            background: #e74c3c;
+            background: orange;
         }
         
 .service-section {
@@ -705,9 +728,9 @@
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #2c3e50;
+            color: #28a745;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e74c3c;
+            border-bottom: 2px solid orange;
             display: inline-block;
         }
         
@@ -789,7 +812,40 @@
                 height: 200px;
             }
         }
-        
+        i.fa-globe {
+        color: #28a745; /* vert bootstrap */
+        }
+
+        /* Pour cibler uniquement l’icône camion */
+        i.fa-truck-moving {
+        color: orange;
+        }
+
+        /* Variante : un orange plus moderne */
+        i.fa-truck-moving {
+        color: #ff7a00; /* Orange vif */
+        }
+
+        /* Icône bateau en vert */
+        i.fa-ship {
+        color: green; /* Vert standard */
+        }
+
+        /* Variante : vert moderne */
+        i.fa-ship {
+        color: #28a745; /* Vert Bootstrap */
+        }
+
+        /* Icône avion en vert */
+        i.fa-plane-departure {
+        color: green; /* Vert standard */
+        }
+
+        /* Variante avec vert plus moderne */
+        i.fa-plane-departure {
+        color: #28a745; /* Vert Bootstrap */
+        }
+
     </style>
 </head>
 <body>

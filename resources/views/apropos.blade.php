@@ -84,7 +84,7 @@
 
         .navbar-nav .nav-link {
             color: white !important;
-            padding: 0.5rem 1rem;
+            /* padding: 0.5rem 1rem; */
             font-weight: bold;
         }
 
@@ -147,7 +147,7 @@
         .footer-dark { 
             background-color: #2c3e50; /* Couleur sombre plus profonde */
             color: #ecf0f1; /* Texte gris clair */
-            padding: 60px 0 30px 0;
+            /* padding: 60px 0 30px 0; */
             border-top: 5px solid #ff7b00; /* Ligne orange en haut du footer */
         }
         .footer-dark h3 { 
@@ -213,7 +213,7 @@
 
         .rounded-image { /* Nouveau style pour les images encadrées */
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
             transition: transform 0.3s ease-in-out;
         }
         .rounded-image:hover {
@@ -235,7 +235,7 @@
         .mission-vision-section .row > div {
             padding: 1.5rem;
             background-color: #ffffff;
-            border-radius: 8px;
+            /* border-radius: 8px; */
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             margin-bottom: 1.5rem;
         }
@@ -268,7 +268,7 @@
         .team-member {
             margin-bottom: 2rem;
             padding: 1rem;
-            background-color: #ffffff;
+            /* background-color: #ffffff; */
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
@@ -291,6 +291,14 @@
 
         .text-orange {
             color: orange !important;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            position: relative;
         }
 
         .titre {
@@ -316,7 +324,7 @@
         }
 
                 .mission-vision-section {
-            padding: 4rem 0;
+            /* padding: 4rem 0; */
             background-color: var(--light-bg);
         }
         
@@ -373,7 +381,7 @@
         }
         
         .service-details li {
-            padding: 0.5rem 0;
+            /* padding: 0.5rem 0; */
             display: flex;
             align-items: flex-start;
         }
@@ -387,7 +395,7 @@
         
         .rounded-image {
             border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); */
             transition: transform 0.3s ease;
         }
         
@@ -503,23 +511,23 @@
 
             <section class="mission-vision-section">
                 <div class="row">
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 zt">
                         <h3><i class="fas fa-route text-orange"></i> NOTRE EXPERTISE COUVRE LES AXES SUIVANTS :</h3>
                         <ul>
                             <li><i class="fas fa-globe-americas"></i> Fret maritime et aérien de l’Europe vers la Côte d’Ivoire et l’Afrique de l’Ouest.</li>
                             <li><i class="fas fa-plane-departure"></i> Fret maritime et aérien de la Chine vers la Côte d’Ivoire.</li>
                             <li><i class="fas fa-ship"></i> Fret maritime et aérien de la Chine vers la France.</li>
                         </ul>
-                        <div class="row justify-content-center mt-3">
+                        <div class="row justify-content-center">
                             <div class="col-12">
                                 <!-- Image pour l'expertise -->
-                                <img src="{{ asset('images/expert.png') }}" alt="Routes logistiques mondiales" class="img-fluid rounded-image">
+                                <img src="{{ asset('images/atout.jpeg') }}" alt="Routes logistiques mondiales" class="img-fluid rounded-image">
                                 <!-- Ici, tu pourrais générer une image du type: "A stylized world map highlighting major shipping routes between Europe, China, Ivory Coast, and West Africa, with icons for sea and air transport." -->
                                 
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 zt">
                         <h3><i class="fas fa-award text-orange"></i> NOS ATOUTS</h3>
                         <ul style="list-style-type: disc; padding-left: 20px;">
                             <li><i class="fas fa-certificate text-orange"></i> <strong class="text-orange">Expérience :</strong> 10 ans d’expertise dans le fret international.</li>
@@ -527,7 +535,7 @@
                             <li><i class="fas fa-handshake text-orange"></i> <strong class="text-orange">Flexibilité :</strong> Solutions adaptées aux besoins spécifiques de chaque client.</li>
                             <li><i class="fas fa-chart-line text-orange"></i> <strong class="text-orange">Transparence :</strong> Suivi en temps réel des expéditions.</li>
                         </ul>
-                        <div class="row justify-content-center mt-3">
+                        <div class="row justify-content-center">
                             <div class="col-12">
                                 <!-- Image pour les atouts -->
                                 <img src="{{ asset('images/slide3.jpg') }}" alt="Illustration des atouts AFT" class="img-fluid rounded-image">
@@ -546,11 +554,11 @@
             <div class="row">
                 <!-- Agences -->
                 <div class="col-lg-6 mb-5">
-                    <h3 class="mb-4 text-center"><i class="fas fa-building me-2"></i>NOS AGENCES</h3>
+                    <h3 class="zt text-center"><i class="fas fa-building me-2"></i>NOS AGENCES</h3>
                     
                     <div class="row">
                         <!-- France -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="card-agency">
                                 <div class="card-header">
                                     <span class="country-flag">🇫🇷</span> FRANCE
@@ -567,7 +575,7 @@
                         </div>
                         
                         <!-- Chine -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="card-agency">
                                 <div class="card-header">
                                     <span class="country-flag">🇨🇳</span> CHINE
@@ -583,7 +591,7 @@
                         </div>
                         
                         <!-- Côte d'Ivoire -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="card-agency">
                                 <div class="card-header">
                                     <span class="country-flag">🇨🇮</span> CÔTE D'IVOIRE
@@ -603,11 +611,11 @@
                 
                 <!-- Services -->
                 <div class="col-lg-6 mb-5">
-                    <h3 class="mb-4 text-center"><i class="fas fa-box-open me-2"></i>NOS SERVICES</h3>
+                    <h3 class="zt text-center"><i class="fas fa-box-open me-2"></i>NOS SERVICES</h3>
                     
                     <div class="row">
                         <!-- Fret Maritime -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="service-card">
                                 <div class="card-body text-center">
                                     <div class="service-icon">
@@ -624,7 +632,7 @@
                         </div>
                         
                         <!-- Fret Aérien -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="service-card">
                                 <div class="card-body text-center">
                                     <div class="service-icon">
@@ -640,7 +648,7 @@
                         </div>
                         
                         <!-- Services Complémentaires -->
-                        <div class="col-md-12 mb-4">
+                        <div class="col-md-12 zt">
                             <div class="service-card">
                                 <div class="card-body text-center">
                                     <div class="service-icon">
@@ -663,14 +671,14 @@
     </section>
             <section class="mission-vision-section">
                 <div class="row">
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 zt">
                         <h3><i class="fas fa-map-marked-alt text-orange"></i> ZONES D’INTERVENTION :</h3>
                         <ul>
                             <li><i class="fas fa-euro-sign text-orange"></i> <strong class="text-orange">Europe : </strong>France, Belgique, Allemagne, etc.</li>
                             <li><i class="fas fa-yen-sign text-orange"></i> <strong class="text-orange">Asie : </strong>Chine (principalement)</li>
                             <li><i class="fas fa-dollar-sign text-orange"></i> <strong class="text-orange">Afrique : </strong>Côte d’Ivoire, Sénégal, Mali, Burkina Faso, etc.</li>
                         </ul>
-                        <div class="row justify-content-center mt-3">
+                        <div class="row justify-content-center">
                             <div class="col-12">
                                 <!-- Image pour les zones d'intervention -->
                                 <img src="{{ asset('images/atout.jpg') }}" alt="Zones d'Intervention AFT" class="img-fluid rounded-image">
@@ -679,13 +687,37 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 zt">
                         <h3><i class="fas fa-question-circle text-orange"></i> POURQUOI NOUS CHOISIR ?</h3>
-                        <ul style="list-style-type: disc; padding-left: 20px;">
-                            <li><i class="fas fa-piggy-bank text-orange"></i> <strong class="text-orange">Compétitivité :</strong> Tarifs attractifs et sur mesure.</li>
-                            <li><i class="fas fa-lightbulb text-orange"></i> <strong class="text-orange">Expertise :</strong> Connaissance approfondie des marchés européens, africains et asiatiques.</li>
-                        </ul>
-                        <div class="row justify-content-center mt-3">
+                            <ul style="list-style-type: disc; padding-left: 20px;">
+                                <li>
+                                    <i class="fas fa-piggy-bank text-orange"></i> 
+                                    <strong class="text-orange">Compétitivité :</strong>
+                                    Tarifs attractifs et sur mesure.
+                                </li>
+                                <li>
+                                    <i class="fas fa-lightbulb text-orange"></i> 
+                                    <strong class="text-orange">Expertise :</strong> 
+                                    Connaissance approfondie des marchés européens, africains et asiatiques.
+                                </li>
+                               
+                                <li>
+                                    <i class="fas fa-shield-alt text-orange"></i> 
+                                    <strong class="text-orange">Fiabilité :</strong> 
+                                    Nous garantissons un service sécurisé et constant, basé sur la confiance.
+                                </li>
+                                <li>
+                                    <i class="fas fa-sync-alt text-orange"></i> 
+                                    <strong class="text-orange">Régularité :</strong> 
+                                    Nos opérations sont planifiées et suivies de manière rigoureuse.
+                                </li>
+                                <li>
+                                    <i class="fas fa-bolt text-orange"></i> 
+                                    <strong class="text-orange">Rapidité :</strong> 
+                                    Nous privilégions l’efficacité et la réactivité afin de réduire les délais.
+                            </ul>
+
+                        <div class="row justify-content-center">
                             <div class="col-12">
                                 <!-- Image pour "Pourquoi nous choisir" -->
                                 <img src="{{ asset('images/contact-us.jpg') }}" alt="Avantages AFT" class="img-fluid rounded-image">

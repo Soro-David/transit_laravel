@@ -22,7 +22,7 @@
             background-color: #f8f9fa; /* Arrière-plan plus clair */
             color: #34495e; /* Couleur de texte plus douce */
         }
-        h1, h2, h3, h4, h5, h6 {
+         h5, h6 {
             font-family: 'Montserrat', sans-serif; /* Police pour les titres */
             color: #2c3e50;
         }
@@ -395,6 +395,20 @@
                 text-align: center;
                 margin-top: 30px;
             }
+        }
+
+          h2,h3 {
+           color: #28a745 !important;
+            font-weight: bold;
+            /* font-size: 1.2rem; */
+            text-align: center;
+        }
+
+         h4 {
+           color: orange !important;
+            font-weight: bold;
+            /* font-size: 1.2rem; */
+            text-align: center;
         }
     </style>
 
