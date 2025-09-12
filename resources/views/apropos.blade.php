@@ -523,70 +523,124 @@
 
     <section class="mission-vision-section">
         <div class="container">
+            <h2 class="section-title">Nos Agences et Services</h2>
+            
             <div class="row">
-                <div class="col-md-6 mb-4">
-                    <h3><i class="fas fa-building"></i> NOS AGENCES</h3>
-                    <ul class="services-list">
-                        <li>
-                            <span class="bullet">🇫🇷</span> <strong class="text-orange">FRANCE</strong>
-                            <ul class="service-details">
-                               <li><i class="fas fa-map-marker-alt"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
-                               {{-- <li><i class="fas fa-phone-alt"></i> Contact : +33 1 86 78 69 67</li> --}}
-                               {{-- <li><i class="fas fa-phone-alt"></i> Contact : +33 7 66 78 54 61</li> --}}
-                               <li><i class="fas fa-phone-alt"></i> Contact : +33 6 52 98 35 19</li>
-                            </ul>
-                        </li>
-                        <li>
-                            <span class="bullet">🇨🇳</span> <strong class="text-orange">Chine</strong>
-                            <ul class="service-details">
-                                 <li><i class="fas fa-map-marker-alt"></i> Maritime : ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
-                                 <li><i class="fas fa-map-marker-alt"></i> Aérien : ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
-                                 <li><i class="fas fa-phone-alt"></i> Contact : +86 13 67 89 15 049</li>
-                            </ul>
-                        </li>
-                        <li>
-                            <span class="bullet">🇨🇮</span> <strong class="text-orange">Côte d'Ivoire, Abidjan</strong>
-                           <ul class="service-details">
-                                 <li><i class="fas fa-map-marker-alt"></i> Maritime : CARREFOUR ANGRE</li>
-                                 <li><i class="fas fa-phone-alt"></i> Contact : +86 13 67 89 15 049</li>
-                                 <li><i class="fas fa-map-marker-alt"></i> Aérien : Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                 <li><i class="fas fa-phone-alt"></i> Contact : +225 758069896</li>
-                            </ul>
-                        </li>
-                       
-                    </ul>
-                   
+                <!-- Agences -->
+                <div class="col-lg-6 mb-5">
+                    <h3 class="mb-4 text-center"><i class="fas fa-building me-2"></i>NOS AGENCES</h3>
+                    
+                    <div class="row">
+                        <!-- France -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card-agency">
+                                <div class="card-header">
+                                    <span class="country-flag">🇫🇷</span> FRANCE
+                                </div>
+                                <div class="card-body">
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-map-marker-alt"></i> <strong>Adresse:</strong> 7, avenue Louis Blériot 93120 La Courneuve</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +33 1 86 78 69 67</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +33 7 66 78 54 61</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +33 6 52 98 35 19</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chine -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card-agency">
+                                <div class="card-header">
+                                    <span class="country-flag">🇨🇳</span> CHINE
+                                </div>
+                                <div class="card-body">
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-map-marker-alt"></i> <strong>Maritime:</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓</li>
+                                        <li><i class="fas fa-map-marker-alt"></i> <strong>Aérien:</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +86 13 67 89 15 049</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Côte d'Ivoire -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card-agency">
+                                <div class="card-header">
+                                    <span class="country-flag">🇨🇮</span> CÔTE D'IVOIRE
+                                </div>
+                                <div class="card-body">
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-map-marker-alt"></i> <strong>Maritime:</strong> CARREFOUR ANGRE</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +86 13 67 89 15 049</li>
+                                        <li><i class="fas fa-map-marker-alt"></i> <strong>Aérien:</strong> Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
+                                        <li><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> +225 758069896</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <h3><i class="fas fa-box-open"></i> NOS SERVICES</h3>
-                    <ul class="services-list">
-                        <li>
-                            <span class="bullet">🔘</span> <strong class="text-orange">FRET MARITIME</strong>
-                            <ul class="service-details">
-                                <li><i class="fas fa-pallet"></i> Transport de conteneurs (20', 40', 40' HQ)</li>
-                                <li><i class="fas fa-people-carry"></i> Groupage (LCL) et plein chargement (FCL)</li>
-                                <li><i class="fas fa-shipping-fast"></i> Suivi personnalisé et sécurisé des marchandises</li>
-                            </ul>
-                        </li>
-                        <li>
-                            <span class="bullet">🔘</span> <strong class="text-orange">FRET AÉRIEN</strong>
-                            <ul class="service-details">
-                                <li><i class="fas fa-plane"></i> Livraison rapide et sécurisée pour les envois urgents</li>
-                                <li><i class="fas fa-file-invoice"></i> Gestion des formalités douanières</li>
-                            </ul>
-                        </li>
-                        <li>
-                            <span class="bullet">🔘</span> <strong class="text-orange">SERVICES COMPLÉMENTAIRES</strong>
-                            <ul class="service-details">
-                                <li><i class="fas fa-truck-loading"></i> Dédouanement et conseils en logistique</li>
-                                <li><i class="fas fa-warehouse"></i> Stockage et distribution locale</li>
-                                <li><i class="fas fa-shield-alt"></i> Assurance des marchandises</li>
-                            </ul>
-                        </li>
-                    </ul>
-                   
+                
+                <!-- Services -->
+                <div class="col-lg-6 mb-5">
+                    <h3 class="mb-4 text-center"><i class="fas fa-box-open me-2"></i>NOS SERVICES</h3>
+                    
+                    <div class="row">
+                        <!-- Fret Maritime -->
+                        <div class="col-md-12 mb-4">
+                            <div class="service-card">
+                                <div class="card-body text-center">
+                                    <div class="service-icon">
+                                        <i class="fas fa-ship"></i>
+                                    </div>
+                                    <h4 class="service-title">FRET MARITIME</h4>
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-pallet"></i> Transport de conteneurs (20', 40', 40' HQ)</li>
+                                        <li><i class="fas fa-people-carry"></i> Groupage (LCL) et plein chargement (FCL)</li>
+                                        <li><i class="fas fa-shipping-fast"></i> Suivi personnalisé et sécurisé des marchandises</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fret Aérien -->
+                        <div class="col-md-12 mb-4">
+                            <div class="service-card">
+                                <div class="card-body text-center">
+                                    <div class="service-icon">
+                                        <i class="fas fa-plane"></i>
+                                    </div>
+                                    <h4 class="service-title">FRET AÉRIEN</h4>
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-plane"></i> Livraison rapide et sécurisée pour les envois urgents</li>
+                                        <li><i class="fas fa-file-invoice"></i> Gestion des formalités douanières</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Services Complémentaires -->
+                        <div class="col-md-12 mb-4">
+                            <div class="service-card">
+                                <div class="card-body text-center">
+                                    <div class="service-icon">
+                                        <i class="fas fa-tools"></i>
+                                    </div>
+                                    <h4 class="service-title">SERVICES COMPLÉMENTAIRES</h4>
+                                    <ul class="service-details">
+                                        <li><i class="fas fa-truck-loading"></i> Dédouanement et conseils en logistique</li>
+                                        <li><i class="fas fa-warehouse"></i> Stockage et distribution locale</li>
+                                        <li><i class="fas fa-shield-alt"></i> Assurance des marchandises</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+           
         </div>
     </section>
             <section class="mission-vision-section">
