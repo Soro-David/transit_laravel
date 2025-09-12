@@ -19,15 +19,12 @@ class ChauffeurAuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-
-            // Récupérer l'utilisateur après l'authentification réussie
             $user = Auth::user();
             if ($user->role === 'chauffeur') {
-                // Redirection vers le dashboard chauffeur
                 return redirect()->route('chauffeur.dashboard');
             }
-             Auth::logout();
-             return redirect()->back()->with('error', 'Vous n\'avez pas le rôle chauffeur.');
+            Auth::logout();
+            return redirect()->back()->with('error', 'Vous n\'avez pas le rôle chauffeur.');
         }
 
         return redirect('/login')->with('error', 'Email ou mot de passe incorrect.');
@@ -35,74 +32,103 @@ class ChauffeurAuthController extends Controller
     
     public function dashboard()
     {
-        // 1. Récupérer le chauffeur authentifié
-        $chauffeur = Auth::user();
+        $chauffeur = Chauffeur::where('email', Auth::user()->email)->first();
+        if (!$chauffeur) {
+            return view('chauffeur.programme', ['data' => []])->with('error', 'Profil chauffeur non trouvé.');
+        }
+        
+        // Debug: Vérifions l'ID du chauffeur
+        // dd($chauffeur->id);
+        
+        // 1. Missions aujourd'hui
+        $missionsAujourdhui = Programme::where('chauffeur_id', $chauffeur->id)
+            ->whereDate('date_programme', Carbon::today())
+            ->count();
 
-      // 2. Calculer les missions du jour
-      $missionsAujourdhui = Programme::where('chauffeur_id', $chauffeur->id)
-      ->whereDate('date_programme', Carbon::today())
-      ->count();
+        // 2. Missions effectuées
+        $missionsEffectuees = Programme::where('chauffeur_id', $chauffeur->id)
+            ->where('etat_rdv', 'effectué')
+            ->count();
+        
+        // 3. Total encaissé
+        $totalEncaisse = 0;
+        
+        // Récupérer les références des colis effectués
+        $referencesColisEffectues = Programme::where('chauffeur_id', $chauffeur->id)
+            ->where('etat_rdv', 'effectué')
+            ->pluck('reference_colis');
+        
+        // Debug: Vérifions les références de colis
+        // dd($referencesColisEffectues);
+        
+        if ($referencesColisEffectues->isNotEmpty()) {
+            // Trouver les IDs des colis correspondants
+            $colisIds = Colis::whereIn('reference_colis', $referencesColisEffectues)
+                ->pluck('id');
+                
+            // Debug: Vérifions les IDs de colis
+            // dd($colisIds);
+            
+            if ($colisIds->isNotEmpty()) {
+                $totalEncaisse = Paiement::whereIn('colis_id', $colisIds)
+                    ->sum('montant_paye');
+            }
+        }
+        
+        // 4. Répartition des statuts de RDV
+        $statutsRdv = Programme::where('chauffeur_id', $chauffeur->id)
+            ->select('etat_rdv', DB::raw('count(*) as total'))
+            ->groupBy('etat_rdv')
+            ->pluck('total', 'etat_rdv');
+            
+        $pieChartData = [
+            'labels' => $statutsRdv->keys()->map(function($item) { 
+                return ucfirst(str_replace('_', ' ', $item)); 
+            }),
+            'data' => $statutsRdv->values(),
+        ];
 
-  // 3. Calculer le total des missions effectuées
-  $missionsEffectuees = Programme::where('chauffeur_id', $chauffeur->id)
-      ->where('etat_rdv', 'effectué')
-      ->count();
-  
-  // 4. Calculer le total encaissé
-  $referencesColisEffectues = Programme::where('chauffeur_id', $chauffeur->id)
-      ->where('etat_rdv', 'effectué')
-      ->pluck('reference_colis');
-  
-  $totalEncaisse = 0;
-  if ($referencesColisEffectues->isNotEmpty()) {
-      $colisIds = Colis::whereIn('reference_colis', $referencesColisEffectues)->pluck('id');
-      if ($colisIds->isNotEmpty()) {
-          $totalEncaisse = Paiement::whereIn('colis_id', $colisIds)->sum('montant_paye');
-      }
-  }
-  
-  // 5. Préparer les données pour le graphique de répartition des statuts
-  $statutsRdv = Programme::where('chauffeur_id', $chauffeur->id)
-      ->select('etat_rdv', DB::raw('count(*) as total'))
-      ->groupBy('etat_rdv')
-      ->pluck('total', 'etat_rdv');
-      
-  $pieChartData = [
-      'labels' => $statutsRdv->keys()->map(function($item) { return ucfirst(str_replace('_', ' ', $item)); }),
-      'data' => $statutsRdv->values(),
-  ];
+        // 5. Activité des 7 derniers jours
+        $activiteHebdomadaire = Programme::where('chauffeur_id', $chauffeur->id)
+            ->whereBetween('date_programme', [
+                Carbon::now()->subDays(6)->startOfDay(), 
+                Carbon::now()->endOfDay()
+            ])
+            ->where('etat_rdv', 'effectué')
+            ->select(DB::raw('DATE(date_programme) as date'), DB::raw('count(*) as total'))
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->pluck('total', 'date');
 
-  // 6. Préparer les données pour le graphique d'activité des 7 derniers jours
-  $activiteHebdomadaire = Programme::where('chauffeur_id', $chauffeur->id)
-      ->whereBetween('date_programme', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])
-      ->where('etat_rdv', 'effectué')
-      ->select(DB::raw('DATE(date_programme) as date'), DB::raw('count(*) as total'))
-      ->groupBy('date')
-      ->orderBy('date', 'asc')
-      ->get()->pluck('total', 'date');
+        // Assurer que tous les jours de la semaine sont présents
+        $barChartLabels = [];
+        $barChartValues = [];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $barChartLabels[] = Carbon::parse($date)->format('d/m');
+            $barChartValues[] = $activiteHebdomadaire->get($date, 0);
+        }
+        
+        $barChartData = [
+            'labels' => $barChartLabels,
+            'data' => $barChartValues,
+        ];
+        
+        // Debug: Vérifions les données finales
+        // dd(compact('missionsAujourdhui', 'missionsEffectuees', 'totalEncaisse', 'pieChartData', 'barChartData'));
+        
+        return view('chauffeur.dashboard', compact(
+            'missionsAujourdhui',
+            'missionsEffectuees',
+            'totalEncaisse',
+            'pieChartData',
+            'barChartData'
+        ));
+    }
 
-  // Construire le graphique en s'assurant que tous les jours sont présents (même avec 0 mission)
-  $barChartLabels = [];
-  $barChartValues = [];
-  for ($i = 6; $i >= 0; $i--) {
-      $date = Carbon::now()->subDays($i)->format('Y-m-d');
-      $barChartLabels[] = Carbon::parse($date)->format('d/m');
-      $barChartValues[] = $activiteHebdomadaire->get($date, 0); // Utilise 0 si aucune donnée n'existe pour ce jour
-  }
-  
-  $barChartData = [ 'labels' => $barChartLabels, 'data' => $barChartValues ];
-  
-  // 7. Retourner la vue du dashboard avec toutes les données calculées
-  return view('chauffeur.dashboard', compact(
-      'missionsAujourdhui',
-      'missionsEffectuees',
-      'totalEncaisse',
-      'pieChartData',
-      'barChartData'
-  ));
-}
-
-     public function index()
+    public function index()
     {
         return view('chauffeur.auth.login');
     }

@@ -1598,16 +1598,21 @@ Route::post('/bilan/export', [BilanController::class, 'exportAgentColisToExcel']
     ->name('bilan.export');
     Route::post('/bilan/enregistrer-operation', [BilanController::class, 'enregistrerOperation'])->name('bilan.enregistrerOperation');
     Route::get('/export-operations-comptables-bilan', [BilanController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.bilan');
-
+    Route::get('/bilan/get-reste-a-payer/{reference}', [BilanController::class, 'getResteAPayer'])->name('bilan.getResteAPayer');
     // Routes pour BilanChineController
 Route::get('/bilan-chine', [BilanChineController::class, 'index'])->name('bilan.chine');
 Route::post('/enregistrer-operation-chine', [BilanChineController::class, 'enregistrerOperation'])
 ->name('enregistrer.operation.chine');
 Route::get('/export-agent-colis-chine', [BilanChineController::class, 'exportAgentColisToExcel'])->name('export.agent.colis.chine');
 Route::get('/export-operations-comptables-chine', [BilanChineController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.chine');
+Route::get('/bilan-chine/reste/{reference}', [BilanChineController::class, 'getResteAPayer'])
+    ->name('bilan.getResteAPayer');
 
 // Routes pour BilanLBController
 Route::get('/bilan-louis-bleriot', [BilanLBController::class, 'index'])->name('bilan.lb');
 Route::post('/enregistrer-operation-lb', [BilanLBController::class, 'enregistrerOperation'])->name('enregistrer.operation.lb');
 Route::post('/export-agent-colis-lb', [BilanLbController::class, 'exportAgentColisToExcel'])->name('export.agent.colis.lb');
 Route::get('/export-operations-comptables-lb', [BilanLbController::class, 'exportOperationsComptablesToExcel'])->name('export.operations.comptables.lb');
+// --- NOUVELLE ROUTE : récupération RESTE à PAYER (GET)
+Route::get('/bilan-louis-bleriot/reste/{reference}', [BilanLBController::class, 'getResteAPayer'])
+    ->name('bilan.getResteAPayer');
