@@ -416,12 +416,12 @@
             margin-top: 1rem;
             font-size: 1.5rem;
             font-weight: 700;
-            color: #333;
+            color: orange;
 
         }
         .card-header {
             /* background-color: orange; */
-            color: rgb(0, 0, 0);
+            color: orange;
             font-weight: bold;
             font-size: 1.2rem;
             text-align: center;
