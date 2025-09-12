@@ -127,7 +127,6 @@
 
         /* --- CARTES DE SERVICES / AGENCES --- */
         .card-custom {
-            /* background-color: #ffffff; */
             border-radius: 12px; 
             padding: 3rem;
             /* box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); */

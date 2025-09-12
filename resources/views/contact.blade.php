@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Aft Import Export</title>
+    <title>Contact - AFT Import Export</title>
     <!-- Liens CSS existants -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <style>
+<style>
         /* Styles de base et barre de navigation */
         body {
             font-family: 'Arial', sans-serif;
@@ -21,16 +21,46 @@
             padding-left: 100px;
             padding-right: 100px;
         }
+        @media (min-width: 1200px) { /* Adjust padding for larger screens if needed */
+            .container {
+                padding-left: 50px; /* Reduced padding for larger screens, adjust as desired */
+                padding-right: 50px;
+            }
+        }
         .navbar-nav .nav-link { color: white !important; font-weight: bold; }
         .navbar-nav .nav-link:hover { color: orange !important; }
-                .navbar-nav .nav-link.active {
+        .navbar-nav .nav-link.active {
             color: #fff !important;
             border-bottom: 3px solid #ff7b00; /* Soulignement orange vif pour l'actif */
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 4px 4px 0 0;
         }
-        @media (max-width: 767px) { .navbar-brand img { max-height: 50px; } }
 
+        /* Logo styling */
+        .navbar-brand img {
+            max-height: 60px; /* Default max height for the logo, adjust as needed */
+            width: auto; /* Maintain aspect ratio */
+            transition: max-height 0.3s ease; /* Smooth transition for height changes */
+        }
+
+        @media (max-width: 991.98px) { /* For smaller screens (e.g., tablets and mobile) */
+            .navbar-brand img {
+                max-height: 45px; /* Smaller logo on tablet/mobile */
+            }
+            .container {
+                padding-left: 15px; /* Reduce padding on smaller screens */
+                padding-right: 15px;
+            }
+        }
+
+        @media (max-width: 767.98px) { /* Even smaller screens (e.g., mobile phones) */
+            .navbar-brand img {
+                max-height: 40px; /* Even smaller logo on very small screens */
+            }
+        }
+
+
+        /* Your existing styles continue below */
         /* --- STYLES POUR LA PAGE CONTACT --- */
 
         /* En-tête de la page */
@@ -65,7 +95,7 @@
             z-index: 2; /* S'assurer que le texte est au-dessus de l'overlay */
         }
         p {
-           font-size: 1.25rem;
+        font-size: 1.25rem;
             line-height: 1.6;
         }
         h1 {
@@ -78,7 +108,7 @@
         .contact-content-section {
             padding: 60px 0;
         }
-        
+
         .section-title {
             text-align: center;
             font-size: 2.5rem;
@@ -125,56 +155,79 @@
         }
 
         /* Styles du pied de page */
-        .footer-dark { 
+        .footer-dark {
             background-color: #2c3e50; /* Couleur sombre plus profonde */
             color: #ecf0f1; /* Texte gris clair */
             padding: 60px 0 30px 0;
             border-top: 5px solid #ff7b00; /* Ligne orange en haut du footer */
         }
-        .footer-dark h3 { 
-            font-size: 1.3rem; 
-            margin-bottom: 25px; 
+        .footer-dark h3 {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
             color: #ff7b00; /* Titres orange */
             font-weight: 700;
         }
-        .footer-dark ul { 
-            list-style: none; 
-            padding: 0; 
+        .footer-dark ul {
+            list-style: none;
+            padding: 0;
             margin-bottom: 30px;
         }
         .footer-dark ul li {
             margin-bottom: 10px;
         }
-        .footer-dark ul li a { 
-            color: #bdc3c7; 
-            text-decoration: none; 
-            transition: color 0.3s ease; 
+        .footer-dark ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
             font-size: 0.95rem;
         }
-        .footer-dark ul li a:hover { 
+        .footer-dark ul li a:hover {
             color: #ff7b00; /* Orange au survol */
             padding-left: 5px;
         }
-        .footer-dark .social a { 
-            color: #ecf0f1; 
-            font-size: 1.8rem; 
-            margin: 0 12px; 
+        .footer-dark .social a {
+            color: #ecf0f1;
+            font-size: 1.8rem;
+            margin: 0 12px;
             transition: color 0.3s ease, transform 0.3s ease;
         }
-        .footer-dark .social a:hover { 
-            color: #ff7b00; 
+        .footer-dark .social a:hover {
+            color: #ff7b00;
             transform: translateY(-3px);
         }
-    </style>
+        .copyright {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
+
+        .contact-form-image img {
+            max-width: 150px; /* taille par défaut */
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto; /* centrer */
+        }
+
+        @media (max-width: 767px) {
+            .contact-form-image img {
+                max-width: 120px; /* réduire sur mobile */
+            }
+        }
+
+</style>
 </head>
 <body>
 
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand me-auto" href="/">
-                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo Aft Import Export" class="img-fluid" style="max-height: 70px;">
-                </a>
+                    
+                <div class="contact-form-image ">
+                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Logo de l'entreprise">
+                </div>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarButtonsExample" aria-controls="navbarButtonsExample" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
