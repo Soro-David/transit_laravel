@@ -553,7 +553,7 @@
                     <i class="fas fa-globe-africa"></i>
                 </div>
                 <h4>Agence de Chine</h4>
-                <p><strong>Adresse :</strong> Chine</p>
+                <p><strong>Adresse :</strong>Bureau 918, Bâtiment B, Hengsheng Dasha, 205 Huanshi Middle Road, Ville de Guangzhou (Canton), Chine.</p>
                 <p class="contact-info"><a href="mailto:douane@aftèapp.com">douane@aftèapp.com</a></p>
                 <p>Votre porte d'entrée et de sortie Pour le colis maritime et Aérien.</p>
             </div>
