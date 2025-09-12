@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\OperationComptable;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\OperationsComptablesExport;
+
 class BilanChineController extends Controller
 {
     public function index(Request $request)
@@ -25,6 +26,11 @@ class BilanChineController extends Controller
         $agent = Auth::user()->agent;
         $agentId = $agent ? $agent->id : null;
 
+        // NOUVEAU: Calcul du montant total payé reçu par l'agent
+        $montantTotalPayeAgent = DB::table('paiements')
+        ->join('colis', 'paiements.colis_id', '=', 'colis.id')
+        ->where('colis.agent_id', $agentId)
+        ->sum('paiements.montant_paye');
         // Statistiques de base filtrées par l'agent
         $customers_count = Expediteur::count();
         $products_count = Produit::count();
@@ -34,25 +40,41 @@ class BilanChineController extends Controller
             ->count();
             
         // Calcul du totalPrixTransit BASIQUE (basé sur les colis, comme avant)
-    $totalPrixTransitColis = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
-    ->when($agentId, fn($q) => $q->where('agent_id', $agentId))
-    ->sum('prix_transit_colis');
+        $totalPrixTransitColis = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
+            ->when($agentId, fn($q) => $q->where('agent_id', $agentId))
+            ->sum('prix_transit_colis');
 
-// Récupérer TOUTES les opérations comptables de l'agent
-$operationsComptablesBilan = OperationComptable::where('agent_id', $agentId)->get();
+        // Récupérer TOUTES les opérations comptables de l'agent
+        $operationsComptablesBilan = OperationComptable::where('agent_id', $agentId)->get();
 
-// Initialiser le montant du bilan avec le totalPrixTransit des colis
-$montantBilan = $totalPrixTransitColis;
-
-// Appliquer les opérations comptables au montant du bilan
-foreach ($operationsComptablesBilan as $operation) {
-    if ($operation->type_operation === 'ENTREE D\'ARGENT') {
-        $montantBilan += $operation->montant; // Ajouter pour ENTREE D'ARGENT
-    } elseif ($operation->type_operation === 'SORTIE D\'ARGENT') {
-        $montantBilan -= $operation->montant; // Soustraire pour SORTIE D'ARGENT
-    }
+        // Initialiser le montant du bilan avec le totalPrixTransit des colis
+        if ($agentId) {
+    $montantBilan = (float) DB::table('operation_comptables')
+        ->select(DB::raw("
+            COALESCE(SUM(
+                CASE
+                    WHEN type_operation = 'ENTREE D''ARGENT' THEN montant
+                    WHEN type_operation = 'SORTIE D''ARGENT' THEN -montant
+                    ELSE montant
+                END
+            ), 0) as total
+        "))
+        ->where('agent_id', $agentId)
+        ->value('total');
+} else {
+    // Si pas d'agent connecté, on peut afficher 0 ou la somme globale selon ton besoin
+    $montantBilan = (float) DB::table('operation_comptables')
+        ->select(DB::raw("
+            COALESCE(SUM(
+                CASE
+                    WHEN type_operation = 'ENTREE D''ARGENT' THEN montant
+                    WHEN type_operation = 'SORTIE D''ARGENT' THEN -montant
+                    ELSE montant
+                END
+            ), 0) as total
+        "))
+        ->value('total');
 }
-
         // ================ STATISTIQUES TRANSPORT ================
         // Aérien
         $volCargaisonCount = Colis::where('mode_transit', 'aérien')
@@ -195,7 +217,7 @@ foreach ($operationsComptablesBilan as $operation) {
             ->distinct()
             ->pluck('reference_contenaire');
 
-       
+        // $montantBilan = $totalPrixTransit;
         
         return view('AGENCE_CHINE.bilan.bilanchine', compact(
             'colisData', 'moisNoms', 'customers_count', 'products_count',
@@ -203,38 +225,161 @@ foreach ($operationsComptablesBilan as $operation) {
             'volValideCount', 'volEnCoursCount', 'volAnnuleCount', 'conteneurCount',
             'colisMaritimeCount', 'conteneurValideCount', 'conteneurEnCoursCount',
             'conteneurAnnuleCount', 'agentColis', 'agentTotals', 'selectedAgentId',
-            'operationsComptables', 'montantBilan', 'conteneursDisponibles', 'agentId'
+            'operationsComptables', 'montantBilan', 'conteneursDisponibles', 'agentId',
+            'montantTotalPayeAgent' // Ajout de la nouvelle variable
         ));
     }
 
+    // [NOUVELLE FONCTION] : Pour l'appel AJAX qui récupère le solde d'un colis
+    public function getResteAPayer($reference)
+    {
+        Log::info("Recherche du reste à payer pour la référence : " . $reference);
+    
+        // On recherche tous les colis ayant cette référence (Validé) et non complètement payés
+        $colis = Colis::where('reference_colis', $reference)
+                      ->where('etat', 'Validé')
+                      ->where(function($q) {
+                          $q->where('status', 'non payé')
+                            ->orWhere('status', 'partiellement payé');
+                      })
+                      ->get();
+    
+        if ($colis->isEmpty()) {
+            Log::warning("Aucun colis non payé trouvé pour la référence : " . $reference);
+            return response()->json(['error' => 'Référence non trouvée ou déjà payée.'], 404);
+        }
+    
+        // Total dû = somme des prix de transit des colis
+        $totalDu = $colis->sum('prix_transit_colis');
+    
+        // Calculer le total payé : on essaye d'abord de récupérer paiements via la table paiements
+        $colisIds = $colis->pluck('id')->toArray();
+    
+        // Si dans votre structure la table paiements utilise 'colis_id' :
+        $totalPaye = Paiement::whereIn('colis_id', $colisIds)->sum('montant_paye');
+    
+        // Si votre app associe payment via paiement_id sur le colis, on additionne aussi pour sécurité:
+        $paiementIds = $colis->pluck('paiement_id')->filter()->unique()->toArray();
+        if (!empty($paiementIds)) {
+            $totalPaye += Paiement::whereIn('id', $paiementIds)->sum('montant_paye');
+        }
+    
+        $resteAPayer = max(0, $totalDu - $totalPaye);
+    
+        Log::info("Calcul pour {$reference} : TotalDû={$totalDu}, TotalPayé={$totalPaye}, Reste={$resteAPayer}");
+    
+        return response()->json([
+            'reste_a_payer' => $resteAPayer,
+            'total_du' => $totalDu,
+            'total_paye' => $totalPaye,
+        ]);
+    }
+
+    /**
+     * [FONCTION CORRIGÉE] : Gère la création d'un dossier de paiement s'il n'existe pas.
+     */
     public function enregistrerOperation(Request $request)
     {
         $validatedData = $request->validate([
             'date_operation' => 'required|date',
-            'type_operation' => 'required|string|in:ENTREE D\'ARGENT,SORTIE D\'ARGENT',
-            'beneficiaire_fournisseur' => 'nullable|string|max:255',
-            'objet' => 'nullable|string|max:255',
-            'montant' => 'required|numeric|min:0',
-            'conteneur_frais_fonction' => 'nullable|string|max:255',
+            'type_operation' => 'required|string',
+            'beneficiaire_fournisseur' => 'required|string',
+            'objet' => 'nullable|string',
+            'montant' => 'required|numeric|min:0.01',
+            'conteneur_frais_fonction' => 'nullable|string',
+            'agent_id' => 'nullable|exists:agents,id', // le formulaire peut l'envoyer
         ]);
     
-        // Ajout automatique de l'agent connecté
-        $validatedData['agent_id'] = Auth::user()->agent->id;
-        $agentId = $validatedData['agent_id']; // Récupérer agentId pour la requête
+        // Fallback sûr : si le formulaire n'envoie pas agent_id on prend l'agent connecté
+        $agentId = $validatedData['agent_id'] ?? (Auth::check() && Auth::user()->agent ? Auth::user()->agent->id : null);
     
-        // Récupérer le totalPrixTransit ACTUEL (avant l'opération)
-        $totalPrixTransit = Colis::whereIn('etat', ['Validé', 'Fermé', 'En entrepôt', 'Chargé'])
-            ->when($agentId, fn($q) => $q->where('agent_id', $agentId))
-            ->sum('prix_transit_colis');
+        $referenceColis = null;
+        if ($validatedData['type_operation'] === "ENTREE D'ARGENT"
+            && str_starts_with($validatedData['beneficiaire_fournisseur'], 'COLIS-')) {
+            $referenceColis = str_replace('COLIS-', '', $validatedData['beneficiaire_fournisseur']);
+        }
     
-        $operation = OperationComptable::create($validatedData);
+        DB::beginTransaction();
+        try {
+            // Créer l'opération comptable
+            OperationComptable::create([
+                'date_operation' => $validatedData['date_operation'],
+                'type_operation' => $validatedData['type_operation'],
+                'beneficiaire_fournisseur' => $validatedData['beneficiaire_fournisseur'],
+                'objet' => $validatedData['objet'] ?? null,
+                'montant' => $validatedData['montant'],
+                'conteneur_frais_fonction' => $validatedData['conteneur_frais_fonction'] ?? null,
+                'agent_id' => $agentId,
+                'reference_colis' => $referenceColis,
+            ]);
     
-        // Mettre à jour le montant du bilan (vous pouvez choisir de mettre à jour un champ dans la base de données si vous le souhaitez,
-        // ou simplement recalculer totalPrixTransit à chaque fois dans index() comme vous le faites déjà, ce qui est suffisant ici)
+            // Si paiement d'un colis => gérer paiements
+            if ($referenceColis) {
+                $colisConcerned = Colis::where('reference_colis', $referenceColis)
+                                       ->where('etat','Validé')
+                                       ->get();
     
-        return redirect()->route('bilan.chine')
-            ->with('success', 'Opération comptable enregistrée avec succès.');
+                if ($colisConcerned->isEmpty()) {
+                    throw new \Exception("Aucun colis valide trouvé pour la référence " . $referenceColis);
+                }
+    
+                $colisIds = $colisConcerned->pluck('id')->toArray();
+                $totalDu = $colisConcerned->sum('prix_transit_colis');
+                $firstColis = $colisConcerned->first();
+    
+                // Cherche un paiement existant soit via paiements.colis_id, soit via colis.paiement_id
+                $paiement = Paiement::whereIn('colis_id', $colisIds)->orderByDesc('date_validation')->first();
+    
+                if (!$paiement) {
+                    $paiementIdsFromColis = $colisConcerned->pluck('paiement_id')->filter()->unique()->toArray();
+                    if (!empty($paiementIdsFromColis)) {
+                        $paiement = Paiement::whereIn('id', $paiementIdsFromColis)->orderByDesc('date_validation')->first();
+                    }
+                }
+    
+                if ($paiement) {
+                    // Mettre à jour montant_paye
+                    $paiement->montant_paye = ($paiement->montant_paye ?? 0) + $validatedData['montant'];
+                    // si montant total renseigné est null, on peut le mettre à totalDu si besoin
+                    if (empty($paiement->montant)) {
+                        $paiement->montant = $paiement->montant ?? $totalDu;
+                    }
+                    $paiement->agent_id = $paiement->agent_id ?? $agentId ?? $firstColis->agent_id;
+                    $paiement->date_validation = $paiement->date_validation ?? now();
+                    $paiement->statut_paiement = ($paiement->montant_paye >= $paiement->montant) ? 'payé' : 'partiellement payé';
+                    $paiement->save();
+                } else {
+                    // Créer un nouveau dossier de paiement et lier aux colis
+                    $paiement = Paiement::create([
+                        'colis_id' => $firstColis->id, // principal colis de référence
+                        'montant' => $totalDu,
+                        'montant_paye' => $validatedData['montant'],
+                        'statut_paiement' => ($validatedData['montant'] >= $totalDu) ? 'payé' : 'partiellement payé',
+                        'expediteur_id' => $firstColis->expediteur_id,
+                        'agent_id' => $agentId ?? $firstColis->agent_id,
+                        'methode_paiement' => 'especes',
+                        'date_validation' => now(),
+                    ]);
+    
+                    // Associer le paiement créé à tous les colis du groupe
+                    Colis::whereIn('id', $colisIds)->update(['paiement_id' => $paiement->id]);
+                }
+    
+                // Mise à jour finale du statut de tous les colis concernés
+                $newStatus = ($paiement->montant_paye >= $paiement->montant) ? 'payé' : 'partiellement payé';
+                Colis::whereIn('id', $colisIds)->update(['status' => $newStatus]);
+            }
+    
+            DB::commit();
+            return redirect()->route('bilan.chine')->with('success', 'Opération comptable enregistrée avec succès.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Erreur lors de l'enregistrement de l'opération: " . $e->getMessage(), ['validated' => $validatedData]);
+            return redirect()->back()->with('error', 'Une erreur est survenue. L\'opération n\'a pas été enregistrée.');
+        }
     }
+    
+
 
     public function exportAgentColisToExcel(Request $request)
     {
@@ -253,16 +398,16 @@ foreach ($operationsComptablesBilan as $operation) {
         );
     }
     public function exportOperationsComptablesToExcel(Request $request)
-{
-    // Récupérer l'agent connecté (vous l'avez déjà fait dans index(), réutilisez ce code)
-    $agent = Auth::user()->agent;
-    $agentId = $agent ? $agent->id : null;
-
-    // ... (vérification de $agentId si nécessaire)
-
-    return Excel::download(
-        new OperationsComptablesExport($agentId), // **CORRECTION : Passer $agentId ici**
-        'operations_comptables_agent_' . $agentId . '_' . now()->format('Y-m-d') . '.xlsx'
-    );
-}
+    {
+        // Récupérer l'agent connecté (vous l'avez déjà fait dans index(), réutilisez ce code)
+        $agent = Auth::user()->agent;
+        $agentId = $agent ? $agent->id : null;
+    
+        // ... (vérification de $agentId si nécessaire)
+    
+        return Excel::download(
+            new OperationsComptablesExport($agentId), // **CORRECTION : Passer $agentId ici**
+            'operations_comptables_agent_' . $agentId . '_' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
 }

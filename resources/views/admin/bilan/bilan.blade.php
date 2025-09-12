@@ -2,12 +2,10 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Statistiques principales -->
-     <!-- Carte Principale Mise en Évidence -->
-     <div class="row mb-4">
+    <!-- Carte Principale Total Transit -->
+    <div class="row mb-4">
         <div class="col-12">
-            {{-- Note: La classe "text-white" est redondante car gérée par le CSS ci-dessous --}}
-            <div class="card text-dark text-center p-3" style="background-color: #ffb300;
+            <div class="card text-dark text-center p-3" style="background-color: #ffb300;">
                 <h5 class="card-title" style="font-size: 1.1rem; font-weight: 300;">
                     <i class="fas fa-coins"></i> Total Transit Global
                 </h5>
@@ -17,6 +15,21 @@
             </div>
         </div>
     </div>
+
+    <!-- NOUVEAU: Carte Principale Montant Payé Global -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-white text-center p-3" style="background-color: #28a745;">
+                <h5 class="card-title" style="font-size: 1.1rem; font-weight: 300;">
+                    <i class="fas fa-hand-holding-usd"></i> Total Montant Payé Global
+                </h5>
+                <h2 class="card-text display-4" style="font-weight: 600;">
+                    {{ number_format($totalMontantPayeGlobal, 0, ',', '.') }}€
+                </h2>
+            </div>
+        </div>
+    </div>
+    <!-- FIN NOUVEAU -->
 
     <!-- Statistiques secondaires -->
     <div class="row mb-4">
@@ -46,7 +59,7 @@
         </div>
     </div>
 
-    <!-- LIGNE POUR LES STATISTIQUES PAR AGENCE -->
+    <!-- LIGNE POUR LES STATISTIQUES DE TRANSIT PAR AGENCE -->
     <div class="row mb-4">
         <div class="col-md-6 col-sm-6">
             <div class="card bg-dark text-white">
@@ -68,7 +81,30 @@
     </div>
     <!-- FIN DE LA LIGNE -->
 
+    <!-- NOUVEAU: LIGNE POUR LES STATISTIQUES DE MONTANT PAYÉ PAR AGENCE -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-sm-6">
+            <div class="card text-white" style="background-color: #343a40;">
+                <div class="card-body">
+                    <h5><i class="fas fa-hand-holding-usd"></i> Total Montant Payé Louis Bleriot</h5>
+                    <h2>{{ number_format($totalMontantPayeLouisBleriot, 0, ',', '.') }}€</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6">
+            <div class="card text-white" style="background-color: #9A0036;">
+                <div class="card-body">
+                    <h5><i class="fas fa-hand-holding-usd"></i> Total Montant Payé Chine</h5>
+                    <h2>{{ number_format($totalMontantPayeChine, 0, ',', '.') }}Fcfa</h2>
+                    <h6 class="mt-2" style="font-weight: 300;">Soit env. {{ number_format($totalMontantPayeChineEnEuros, 2, ',', '.') }}€</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIN NOUVEAU -->
+
     <!-- Section Transport -->
+    {{-- Le reste du fichier blade reste inchangé --}}
     <div class="row mb-4">
         <!-- Vols de cargaison -->
         <div class="col-md-6">
@@ -151,12 +187,13 @@
                         <h5 class="mb-3"><i class="fas fa-money-bill-wave mr-2"></i> Montant Total Présent dans Votre Bilan actuel</h5>
                         <div class="form-group">
                             <label for="montant_bilan">Montant de votre Bilan:</label>
-                            <input type="text" class="form-control" id="montant_bilan" value="{{ number_format($montantBilan, 0, ',', '.') }}€" readonly>
+                            {{-- La valeur vient maintenant du nouveau calcul dans le contrôleur --}}
+                            <input type="text" class="form-control" id="montant_bilan" value="{{ number_format($montantBilan, 2, ',', '.') }}€" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <h5 class="mb-3"><i class="fas fa-calculator mr-2"></i> Saisir une opération comptable</h5>
-                        <p class="text-muted">! Les Opérations d'entrées ou de sorties d'argents seront appliquées au montant de votre bilan actuel !</p>
+                        <p class="text-muted">Pour payer un colis, entrez sa référence (ex: CA-001) ci-dessous.</p>
                         <form method="POST" action="{{ route('bilan.enregistrerOperation') }}">
                             @csrf
                             <div class="row">
@@ -177,9 +214,17 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="beneficiaire_fournisseur">Bénéficiaire / Fournisseur:</label>
-                                <input type="text" class="form-control" id="beneficiaire_fournisseur" name="beneficiaire_fournisseur">
+                                {{-- MODIFICATION DU LABEL --}}
+                                <label for="beneficiaire_fournisseur">Bénéficiaire / Fournisseur / Référence du colis :</label>
+                                <input type="text" class="form-control" id="beneficiaire_fournisseur" name="beneficiaire_fournisseur" autocomplete="off">
                             </div>
+    
+                            {{-- NOUVEAU: Champ pour afficher le reste à payer (initialement caché) --}}
+                            <div id="reste_a_payer_div" class="form-group" style="display: none;">
+                                <label for="reste_a_payer_input">Reste à payer pour ce colis :</label>
+                                <input type="text" id="reste_a_payer_input" class="form-control" readonly style="font-weight: bold; color: #dc3545;">
+                            </div>
+    
                             <div class="form-group">
                                 <label for="objet">Objet:</label>
                                 <input type="text" class="form-control" id="objet" name="objet">
@@ -188,7 +233,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="montant">Montant en Euros*:</label>
-                                        <input type="number" class="form-control" id="montant" name="montant" step="0.01">
+                                        <input type="number" class="form-control" id="montant" name="montant" step="0.01" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -417,6 +462,89 @@
             placeholder: "Sélectionner un agent",
             allowClear: true
         });
+       // ===================================================================
+        // === DÉBUT DU SCRIPT CORRIGÉ POUR LA RECHERCHE DE COLIS ===
+        // ===================================================================
+
+        const beneficiaireInput = document.getElementById('beneficiaire_fournisseur');
+const typeOperationSelect = document.getElementById('type_operation');
+const resteAPayerDiv = document.getElementById('reste_a_payer_div');
+const resteAPayerInput = document.getElementById('reste_a_payer_input');
+const objetInput = document.getElementById('objet');
+
+const fetchUrlTemplate = "{{ route('bilan.getResteAPayer', ['reference' => 'PLACEHOLDER']) }}";
+let fetchTimeout;
+
+beneficiaireInput.addEventListener('input', function() {
+    clearTimeout(fetchTimeout);
+    const reference = this.value.trim();
+
+    if (reference.length < 3) {
+        resetFormToDefault();
+        return;
+    }
+
+    fetchTimeout = setTimeout(() => {
+        // encodeURIComponent pour éviter les problèmes d'URL (espaces, #, etc.)
+        const finalUrl = fetchUrlTemplate.replace('PLACEHOLDER', encodeURIComponent(reference));
+        console.log('Fetch URL:', finalUrl);
+
+        fetch(finalUrl, {
+            method: 'GET',
+            credentials: 'same-origin' // s'assure que les cookies de session sont envoyés
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().catch(() => { throw new Error('Réponse non JSON'); }).then(err => { throw new Error(err.error || 'Erreur'); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data reçue:', data);
+            // Affiche clairement le montant (brut + formaté)
+            const reste = parseFloat(data.reste_a_payer) || 0;
+            resteAPayerInput.value = reste.toFixed(2) + '€';
+            resteAPayerDiv.style.display = 'block';
+
+            // Préremplir le formulaire pour paiement colis
+            typeOperationSelect.value = "ENTREE D'ARGENT";
+            typeOperationSelect.setAttribute('readonly', 'readonly');
+            typeOperationSelect.style.backgroundColor = '#e9ecef';
+
+            objetInput.value = `Paiement solde pour colis ${reference}`;
+            // On remplace le champ par le préfixe attendu côté contrôleur
+            beneficiaireInput.value = `COLIS-${reference}`;
+
+            // Optionnel : préremplir le champ montant pour faciliter la saisie
+            const montantInput = document.getElementById('montant');
+            if (montantInput) {
+                montantInput.value = reste.toFixed(2);
+            }
+        })
+        .catch(err => {
+            console.error('Erreur lors de la recherche:', err.message);
+            // Afficher message utilisateur visible (ex : texte rouge)
+            resetFormToDefault();
+            // ## Optionnel : afficher message d'erreur temporaire
+            // showTempError('Référence non trouvée ou déjà soldée');
+        });
+    }, 400);
+});
+
+function resetFormToDefault() {
+    resteAPayerDiv.style.display = 'none';
+    resteAPayerInput.value = '';
+
+    typeOperationSelect.removeAttribute('readonly');
+    typeOperationSelect.style.backgroundColor = '#fff';
+
+    if (objetInput.value.startsWith('Paiement solde')) {
+         objetInput.value = '';
+    }
+    if (beneficiaireInput.value.startsWith('COLIS-')) {
+        beneficiaireInput.value = beneficiaireInput.value.replace('COLIS-', '');
+    }
+}
     });
 </script>
 @endsection

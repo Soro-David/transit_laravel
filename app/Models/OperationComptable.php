@@ -17,7 +17,8 @@ class OperationComptable extends Model
         'objet',
         'montant',
         'conteneur_frais_fonction',
-        'agent_id' // Ajout du champ agent_id
+        'agent_id',
+        'reference_colis'
     ];
 
     /**

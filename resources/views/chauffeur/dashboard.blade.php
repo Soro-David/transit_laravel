@@ -6,11 +6,9 @@
 <style>
     body {
         background-color: #f4f6f9;
-        /* Ajout pour s'assurer qu'aucun débordement n'est possible */
         overflow-x: hidden; 
     }
     .content-wrapper {
-        /* On s'assure que le padding est bien géré */
         padding: 1.5rem; 
     }
     .stat-card {
@@ -22,13 +20,13 @@
         box-shadow: 0 5px 20px rgba(0,0,0,0.05);
         transition: transform 0.3s ease;
         border: none;
-        height: 100%; /* Pour que toutes les cartes aient la même hauteur */
+        height: 100%;
     }
     .stat-card:hover {
         transform: translateY(-5px);
     }
     .stat-card .icon {
-        font-size: 2.5rem; /* Légèrement réduit pour un meilleur équilibre */
+        font-size: 2.5rem;
         width: 70px;
         height: 70px;
         display: flex;
@@ -36,18 +34,18 @@
         justify-content: center;
         border-radius: 50%;
         margin-right: 20px;
-        flex-shrink: 0; /* Empêche l'icône de se réduire */
+        flex-shrink: 0;
     }
     .stat-card .info h4 {
         margin: 0;
-        font-size: 0.9rem; /* Légèrement ajusté */
+        font-size: 0.9rem;
         font-weight: 500;
         color: #888;
-        white-space: nowrap; /* Empêche le texte de passer à la ligne */
+        white-space: nowrap;
     }
     .stat-card .info p {
         margin: 0;
-        font-size: 2rem; /* Légèrement ajusté */
+        font-size: 2rem;
         font-weight: 700;
         color: #333;
     }
@@ -61,18 +59,17 @@
         border-radius: 12px;
         padding: 25px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        height: 100%; /* Assure que les cartes de graphiques remplissent la hauteur */
+        height: 100%;
     }
     .chart-card .card-title {
         font-weight: 600;
         color: #333;
-        margin-bottom: 1.5rem; /* Ajoute de l'espace sous le titre */
+        margin-bottom: 1.5rem;
     }
     
-    /* Conteneur pour le canvas pour une meilleure responsivité */
     .chart-container {
         position: relative;
-        height: 300px; /* Hauteur par défaut pour les graphiques */
+        height: 300px;
         width: 100%;
     }
 </style>
@@ -88,8 +85,6 @@
 @endsection
 
 @section('content')
-{{-- ON RETIRE LE <div class="container-fluid"> QUI EST LA CAUSE DU BUG --}}
-
 <!-- Première rangée : Cartes de statistiques -->
 <div class="row">
     <div class="col-lg-4 col-md-6 mb-4">
@@ -132,7 +127,6 @@
     <div class="col-lg-7 mb-4">
         <div class="chart-card">
             <h5 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Activité des 7 derniers jours (RDV effectués)</h5>
-            {{-- Ajout d'un conteneur pour le canvas --}}
             <div class="chart-container">
                 <canvas id="barChart"></canvas>
             </div>
@@ -141,23 +135,21 @@
     <div class="col-lg-5 mb-4">
         <div class="chart-card">
             <h5 class="card-title"><i class="fas fa-chart-pie mr-2"></i>Répartition des Statuts de RDV</h5>
-            {{-- Ajout d'un conteneur pour le canvas --}}
             <div class="chart-container">
                 <canvas id="pieChart"></canvas>
             </div>
         </div>
     </div>
 </div>
-
-{{-- FIN DE LA ZONE DE CONTENU --}}
 @endsection
 
 @push('scripts')
+<!-- Charger jQuery d'abord -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- CDN de Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Le code Javascript reste identique, il est déjà correct.
     document.addEventListener('DOMContentLoaded', function () {
         const barChartData = @json($barChartData);
         const pieChartData = @json($pieChartData);
