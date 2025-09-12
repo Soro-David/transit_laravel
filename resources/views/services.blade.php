@@ -24,10 +24,11 @@
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
+        max-width: 100% !important;
+        padding-left: 100px;
+        padding-right: 100px;
         }
+
 
         h1, h2, h3, h4, h5, h6 {
             font-weight: 700;
@@ -612,6 +613,182 @@
             font-weight: 700;
             color: #faa200;
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .services-container {
+            max-width: 100% !important;
+            padding-left: 120px;
+            padding-right: 120px;
+        }
+        
+        .main-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 50px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .main-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: #e74c3c;
+        }
+        
+.service-section {
+    margin-bottom: 50px;
+    /* background: white; */
+    border-radius: 10px;
+    padding: 10px 15px; /* 30px haut/bas, 15px gauche/droite */
+    /* box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
+}
+
+.service-section:hover {
+    transform: translateY(-5px);
+    /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); */
+}
+
+.service-section:hover .service-image img {
+    transform: scale(1.05);
+}
+
+        .service-content {
+            flex: 1;
+            min-width: 300px;
+            padding-right: 30px;
+        }
+        
+        .service-image {
+            flex: 0 0 300px;
+            height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .service-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+
+        
+        .service-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e74c3c;
+            display: inline-block;
+        }
+        
+        .service-description {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #555;
+        }
+        
+        .service-description br {
+            display: block;
+            margin: 8px 0;
+            content: "";
+        }
+        
+        .service-features {
+            list-style-type: none;
+        }
+        
+        .service-features li {
+            padding: 8px 0;
+            font-size: 16px;
+            color: #444;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .service-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .service-features strong {
+            color: #2c3e50;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #ccc, transparent);
+            margin: 40px 0;
+        }
+        
+        @media (max-width: 900px) {
+            .service-section {
+                flex-direction: column-reverse;
+            }
+            
+            .service-content {
+                padding-right: 0;
+                margin-top: 25px;
+            }
+            
+            .service-image {
+                flex: 0 0 100%;
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 28px;
+            }
+            
+            .service-title {
+                font-size: 22px;
+            }
+            
+            .service-description {
+                font-size: 16px;
+            }
+            
+            .service-image {
+                height: 200px;
+            }
+        }
         
     </style>
 </head>
@@ -654,194 +831,203 @@
         </div>
     </section>
        
-
-        <section class="core-services-section">
-            <div class="container">
-                <h2>Nos Services Principaux</h2>
-                <div class="row justify-content-center align-items-center">
-                    <!-- Colonne pour les services -->
-                    <div class="col-lg-7 mb-4">
-                        <div class="service-list-card">
-                            <h3>AFT Import Export propose :</h3>
-                            
-                            <!-- FRET MARITIME -->
-                            <div class="service-item">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-ship"></i>
-                                </div>
-                                <div class="content">
-                                    <h4>FRET MARITIME</h4>
-                                    <p>Transport de conteneurs (20', 40', 40' HQ) adapté à vos besoins. Solutions de groupage (LCL) et de plein chargement (FCL) avec un suivi personnalisé et sécurisé de vos marchandises, du port de départ à l'arrivée.</p>
-                                </div>
-                            </div>
-
-                            <!-- FRET AÉRIEN -->
-                            <div class="service-item">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-plane"></i>
-                                </div>
-                                <div class="content">
-                                    <h4>FRET AÉRIEN</h4>
-                                    <p>Livraison express et sécurisée pour tous vos envois urgents. Nous prenons en charge l'ensemble des formalités douanières pour une expédition rapide et sans tracas, garantissant l'arrivée à temps de vos colis.</p>
-                                </div>
-                            </div>
-
-                            <!-- SERVICES COMPLÉMENTAIRES -->
-                            <div class="service-item">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-boxes"></i>
-                                </div>
-                                <div class="content">
-                                    <h4>SERVICES COMPLÉMENTAIRES</h4>
-                                    <p>Profitez de notre expertise en dédouanement et de nos conseils logistiques. Nous offrons des solutions de stockage, de distribution locale et d'assurance complète des marchandises pour une tranquillité d'esprit totale.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Colonne pour l'image -->
-                    <div class="col-lg-5 mb-4">
-                        <div class="image-container">
-                            <img src="{{ asset('images/container.jpg') }}" alt="Services AFT Import Export" class="img-fluid rounded shadow-lg">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    <section class="complementary-services-section">
-        <div class="container">
-            <h2>Nos Services Complémentaires</h2>
-            <div class="services-carousel">
-                <!-- Service 1: Déménagement International -->
-                <div class="service-detail-card">
-                    <div class="icon-wrapper">
-                        <i class="fas fa-truck-moving"></i>
-                    </div>
-                    <h4>Déménagement International</h4>
-                    {{-- <p class="service-description">Des solutions complètes et sans stress pour votre déménagement entre la France et la Côte d'Ivoire.</p> --}}
-                    
-                    <div class="service-features">
-                        <h5>Ce que nous offrons :</h5>
-                        <ul class="features-list">
-                            <li>Emballage professionnel de vos biens</li>
-                            <li>Transport sécurisé et suivi rigoureux</li>
-                            <li>Stockage temporaire si nécessaire</li>
-                            <li>Assurance complète de vos marchandises</li>
-                            <li>Gestion des formalités douanières</li>
-                            <li>Livraison et assistance à l'installation à destination</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="service-advantages">
-                        <h5>Nos avantages pour vous :</h5>
-                        <ul class="advantages-list">
-                            <li>Une tranquillité d'esprit garantie</li>
-                            <li>Un service clé en main, de bout en bout</li>
-                            <li>Notre expertise reconnue à l'international</li>
-                            <li>Un accompagnement personnalisé</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="service-detail-card">
-                    <div class="icon-wrapper">
-                        <i class="fas fa-truck-moving"></i>
-                    </div>
-                    <h4>Achat International</h4>
-                    <p class="service-description">Service d'achat et d'importation depuis la Chine vers la Côte d'Ivoire</p>
-                    
-                    <div class="service-features">
-                        <h5>Ce que nous offrons :</h5>
-                        <ul class="features-list">
-                            <li>Emballage professionnel</li>
-                            <li>Transport sécurisé</li>
-                            <li>Stockage temporaire</li>
-                            <li>Assurance complète</li>
-                            <li>Gestion douanière</li>
-                            <li>Installation à destination</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="service-advantages">
-                        <h5>Nos avantages pour vous :</h5>
-                        <ul class="advantages-list">
-                             <li>Tranquillité d'esprit</li>
-                            <li>Service clé en main</li>
-                            <li>Expertise internationale</li>
-                            <li>Accompagnement personnalisé</li>
-                        </ul>
-                    </div>
-                </div>
-                <!-- Service 3 -->
-                <div class="service-detail-card">
-                    <div class="icon-wrapper">
-                        <i class="fas fa-truck-moving"></i>
-                    </div>
-                    <h4>Service Maritime</h4>
-                    <p class="service-description">Service de groupage maritime professionnel entre la France et la Côte d'Ivoire</p>
-                    
-                    <div class="service-features">
-                        <h5>Ce que nous offrons :</h5>
-                        <ul class="features-list">
-                            <li>Enlèvement à domicile en France</li>
-                            <li>Conteneur dédié et sécurisé</li>
-                            <li>Délai de 2-3 semaines</li>
-                            <li>Livraison à Abidjan</li>
-                            <li>Service porte-à-porte</li>
-                            <li>Suivi en temps réel</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="service-advantages">
-                        <h5>Nos avantages pour vous :</h5>
-                        <ul class="advantages-list">
-                            <li>Économies sur les coûts de transport</li>
-                            <li>Réduction des délais de livraison</li>
-                            <li>Sécurité accrue des marchandises</li>
-                            <li>Flexibilité dans les options de livraison</li>
-                            <li>Gestion complète de A à Z</li>
-                            <li>Service personnalisé</li>
-                        </ul>
-                    </div>
-                </div>
-                <!-- Service 4 -->
-                <div class="service-detail-card">
-                    <div class="icon-wrapper">
-                        <i class="fas fa-truck-moving"></i>
-                    </div>
-                    <h4>Service Aérien</h4>
-                    <p class="service-description">Transport aérien rapide et sécurisé de vos colis</p>
-                    
-                    <div class="service-features">
-                        <h5>Ce que nous offrons :</h5>
-                        <ul class="features-list">
-                            <li>Rapidité d'acheminement</li>
-                            <li>Fiabilité maximale</li>
-                            <li>Flexibilité des options</li>
-                            <li>Support dédié</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="service-advantages">
-                        <h5>Nos avantages pour vous :</h5>
-                        <ul class="advantages-list">
-                            <li>Livraison express</li>
-                            <li>Suivi en temps réel</li>
-                            <li>Service personnalisé</li>
-                            <li>Couverture mondiale</li>
-                        </ul>
-                    </div>
-                </div>
+    <section class="services-container">
+        <h1 class="main-title">NOS SERVICES</h1>
+        
+        <!-- FRET MARITIME INTERNATIONAL -->
+        <div class="service-section">
+            <div class="service-content">
+                <h2 class="service-title">FRET MARITIME INTERNATIONAL</h2>
+                <p class="service-description">
+                    Profitez de nos solutions<br>
+                    de transport maritime<br>
+                    optimisées pour des envois<br>
+                    en conteneurs complets (FCL)<br>
+                    ou en groupage (LCL).
+                </p>
+                
+                <ul class="service-features">
+                    <li>Transport de <strong>conteneurs</strong> standards (20', 40', 40' HQ)</li>
+                    <li>Services de Groupage (LCL) et de Plein Chargement (FCL)</li>
+                    <li>Suivi personnalisé et sécurisé des marchandises en temps réel</li>
+                    <li>Optimisation des routes et des coûts</li>
+                </ul>
             </div>
             
-            <div class="scroll-indicator">
-                <i class="fas fa-arrow-left"></i>
-                Faites glisser pour voir plus de services
-                <i class="fas fa-arrow-right"></i>
+            <div class="service-image">
+                <img src="{{ asset('images/bateau_service.jpg') }}" alt="Fret maritime international - Conteneurs">
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- FRET AÉRIEN EXPRESS -->
+        <div class="service-section">
+            <div class="service-content">
+                <h2 class="service-title">FRET AÉRIEN EXPRESS</h2>
+                <p class="service-description">
+                    Pour vos envois urgents, nous offrons un transport aérien rapide et sécurisé.
+                </p>
+                
+                <ul class="service-features">
+                    <li>Livraison rapide et sécurisée pour les envois urgents</li>
+                    <li>Gestion complète des formalités douanières et documents nécessaires</li>
+                    <li>Suivi en temps réel de vos expéditions aériennes</li>
+                </ul>
+            </div>
+            
+            <div class="service-image">
+                <img src="{{ asset('images/avion_service.jpg') }}" alt="Fret aérien express - Avion cargo">
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- SERVICES LOGISTIQUES INTÉGRÉS -->
+        <div class="service-section">
+            <div class="service-content">
+                <h2 class="service-title">SERVICES LOGISTIQUES INTÉGRÉS</h2>
+                <p class="service-description">
+                    Simplifiez votre chaîne logistique avec nos services complémentaires.
+                </p>
+                
+                <ul class="service-features">
+                    <li>Dédouanement et conseils experts en logistique internationale</li>
+                    <li>Solutions de stockage sécurisé et distribution locale</li>
+                    <li>Assurance complète des marchandises pour une tranquillité d'esprit</li>
+                    <li>Optimisation de la chaîne d'approvisionnement et gestion des stocks</li>
+                </ul>
+            </div>
+            
+            <div class="service-image">
+                <img src="{{ asset('images/camion.jpg') }}" alt="Services logistiques intégrés - Entrepôt">
             </div>
         </div>
     </section>
+
+<section class="complementary-services-section py-5">
+  <div class="container">
+    <h2 class="mb-4 text-center">Nos Services Complémentaires</h2>
+
+    <div class="row g-4">
+      <!-- Service 1: Déménagement International -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="card h-100 p-3 shadow-sm">
+          <div class="icon-wrapper text-center mb-3">
+            <i class="fas fa-truck-moving fa-2x me-1"></i>
+            <i class="fas fa-globe fa-2x"></i>
+          </div>
+          <h4 class="text-center mb-3">Déménagement International</h4>
+          
+          <div class="service-features mb-2">
+            <h5>Ce que nous offrons :</h5>
+            <ul class="features-list ps-3">
+              <li>Emballage professionnel de vos biens</li>
+              <li>Transport sécurisé et suivi rigoureux</li>
+              <li>Stockage temporaire si nécessaire</li>
+            </ul>
+          </div>
+          
+          <div class="service-advantages">
+            <h5>Nos avantages :</h5>
+            <ul class="advantages-list ps-3">
+              <li>Une tranquillité d'esprit garantie</li>
+              <li>Service clé en main, de bout en bout</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service 2: Achat International -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="card h-100 p-3 shadow-sm">
+          <div class="icon-wrapper text-center mb-3">
+            <i class="fas fa-globe fa-2x"></i>
+          </div>
+          <h4 class="text-center mb-3">Achat International</h4>
+          <p class="text-center">Service d'achat et d'importation depuis la Chine vers la Côte d'Ivoire</p>
+          
+          <div class="service-features mb-2">
+            <h5>Ce que nous offrons :</h5>
+            <ul class="features-list ps-3">
+              <li>Emballage professionnel</li>
+              <li>Transport sécurisé</li>
+              <li>Installation à destination</li>
+            </ul>
+          </div>
+          
+          <div class="service-advantages">
+            <h5>Nos avantages :</h5>
+            <ul class="advantages-list ps-3">
+              <li>Tranquillité d'esprit</li>
+              <li>Service clé en main</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service 3: Service Maritime -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="card h-100 p-3 shadow-sm">
+          <div class="icon-wrapper text-center mb-3">
+            <i class="fas fa-truck-moving fa-2x me-1"></i>
+            <i class="fas fa-ship fa-2x"></i>
+          </div>
+          <h4 class="text-center mb-3">Service Maritime</h4>
+          <p class="text-center">Service de groupage maritime professionnel entre la France et la Côte d'Ivoire</p>
+          
+          <div class="service-features mb-2">
+            <h5>Ce que nous offrons :</h5>
+            <ul class="features-list ps-3">
+              <li>Enlèvement à domicile en France</li>
+              <li>Conteneur dédié et sécurisé</li>
+              <li>Délai de 2-3 semaines</li>
+            </ul>
+          </div>
+          
+          <div class="service-advantages">
+            <h5>Nos avantages :</h5>
+            <ul class="advantages-list ps-3">
+              <li>Économies sur les coûts de transport</li>
+              <li>Réduction des délais de livraison</li>
+              <li>Sécurité accrue des marchandises</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service 4: Service Aérien -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="card h-100 p-3 shadow-sm">
+          <div class="icon-wrapper text-center mb-3">
+            <i class="fas fa-plane-departure fa-2x"></i>
+          </div>
+          <h4 class="text-center mb-3">Service Aérien</h4>
+          <p class="text-center">Transport aérien rapide et sécurisé de vos colis</p>
+          
+          <div class="service-features mb-2">
+            <h5>Ce que nous offrons :</h5>
+            <ul class="features-list ps-3">
+              <li>Rapidité d'acheminement</li>
+              <li>Fiabilité maximale</li>
+            </ul>
+          </div>
+          
+          <div class="service-advantages">
+            <h5>Nos avantages :</h5>
+            <ul class="advantages-list ps-3">
+              <li>Livraison express</li>
+              <li>Suivi en temps réel</li>
+              <li>Service personnalisé</li>
+              <li>Couverture mondiale</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div> <!-- row -->
+  </div> <!-- container -->
+</section>
+
 
     </main>
 

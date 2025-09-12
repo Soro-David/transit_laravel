@@ -57,9 +57,9 @@
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
+        max-width: 100% !important;
+        padding-left: 100px;
+        padding-right: 100px;
         }
 
         h1 {

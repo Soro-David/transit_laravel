@@ -16,6 +16,11 @@
             background-color: #f8f9fa;
             color: #333;
         }
+        .container {
+            max-width: 100% !important;
+            padding-left: 100px;
+            padding-right: 100px;
+        }
         .navbar-nav .nav-link { color: white !important; font-weight: bold; }
         .navbar-nav .nav-link:hover { color: orange !important; }
                 .navbar-nav .nav-link.active {

@@ -175,7 +175,9 @@
         }
 
         .container {
-            max-width: 1200px;
+        max-width: 100% !important;
+        padding-left: 100px;
+        padding-right: 100px;
         }
 
         h2 {
@@ -307,6 +309,97 @@
                 -1px  1px 0 white,
                  1px  1px 0 white;
         }
+
+                .mission-vision-section {
+            padding: 4rem 0;
+            background-color: var(--light-bg);
+        }
+        
+        .mission-vision-section h3 {
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+        }
+        
+        .mission-vision-section h3 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .services-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .services-list > li {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .services-list > li:hover {
+            transform: translateY(-5px);
+        }
+        
+        .bullet {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .text-orange {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .service-details {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.8rem;
+        }
+        
+        .service-details li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .service-details i {
+            margin-right: 10px;
+            color: var(--primary-color);
+            min-width: 20px;
+            margin-top: 4px;
+        }
+        
+        .rounded-image {
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .rounded-image:hover {
+            transform: scale(1.02);
+        }
+        
+        @media (max-width: 768px) {
+            .mission-vision-section {
+                padding: 2rem 0;
+            }
+            
+            .services-list > li {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -428,93 +521,74 @@
                 </div>
             </section>
 
-            <section class="mission-vision-section">
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <h3><i class="fas fa-building text-orange"></i> NOS AGENCES</h3>
-                        <ul class="services-list">
-                            <li>
-                                <span class="bullet">🇫🇷</span> <strong class="text-orange">FRANCE</strong>
-                                <ul class="service-details">
-                                   <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
-                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +33 1 86 78 69 67</li>
-                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +33 7 66 78 54 61</li>
-                                   <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +33 6 52 98 35 19</li>
-                                </ul>
-                            </li>
-                            <li>
-                                <span class="bullet">🇨🇳</span> <strong class="text-orange">Chine</strong>
-                                <ul class="service-details">
-                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> Maritime : ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
-                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> Aérien : ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
-                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +86 13 67 89 15 049</li>
-                                </ul>
-                            </li>
-                            <li>
-                                <span class="bullet">🇨🇮</span> <strong class="text-orange">Côte d'Ivoire, Abidjan</strong>
-                               <ul class="service-details">
-                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> Maritime : CARREFOUR ANGRE</li>
-                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +86 13 67 89 15 049</li>
-                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> Aérien : Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
-                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +225 758069896</li>
-                                </ul>
-                            </li>
-                            <li>
-                                <span class="bullet">🇨🇮</span> <strong class="text-orange">Côte d'Ivoire, San-pédro</strong>
-                               <ul class="service-details">
-                                     <li><i class="fas fa-map-marker-alt" style="color: orange;"></i> San Pedro au feu de la petite mairie coté voie pavée (UTE )</li>
-                                     <li><i class="fas fa-phone-alt" style="color: orange;"></i> Contact : +225 27 33 74 95 19 / +225 74 940 74 02</li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <div class="row justify-content-center mt-3">
-                            {{-- <div class="col-12">
-                                <!-- Image pour les agences -->
-                                <img src="{{ asset('images/slide3.jpg') }}" alt="Nos Agences Internationales" class="img-fluid rounded-image">
-                                <!-- Ici, tu pourrais générer une image du type: "A modern office building facade with flags of France, China, and Ivory Coast, representing international presence." -->
-                                
-                            </div> --}}
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <h3><i class="fas fa-box-open text-orange"></i> NOS SERVICES</h3>
-                        <ul class="services-list">
-                            <li>
-                                <span class="bullet">🔘</span> <strong class="text-orange">FRET MARITIME</strong>
-                                <ul class="service-details">
-                                    <li><i class="fas fa-pallet"></i> Transport de conteneurs (20’, 40’, 40’ HQ)</li>
-                                    <li><i class="fas fa-people-carry"></i> Groupage (LCL) et plein chargement (FCL)</li>
-                                    <li><i class="fas fa-shipping-fast"></i> Suivi personnalisé et sécurisé des marchandises</li>
-                                </ul>
-                            </li>
-                            <li>
-                                <span class="bullet">🔘</span> <strong class="text-orange">FRET AÉRIEN</strong>
-                                <ul class="service-details">
-                                    <li><i class="fas fa-plane"></i> Livraison rapide et sécurisée pour les envois urgents</li>
-                                    <li><i class="fas fa-file-invoice"></i> Gestion des formalités douanières</li>
-                                </ul>
-                            </li>
-                            <li>
-                                <span class="bullet">🔘</span> <strong class="text-orange">SERVICES COMPLÉMENTAIRESOUS SERVICES COMPLÉMENTAIRES</strong>
-                                <ul class="service-details">
-                                    <li><i class="fas fa-truck-loading"></i> Dédouanement et conseils en logistique</li>
-                                    <li><i class="fas fa-warehouse"></i> Stockage et distribution locale</li>
-                                    <li><i class="fas fa-shield-alt"></i> Assurance des marchandises</li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <div class="row justify-content-center mt-3">
-                            {{-- <div class="col-12">
-                                <!-- Image pour les services -->
-                                <img src="{{ asset('images/slide3.jpg') }}" alt="Diversité de Nos Services" class="img-fluid rounded-image">
-                                <!-- Ici, tu pourrais générer une image du type: "An illustration showing various logistics services: a container ship, a cargo plane, a warehouse, and a delivery truck, all connected by lines representing efficiency." -->
-                                
-                            </div> --}}
-                        </div>
-                    </div>
+    <section class="mission-vision-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h3><i class="fas fa-building"></i> NOS AGENCES</h3>
+                    <ul class="services-list">
+                        <li>
+                            <span class="bullet">🇫🇷</span> <strong class="text-orange">FRANCE</strong>
+                            <ul class="service-details">
+                               <li><i class="fas fa-map-marker-alt"></i> 7, avenue Louis Blériot 93120 La Courneuve</li>
+                               {{-- <li><i class="fas fa-phone-alt"></i> Contact : +33 1 86 78 69 67</li> --}}
+                               {{-- <li><i class="fas fa-phone-alt"></i> Contact : +33 7 66 78 54 61</li> --}}
+                               <li><i class="fas fa-phone-alt"></i> Contact : +33 6 52 98 35 19</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <span class="bullet">🇨🇳</span> <strong class="text-orange">Chine</strong>
+                            <ul class="service-details">
+                                 <li><i class="fas fa-map-marker-alt"></i> Maritime : ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓。</li>
+                                 <li><i class="fas fa-map-marker-alt"></i> Aérien : ⼴州市环市中路205号恒⽣⼤厦B座室918</li>
+                                 <li><i class="fas fa-phone-alt"></i> Contact : +86 13 67 89 15 049</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <span class="bullet">🇨🇮</span> <strong class="text-orange">Côte d'Ivoire, Abidjan</strong>
+                           <ul class="service-details">
+                                 <li><i class="fas fa-map-marker-alt"></i> Maritime : CARREFOUR ANGRE</li>
+                                 <li><i class="fas fa-phone-alt"></i> Contact : +86 13 67 89 15 049</li>
+                                 <li><i class="fas fa-map-marker-alt"></i> Aérien : Carrefour NELSON MANDELA ANGRE 8eme tranche</li>
+                                 <li><i class="fas fa-phone-alt"></i> Contact : +225 758069896</li>
+                            </ul>
+                        </li>
+                       
+                    </ul>
+                   
                 </div>
-            </section>
-
+                <div class="col-md-6 mb-4">
+                    <h3><i class="fas fa-box-open"></i> NOS SERVICES</h3>
+                    <ul class="services-list">
+                        <li>
+                            <span class="bullet">🔘</span> <strong class="text-orange">FRET MARITIME</strong>
+                            <ul class="service-details">
+                                <li><i class="fas fa-pallet"></i> Transport de conteneurs (20', 40', 40' HQ)</li>
+                                <li><i class="fas fa-people-carry"></i> Groupage (LCL) et plein chargement (FCL)</li>
+                                <li><i class="fas fa-shipping-fast"></i> Suivi personnalisé et sécurisé des marchandises</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <span class="bullet">🔘</span> <strong class="text-orange">FRET AÉRIEN</strong>
+                            <ul class="service-details">
+                                <li><i class="fas fa-plane"></i> Livraison rapide et sécurisée pour les envois urgents</li>
+                                <li><i class="fas fa-file-invoice"></i> Gestion des formalités douanières</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <span class="bullet">🔘</span> <strong class="text-orange">SERVICES COMPLÉMENTAIRES</strong>
+                            <ul class="service-details">
+                                <li><i class="fas fa-truck-loading"></i> Dédouanement et conseils en logistique</li>
+                                <li><i class="fas fa-warehouse"></i> Stockage et distribution locale</li>
+                                <li><i class="fas fa-shield-alt"></i> Assurance des marchandises</li>
+                            </ul>
+                        </li>
+                    </ul>
+                   
+                </div>
+            </div>
+        </div>
+    </section>
             <section class="mission-vision-section">
                 <div class="row">
                     <div class="col-md-6 mb-4">

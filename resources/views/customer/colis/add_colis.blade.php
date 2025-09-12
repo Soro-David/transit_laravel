@@ -36,33 +36,6 @@
         </div>
         <!-- Étape 1 : Informations transport -->
 
-        {{-- <fieldset style="display: none;">
-            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
-                            <select name="mode_transit" id="mode_transit" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
-                                <option value="maritime">Maritime</option>
-                                <option value="aerien">Aérien</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="reference_colis" class="form-label">Référence</label>
-                            <input type="text" name="reference_colis" id="reference_colis" value="{{ $referenceColis['reference_colis'] }}" class="form-control" readonly>
-                    </div>
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
-                </div>
-            </div>
-        </fieldset> --}}
-
         <fieldset style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
@@ -229,111 +202,111 @@
         </fieldset>
 
          {{-- ================== DESTINATAIRE ================== --}}
-<fieldset>
-    <div class="form-section">
-        <h5 class="text-center mb-4">Informations du destinataire</h5>
+        <fieldset>
+            <div class="form-section">
+                <h5 class="text-center mb-4">Informations du destinataire</h5>
 
-        {{-- Section pour le destinataire SOCIÉTÉ --}}
-        <div id="societe_destinataire_section" style="display: none;">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
-                    <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="email_societe_destinataire" class="form-label">Email</label>
-                    <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label for="country_code_destinataire_societe" class="form-label">Indicatif pays</label>
-                            <select name="country_code_destinataire_societe" id="country_code_destinataire_societe" class="form-control">
-                                <option value="+225" selected>Côte d'Ivoire (+225)</option>
-                                <option value="+33">France (+33)</option>
-                                <option value="+86">Chine (+86)</option>
-                                <option value="+1">USA (+1)</option>
-                            </select>
+                {{-- Section pour le destinataire SOCIÉTÉ --}}
+                <div id="societe_destinataire_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
+                            <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
                         </div>
-                        <div class="col-md-8">
-                            <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
+                        <div class="col-md-6 mb-3">
+                            <label for="email_societe_destinataire" class="form-label">Email</label>
+                            <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire_societe" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire_societe" id="country_code_destinataire_societe" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire_societe" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="agence_destination_societe" class="form-label">Agence de Destination</label>
+                                <select name="agence_destination_societe" id="agence_destination_societe" class="form-control">
+                                    <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                                    <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                                    <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="adresse_destinataire_societe" class="form-label">Adresse</label>
-                    <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control">
-                </div>
-                <div class="col-md-12">
-                    <div class="mb-3">
-                        <label for="agence_destination_societe" class="form-label">Agence de Destination</label>
-                        <select name="agence_destination_societe" id="agence_destination_societe" class="form-control">
-                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
-                        </select>
+
+                {{-- Section pour le destinataire PARTICULIER --}}
+                <div id="particulier_destinataire_section">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom_destinataire" class="form-label">Nom</label>
+                            <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom_destinataire" class="form-label">Prénom</label>
+                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_destinataire" class="form-label">Email</label>
+                            <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="country_code_destinataire_particulier" class="form-label">Indicatif pays</label>
+                                    <select name="country_code_destinataire_particulier" id="country_code_destinataire_particulier" class="form-control">
+                                        <option value="+225" selected>Côte d'Ivoire (+225)</option>
+                                        <option value="+33">France (+33)</option>
+                                        <option value="+86">Chine (+86)</option>
+                                        <option value="+1">USA (+1)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire" class="form-label">Adresse</label>
+                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agence_destination_particulier" class="form-label">Agence de Destination</label>
+                                <select name="agence_destination_particulier" id="agence_destination_particulier" class="form-control">
+                                    <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
+                                    <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                                    <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                {{-- Boutons navigation --}}
+                <div class="text-end mt-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+                    <button type="button" class="btn btn-primary btn-next">Suivant</button>
                 </div>
             </div>
-        </div>
-
-        {{-- Section pour le destinataire PARTICULIER --}}
-        <div id="particulier_destinataire_section">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="nom_destinataire" class="form-label">Nom</label>
-                    <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="prenom_destinataire" class="form-label">Prénom</label>
-                    <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="email_destinataire" class="form-label">Email</label>
-                    <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label for="country_code_destinataire_particulier" class="form-label">Indicatif pays</label>
-                            <select name="country_code_destinataire_particulier" id="country_code_destinataire_particulier" class="form-control">
-                                <option value="+225" selected>Côte d'Ivoire (+225)</option>
-                                <option value="+33">France (+33)</option>
-                                <option value="+86">Chine (+86)</option>
-                                <option value="+1">USA (+1)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-8">
-                            <label for="tel_destinataire" class="form-label">Téléphone</label>
-                            <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="adresse_destinataire" class="form-label">Adresse</label>
-                    <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="agence_destination_particulier" class="form-label">Agence de Destination</label>
-                        <select name="agence_destination_particulier" id="agence_destination_particulier" class="form-control">
-                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Boutons navigation --}}
-        <div class="text-end mt-4 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-            <button type="button" class="btn btn-primary btn-next">Suivant</button>
-        </div>
-    </div>
-</fieldset>
+        </fieldset>
 
 
         <!-- Étape 4 : Informations du Colis -->
@@ -425,6 +398,45 @@
 </section>
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour gérer la sélection de devise selon l'agence
+    function handleDeviseSelection() {
+        const agenceExpeditionSelect = document.getElementById('agence_expedition');
+        const deviseSelect = document.getElementById('devise');
+        
+        function updateDevise(agenceValue) {
+            if (agenceValue === 'Agence de Chine') {
+                deviseSelect.value = 'FCFA';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
+                deviseSelect.value = 'EUR';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            } else {
+                deviseSelect.disabled = false;
+                deviseSelect.style.backgroundColor = ''; 
+                deviseSelect.value = ''; 
+            }
+        }
+        
+        // Écouter les changements sur le sélecteur d'agence d'expédition
+        if (agenceExpeditionSelect) {
+            agenceExpeditionSelect.addEventListener('change', function() {
+                updateDevise(this.value);
+            });
+            
+            // Initialiser au chargement si une valeur est déjà sélectionnée
+            if (agenceExpeditionSelect.value) {
+                updateDevise(agenceExpeditionSelect.value);
+            }
+        }
+    }
+    
+    // Appeler la fonction
+    handleDeviseSelection();
+});
 
     document.addEventListener('DOMContentLoaded', function () {
         const modeTransitSelect = document.getElementById('mode_transit');

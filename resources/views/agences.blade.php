@@ -353,6 +353,11 @@
             .service-item h4 {
                 font-size: 1.2rem;
             }
+            .container {
+                max-width: 100% !important;
+                padding-left: 100px;
+                padding-right: 100px;
+            }
             .image-container {
                 margin-top: 2rem;
             }

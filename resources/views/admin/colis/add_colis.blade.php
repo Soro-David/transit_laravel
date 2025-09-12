@@ -488,6 +488,61 @@
 </section>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour gérer la sélection de devise selon l'agence
+    function handleDeviseSelection() {
+        // Récupérer les sélecteurs d'agence (expéditeur)
+        const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
+        const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
+        const deviseSelect = document.getElementById('devise');
+        
+        // Fonction pour mettre à jour la devise en fonction de l'agence sélectionnée
+        function updateDevise(agenceValue) {
+            if (agenceValue === 'Agence de Chine') {
+                // Forcer la sélection du FCFA et désactiver le champ
+                deviseSelect.value = 'FCFA';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
+            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
+                // Forcer la sélection de l'EUR et désactiver le champ
+                deviseSelect.value = 'EUR';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
+            } else {
+                // Réactiver le champ pour les autres agences
+                deviseSelect.disabled = false;
+                deviseSelect.style.backgroundColor = ''; // Retirer le gris
+            }
+        }
+        
+        // Écouter les changements sur le sélecteur d'agence société
+        if (agenceSocieteSelect) {
+            agenceSocieteSelect.addEventListener('change', function() {
+                updateDevise(this.value);
+            });
+            
+            // Initialiser au chargement si une valeur est déjà sélectionnée
+            if (agenceSocieteSelect.value) {
+                updateDevise(agenceSocieteSelect.value);
+            }
+        }
+        
+        // Écouter les changements sur le sélecteur d'agence particulier
+        if (agenceParticulierSelect) {
+            agenceParticulierSelect.addEventListener('change', function() {
+                updateDevise(this.value);
+            });
+            
+            // Initialiser au chargement si une valeur est déjà sélectionnée
+            if (agenceParticulierSelect.value) {
+                updateDevise(agenceParticulierSelect.value);
+            }
+        }
+    }
+    
+    // Appeler la fonction
+    handleDeviseSelection();
+});
     
 document.addEventListener('DOMContentLoaded', function() {
 
