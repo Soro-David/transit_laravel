@@ -127,25 +127,25 @@
 
         /* --- CARTES DE SERVICES / AGENCES --- */
         .card-custom {
-            background-color: #ffffff;
-            border-radius: 12px; /* Coins plus arrondis */
+            /* background-color: #ffffff; */
+            border-radius: 12px; 
             padding: 3rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Ombre plus prononcée */
+            /* box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); */
             height: 100%;
             margin-bottom: 2.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animation au survol */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: none;
         }
         .card-custom:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            /* box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12); */
         }
         .card-custom h3 {
             font-weight: 700;
             color: #2c3e50;
             margin-bottom: 1.8rem;
             padding-bottom: 1rem;
-            border-bottom: 4px solid #ff8c00; /* Bordure orange plus épaisse */
+            border-bottom: 4px solid #ff8c00;
             display: inline-block;
             font-size: 2rem;
             text-transform: uppercase;

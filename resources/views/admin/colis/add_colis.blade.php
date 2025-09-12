@@ -487,6 +487,183 @@
 </section>
 
 <script>
+
+    // Fonction pour gérer la sélection de devise selon l'agence
+function handleDeviseSelection() {
+    // Récupérer les sélecteurs d'agence (expéditeur)
+    const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
+    const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
+    
+    // Fonction pour mettre à jour la devise en fonction de l'agence sélectionnée
+    function updateDevise(agenceValue) {
+        // Trouver tous les sélecteurs de devise dans le formulaire
+        const deviseSelects = document.querySelectorAll('select[name="devise"]');
+        
+        deviseSelects.forEach(deviseSelect => {
+            if (agenceValue === 'Agence de Chine') {
+                // Forcer la sélection du FCFA et désactiver le champ
+                deviseSelect.value = 'FCFA';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
+            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
+                // Forcer la sélection de l'EUR et désactiver le champ
+                deviseSelect.value = 'EUR';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
+            } else {
+                // Réactiver le champ pour les autres agences
+                deviseSelect.disabled = false;
+                deviseSelect.style.backgroundColor = ''; // Retirer le gris
+            }
+        });
+    }
+    
+    // Écouter les changements sur le sélecteur d'agence société
+    if (agenceSocieteSelect) {
+        agenceSocieteSelect.addEventListener('change', function() {
+            updateDevise(this.value);
+        });
+        
+        // Initialiser au chargement si une valeur est déjà sélectionnée
+        if (agenceSocieteSelect.value) {
+            updateDevise(agenceSocieteSelect.value);
+        }
+    }
+    
+    // Écouter les changements sur le sélecteur d'agence particulier
+    if (agenceParticulierSelect) {
+        agenceParticulierSelect.addEventListener('change', function() {
+            updateDevise(this.value);
+        });
+        
+        // Initialiser au chargement si une valeur est déjà sélectionnée
+        if (agenceParticulierSelect.value) {
+            updateDevise(agenceParticulierSelect.value);
+        }
+    }
+}
+
+// Appeler la fonction au chargement du document
+document.addEventListener('DOMContentLoaded', function() {
+    handleDeviseSelection();
+});
+
+// Fonction pour ajouter un nouveau colis avec gestion de la devise
+function addNewColis() {
+    const newColis = $(`
+        <div class="colis-fieldset mb-4">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="quantite_colis" class="form-label">Quantité de colis</label>
+                        <input type="number" name="quantite_colis[]" class="form-control quantite-colis" id_reference>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Produit(s) ou Service(s)</label>
+                    <div class="input-group">
+                        <input type="text" name="service[]" class="form-control produit-input">
+                        <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
+                    </div>
+                    <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Prix</label>
+                    <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                    <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="type_colis" class="form-label">Type de colis</label>
+                        <select name="type_colis[]" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
+                            <option value="standard">Standard</option>
+                            <option value="fragile">Fragile</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-2 col-md-2 col-lg-2">
+                    <div class="mb-3">
+                        <label for="devise" class="form-label">Devise</label>
+                        <select name="devise" class="form-control devise-select">
+                            <option value="" disabled selected>-- Devise --</option>
+                            <option value="EUR">EUR</option>
+                            <option value="FCFA">FCFA</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 dimension-section">
+                    <label class="form-label">Dimensions (cm)</label>
+                    <div class="d-flex gap-2">
+                        <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
+                        <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
+                        <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
+                    </div>
+                    <div class="dimension-result mt-2" name="dimension_result" style="display: none; font-weight: bold;"></div>
+                </div>
+                <div class="col-md-6 poids-section" style="display: none;">
+                    <label class="form-label">Poids (kg)</label>
+                    <input type="number" name="poids[]" class="form-control" placeholder="Poids">
+                </div>
+                <div class="col-6 col-md-6 col-lg-6">
+                    <div class="mb-3">
+                        <label for="description_colis" class="form-label">Description colis</label>
+                        <textarea 
+                        name="description_colis[]" 
+                        id="description_colis" 
+                        class="form-control" 
+                        rows="4"
+                        placeholder="Saisissez la description du colis"></textarea>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="text-end mt-2">
+                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
+                <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
+            </div>
+        </div>
+    `);
+
+    $("#colisContainer").append(newColis);
+    
+    // Appliquer la configuration de devise au nouveau colis ajouté
+    const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
+    const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
+    
+    let agenceValue = '';
+    if (agenceSocieteSelect && agenceSocieteSelect.value) {
+        agenceValue = agenceSocieteSelect.value;
+    } else if (agenceParticulierSelect && agenceParticulierSelect.value) {
+        agenceValue = agenceParticulierSelect.value;
+    }
+    
+    if (agenceValue) {
+        const deviseSelect = newColis.find('.devise-select')[0];
+        if (agenceValue === 'Agence de Chine') {
+            deviseSelect.value = 'FCFA';
+            deviseSelect.disabled = true;
+            deviseSelect.style.backgroundColor = '#e9ecef';
+        } else if (agenceValue === 'AFT Agence Louis Bleriot') {
+            deviseSelect.value = 'EUR';
+            deviseSelect.disabled = true;
+            deviseSelect.style.backgroundColor = '#e9ecef';
+        }
+    }
+    
+    initAutocomplete(newColis);
+    toggleFields();
+}
+
+// Modifier l'écouteur d'événement pour utiliser la nouvelle fonction
+$(document).on("click", ".add-colis", function(e) {
+    e.preventDefault();
+    $(this).hide();
+    addNewColis();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour gérer la sélection de devise selon l'agence
     function handleDeviseSelection() {
@@ -934,83 +1111,6 @@ $(document).ready(function() {
         
         // MODIFICATION 1 : Cacher le bouton sur lequel on vient de cliquer
         $(this).hide();
-        
-        const newColis = $(`
-            <div class="colis-fieldset mb-4">
-                <div class="row">
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" id_reference>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Produit(s) ou Service(s)</label>
-                        <div class="input-group">
-                            <input type="text" name="service[]" class="form-control produit-input">
-                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                        </div>
-                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Prix</label>
-                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
-                            <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                                <option value="standard">Standard</option>
-                                <option value="fragile">Fragile</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-2 col-md-2 col-lg-2">
-                        <div class="mb-3">
-                            <label for="devise" class="form-label">Devise</label>
-                            <select name="devise" id="devise" class="form-control">
-                                <option value="" disabled selected>-- Devise --</option>
-                                <option value="EUR">EUR</option>
-                                <option value="FCFA">FCFA</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 dimension-section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                        </div>
-                        <div class="dimension-result mt-2" name="dimension_result" style="display: none; font-weight: bold;"></div>
-                    </div>
-                    <div class="col-md-6 poids-section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                    </div>
-                    <div class="col-6 col-md-6 col-lg-6">
-                        <div class="mb-3">
-                            <label for="description_colis" class="form-label">Description colis</label>
-                            <textarea 
-                            name="description_colis[]" 
-                            id="description_colis" 
-                            class="form-control" 
-                            rows="4"
-                            placeholder="Saisissez la description du colis"></textarea>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div class="text-end mt-2">
-                    <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                    <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
-                </div>
-            </div>
-        `);
 
         $("#colisContainer").append(newColis);
         initAutocomplete(newColis);

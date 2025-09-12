@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 deviseSelect.disabled = false;
                 deviseSelect.style.backgroundColor = ''; 
-                deviseSelect.value = ''; 
+                deviseSelect.value = ''; // Réinitialiser la sélection
             }
         }
         
@@ -609,10 +609,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
  // Ajouter un nouveau colis avec la même logique
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour gérer la sélection de devise selon l'agence
+    function handleDeviseSelection() {
+        const agenceExpeditionSelect = document.getElementById('agence_expedition');
+        
+        function updateDevise(agenceValue, deviseSelect) {
+            if (agenceValue === 'Agence de Chine') {
+                deviseSelect.value = 'FCFA';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
+                deviseSelect.value = 'EUR';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            } else {
+                deviseSelect.disabled = false;
+                deviseSelect.style.backgroundColor = ''; 
+                deviseSelect.value = ''; 
+            }
+        }
+        
+        // Fonction pour appliquer la configuration de devise à tous les sélecteurs
+        function applyDeviseToAllSelects(agenceValue) {
+            const deviseSelects = document.querySelectorAll('select[name="devise"]');
+            deviseSelects.forEach(deviseSelect => {
+                updateDevise(agenceValue, deviseSelect);
+            });
+        }
+        
+        // Écouter les changements sur le sélecteur d'agence d'expédition
+        if (agenceExpeditionSelect) {
+            agenceExpeditionSelect.addEventListener('change', function() {
+                applyDeviseToAllSelects(this.value);
+            });
+            
+            // Initialiser au chargement si une valeur est déjà sélectionnée
+            if (agenceExpeditionSelect.value) {
+                applyDeviseToAllSelects(agenceExpeditionSelect.value);
+            }
+        }
+    }
+    
+    // Appeler la fonction
+    handleDeviseSelection();
+});
+
 $(document).on("click", ".add-colis", function (e) {
     e.preventDefault();
 
-    // MODIFICATION : Cacher le bouton "Ajouter" qui vient d'être cliqué
+    // Cacher le bouton "Ajouter" qui vient d'être cliqué
     $(this).hide();
 
     const newColis = `
@@ -649,7 +695,7 @@ $(document).on("click", ".add-colis", function (e) {
                     <div class="col-2 col-md-2 col-lg-2">
                         <div class="mb-3">
                             <label for="devise" class="form-label">Devise</label>
-                            <select name="devise" class="form-control">
+                            <select name="devise" class="form-control devise-select">
                                 <option value="" disabled selected>-- Devise --</option>
                                 <option value="EUR">EUR</option>
                                 <option value="FCFA">FCFA</option>
@@ -692,10 +738,57 @@ $(document).on("click", ".add-colis", function (e) {
 
     const $newColis = $(newColis);
     $("#colisContainer").append($newColis);
+    
+    // Appliquer la configuration de devise au nouveau colis
+    const agenceExpeditionSelect = document.getElementById('agence_expedition');
+    if (agenceExpeditionSelect && agenceExpeditionSelect.value) {
+        const deviseSelect = $newColis.find('.devise-select')[0];
+        if (deviseSelect) {
+            if (agenceExpeditionSelect.value === 'Agence de Chine') {
+                deviseSelect.value = 'FCFA';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            } else if (agenceExpeditionSelect.value === 'AFT Agence Louis Bleriot') {
+                deviseSelect.value = 'EUR';
+                deviseSelect.disabled = true;
+                deviseSelect.style.backgroundColor = '#e9ecef';
+            }
+        }
+    }
+    
     toggleFields();
     attachDimensionListeners($newColis);
 });
 
+// Fonction pour attacher les écouteurs d'événements aux champs de dimension
+function attachDimensionListeners($element) {
+    $element.find(".hauteur, .largeur, .longueur").on("input", function() {
+        const parent = $(this).closest(".colis-fieldset");
+        const hauteur = parent.find(".hauteur").val().trim();
+        const largeur = parent.find(".largeur").val().trim();
+        const longueur = parent.find(".longueur").val().trim();
+        const dimensionResult = parent.find(".dimension-result");
+
+        if (hauteur && largeur && longueur) {
+            dimensionResult.text(`${longueur}x${largeur}x${hauteur} cm`).show();
+        } else {
+            dimensionResult.hide();
+        }
+    });
+}
+
+// Fonction pour basculer l'affichage des champs selon le mode de transport
+function toggleFields() {
+    const mode = $("#mode_transit").val();
+    $(".dimension-section").toggle(mode === "maritime");
+    $(".poids-section").toggle(mode === "aerien");
+}
+
+// Initialiser au chargement
+$(document).ready(function() {
+    toggleFields();
+    attachDimensionListeners($(document));
+});
 // Fonction pour mettre à jour l'affichage des dimensions
 function attachDimensionListeners(context) {
     $(context).find('.hauteur, .largeur, .longueur').on('input', function () {
