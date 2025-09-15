@@ -729,7 +729,7 @@ class AftlbColisController extends Controller
                         'qr_code_path' => null,
                     ]);
 
-                // Génération du QR Code
+                    // Génération du QR Code
                     $qrData = [
                         'ID' => $colisModel->id,
                         'Ref' => $colisModel->reference_colis,
@@ -742,27 +742,15 @@ class AftlbColisController extends Controller
                     $qrCode = new QrCode($qrCodeContent);
                     $writer = new PngWriter();
                     $pngData = $writer->write($qrCode)->getString();
-
-                    // Utilisation du storage plutôt que public
                     $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
-                    $fullPath = storage_path('app/public/' . $filePath);
-                    $publicFilePath = 'storage/' . $filePath;
-
+                    $fullPath = public_path($filePath);
                     $directory = dirname($fullPath);
                     if (!File::exists($directory)) {
                         File::makeDirectory($directory, 0755, true, true);
-                        // Double vérification des permissions
-                        chmod($directory, 0755);
                     }
-
-                    // Vérification que le dossier est accessible en écriture
-                    if (!is_writable($directory)) {
-                        Log::error("Impossible d'écrire dans le dossier: $directory");
-                        throw new \Exception("Erreur de permissions sur le dossier de stockage des QR codes.");
-                    }
-
                     File::put($fullPath, $pngData);
-                    $colisModel->update(['qr_code_path' => $publicFilePath]);
+                    $colisModel->update(['qr_code_path' => $filePath]);
+                    $colisEnregistres[] = $colisModel->fresh();
                 }
             }
 
