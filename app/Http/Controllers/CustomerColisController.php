@@ -323,7 +323,7 @@ public function store_colis(Request $request)
                 // Création du colis d'abord
                 $colisModel = Colis::create($colisItemData);
                 
-                // Génération du QR Code APRÈS la création du colis
+                // Génération du QR Code APRÈS la création du colis pour obtenir l'ID
                 $qrData = [
                     'ID' => $colisModel->id,
                     'Ref' => $colisModel->reference_colis,
