@@ -546,34 +546,46 @@ class AftlbColisController extends Controller
         
     }
     public function storePayment(Request $request)
-    {
-        try {
-            $validatedData = $request->validate([]);
-    
-            // Stocker les données en session
-            session(['step2' => $request->only([
-                'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
-                'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
-            ])]);
-            // dd(session('step1'), session('step2'));
-            return response()->json([
-                'success' => true,
-                'redirect' => route('aftlb_colis.generer.qrcode'),
-            ]);
+{
+    try {
+        $validatedData = $request->validate([
+            // Ici tu peux ajouter tes règles de validation, par ex:
+            // 'mode_payement' => 'required|string',
+            // 'numero_compte' => 'nullable|string',
+            // 'montant_reçu' => 'required|numeric',
+        ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
-            ], 422);
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-            ], 500);
-        }
+        // Stocker les données en session
+        session(['step2' => $request->only([
+            'mode_payement', 'numero_compte', 'nom_banque', 'transaction_id', 
+            'numero_tel', 'operateur_mobile', 'numero_cheque', 'montant_reçu',
+        ])]);
+
+        // dd(session('step1'), session('step2')); // décommenter pour debug
+
+        return response()->json([
+            'success' => true,
+            'redirect' => route('aftlb_colis.generer.qrcode'),
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors' => $e->errors(), // Retourne les erreurs de validation
+        ], 422);
+    } catch (\Exception $e) {
+        dd($e->getMessage());
+        // Log l’erreur pour le debug côté serveur
+        \Log::error('Erreur storePayment: '.$e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            dd($e->getMessage()),
+            'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
+        ], 500);
     }
+}
+
 
     public function generer_qrcode(Request $request, InfobipSmsService $InfobipSmsService) // Injection du service
     {
