@@ -354,6 +354,7 @@ public function store_colis(Request $request)
                 $colisEnregistres[] = $colisModel->fresh();
                 $nombreTotalColisCrees++;
                 
+                // dd($colisModel);
             } catch (\Exception $e) {
                 Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
                 $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
