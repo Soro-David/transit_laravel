@@ -801,6 +801,8 @@ class ColisController extends Controller
         $erreursCreation = [];
         $dernierIdReference = Colis::max('id_reference') ?? 0;
 
+        $id_reference = $dernierIdReference + 1;
+        $dernierIdReference++;
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
             if ($quantite_pour_ligne_article <= 0) continue;
@@ -816,8 +818,7 @@ class ColisController extends Controller
     
 
     for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-        $id_reference = $dernierIdReference + 1;
-        $dernierIdReference++;
+        
         
                 $colisItemData = [
                     'devise' => $data['devise'] ?? null,
