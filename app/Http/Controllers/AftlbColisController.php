@@ -567,6 +567,7 @@ class AftlbColisController extends Controller
                 'errors' => $e->errors(), // Retourne les erreurs de validation sous forme de tableau associatif
             ], 422);
         } catch (\Exception $e) {
+            dd($e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
