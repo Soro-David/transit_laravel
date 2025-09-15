@@ -235,9 +235,33 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire_societe" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control">
+                            <label for="agence_destination_societe" class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control" >
+                                <option value="">-- Sélectionnez une commune --</option>
+                                    <option value="Pas de livraison">Pas de Livraison</option>
+                                    <option value="Abobo">Abobo</option>
+                                    <option value="Adjamé">Adjamé</option>
+                                    <option value="Attécoubé">Attécoubé</option>
+                                    <option value="Cocody">Cocody</option>
+                                    <option value="Cocody">Palmeraie</option>
+                                    <option value="Koumassi">Koumassi</option>
+                                    <option value="Marcory">Marcory</option>
+                                    <option value="Plateau">Plateau</option>
+                                    <option value="Port-Bouët">Port-Bouët</option>
+                                    <option value="Treichville">Treichville</option>
+                                    <option value="Yopougon">Yopougon</option>
+                                    <option value="Songon">Songon</option>
+                                    <option value="Bingerville">Bingerville</option>
+                                    <option value="Anyama">Anyama</option>
+                                    <option value="Grand-Bassam">Grand-Bassam</option>
+                                    <option value="Dabou">Dabou</option>
+                                    <option value="Alépé">Alépé</option>
+                                    <option value="Azaguié">Azaguié</option>
+                                    <option value="Jacqueville">Jacqueville</option>
+                                    <option value="Agboville">Agboville</option>
+                            </select>
                         </div>
+                      
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label for="agence_destination_societe" class="form-label">Agence de Destination</label>
@@ -284,8 +308,30 @@
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_destinataire" id="adresse_destinataire" class="form-control">
+                            <label  class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire" class="form-control" >
+                                    <option value="Pas de livraison">Pas de Livraison</option>
+                                    <option value="Abobo">Abobo</option>
+                                    <option value="Adjamé">Adjamé</option>
+                                    <option value="Attécoubé">Attécoubé</option>
+                                    <option value="Cocody">Cocody</option>
+                                    <option value="Cocody">Palmeraie</option>
+                                    <option value="Koumassi">Koumassi</option>
+                                    <option value="Marcory">Marcory</option>
+                                    <option value="Plateau">Plateau</option>
+                                    <option value="Port-Bouët">Port-Bouët</option>
+                                    <option value="Treichville">Treichville</option>
+                                    <option value="Yopougon">Yopougon</option>
+                                    <option value="Songon">Songon</option>
+                                    <option value="Bingerville">Bingerville</option>
+                                    <option value="Anyama">Anyama</option>
+                                    <option value="Grand-Bassam">Grand-Bassam</option>
+                                    <option value="Dabou">Dabou</option>
+                                    <option value="Alépé">Alépé</option>
+                                    <option value="Azaguié">Azaguié</option>
+                                    <option value="Jacqueville">Jacqueville</option>
+                                    <option value="Agboville">Agboville</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">

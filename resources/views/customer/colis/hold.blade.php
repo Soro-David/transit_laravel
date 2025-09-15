@@ -101,23 +101,12 @@ $(document).ready(function() {
             { data: 'destinataire_nom_complet', name: 'destinataire_nom_complet' },
             { data: 'destinataire_tel', name: 'destinataire_tel' },
             { data: 'destinataire_agence', name: 'destinataire_agence' },
-            { 
-                data: 'last_updated_at', 
+            {
+                data: 'last_updated_at',
                 name: 'last_updated_at',
-                render: function(data, type, row) {
-                    if (data) {
-                        // Formatage de la date côté client
-                        var date = new Date(data);
-                        var day = ('0' + date.getDate()).slice(-2);
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                        var year = date.getFullYear();
-                        var hours = ('0' + date.getHours()).slice(-2);
-                        var minutes = ('0' + date.getMinutes()).slice(-2);
-                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
-                    }
-                    return '';
-                }
+               
             },
+
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
         initComplete: function() {

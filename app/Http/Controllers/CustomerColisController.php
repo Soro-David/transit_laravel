@@ -223,180 +223,184 @@ class CustomerColisController extends Controller
     }
 
 
-    public function store_colis(Request $request)
-    {
-        $data = $request->all();
+public function store_colis(Request $request)
+{
+    $data = $request->all();
 
-        // dd($data);
-        $data['status'] = $data['mode_payement'] ?? 'non payé';
-        $data['etat'] = $data['etat'] ?? 'En attente';
+    $data['status'] = $data['mode_payement'] ?? 'non payé';
+    $data['etat'] = $data['etat'] ?? 'En attente';
 
+    $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
+    $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
+    $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
 
-        $expediteurCountryCode = $data['country_code_expediteur'] ?? $data['country_code_expediteur'] ?? '';
-        $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
-        $expediteurTel = trim($expediteurCountryCode . $expediteurPhoneNumber);
+    $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
+    $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
+    $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
-        $destinataireCountryCode = $data['country_code_destinataire'] ?? $data['country_code_destinataire'] ?? '';
-        $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
-        $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
+    $userId = Auth::id();
 
-        $userId = Auth::id();
+    $expediteurData = [
+        'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
+        'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
+        'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
+        'tel' => $expediteurTel,
+        'user_id' => $userId,
+        'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '',
+        'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null',
+    ];
 
+    $destinataireData = [
+        'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
+        'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
+        'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
+        'tel' => $destinataireTel,
+        'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '',
+        'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null',
+    ];
 
-        // dd($destinataireCountryCode, $expediteurCountryCode);
-           $expediteurData = [
-            'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
-            'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
-            'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
-            'tel' => $expediteurTel,
-            'user_id' => $userId,
-            'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
-            'adresse' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
-        ];
-
-        $destinataireData = [
-            'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',
-            'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
-            'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
-            'tel' => $destinataireTel, // numéro complet avec indicatif
-            'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
-            'adresse' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
-        ];
-
-
-        // dd($expediteurData, $destinataireData);
-
-        try {
-            // --- CORRECTION MAJEURE ICI ---
-            // Cherche un expéditeur avec le user_id de l'utilisateur connecté.
-            // S'il existe, met à jour ses infos. Sinon, le crée.
-            $expediteur = Expediteur::updateOrCreate(
-                ['user_id' => $userId], // Critères de recherche (clé unique)
-                $expediteurData        // Données à mettre à jour ou à insérer
-            );
-            
-            // Pour le destinataire, on continue de créer un nouvel enregistrement
-            // car un utilisateur peut envoyer à de multiples destinataires différents.
-            $destinataire = Destinataire::create($destinataireData);
-            // --- FIN DE LA CORRECTION ---
-    
-        } catch (\Exception $e) {
-            Log::error('Erreur création/màj Expediteur/Destinataire: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations.');
-        }
-
-        $colisEnregistres = [];
-        $erreursCreation = [];
-        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
-        $referenceColisPrincipale = '';
-
-            if ($data['mode_transit'] === 'maritime') {
-                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
-            } elseif ($data['mode_transit'] === 'aerien') {
-                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
-            } else {
-                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
-            }
-        $nombreTotalColisCrees = 0;
-
+    try {
+        $expediteur = Expediteur::updateOrCreate(
+            ['user_id' => $userId],
+            $expediteurData
+        );
         
-        // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+        $destinataire = Destinataire::create($destinataireData);
+    } catch (\Exception $e) {
+        Log::error('Erreur création/màj Expediteur/Destinataire: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations.');
+    }
 
-        // Extraire la partie numérique (ex: "0001")
-        preg_match('/\d+/', $referenceColisPrincipale, $matches);
-        $id_reference = isset($matches[0]) ? (int)$matches[0] : null;
-        // dd($id_reference);
+    $colisEnregistres = [];
+    $erreursCreation = [];
+    
+    if ($data['mode_transit'] === 'maritime') {
+        $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+    } elseif ($data['mode_transit'] === 'aerien') {
+        $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+    } else {
+        $referenceColisPrincipale = 'REF-' . strtoupper(uniqid());
+    }
+    
+    $nombreTotalColisCrees = 0;
+    preg_match('/\d+/', $referenceColisPrincipale, $matches);
+    $id_reference = isset($matches[0]) ? (int)$matches[0] : null;
 
-        foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
-            $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
-            if ($quantite_pour_ligne_article <= 0) continue;
+    foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
+        $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
+        if ($quantite_pour_ligne_article <= 0) continue;
 
-            $hauteur = $data['hauteur'][$index] ?? null;
-            $largeur = $data['largeur'][$index] ?? null;
-            $longueur = $data['longueur'][$index] ?? null;
-            $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
+        $hauteur = $data['hauteur'][$index] ?? null;
+        $largeur = $data['largeur'][$index] ?? null;
+        $longueur = $data['longueur'][$index] ?? null;
+        $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
 
-            $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
+        $prixUnitairePourCetteLigne = $data['prix'][$index] ?? 0;
 
-            for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
-                $colisItemData = [
-                    'devise' => $data['devise'] ?? null,
-                    'reference_colis' => $referenceColisPrincipale,
-                    'id_reference' => $id_reference,
-                    'reference_contenaire' => $data['reference_contenaire'] ?? null,
-                    'quantite_colis' => 1,
-                    'service' => $data['service'][$index] ?? null,
-                    'prix_transit_colis' => $prixUnitairePourCetteLigne,
-                    'poids_colis' => $data['poids_colis'][$index] ?? null,
-                    'mode_transit' => $data['mode_transit'] ?? null,
-                    'status' => $data['status'],
-                    'etat' => $data['etat'],
-                    'valeur_colis' => $data['valeur_colis'][$index] ?? null,
-                    'poids_colis' => $data['poids_colis'][$index] ?? null,
-                    'type_colis' => $data['type_colis'][$index] ?? null,
-                    'dimension_result' => $dimension_result,
-                    'description_colis' => $data['description_colis'][$index] ?? null,
-                    'expediteur_id' => $expediteur->id,
-                    'destinataire_id' => $destinataire->id,
-                    // 'agent_id' => $agentId,
-                    'qr_code_path' => null,
-                ];
-                try {
-                    $colisModel = Colis::create($colisItemData);
-                    $colisEnregistres[] = $colisModel;
-                    $nombreTotalColisCrees++;
-                } catch (\Exception $e) {
-                    Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
-                    $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
-                }
-            }
-        }
-
-
-         // Envoi de l'email de notification avec les détails du devis
-        if (!empty($colisEnregistres)) {
-            $recipientEmail = null;
-            $agenceExpedition = $expediteurData['agence'] ?? null;
-
-            if ($agenceExpedition === 'Agence de Chine') {
-                $recipientEmail = 'douane@aft-app.com';
-            } elseif ($agenceExpedition === 'AFT Agence Louis Bleriot') {
-                $recipientEmail = 'entrepot.paris@aft-app.com';
-            } elseif ($agenceExpedition === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                $recipientEmail = 'entrepot.abidjan@aft-app.com'; 
-            }
-
-           
-            if (is_null($recipientEmail)) {
-                $recipientEmail = config('mail.from.address');
-                Log::warning('Aucune adresse e-mail spécifique trouvée pour l\'agence d\'expédition: ' . $agenceExpedition . '. Envoi à l\'adresse par défaut: ' . $recipientEmail);
-            }
-
-
-            $emailData = [
-                'reference_colis_principale' => $referenceColisPrincipale,
-                'expediteur' => $expediteurData,
-                'destinataire' => $destinataireData,
-                'nombre_colis' => $nombreTotalColisCrees,
-                'premier_colis' => $colisEnregistres[0]->toArray() ?? null,
+        for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
+            $colisItemData = [
+                'devise' => $data['devise'] ?? null,
+                'reference_colis' => $referenceColisPrincipale,
+                'id_reference' => $id_reference,
+                'reference_contenaire' => $data['reference_contenaire'] ?? null,
+                'quantite_colis' => 1,
+                'service' => $data['service'][$index] ?? null,
+                'prix_transit_colis' => $prixUnitairePourCetteLigne,
+                'poids_colis' => $data['poids_colis'][$index] ?? null,
+                'mode_transit' => $data['mode_transit'] ?? null,
+                'status' => $data['status'],
+                'etat' => $data['etat'],
+                'valeur_colis' => $data['valeur_colis'][$index] ?? null,
+                'type_colis' => $data['type_colis'][$index] ?? null,
+                'dimension_result' => $dimension_result,
+                'description_colis' => $data['description_colis'][$index] ?? null,
+                'expediteur_id' => $expediteur->id,
+                'destinataire_id' => $destinataire->id,
+                'qr_code_path' => null,
             ];
 
             try {
-                    Mail::to($recipientEmail)->send(new DevisCreatedMail($emailData));
-                    Log::info("✅ Email envoyé à {$recipientEmail} pour le devis {$referenceColisPrincipale}");
-                } catch (\Throwable $e) {
-                    Log::error("❌ Erreur envoi mail Hostinger : " . $e->getMessage(), [
-                        'recipient' => $recipientEmail,
-                        'reference' => $referenceColisPrincipale,
-                    ]);
+                // Création du colis d'abord
+                $colisModel = Colis::create($colisItemData);
+                
+                // Génération du QR Code APRÈS la création du colis
+                $qrData = [
+                    'ID' => $colisModel->id,
+                    'Ref' => $colisModel->reference_colis,
+                    'Etat' => $colisModel->etat,
+                    'Exp' => optional($expediteur)->nom,
+                    'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
+                    'Agence' => optional($destinataire)->agence,
+                ];
+                
+                $qrCodeContent = implode("\n", array_map(fn ($k, $v) => "$k: $v", array_keys($qrData), array_values($qrData)));
+                $qrCode = new QrCode($qrCodeContent);
+                $writer = new PngWriter();
+                $pngData = $writer->write($qrCode)->getString();
+                
+                $filePath = 'qrcodes/colis_id_' . $colisModel->id . '.png';
+                $fullPath = public_path($filePath);
+                $directory = dirname($fullPath);
+                
+                if (!File::exists($directory)) {
+                    File::makeDirectory($directory, 0755, true, true);
                 }
-
+                
+                File::put($fullPath, $pngData);
+                
+                // Mise à jour du colis avec le chemin du QR code
+                $colisModel->update(['qr_code_path' => $filePath]);
+                
+                $colisEnregistres[] = $colisModel->fresh();
+                $nombreTotalColisCrees++;
+                
+            } catch (\Exception $e) {
+                Log::error("Erreur création colis/paiement/QR pour index {$index}, item {$i}: " . $e->getMessage(), ['data' => $colisItemData, 'exception' => $e]);
+                $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, item {$i}).";
+            }
         }
-
-        return redirect()->route('customer_colis.hold')
-                ->with('success', ' colis individuels ont été enregistrés avec succès.');
     }
 
+    // Envoi de l'email de notification avec les détails du devis
+    if (!empty($colisEnregistres)) {
+        $recipientEmail = null;
+        $agenceExpedition = $expediteurData['agence'] ?? null;
+
+        if ($agenceExpedition === 'Agence de Chine') {
+            $recipientEmail = 'douane@aft-app.com';
+        } elseif ($agenceExpedition === 'AFT Agence Louis Bleriot') {
+            $recipientEmail = 'entrepot.paris@aft-app.com';
+        } elseif ($agenceExpedition === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+            $recipientEmail = 'entrepot.abidjan@aft-app.com'; 
+        }
+
+        if (is_null($recipientEmail)) {
+            $recipientEmail = config('mail.from.address');
+            Log::warning('Aucune adresse e-mail spécifique trouvée pour l\'agence d\'expédition: ' . $agenceExpedition . '. Envoi à l\'adresse par défaut: ' . $recipientEmail);
+        }
+
+        $emailData = [
+            'reference_colis_principale' => $referenceColisPrincipale,
+            'expediteur' => $expediteurData,
+            'destinataire' => $destinataireData,
+            'nombre_colis' => $nombreTotalColisCrees,
+            'premier_colis' => $colisEnregistres[0]->toArray() ?? null,
+        ];
+
+        try {
+            Mail::to($recipientEmail)->send(new DevisCreatedMail($emailData));
+            Log::info("✅ Email envoyé à {$recipientEmail} pour le devis {$referenceColisPrincipale}");
+        } catch (\Throwable $e) {
+            Log::error("❌ Erreur envoi mail Hostinger : " . $e->getMessage(), [
+                'recipient' => $recipientEmail,
+                'reference' => $referenceColisPrincipale,
+            ]);
+        }
+    }
+
+    return redirect()->route('customer_colis.hold')
+            ->with('success', ' colis individuels ont été enregistrés avec succès.');
+}
     /**
      * Display the specified resource.
      *

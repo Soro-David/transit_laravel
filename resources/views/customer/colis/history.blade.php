@@ -104,18 +104,7 @@
                 {
                     data: 'last_updated_at',
                     name: 'last_updated_at',
-                    render: function(data, type, row) {
-                        if (data) {
-                            var date = new Date(data);
-                            var day = ('0' + date.getDate()).slice(-2);
-                            var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                            var year = date.getFullYear();
-                            var hours = ('0' + date.getHours()).slice(-2);
-                            var minutes = ('0' + date.getMinutes()).slice(-2);
-                            return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
-                        }
-                        return data;
-                    }
+                    
                 },
                 { 
                     data: 'action', 
