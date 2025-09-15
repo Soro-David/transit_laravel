@@ -574,13 +574,13 @@ class AftlbColisController extends Controller
             'errors' => $e->errors(), // Retourne les erreurs de validation
         ], 422);
     } catch (\Exception $e) {
-        dd($e->getMessage());
+        // dd($e->getMessage());
         // Log l’erreur pour le debug côté serveur
         \Log::error('Erreur storePayment: '.$e->getMessage());
 
         return response()->json([
             'success' => false,
-            dd($e->getMessage()),
+            // dd($e->getMessage()),
             'message' => 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
         ], 500);
     }
@@ -849,6 +849,7 @@ class AftlbColisController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback la transaction en cas d'erreur
             Log::error("Erreur critique lors de la création de colis/paiement: " . $e->getMessage(), ['exception' => $e->getTraceAsString()]);
+            dd($e->getMessage());
             return redirect()->back()->with('error', 'Une erreur interne est survenue lors de la création du dossier. Aucune donnée n\'a été enregistrée.');
         }
     }
