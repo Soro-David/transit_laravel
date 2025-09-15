@@ -568,6 +568,16 @@
             margin: 10px auto 0;
             border-radius: 2px;
         }
+            .text-orange {
+        color: #ff6600; /* adapte à ta charte */
+        }
+        .video-wrapper {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .video-wrapper:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
     </style>
      <meta name="csrf-token" content="{{ csrf_token() }}"> 
 </head>
@@ -694,23 +704,45 @@
         </div>
     </section><br>
 
-    <section class="container my-5">
-        <div class="row">
-            <div class="col-md-6">
-                <h2 class="text-orange">Pourquoi nous choisir ?</h2>
-                <p>Nous offrons des solutions innovantes et adaptées à vos besoins spécifiques. Notre équipe d'experts est dédiée à votre succès.</p>
-                <ul>
-                    <li>Expertise reconnue dans le secteur</li>
-                    <li>Solutions personnalisées et flexibles</li>
-                    <li>Support client réactif et dédié</li>
-                    <li>Résultats mesurables et concrets</li>
+    <section class="container my-5 py-5">
+        <div class="row align-items-center">
+            <!-- Texte -->
+            <div class="col-md-6 mb-4 mb-md-0">
+                <h2 class="text-orange fw-bold mb-3">Pourquoi nous choisir ?</h2>
+                <p class="text-muted mb-4">
+                    Nous offrons des solutions <span class="fw-semibold">innovantes</span> et adaptées à vos besoins spécifiques. 
+                    Notre équipe d'experts est dédiée à <span class="fw-semibold">votre succès</span>.
+                </p>
+                <ul class="list-unstyled">
+                    <li class="d-flex align-items-center mb-2">
+                        <i class="fas fa-check-circle text-orange me-2"></i> Expertise reconnue dans le secteur
+                    </li>
+                    <li class="d-flex align-items-center mb-2">
+                        <i class="fas fa-check-circle text-orange me-2"></i> Solutions personnalisées et flexibles
+                    </li>
+                    <li class="d-flex align-items-center mb-2">
+                        <i class="fas fa-check-circle text-orange me-2"></i> Support client réactif et dédié
+                    </li>
+                    <li class="d-flex align-items-center">
+                        <i class="fas fa-check-circle text-orange me-2"></i> Résultats mesurables et concrets
+                    </li>
                 </ul>
             </div>
+
+            <!-- Vidéo -->
             <div class="col-md-6">
-                <img src="{{ asset('images/slide3.jpg') }}" alt="Pourquoi nous choisir ?" class="img-fluid rounded">
+                <div class="video-wrapper border rounded-4 shadow-lg overflow-hidden">
+                    <video class="w-100 rounded-4" autoplay muted loop playsinline controls>
+                        <source src="{{ asset('video/video1.mp4') }}" type="video/mp4">
+                        Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                </div>
             </div>
         </div>
     </section>
+
+
+
 
     <!-- SECTION RÉSEAU LOGISTIQUE AMÉLIORÉE -->
     <section class="logistic-network">
@@ -728,7 +760,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/stra1.jpg') }}" alt="Centres logistiques stratégiques">
+                            <img src="{{ asset('images/ac3.jpeg') }}" alt="Centres logistiques stratégiques">
                         </div>
                         <div class="network-content">
                             <h3>Centres logistiques stratégiques</h3>
@@ -751,7 +783,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/stra2.jpg') }}" alt="Transport multimodal intégré">
+                            <img src="{{ asset('images/ac2.jpeg') }}" alt="Transport multimodal intégré">
                         </div>
                         <div class="network-content">
                             <h3>Transport multimodal intégré</h3>
@@ -773,7 +805,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/stra3.png') }}" alt="Gestion douanière expertise">
+                            <img src="{{ asset('images/ac5.jpeg') }}" alt="Gestion douanière expertise">
                         </div>
                         <div class="network-content">
                             <h3>Expertise douanière internationale</h3>

@@ -589,7 +589,9 @@
             <!-- Conditions de vente -->
             <div class="conditions">
                 <h4 class="text-center">Conditions de vente</h4>
-                <p>Les colis et marchandise transportées par AFRIQUE FRET TRANSIT IMPORT EXPORT de la France vers la cote d'ivoire et de la cote d'ivoire vers la France, le montant du transport, autres frais de douane et taxes doivent êtres solder avant livraison.les colis non soldés seront confisqué dans nos entrepôts jusqu'à la régularisation de la situation. passé délai 5 jours les frais de magasinage ainsi qu' une pénalité de 10% montant du seront appliqués et au delà 30 jours les colis et marchandises seront vendus pour remboursement des frais.</p>
+                <p> Les colis et marchandises transportés par AFRIQUE FRET TRANSIT IMPORT EXPORT, de la France vers la Côte d’Ivoire et de la Côte d’Ivoire vers la France, doivent faire l’objet du règlement intégral des frais de transport, des droits de douane et des taxes avant toute livraison. Les colis non soldés seront conservés dans nos entrepôts en attendant la régularisation de la situation. Passé un délai de 5 jours, des frais de magasinage ainsi qu’une pénalité de 10 % du montant total seront appliqués. Au-delà de 30 jours, les colis et marchandises non réclamés seront vendus afin de couvrir les frais engagés.
+                    
+                </p>
             </div>
 
             <!-- Footer Section -->

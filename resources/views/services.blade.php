@@ -679,26 +679,26 @@
             background: orange;
         }
         
-.service-section {
-    margin-bottom: 50px;
-    /* background: white; */
-    border-radius: 10px;
-    padding: 10px 15px; /* 30px haut/bas, 15px gauche/droite */
-    /* box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); */
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
-}
+        .service-section {
+            margin-bottom: 50px;
+            /* background: white; */
+            border-radius: 10px;
+            padding: 10px 15px; /* 30px haut/bas, 15px gauche/droite */
+            /* box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
+        }
 
-.service-section:hover {
-    transform: translateY(-5px);
-    /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); */
-}
+        .service-section:hover {
+            transform: translateY(-5px);
+            /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); */
+        }
 
-.service-section:hover .service-image img {
-    transform: scale(1.05);
-}
+        .service-section:hover .service-image img {
+            transform: scale(1.05);
+        }
 
         .service-content {
             flex: 1;
@@ -956,7 +956,7 @@
             </div>
             
             <div class="service-image">
-                <img src="{{ asset('images/camion.jpg') }}" alt="Services logistiques intégrés - Entrepôt">
+                <img src="{{ asset('images/ac4.jpeg') }}" alt="Services logistiques intégrés - Entrepôt">
             </div>
         </div>
     </section>

@@ -499,14 +499,6 @@
                     sur mesure pour répondre aux besoins de nos clients en
                     matière d’import et d’export. Notre mission est de simplifier vos opérations logistiques et d'assurer une livraison rapide et sécurisée de vos marchandises partout dans le monde.
                 </p>
-                {{-- <div class="row justify-content-center mt-4">
-                    <div class="col-md-8">
-                        <!-- Image introductive -->
-                        <img src="{{ asset('images/slide3.jpg') }}" alt="Vue d'ensemble des opérations AFT" class="img-fluid rounded-image">
-                        <!-- Ici, tu pourrais générer une image du type: "A modern logistics hub with diverse transportation methods (ships, planes, trucks) operating efficiently, illustrating global import and export." -->
-                        
-                    </div>
-                </div> --}}
             </section>
 
             <section class="mission-vision-section">
@@ -538,7 +530,7 @@
                         <div class="row justify-content-center">
                             <div class="col-12">
                                 <!-- Image pour les atouts -->
-                                <img src="{{ asset('images/slide3.jpg') }}" alt="Illustration des atouts AFT" class="img-fluid rounded-image">
+                                <img src="{{ asset('images/ac1.jpeg') }}" alt="Illustration des atouts AFT" class="img-fluid rounded-image">
                                 <!-- Ici, tu pourrais générer une image du type: "A dynamic infographic showing four key strengths: 'Experience' with a clock icon, 'Network' with connected nodes, 'Flexibility' with adaptive gears, and 'Transparency' with a magnifying glass over a package." -->
                                 
                             </div>
@@ -547,7 +539,7 @@
                 </div>
             </section>
 
-    <section class="mission-vision-section">
+    {{-- <section class="mission-vision-section">
         <div class="container">
             <h2 class="section-title">Nos Agences et Services</h2>
             
@@ -668,8 +660,8 @@
             </div>
            
         </div>
-    </section>
-            <section class="mission-vision-section">
+    </section> --}}
+            {{-- <section class="mission-vision-section">
                 <div class="row">
                     <div class="col-md-6 zt">
                         <h3><i class="fas fa-map-marked-alt text-orange"></i> ZONES D’INTERVENTION :</h3>
@@ -727,7 +719,7 @@
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> --}}
 
             <section class="team-section">
                 <h2 class="titre">Notre Équipe Dédiée</h2>

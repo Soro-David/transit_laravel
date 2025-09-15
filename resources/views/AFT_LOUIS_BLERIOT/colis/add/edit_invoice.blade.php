@@ -450,18 +450,18 @@
                     color: #000; /* Corrigé ici */
                     letter-spacing: 1px;
                 }
- /* NOUVEAU/MODIFIÉ */
-            .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */
-            .footer-company-details { font-size: 8.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .items-table th, .items-table td { font-size: 10pt !important; padding: 6px !important; } /* NOUVEAU/MODIFIÉ */
-            .totals-summary td, .final-totals td { font-size: 10pt !important; padding: 5px 8px !important;}
-            .grand-total-header { font-size: 11pt !important; }
-            .payment-terms td { font-size: 10pt !important; }
-            .notes-section p { font-size: 10pt !important; }
-            .notes-section textarea { font-size: 9pt !important; min-height: 40px !important; }
-        }
+        /* NOUVEAU/MODIFIÉ */
+                    .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
+                    .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
+                    .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */
+                    .footer-company-details { font-size: 8.5pt !important; } /* NOUVEAU/MODIFIÉ */
+                    .items-table th, .items-table td { font-size: 10pt !important; padding: 6px !important; } /* NOUVEAU/MODIFIÉ */
+                    .totals-summary td, .final-totals td { font-size: 10pt !important; padding: 5px 8px !important;}
+                    .grand-total-header { font-size: 11pt !important; }
+                    .payment-terms td { font-size: 10pt !important; }
+                    .notes-section p { font-size: 10pt !important; }
+                    .notes-section textarea { font-size: 9pt !important; min-height: 40px !important; }
+                }
     </style>
 
     <div class="invoice-box-container">
@@ -587,7 +587,9 @@
             <!-- Conditions de vente -->
             <div class="conditions">
                 <h4 class="text-center">Conditions de vente</h4>
-                <p>Les colis et marchandise transportées par AFRIQUE FRET TRANSIT IMPORT EXPORT de la France vers la cote d'ivoire et de la cote d'ivoire vers la France, le montant du transport, autres frais de douane et taxes doivent êtres solder avant livraison.les colis non soldés seront confisqué dans nos entrepôts jusqu'à la régularisation de la situation. passé délai 5 jours les frais de magasinage ainsi qu' une pénalité de 10% montant du seront appliqués et au delà 30 jours les colis et marchandises seront vendus pour remboursement des frais.</p>
+                <p> Les colis et marchandises transportés par AFRIQUE FRET TRANSIT IMPORT EXPORT, de la France vers la Côte d’Ivoire et de la Côte d’Ivoire vers la France, doivent faire l’objet du règlement intégral des frais de transport, des droits de douane et des taxes avant toute livraison. Les colis non soldés seront conservés dans nos entrepôts en attendant la régularisation de la situation. Passé un délai de 5 jours, des frais de magasinage ainsi qu’une pénalité de 10 % du montant total seront appliqués. Au-delà de 30 jours, les colis et marchandises non réclamés seront vendus afin de couvrir les frais engagés.
+                    
+                </p>
             </div>
 
             <!-- Footer Section -->
