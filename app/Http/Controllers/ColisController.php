@@ -1350,6 +1350,7 @@ class ColisController extends Controller
             abort(404, 'Aucun colis trouvé pour cette référence.');
         }
     
+        
         // 3. La vue PDF s'attend à une collection de colis et à un nombre total.
         //    Chaque élément de $colisPourEtiquettes EST une étiquette à générer.
         $pdf = PDF::loadView('admin.colis.add.edit_etiquette', [

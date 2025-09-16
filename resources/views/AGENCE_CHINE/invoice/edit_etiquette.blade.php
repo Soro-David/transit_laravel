@@ -261,7 +261,7 @@
                                     @endif
                                     <span class="reference-number">{{ $colisItem->reference_colis }}</span>
                                 </div>
-                                <div class="type-colis-info">{{ $colisItem->type_colis }}</div>
+                                <div class="type-colis-info">{{ $colisItem->service }}</div>
                             </td>
                             <td class="count-cell">
                                 <span class="counter-text">{{ $loop->iteration }} / {{ $colis_collection->count() }}</span>

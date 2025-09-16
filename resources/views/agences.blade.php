@@ -357,6 +357,11 @@
                 padding-left: 100px;
                 padding-right: 100px;
             }
+            .services-agencies-section{
+                max-width: 100% !important;
+                padding-left: 100px;
+                padding-right: 100px;
+            }
             .image-container {
                 margin-top: 2rem;
             }
@@ -410,6 +415,91 @@
             /* font-size: 1.2rem; */
             text-align: center;
         }
+
+            /* Styles personnalisés */
+    .services-agencies-section {
+        background-color: #f8f9fa; /* Couleur de fond légère */
+        padding: 60px 0;
+    }
+
+    .services-agencies-section h2 {
+        text-align: center;
+        margin-bottom: 50px;
+        font-weight: 700;
+        color: #343a40;
+        position: relative;
+    }
+
+    .services-agencies-section h2::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -15px;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background-color: #ffae00; /* Couleur de la ligne sous le titre */
+        border-radius: 2px;
+    }
+
+    /* .agency-list .card-agency {
+        border: 1px solid #e9ecef;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #ffffff;
+    } */
+
+    .agency-list .card-agency:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important; /* Ombre plus prononcée au survol */
+    }
+
+    .card-agency .card-header {
+        background-color: #f1f3f5;
+        border-bottom: 1px solid #dee2e6;
+        padding: 15px 20px;
+        font-size: 1.25rem;
+        color: #ffae00; /* Couleur du texte de l'en-tête */
+        display: flex;
+        align-items: center;
+        border-radius: 5px 5px 0 0;
+    }
+
+
+
+    .agency-list .service-details li {
+        padding: 8px 0;
+        border-bottom: 1px dashed #e9ecef;
+        font-size: 0.95rem;
+        color: #495057;
+    }
+
+    .agency-list .service-details li:last-child {
+        border-bottom: none;
+    }
+
+    .agency-list .service-details li i {
+        margin-right: 10px;
+        color: #ffae00; /* Couleur des icônes */
+    }
+
+    .agency-list .service-details li strong {
+        color: #343a40;
+    }
+
+    .services-agencies-section .img-fluid {
+        max-height: 800px; /* Ajuste la hauteur maximale de l'image */
+        object-fit: cover; /* Assure que l'image couvre bien la zone sans déformation */
+        border-radius: 8px; /* Bords légèrement arrondis pour l'image */
+    }
+
+    /* Médias queries pour la réactivité */
+    @media (max-width: 991.98px) {
+        .services-agencies-section .col-lg-5 {
+            margin-top: 40px;
+            order: -1; /* Place l'image au-dessus des agences sur les petits écrans */
+        }
+    }
+        
     </style>
 
 </head>
@@ -455,85 +545,95 @@
         <!-- Section des Services -->
 <section class="services-agencies-section">
     <div class="container">
-        <div class="row justify-content-center">
-            <!-- Colonne pour les services détaillés -->
-            <div class="col-lg-7 mb-4">
-                <div class="card-custom">
-                    <h3>Nos Services</h3>
-                    
-                    <!-- FRET MARITIME -->
-                    <div class="service-item">
-                        <div class="icon-wrapper">
-                            <i class="fas fa-ship"></i>
+        <!-- Titre -->
+        <h2>Nos Agences</h2>
+        <div class="row align-items-center">
+
+            <!-- Colonne Agences -->
+            <div class="col-lg-5">
+                <div class="agency-list"> 
+
+                    <!-- France -->
+                    <div class="card-agency mb-4">
+                        <div class="card-header">
+                            <span class="country-flag">🇫🇷</span> FRANCE
                         </div>
-                        <div class="content">
-                            <h4>Fret Maritime International</h4>
-                            <p>Profitez de nos solutions de transport par voie maritime pour vos marchandises. Que ce soit pour des conteneurs complets (FCL) ou du groupage (LCL), nous garantissons une gestion optimale et un suivi rigoureux de vos expéditions. Nos services incluent :</p>
-                            <ul>
-                                <li>Transport de conteneurs standards (20’, 40’, 40’ HQ)</li>
-                                <li>Services de Groupage (LCL) et de Plein Chargement (FCL)</li>
-                                <li>Suivi personnalisé et sécurisé des marchandises en temps réel</li>
-                                <li>Optimisation des routes et des coûts</li>
+                        <div class="card-body">
+                            <ul class="service-details list-unstyled m-0">
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Adresse:</strong> 7, avenue Louis Blériot 93120 La Courneuve
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +33 1 86 78 69 67
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +33 7 66 78 54 61
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +33 6 52 98 35 19
+                                </li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- FRET AÉRIEN -->
-                    <div class="service-item">
-                        <div class="icon-wrapper">
-                            <i class="fas fa-plane"></i>
+                    <!-- Chine -->
+                    <div class="card-agency mb-4">
+                        <div class="card-header">
+                            <span class="country-flag">🇨🇳</span> CHINE
                         </div>
-                        <div class="content">
-                            <h4>Fret Aérien Express</h4>
-                            <p>Pour vos envois urgents et à haute valeur ajoutée, notre service de fret aérien assure une livraison rapide et sécurisée à travers le monde. Nous prenons en charge toutes les formalités pour une efficacité maximale :</p>
-                            <ul>
-                                <li>Livraison rapide et sécurisée pour les envois urgents</li>
-                                <li>Gestion complète des formalités douanières et documents nécessaires</li>
-                                <li>Suivi en temps réel de vos expéditions aériennes</li>
-                                <li>Solutions adaptées aux marchandises périssables ou sensibles</li>
+                        <div class="card-body">
+                            <ul class="service-details list-unstyled m-0">
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Maritime:</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓
+                                </li>
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Maritime:</strong> Province du Guangdong, ville de Foshan, district de Nanhai, ville de Lishui, route Helangsha, entrepôt D2.
+                                </li>
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Aérien:</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918
+                                </li>
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Aérien:</strong> Ville de Guangzhou, 205 avenue Huanshi Zhong, immeuble Hengsheng, bloc B, bureau 918
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +86 13 67 89 15 049
+                                </li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- SERVICES COMPLÉMENTAIRES -->
-                    <div class="service-item">
-                        <div class="icon-wrapper">
-                            <i class="fas fa-boxes"></i>
+                    <!-- Côte d'Ivoire -->
+                    <div class="card-agency mb-4">
+                        <div class="card-header">
+                            <span class="country-flag">🇨🇮</span> CÔTE D'IVOIRE
                         </div>
-                        <div class="content">
-                            <h4>Services Logistiques Intégrés</h4>
-                            <p>Au-delà du transport, nous proposons une gamme complète de services complémentaires pour simplifier votre chaîne logistique et assurer une fluidité totale de vos opérations :</p>
-                            <ul>
-                                <li>Dédouanement et conseils experts en logistique internationale</li>
-                                <li>Solutions de stockage sécurisé et distribution locale</li>
-                                <li>Assurance complète des marchandises pour une tranquillité d'esprit</li>
-                                <li>Optimisation de la chaîne d'approvisionnement et gestion des stocks</li>
+                        <div class="card-body">
+                            <ul class="service-details list-unstyled m-0">
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Maritime:</strong> Carrefour Angré
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +225 0758069896
+                                </li>
+                                <li><i class="fas fa-map-marker-alt"></i>
+                                    <strong>Aérien:</strong> Carrefour Nelson Mandela, Angré 8ème tranche
+                                </li>
+                                <li><i class="fas fa-phone-alt"></i>
+                                    <strong>Contact:</strong> +225 0758069896
+                                </li>
                             </ul>
                         </div>
                     </div>
+
                 </div>
             </div>
-
-            <!-- Colonne pour les images illustrant les services -->
-            <div class="col-lg-5 mb-4">
-                <div class="image-grid">
-                    <div class="row g-2"> <!-- g-2 ajoute un petit espacement entre les colonnes et les lignes -->
-                        <div class="col-12 col-md-12 col-lg-12">
-                            <img src="{{ asset('images/get.jpg') }}" alt="Fret Maritime" class="img-fluid rounded shadow-sm">
-                        </div>
-                        <div class="col-12 col-md-12 col-lg-12">
-                            <img src="{{ asset('images/boeing.jpg') }}" alt="Fret Aérien" class="img-fluid rounded shadow-sm">
-                        </div>
-                        <div class="col-12 col-md-4 col-lg-12">
-                            <img src="{{ asset('images/freight.jpg') }}" alt="Services Logistiques" class="img-fluid rounded shadow-sm">
-                        </div>
-                    </div>
-                </div>
+                            <!-- Colonne Image -->
+            <div class="col-lg-7 text-center">
+                <img src="{{ asset('images/ac5.jpeg') }}" alt="Fret Maritime" class="img-fluid rounded shadow-lg">
             </div>
         </div>
     </div>
 </section>
-
         <!-- Nouvelle section "Nos Agences" -->
 <section class="agences-section">
     <div class="container">

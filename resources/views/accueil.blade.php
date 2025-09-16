@@ -760,7 +760,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/ac3.jpeg') }}" alt="Centres logistiques stratégiques">
+                            <img src="{{ asset('images/ac6.jpeg') }}" alt="Centres logistiques stratégiques">
                         </div>
                         <div class="network-content">
                             <h3>Centres logistiques stratégiques</h3>
@@ -783,7 +783,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/ac2.jpeg') }}" alt="Transport multimodal intégré">
+                            <img src="{{ asset('images/stra2.jpg') }}" alt="Transport multimodal intégré">
                         </div>
                         <div class="network-content">
                             <h3>Transport multimodal intégré</h3>
@@ -805,7 +805,7 @@
                 <div class="col-md-6">
                     <div class="network-item">
                         <div class="network-img">
-                            <img src="{{ asset('images/ac5.jpeg') }}" alt="Gestion douanière expertise">
+                            <img src="{{ asset('images/ac3.jpeg') }}" alt="Gestion douanière expertise">
                         </div>
                         <div class="network-content">
                             <h3>Expertise douanière internationale</h3>
