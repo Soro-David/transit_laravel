@@ -117,7 +117,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_expediteur_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789" required>
+                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_expediteur" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789" required>
+                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>
@@ -229,7 +229,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" readonly>
+                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>
@@ -296,7 +296,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_destinataire" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" required>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
                                 </div>
                             </div>
                         </div>

@@ -126,7 +126,7 @@
                             </div> --}}
                             <div class="col-md-12">
                                 <label for="tel_expediteur" class="form-label">Téléphone</label>
-                                <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" placeholder="Ex: 0123456789" required>
+                                <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{$user->tel}}" class="form-control" placeholder="Ex: 0123456789">
                             </div>
                         </div>
                     </div>
@@ -230,7 +230,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}" required>
+                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
                                 </div>
                             </div>
                         </div>
@@ -303,7 +303,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <label for="tel_destinataire" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}" required>
+                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789" value="{{ $user->tel ?? '' }}">
                                 </div>
                             </div>
                         </div>
