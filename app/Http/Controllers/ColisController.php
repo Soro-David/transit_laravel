@@ -801,8 +801,8 @@ class ColisController extends Controller
         $erreursCreation = [];
         $dernierIdReference = Colis::max('id_reference') ?? 0;
 
+
         $id_reference = $dernierIdReference + 1;
-        $dernierIdReference++;
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
             if ($quantite_pour_ligne_article <= 0) continue;
@@ -990,6 +990,17 @@ class ColisController extends Controller
     }
 
 
+    // Dans votre modèle Colis
+protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($colis) {
+        if (empty($colis->id_reference)) {
+            $colis->id_reference = Colis::max('id_reference') + 1;
+        }
+    });
+}
     public function editBon_livraison($id)
     {
         
