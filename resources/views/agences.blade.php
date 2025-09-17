@@ -637,6 +637,19 @@
             justify-content: center;
         }
         
+        .card-agency {
+            font-size: 1.21rem;   /* agrandit légèrement la police */
+            }
+
+            .card-agency .card-header {
+            font-size: 1.8rem;   /* titre plus grand */
+            font-weight: bold;
+            }
+
+            .card-agency strong {
+            font-size: 1.3rem;  /* pour mettre en valeur "Maritime", "Contact", etc. */
+            }
+
 
     </style>
 
@@ -688,98 +701,146 @@
 
         <!-- Agence France -->
         <div class="row align-items-center mb-5">
-        <!-- Colonne texte -->
-        <div class="col-lg-5">
+            <!-- Colonne texte -->
+            <div class="col-lg-5">
             <div class="card-agency">
-            <div class="card-header">
-                <span class="country-flag">🇫🇷</span> FRANCE
-            </div>
-            <div class="card-body">
+                <div class="card-header">
+                    <span class="country-flag">🇫🇷</span> <strong>FRANCE</strong>
+                </div><br>
+
+                <div class="card-body">
                 <ul class="service-details list-unstyled m-0">
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Adresse:</strong> 7, avenue Louis Blériot 93120 La Courneuve
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +33 1 86 78 69 67
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +33 7 66 78 54 61
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +33 6 52 98 35 19
-                </li>
+
+                    <!-- Adresse -->
+                    <li class="d-flex align-items-start mb-2">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                    <span><strong>Adresse :</strong> 7, avenue Louis Blériot, 93120 La Courneuve</span>
+                    </li>
+
+                    <!-- Contacts -->
+                    <li class="d-flex align-items-start mb-2">
+                    <i class="fas fa-phone-alt me-2 text-success"></i>
+                    <span><strong>Contact :</strong> +33 1 86 78 69 67</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                    <i class="fas fa-phone-alt me-2 text-success"></i>
+                    <span><strong>Contact :</strong> +33 7 66 78 54 61</span>
+                    </li>
+                    <li class="d-flex align-items-start">
+                    <i class="fas fa-phone-alt me-2 text-success"></i>
+                    <span><strong>Contact :</strong> +33 6 52 98 35 19</span>
+                    </li>
+
                 </ul>
+                </div>
             </div>
             </div>
-        </div>
-        <!-- Colonne image -->
-        <div class="col-lg-7 text-center">
-            <img src="{{ asset('images/agencefrance.jpeg') }}" alt="Agence France" class="img-fluid rounded shadow-lg">
-        </div>
+
+            <!-- Colonne image -->
+            <div class="col-lg-7 text-center">
+                <img src="{{ asset('images/agencefrance.jpeg') }}" alt="Agence France" class="img-fluid rounded shadow-lg">
+            </div>
         </div>
 
         <!-- Agence Chine -->
         <div class="row align-items-center mb-5">
-        <div class="col-lg-5">
-            <div class="card-agency">
-            <div class="card-header">
-                <span class="country-flag">🇨🇳</span> CHINE
+            <div class="col-lg-5">
+                <div class="card-agency">
+                    <div class="card-header">
+                        <span class="country-flag">🇨🇳</span><strong> CHINE </strong>
+                    </div><br>
+
+                    <div class="card-body">
+                    <ul class="service-details list-unstyled m-0">
+
+                        <!-- Adresse Maritime -->
+                        <li class="d-flex align-items-start mb-2">
+                            <i class="fas fa-ship me-2 text-primary"></i>
+                            <div>
+                                <strong>Maritime :</strong><br>
+                                ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓 <br>
+                                Province du Guangdong, Foshan, district de Nanhai, ville de Lishui, route Helangsha, entrepôt D2.
+                            </div>
+                        </li><br>
+
+                        <!-- Adresse Aérienne -->
+                        <li class="d-flex align-items-start mb-2">
+                            <i class="fas fa-plane me-2 text-success"></i>
+                            <div>
+                                <strong>Aérien :</strong><br>
+                                ⼴州市环市中路205号恒⽣⼤厦B座室918 <br>
+                                Guangzhou, 205 avenue Huanshi Zhong, immeuble Hengsheng, bloc B, bureau 918
+                            </div>
+                        </li>
+
+                        <!-- Contact -->
+                        <li class="d-flex align-items-start">
+                        <i class="fas fa-phone-alt me-2 text-warning"></i>
+                        <span><strong>Contact :</strong> +86 13 67 89 15 049</span>
+                        </li>
+
+                    </ul>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="service-details list-unstyled m-0">
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Maritime:</strong> ⼴东省佛⼭市南海区⾥⽔镇河塱沙路D2仓
-                </li>
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Maritime:</strong> Province du Guangdong, Foshan, district de Nanhai, ville de Lishui, route Helangsha, entrepôt D2.
-                </li>
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Aérien:</strong> ⼴州市环市中路205号恒⽣⼤厦B座室918
-                </li>
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Aérien:</strong> Guangzhou, 205 avenue Huanshi Zhong, immeuble Hengsheng, bloc B, bureau 918
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +86 13 67 89 15 049
-                </li>
-                </ul>
+
+            <div class="col-lg-7 text-center">
+                <img src="{{ asset('images/agencechine.jpeg') }}" alt="Agence Chine" class="img-fluid rounded shadow-lg">
             </div>
-            </div>
-        </div>
-        <div class="col-lg-7 text-center">
-            <img src="{{ asset('images/agencechine.jpeg') }}" alt="Agence Chine" class="img-fluid rounded shadow-lg">
-        </div>
         </div>
 
         <!-- Agence Côte d'Ivoire -->
         <div class="row align-items-center mb-5">
-        <div class="col-lg-5">
-            <div class="card-agency">
-            <div class="card-header">
-                <span class="country-flag">🇨🇮</span> CÔTE D'IVOIRE
+            <div class="col-lg-5">
+                <div class="card-agency">
+                <div class="card-header">
+                    <span class="country-flag">🇨🇮</span><strong> CÔTE D'IVOIRE </strong>
+                </div><br>
+
+                <!-- Bloc Maritime -->
+                <div class="card-body">
+                    <ul class="service-details list-unstyled m-0">
+                    <li class="d-flex align-items-start mb-2">
+                        <i class="fas fa-building me-2 text-warning"></i>
+                        <span><strong>Siège:</strong> ENTREPÔT MARITIME DS TRANSLOG</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                        <i class="fas fa-phone-alt me-2 text-success"></i>
+                        <span><strong>Contact:</strong> +225 0584402200</span>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                        <span><strong>Adresse:</strong> Carrefour Angré</span>
+                    </li>
+                    </ul>
+                </div> <br><br>
+
+                <!-- Bloc Aérien -->
+                <div class="card-body">
+                    <ul class="service-details list-unstyled m-0">
+                    <li class="d-flex align-items-start mb-2">
+                        <i class="fas fa-building me-2 text-warning"></i>
+                        <span><strong>Siège:</strong> BUREAU AÉRIEN</span>
+                    </li>
+                    <li class="d-flex align-items-start mb-2">
+                        <i class="fas fa-phone-alt me-2 text-success"></i>
+                        <span><strong>Contact:</strong> +225 0758069896</span>
+                    </li>
+                    <li class="d-flex align-items-start">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                        <span><strong>Adresse:</strong> Carrefour Nelson Mandela Angré 8ème Tranche</span>
+                    </li>
+                    </ul>
+                </div>
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="service-details list-unstyled m-0">
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Maritime:</strong> Carrefour Angré
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +225 0758069896
-                </li>
-                <li><i class="fas fa-map-marker-alt"></i>
-                    <strong>Aérien:</strong> Carrefour Nelson Mandela, Angré 8ème tranche
-                </li>
-                <li><i class="fas fa-phone-alt"></i>
-                    <strong>Contact:</strong> +225 0758069896
-                </li>
-                </ul>
-            </div>
+
+            <!-- Image -->
+            <div class="col-lg-7 text-center">
+                <img src="{{ asset('images/dstranslog.jpeg') }}" alt="Agence Côte d'Ivoire" class="img-fluid rounded shadow-lg">
             </div>
         </div>
-        <div class="col-lg-7 text-center">
-            <img src="{{ asset('images/dstranslog.jpeg') }}" alt="Agence Côte d'Ivoire" class="img-fluid rounded shadow-lg">
-        </div>
-        </div>
+
 
     </div>
     </section>
