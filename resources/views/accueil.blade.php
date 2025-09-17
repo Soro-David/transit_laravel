@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aft Import Export</title>
+    <title>AFRIQUE FRET TRANSIT IMPORT EXPORT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css"
           integrity="sha512-wR4o5EQOVWL53c/bJtCQiRzE6C8zvcbMYiE20uRyVwPjxU5KmQ2SeZZ4yhJfQ8zhEXRzVFMkVVnLWZI6+m9SQg=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
@@ -73,6 +73,7 @@
             line-height: 1.6;
             font-size: 1.25rem;
         }
+        
 
         footer {
             background-color: #343a40;
@@ -85,19 +86,20 @@
             justify-content: center;
         }
         
+
         .navbar-nav .nav-link {
             color: white !important;
+            padding: 0.5rem 1rem !important; /* Assure une zone de contact suffisante */
             font-weight: bold;
-            padding: 0.5rem 1rem;
+            text-align: center;
         }
-
         .navbar-nav .nav-link:hover {
             color: orange !important;
         }
 
         .navbar-nav .nav-link.active {
-            color: #fff !important;
-            border-bottom: 3px solid #ff7b00; /* Soulignement orange vif pour l'actif */
+            color: #ffc107 !important;
+            border-bottom: 3px solid #ffc107;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 4px 4px 0 0;
         }
@@ -105,6 +107,12 @@
         @media (max-width: 767px) {
             .navbar-brand img {
                 max-height: 50px;
+            }
+
+            /* Pour les écrans mobiles, le container prend toute la largeur */
+            .container {
+                padding-left: 15px; /* Réduit le padding sur les côtés */
+                padding-right: 15px; /* Réduit le padding sur les côtés */
             }
         }
         
@@ -578,6 +586,10 @@
             transform: scale(1.02);
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
+        
+
+
+        
     </style>
      <meta name="csrf-token" content="{{ csrf_token() }}"> 
 </head>
@@ -653,7 +665,7 @@
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis" data-bs-toggle="modal" data-bs-target="#trackingModal">Suivre Mon colis</a>
-                            <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
+                            <a href="/contact" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
                 </div>
@@ -664,7 +676,7 @@
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis" data-bs-toggle="modal" data-bs-target="#trackingModal">Suivre Mon colis</a>
-                            <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
+                            <a href="/contact" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
                 </div>
@@ -675,7 +687,7 @@
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis" data-bs-toggle="modal" data-bs-target="#trackingModal">Suivre Mon colis</a>
-                            <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
+                            <a href="/contact" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
                 </div>
@@ -686,7 +698,7 @@
                         <p class="slogan">Aft import export, Votre intermédiaire crédible</p><br>
                         <div>
                             <a href="#" class="btn btn-danger demande-devis" data-bs-toggle="modal" data-bs-target="#trackingModal">Suivre Mon colis</a>
-                            <a href="#" class="btn btn-outline-light contactez-nous">Contactez nous</a>
+                            <a href="/contact" class="btn btn-outline-light contactez-nous">Contactez nous</a>
                         </div>
                     </div>
                 </div>

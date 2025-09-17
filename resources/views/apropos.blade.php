@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>À Propos - Aft Import Export</title>
+    <title>À Propos - AFRIQUE FRET TRANSIT IMPORT EXPORT</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css"
           integrity="sha512-wR4o5EQOVWL53c/bJtCQiRzE6C8zvcbMYiE20uRyVwPjxU5KmQ2SeZZ4yhJfQ8zhEXRzVFMkVVnLWZI6+m9SQg=="
@@ -15,186 +15,68 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <style>
-        .header-section {
-            background-image: url('{{ asset('images/equip1.png') }}'); /* Utilisation de l'image de fond */
-            background-size: cover;        /* L’image couvre toute la section */
-            background-position: center;   /* Centrage de l’image */
-            background-repeat: no-repeat;  /* Pas de répétition */
-            min-height: 300px;             /* Hauteur minimum */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative; /* Ajouté pour que l'overlay se positionne correctement */
-            color: white; /* Pour que le texte soit visible sur l'image */
-            padding: 4rem 0;
-            margin-bottom: 2rem;
-        }
-        /* Overlay semi-transparent */
-        .header-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5); /* Noir à 50% d'opacité */
-            z-index: 1;
-        }
-        .header-section h1, .header-section p {
-            position: relative;
-            z-index: 2; /* S'assurer que le texte est au-dessus de l'overlay */
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: rgb(255, 153, 0);
-        }
-        
-        /* CORRECTION: Titres h2 en vert */
-        h2 {
-            color: #388b00 !important; /* Vert */
-            margin-bottom: 20px;
-        }
-        
-        /* CORRECTION: Titres h3 en orange */
-        h3 {
-            color: orange !important; /* Orange */
-            margin-bottom: 20px;
+        /* ==========================================================================
+        1. Variables et Configuration de Base
+        ========================================================================== */
+        :root {
+            --primary-color: orange;
+            --secondary-color: #388b00; /* Vert */
+            --dark-bg: #2c3e50;
+            --light-bg: #f8f9fa;
+            --text-color-dark: #333;
+            --text-color-medium: #555;
+            --text-color-light: #ecf0f1;
+            --footer-link-color: #bdc3c7;
+            --border-radius-base: 8px;
+            --box-shadow-base: 0 2px 5px rgba(0,0,0,0.05);
+            --box-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
+        /* ==========================================================================
+        2. Styles Généraux et Typographie
+        ========================================================================== */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
+            background-color: var(--light-bg);
+            color: var(--text-color-dark);
         }
 
-        header {
+        footer {
+            background-color: #343a40;
             color: white;
+            text-align: center;
             padding: 1rem 0;
         }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .navbar-nav .nav-link {
-            color: white !important;
-            /* padding: 0.5rem 1rem; */
-            font-weight: bold;
-        }
-
-        .navbar-nav .nav-link:hover {
-            color: orange !important;
-        }
-
-        .navbar-nav .nav-link.active {
-            color: #fff !important;
-            border-bottom: 3px solid #ff7b00; /* Soulignement orange vif pour l'actif */
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px 4px 0 0;
-        }
-
-        /* Ajustement de la taille du logo */
-        @media (max-width: 767px) {
-            .navbar-brand img {
-                max-height: 50px; /* Réduire la taille du logo sur les petits écrans */
-            }
-        }
-
-        .carousel-image {
-            filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.5));
-        }
-
-        .carousel-caption {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            text-align: center;
-        }
-
-        .carousel {
-            height: 400px;
-        }
-
-        .carousel-item {
-            height: 550px;
-        }
-
-        .carousel-item img {
-            object-fit: cover;
-            height: 700px;
-        }
-
-        .demande-devis:hover {
-            background-color: orange;
-            color: white;
-        }
-
-        .contactez-nous:hover {
-            background-color: white;
-            color: red;
-        }
-
-        .footer-dark { 
-            background-color: #2c3e50; /* Couleur sombre plus profonde */
-            color: #ecf0f1; /* Texte gris clair */
-            /* padding: 60px 0 30px 0; */
-            border-top: 5px solid #ff7b00; /* Ligne orange en haut du footer */
-        }
-        .footer-dark h3 { 
-            font-size: 1.3rem; 
-            margin-bottom: 25px; 
-            color: #ff7b00; /* Titres orange */
-            font-weight: 700;
-        }
-        .footer-dark ul { 
-            list-style: none; 
-            padding: 0; 
-            margin-bottom: 30px;
-        }
-        .footer-dark ul li {
-            margin-bottom: 10px;
-        }
-        .footer-dark ul li a { 
-            color: #bdc3c7; 
-            text-decoration: none; 
-            transition: color 0.3s ease; 
-            font-size: 0.95rem;
-        }
-        .footer-dark ul li a:hover { 
-            color: #ff7b00; /* Orange au survol */
-            padding-left: 5px;
-        }
-        .footer-dark .social a { 
-            color: #ecf0f1; 
-            font-size: 1.8rem; 
-            margin: 0 12px; 
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-        .footer-dark .social a:hover { 
-            color: #ff7b00; 
-            transform: translateY(-3px);
-        }
-
         .container {
-        max-width: 100% !important;
-        padding-left: 100px;
-        padding-right: 100px;
+            max-width: 100% !important; /* Permet un contrôle total du padding */
+            padding-left: 15px; /* Mobile par défaut */
+            padding-right: 15px; /* Mobile par défaut */
         }
 
         p {
-            font-size: 1.25rem;
-            line-height: 1.7;
-            color: #555;;
+            font-size: 1.1rem; /* Ajusté pour mobile */
+            line-height: 1.6;
+            /* color: white !important; */
+        }
+
+        h1 {
+            font-size: 2rem; /* Ajusté pour mobile */
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        h2 {
+            color: var(--secondary-color) !important;
+            margin-bottom: 20px;
+            font-size: 1.8rem; /* Ajusté pour mobile */
+        }
+
+        h3 {
+            color: var(--primary-color) !important;
+            margin-bottom: 20px;
+            font-size: 1.5rem; /* Ajusté pour mobile */
         }
 
         ul {
@@ -206,42 +88,182 @@
             margin-bottom: 10px;
         }
 
+        /* Styles pour les titres spécifiques */
+        .titre {
+            color: var(--secondary-color); /* Vert */
+            font-weight: bold;
+            font-size: 28px; /* Ajusté pour mobile */
+            text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+        }
+
+        .slogan {
+            color: var(--primary-color); /* Orange */
+            font-weight: bold;
+            font-size: 20px; /* Ajusté pour mobile */
+            text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-color-dark);
+            position: relative;
+        }
+
+        /* Utilitaires */
+        .text-orange {
+            color: var(--primary-color) !important;
+        }
+
         .img-fluid {
-            width: 100%;
+            max-width: 100%;
             height: auto;
         }
 
         .rounded-image { /* Nouveau style pour les images encadrées */
-            border-radius: 10px;
-            /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+            border-radius: var(--border-radius-base);
             transition: transform 0.3s ease-in-out;
         }
         .rounded-image:hover {
             transform: scale(1.02);
         }
 
-       .about-intro {
-            width: 100%;                 /* prend toute la largeur */
-            margin: 0 0 3rem 0;          /* marge en bas uniquement */
-            padding: 2rem;               /* espace intérieur */
-            background-color: #ffffff;   /* fond blanc */
-            border-radius: 0;            /* si tu veux vraiment bord à bord, sinon laisse 8px */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        /* ==========================================================================
+        3. Header et Navigation
+        ========================================================================== */
+        /* Section d'entête avec image de fond */
+        .header-section {
+            background-image: url('{{ asset('images/equip1.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 250px; /* Réduit pour mobile */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            color: white;
+            padding: 3rem 0; /* Ajusté pour mobile */
+            margin-bottom: 1.5rem; /* Ajusté pour mobile */
+        }
+        /* Overlay semi-transparent */
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .header-section h1, .header-section p {
+            position: relative;
+            z-index: 2;
+        }
+        .header-section p {
+            font-size: 1rem; /* Texte de paragraphe plus petit sur l'entête pour mobile */
         }
 
+        /* Barre de navigation */
+        header {
+            padding: 0.5rem 0; /* Padding plus petit pour le header sur mobile */
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .navbar-brand img {
+            max-height: 60px; /* Taille du logo ajustée pour mobile */
+        }
+        .navbar-nav .nav-link {
+            color: white !important;
+            padding: 0.5rem 1rem !important; /* Assure une zone de contact suffisante */
+            font-weight: bold;
+            text-align: center;
+        }
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+                .navbar-nav .nav-link.active {
+                    color: #ffc107 !important;
+                    border-bottom: 3px solid #ffc107;
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px 4px 0 0;
+                }
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.5%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* ==========================================================================
+        4. Carousel
+        ========================================================================== */
+        .carousel {
+            height: 400px;
+        }
+        .carousel-item {
+            height: 400px; /* Ajusté pour mobile */
+        }
+        .carousel-item img {
+            object-fit: cover;
+            height: 100%; /* S'assure que l'image remplit le conteneur */
+        }
+        .carousel-image {
+            filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.5));
+        }
+        .carousel-caption {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            text-align: center;
+            font-size: 0.8rem; /* Texte de légende plus petit */
+        }
+
+        /* ==========================================================================
+        5. Sections Spécifiques (À Propos, Mission/Vision, Équipe)
+        ========================================================================== */
+
+        /* Section "À propos" introductive */
+        .about-intro {
+            width: 100%;
+            margin: 0 0 2rem 0; /* Ajusté pour mobile */
+            padding: 1.5rem; /* Ajusté pour mobile */
+            background-color: #ffffff;
+            border-radius: 0; /* Bords à bords */
+            box-shadow: var(--box-shadow-base);
+        }
+
+        /* Section Mission/Vision */
         .mission-vision-section {
-            margin-bottom: 3rem;
+            margin-bottom: 2rem; /* Ajusté pour mobile */
         }
         .mission-vision-section .row > div {
-            padding: 1.5rem;
+            padding: 1rem; /* Padding plus petit pour les cartes */
             background-color: #ffffff;
-            /* border-radius: 8px; */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
+            border-radius: var(--border-radius-base);
+            box-shadow: var(--box-shadow-base);
+            margin-bottom: 1rem; /* Marge plus petite entre les cartes */
         }
         .mission-vision-section h3 {
-            margin-bottom: 1rem;
-            font-weight: bold;
+            font-weight: 700;
+            margin-bottom: 1rem; /* Ajusté pour mobile */
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+        }
+        .mission-vision-section h3 i {
+            margin-right: 10px;
+            color: var(--primary-color);
         }
         .mission-vision-section ul {
             list-style: none;
@@ -251,114 +273,66 @@
             margin-bottom: 0.5rem;
             display: flex;
             align-items: flex-start;
+            font-size: 0.95rem; /* Texte des éléments de liste plus petit */
         }
         .mission-vision-section ul li i.fas, .mission-vision-section ul li span.bullet {
             margin-right: 10px;
-            color: orange;
-            font-size: 1.2em;
+            color: var(--primary-color);
+            font-size: 1.1em; /* Ajusté pour mobile */
         }
         .mission-vision-section ul li strong {
-            color: #333;
+            color: var(--text-color-dark);
         }
 
+        /* Section Équipe */
         .team-section {
-            margin-top: 4rem;
+            margin-top: 2rem; /* Ajusté pour mobile */
             text-align: center;
         }
         .team-member {
-            margin-bottom: 2rem;
-            padding: 1rem;
-            /* background-color: #ffffff; */
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem; /* Ajusté pour mobile */
+            padding: 0.8rem; /* Ajusté pour mobile */
+            /* background-color: #ffffff; */ /* Retiré si background-color n'est pas nécessaire */
+            border-radius: var(--border-radius-base);
+            box-shadow: var(--box-shadow-base);
         }
         .team-member img {
-            width: 150px;
-            height: 150px;
+            width: 120px; /* Taille d'image plus petite pour les membres de l'équipe */
+            height: 120px;
             object-fit: cover;
             border-radius: 50%;
-            margin-bottom: 1rem;
-            border: 3px solid orange;
+            margin-bottom: 0.8rem; /* Ajusté pour mobile */
+            border: 3px solid var(--primary-color);
         }
         .team-member h4 {
-            color: #333;
+            color: var(--text-color-dark);
             margin-bottom: 0.5rem;
+            font-size: 1.3rem;
         }
         .team-member p {
-            color: orange;
-            font-weight: bold;
-        }
-
-        .text-orange {
-            color: orange !important;
-        }
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-            font-size: 2rem;
-            font-weight: bold;
-            color: #333;
-            position: relative;
-        }
-
-        .titre {
-            color: green;
-            font-weight: bold;
-            font-size: 32px;
-            text-shadow:
-                -1px -1px 0 white,
-                 1px -1px 0 white,
-                -1px  1px 0 white,
-                 1px  1px 0 white;
-        }
-
-        .slogan {
-            color: orange;
-            font-weight: bold;
-            font-size: 24px;
-            text-shadow:
-                -1px -1px 0 white,
-                 1px -1px 0 white,
-                -1px  1px 0 white,
-                 1px  1px 0 white;
-        }
-
-                .mission-vision-section {
-            /* padding: 4rem 0; */
-            background-color: var(--light-bg);
-        }
-        
-        .mission-vision-section h3 {
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 3px solid var(--primary-color);
-            display: inline-block;
-        }
-        
-        .mission-vision-section h3 i {
-            margin-right: 10px;
             color: var(--primary-color);
+            font-weight: bold;
+            font-size: 0.95rem;
         }
-        
+
+        /* ==========================================================================
+        6. Sections de Services / Cartes d'Agence
+        ========================================================================== */
         .services-list {
             list-style: none;
             padding: 0;
         }
-        
         .services-list > li {
             margin-bottom: 2rem;
             background: white;
-            border-radius: 8px;
+            border-radius: var(--border-radius-base);
             padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: var(--box-shadow-hover);
             transition: transform 0.3s ease;
         }
-        
         .services-list > li:hover {
             transform: translateY(-5px);
         }
-        
         .bullet {
             display: inline-block;
             width: 30px;
@@ -368,63 +342,217 @@
             margin-right: 10px;
             font-size: 1.2rem;
         }
-        
-        .text-orange {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-        
+
         .service-details {
             list-style: none;
             padding-left: 0;
             margin-top: 0.8rem;
         }
-        
         .service-details li {
-            /* padding: 0.5rem 0; */
             display: flex;
             align-items: flex-start;
         }
-        
         .service-details i {
             margin-right: 10px;
             color: var(--primary-color);
             min-width: 20px;
             margin-top: 4px;
         }
-        
-        .rounded-image {
-            border-radius: 8px;
-            /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); */
-            transition: transform 0.3s ease;
-        }
-        
-        .rounded-image:hover {
-            transform: scale(1.02);
-        }
-        
-        @media (max-width: 768px) {
-            .mission-vision-section {
-                padding: 2rem 0;
-            }
-            
-            .services-list > li {
-                padding: 1rem;
-            }
-        }
         .service-title {
             margin-top: 1rem;
-            font-size: 1.5rem;
+            font-size: 1.3rem; /* Ajusté pour mobile */
             font-weight: 700;
-            color: orange;
-
+            color: var(--primary-color);
         }
-        .card-header {
-            /* background-color: orange; */
-            color: orange;
+        .service-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        /* Cartes générales (pour agence ou autres services) */
+        .card-agency, .service-card {
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius-base);
+            overflow: hidden;
+            background-color: #fff;
+            box-shadow: var(--box-shadow-base);
+        }
+        .card-agency .card-header, .service-card .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            font-size: 1.1rem;
             font-weight: bold;
-            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: none;
+        }
+        .card-agency .card-header .country-flag {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        .card-agency .card-body, .service-card .card-body {
+            padding: 15px;
+        }
+
+
+        /* ==========================================================================
+        7. Footer
+        ========================================================================== */
+        .footer-dark {
+            background-color: var(--dark-bg); /* Couleur sombre plus profonde */
+            color: var(--text-color-light); /* Texte gris clair */
+            padding: 40px 0 20px 0; /* Ajusté pour mobile */
+            border-top: 5px solid var(--primary-color); /* Ligne orange en haut du footer */
+        }
+        .footer-dark h3 {
+            font-size: 1.2rem; /* Ajusté pour mobile */
+            margin-bottom: 15px; /* Ajusté pour mobile */
+            color: var(--primary-color); /* Titres orange */
+            font-weight: 700;
+        }
+        .footer-dark ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        .footer-dark ul li {
+            margin-bottom: 10px;
+        }
+        .footer-dark ul li a {
+            color: var(--footer-link-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.9rem; /* Ajusté pour mobile */
+        }
+        .footer-dark ul li a:hover {
+            color: var(--primary-color); /* Orange au survol */
+            padding-left: 5px;
+        }
+        .footer-dark .social a {
+            color: var(--text-color-light);
+            font-size: 1.5rem; /* Ajusté pour mobile */
+            margin: 0 8px; /* Ajusté pour mobile */
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .footer-dark .social a:hover {
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        .footer-dark .copyright {
+            font-size: 0.85rem;
             text-align: center;
+            margin-top: 20px;
+        }
+
+        /* ==========================================================================
+        8. Media Queries pour les écrans plus larges (Desktop)
+        ========================================================================== */
+        @media (min-width: 768px) {
+            .container {
+                padding-left: 100px;
+                padding-right: 100px;
+            }
+            p {
+                font-size: 1.25rem;
+                line-height: 1.7;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            h2 {
+                font-size: 2.5rem;
+            }
+            h3 {
+                font-size: 1.8rem;
+            }
+            .header-section {
+                min-height: 300px;
+                padding: 4rem 0;
+                margin-bottom: 2rem;
+            }
+            .header-section p {
+                font-size: 1.1rem;
+            }
+            .navbar-brand img {
+                max-height: 70px;
+            }
+                .navbar-nav .nav-link.active {
+                    color: #ffc107 !important;
+                    border-bottom: 3px solid #ffc107;
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px 4px 0 0;
+                }
+            .about-intro {
+                padding: 2rem;
+                margin: 0 0 3rem 0;
+            }
+            .titre {
+                font-size: 32px;
+            }
+            .slogan {
+                font-size: 24px;
+            }
+            .mission-vision-section {
+                margin-bottom: 3rem;
+            }
+            .mission-vision-section .row > div {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            .mission-vision-section h3 {
+                font-size: 1.6rem;
+                margin-bottom: 1.5rem;
+            }
+            .mission-vision-section ul li {
+                font-size: 1rem;
+            }
+            .mission-vision-section ul li i.fas, .mission-vision-section ul li span.bullet {
+                font-size: 1.2em;
+            }
+            .team-section {
+                margin-top: 4rem;
+            }
+            .team-member {
+                margin-bottom: 2rem;
+                padding: 1rem;
+            }
+            .team-member img {
+                width: 150px;
+                height: 150px;
+            }
+            .team-member h4 {
+                font-size: 1.5rem;
+            }
+            .team-member p {
+                font-size: 1rem;
+            }
+            .footer-dark {
+                padding: 60px 0 30px 0;
+            }
+            .footer-dark h3 {
+                font-size: 1.3rem;
+                margin-bottom: 25px;
+            }
+            .footer-dark ul li a {
+                font-size: 0.95rem;
+            }
+            .footer-dark .social a {
+                font-size: 1.8rem;
+            }
+            .card-agency .card-header, .service-card .card-header {
+                font-size: 1.2rem;
+                padding: 12px 20px;
+            }
+            .service-icon {
+                font-size: 3rem;
+            }
+            .service-title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>

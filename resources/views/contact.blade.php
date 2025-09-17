@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - AFT Import Export</title>
+    <title>Contact - AFRIQUE FRET TRANSIT IMPORT EXPORT</title>
     <!-- Liens CSS existants -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,11 +27,22 @@
                 padding-right: 50px;
             }
         }
-        .navbar-nav .nav-link { color: white !important; font-weight: bold; }
+
+                footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .navbar-nav .nav-link {
+             color: white !important;
+            font-weight: bold; 
+            text-align: center;
+        }
         .navbar-nav .nav-link:hover { color: orange !important; }
         .navbar-nav .nav-link.active {
-            color: #fff !important;
-            border-bottom: 3px solid #ff7b00; /* Soulignement orange vif pour l'actif */
+            color: #ffc107 !important;
+            border-bottom: 3px solid #ffc107;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 4px 4px 0 0;
         }
@@ -211,10 +222,119 @@
         }
 
         @media (max-width: 767px) {
-            .contact-form-image img {
-                max-width: 120px; /* réduire sur mobile */
+            .navbar-brand img {
+                max-height: 50px;
+            }
+
+            /* Pour les écrans mobiles, le container prend toute la largeur */
+            .container {
+                padding-left: 15px; /* Réduit le padding sur les côtés */
+                padding-right: 15px; /* Réduit le padding sur les côtés */
             }
         }
+        @media (min-width: 768px) {
+    .container {
+        padding-left: 100px;
+        padding-right: 100px;
+    }
+    p {
+        font-size: 1.25rem;
+        line-height: 1.7;
+    }
+    h1 {
+        font-size: 2.5rem;
+    }
+    h2 {
+        font-size: 2.5rem;
+    }
+    h3 {
+        font-size: 1.8rem;
+    }
+    .header-section {
+        min-height: 300px;
+        padding: 4rem 0;
+        margin-bottom: 2rem;
+    }
+    .header-section p {
+        font-size: 1.1rem;
+    }
+    .navbar-brand img {
+        max-height: 70px;
+    }
+        .navbar-nav .nav-link.active {
+            color: #ffc107 !important;
+            border-bottom: 3px solid #ffc107;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px 4px 0 0;
+        }
+    .about-intro {
+        padding: 2rem;
+        margin: 0 0 3rem 0;
+    }
+    .titre {
+        font-size: 32px;
+    }
+    .slogan {
+        font-size: 24px;
+    }
+    .mission-vision-section {
+        margin-bottom: 3rem;
+    }
+    .mission-vision-section .row > div {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .mission-vision-section h3 {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+    }
+    .mission-vision-section ul li {
+        font-size: 1rem;
+    }
+    .mission-vision-section ul li i.fas, .mission-vision-section ul li span.bullet {
+        font-size: 1.2em;
+    }
+    .team-section {
+        margin-top: 4rem;
+    }
+    .team-member {
+        margin-bottom: 2rem;
+        padding: 1rem;
+    }
+    .team-member img {
+        width: 150px;
+        height: 150px;
+    }
+    .team-member h4 {
+        font-size: 1.5rem;
+    }
+    .team-member p {
+        font-size: 1rem;
+    }
+    .footer-dark {
+        padding: 60px 0 30px 0;
+    }
+    .footer-dark h3 {
+        font-size: 1.3rem;
+        margin-bottom: 25px;
+    }
+    .footer-dark ul li a {
+        font-size: 0.95rem;
+    }
+    .footer-dark .social a {
+        font-size: 1.8rem;
+    }
+    .card-agency .card-header, .service-card .card-header {
+        font-size: 1.2rem;
+        padding: 12px 20px;
+    }
+    .service-icon {
+        font-size: 3rem;
+    }
+    .service-title {
+        font-size: 1.5rem;
+    }
+}
 
 </style>
 </head>

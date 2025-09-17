@@ -845,32 +845,43 @@ public function store_colis(Request $request)
         if (!Auth::check()) {
             return response()->json(['message' => 'Utilisateur non authentifié'], 401);
         }
-        $email = Auth::user()->email;
+        
+        $user = Auth::user();
+        $telephone = $user->tel;
 
         $query = Colis::query()
             ->select(
                 'colis.reference_colis',
                 DB::raw('COUNT(colis.id) as nombre_colis_par_reference'),
                 'expediteurs.agence as expediteur_agence',   
+                'expediteurs.email as expediteur_email',
+                'expediteurs.tel as expediteur_tel',
                 'destinataires.nom as destinataire_nom',   
                 'destinataires.prenom as destinataire_prenom', 
                 'destinataires.tel as destinataire_tel',              
-                'destinataires.agence as destinataire_agence',      
+                'destinataires.agence as destinataire_agence',
+                'destinataires.email as destinataire_email',
                 'colis.etat',                                       
-                DB::raw('MAX(colis.updated_at) as last_updated_at') 
+                DB::raw('MAX(colis.updated_at) as last_updated_at')
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->where('expediteurs.email', $email)
+            ->where(function($query) use ($telephone) {
+                $query->where('expediteurs.tel', $telephone)
+                    ->orWhere('destinataires.tel', $telephone);
+            })
             ->whereIn('colis.etat', ['En transit', 'Validé', 'En entrepot', 'Dechargé', 'Chargé', 'Fermé', 'Livré'])
             ->groupBy(
                 'colis.reference_colis',
                 'expediteurs.agence',
+                'expediteurs.email',
+                'expediteurs.tel',
                 'destinataires.nom',
                 'destinataires.prenom',
                 'destinataires.tel',
                 'destinataires.agence',
-                'colis.etat' 
+                'destinataires.email',
+                'colis.etat'
             );
 
         return DataTables::of($query)
@@ -897,8 +908,21 @@ public function store_colis(Request $request)
                         return $row->etat; 
                 }
             })
-            
-            ->rawColumns([])
+            ->addColumn('statut_personnalise', function ($row) use ($telephone) {
+                $isExpediteur = ($row->expediteur_tel === $telephone);
+                $isDestinataire = ($row->destinataire_tel === $telephone);
+                
+                if ($isExpediteur && $isDestinataire) {
+                    return '<span class="badge badge-info">Envoyé & Récupéré</span>';
+                } elseif ($isExpediteur) {
+                    return '<span class="badge badge-primary">Expédié</span>';
+                } elseif ($isDestinataire) {
+                    return '<span class="badge badge-success">A Récupérer</span>';
+                } else {
+                    return '<span class="badge badge-secondary">Autre</span>';
+                }
+            })
+            ->rawColumns(['statut_personnalise'])
             ->make(true);
     }
 
