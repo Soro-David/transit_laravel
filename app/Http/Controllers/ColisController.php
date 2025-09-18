@@ -2880,8 +2880,16 @@ public function destroy_bateaux($id)
 
 public function liste_colis_par_bateau($reference_conteneur)
 {
-    $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
-        // dd($colis);
+        $colis = Colis::where(function($query) use ($reference_conteneur) {
+                    $query->where('reference_contenaire', $reference_conteneur)
+                        ->orWhere(function($q) use ($reference_conteneur) {
+                            $q->whereNull('reference_contenaire')
+                                ->where('reference_colis', 'like', "%-$reference_conteneur");
+                        });
+                })
+                ->selectRaw('reference_colis, SUM(quantite_colis) as quantite_colis, SUM(poids_colis) as poids_colis')
+                ->groupBy('reference_colis')
+                ->get();
 
     return view('admin.cargaison.liste_bateau', compact('colis'));
 }
