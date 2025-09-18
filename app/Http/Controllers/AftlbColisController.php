@@ -628,6 +628,7 @@ class AftlbColisController extends Controller
             } else {
                 $prefix = 'GEN'; // générique si pas défini
             }
+            $mode_transit = $data['mode_transit'] ?? 'maritime';
 
             // Récupérer le dernier colis pour ce mode
             $dernierColis = Colis::where('mode_transit', $data['mode_transit'])

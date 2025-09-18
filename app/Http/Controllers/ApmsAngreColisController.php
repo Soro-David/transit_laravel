@@ -149,6 +149,7 @@ private function generateReferenceParMode(string $mode_transit)
         substr($user->first_name ?? 'X', 0, 1)
     );
 
+    $mode_transit = $data['mode_transit'] ?? 'maritime';
     // Vérifier si le dernier colis de ce mode est "Fermé"
     $dernierColis = DB::table('colis')
         ->where('mode_transit', $mode_transit)

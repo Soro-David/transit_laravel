@@ -658,6 +658,7 @@ public function vol_fermer(Request $request)
                     $prefix = 'GEN'; // générique si pas défini
                 }
 
+                $mode_transit = $data['mode_transit'] ?? 'maritime';
                 // Récupérer le dernier colis pour ce mode
                 $dernierColis = Colis::where('mode_transit', $data['mode_transit'])
                     ->orderByDesc('id')
