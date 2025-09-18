@@ -618,45 +618,21 @@ class AftlbColisController extends Controller
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
             // On initialise la référence du colis
+            // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
+
+
             $referenceColisPrincipale = '';
 
-            // Vérifier le mode de transit
             if ($data['mode_transit'] === 'maritime') {
-                $prefix = 'MAR';
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
             } elseif ($data['mode_transit'] === 'aerien') {
-                $prefix = 'AER';
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
             } else {
-                $prefix = 'GEN'; // générique si pas défini
-            }
-            $mode_transit = $data['mode_transit'] ?? 'maritime';
-
-            // Récupérer le dernier colis pour ce mode
-            $dernierColis = Colis::where('mode_transit', $data['mode_transit'])
-                ->orderByDesc('id')
-                ->first();
-
-            if ($dernierColis && $dernierColis->etat === 'Fermé') {
-                // Si le dernier colis de ce mode est fermé → on réinitialise à 1
-                $numero = 1;
-            } else {
-                // Sinon on continue à partir de la dernière référence de ce mode
-                $lastReference = Colis::where('mode_transit', $data['mode_transit'])
-                    ->whereNotNull('reference_colis')
-                    ->orderByDesc('id')
-                    ->value('reference_colis');
-
-                if ($lastReference) {
-                    // Extraire le numéro depuis la référence (ex: SD-0005-MAR → 5)
-                    preg_match('/SD-(\d+)-' . $prefix . '/', $lastReference, $matches);
-                    $numero = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
-                } else {
-                    $numero = 1;
-                }
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
             }
 
-            // Générer la nouvelle référence
-            $referenceColisPrincipale = sprintf("SD-%04d-%s", $numero, $prefix);
 
+            // dd($referenceColisPrincipale);
 
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int) $quantite_pour_ligne_article;
