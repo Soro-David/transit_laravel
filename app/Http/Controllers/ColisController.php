@@ -330,64 +330,62 @@ class ColisController extends Controller
         return "A" . $newNumber;
     }
 
-    private function generateReferenceParMode(string $mode_transit)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            throw new \Exception("Utilisateur non connecté.");
-        }
-
-        // Initiales de l'utilisateur (ex: SE)
-        $initiales = strtoupper(
-            substr($user->last_name ?? 'X', 0, 1) .
-            substr($user->first_name ?? 'X', 0, 1)
-        );
-
-        // Vérifier si le dernier colis de ce mode est "Fermé"
-        $dernierColis = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->orderByDesc('id')
-            ->first();
-
-        if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si fermé => reset à 1
-            $nextIdRef = 1;
-        } else {
-            // Sinon on continue l'incrémentation
-            $lastIdRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->max('id_reference');
-            $nextIdRef = ($lastIdRef ?? 0) + 1;
-        }
-
-        // Déterminer la bonne référence de conteneur ou vol selon le mode
-        if ($mode_transit === 'maritime') {
-            $contenaireRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->where('etat', '!=', 'Fermé')
-                ->orderByDesc('id')
-                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-        } elseif ($mode_transit === 'aerien') {
-            $contenaireRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->where('etat', '!=', 'Fermé')
-                ->orderByDesc('id')
-                ->value('reference_vol') ?? $this->generateReferenceVol();
-        } else {
-            throw new \Exception("Mode de transit invalide : $mode_transit");
-        }
-
-        // Format final de la référence du colis
-        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
-        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-        return [
-            'reference_colis' => $reference,
-            'id_reference' => $nextIdRef,
-            'reference_contenaire' => $contenaireRef
-        ];
+private function generateReferenceParMode(string $mode_transit)
+{
+    $user = Auth::user();
+    if (!$user) {
+        throw new \Exception("Utilisateur non connecté.");
     }
+
+    // Initiales de l'utilisateur (ex: SE)
+    $initiales = strtoupper(
+        substr($user->last_name ?? 'X', 0, 1) .
+        substr($user->first_name ?? 'X', 0, 1)
+    );
+
+    // Récupérer le dernier id_reference uniquement pour ce mode_transit
+    $lastIdRef = DB::table('colis')
+        ->where('mode_transit', $mode_transit)
+        ->max('id_reference');
+
+    $nextIdRef = ($lastIdRef ?? 0) + 1;
+
+    // Déterminer la référence du conteneur/vol en fonction du mode
+    if ($mode_transit === 'maritime') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if (!$contenaireRef) {
+            $contenaireRef = $this->generateReferenceContenaire();
+        }
+    } elseif ($mode_transit === 'aerien') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_vol');
+
+        if (!$contenaireRef) {
+            $contenaireRef = $this->generateReferenceVol();
+        }
+    } else {
+        throw new \Exception("Mode de transit invalide : $mode_transit");
+    }
+
+    // Format final de la référence du colis
+    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    return [
+        'reference_colis' => $reference,
+        'id_reference' => $nextIdRef,
+        'reference_contenaire' => $contenaireRef
+    ];
+}
+
 
     public function genererReferenceSelonMode($mode)
     {
@@ -800,17 +798,22 @@ class ColisController extends Controller
         $colisEnregistres = [];
         $erreursCreation = [];
 
-        // On récupère le dernier colis enregistré
-        $dernierColis = Colis::orderBy('id', 'desc')->first();
+        // On récupère le dernier colis pour ce mode de transit
+        $dernierColis = Colis::where('mode_transit', $mode_transit)
+            ->orderBy('id', 'desc')
+            ->first();
 
         if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si le dernier est fermé, on réinitialise
+            // Si le dernier colis de CE mode est fermé → on redémarre à 1
             $id_reference = 1;
         } else {
-            // Sinon, on continue l’incrémentation
-            $dernierIdReference = Colis::max('id_reference') ?? 0;
+            // Sinon on incrémente à partir du dernier id_reference de CE mode
+            $dernierIdReference = Colis::where('mode_transit', $mode_transit)
+                ->max('id_reference') ?? 0;
+
             $id_reference = $dernierIdReference + 1;
         }
+
 
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;

@@ -240,43 +240,40 @@ class AftlbColisController extends Controller
             substr($user->first_name ?? 'X', 0, 1)
         );
 
-        // Vérifier si le dernier colis de ce mode est "Fermé"
-        $dernierColis = DB::table('colis')
+        // Récupérer le dernier id_reference uniquement pour ce mode_transit
+        $lastIdRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
-            ->orderByDesc('id')
-            ->first();
+            ->max('id_reference');
 
-        if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si fermé => reset à 1
-            $nextIdRef = 1;
-        } else {
-            // Sinon on continue l'incrémentation
-            $lastIdRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->max('id_reference');
-            $nextIdRef = ($lastIdRef ?? 0) + 1;
-        }
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
 
-        // Déterminer la bonne référence de conteneur ou vol selon le mode
+        // Déterminer la référence du conteneur/vol en fonction du mode
         if ($mode_transit === 'maritime') {
             $contenaireRef = DB::table('colis')
                 ->where('mode_transit', $mode_transit)
                 ->where('etat', '!=', 'Fermé')
                 ->orderByDesc('id')
-                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+                ->value('reference_contenaire');
+
+            if (!$contenaireRef) {
+                $contenaireRef = $this->generateReferenceContenaire();
+            }
         } elseif ($mode_transit === 'aerien') {
             $contenaireRef = DB::table('colis')
                 ->where('mode_transit', $mode_transit)
                 ->where('etat', '!=', 'Fermé')
                 ->orderByDesc('id')
-                ->value('reference_vol') ?? $this->generateReferenceVol();
+                ->value('reference_vol');
+
+            if (!$contenaireRef) {
+                $contenaireRef = $this->generateReferenceVol();
+            }
         } else {
             throw new \Exception("Mode de transit invalide : $mode_transit");
         }
 
         // Format final de la référence du colis
         $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
         $reference = "{$initiales}-{$numero}-{$contenaireRef}";
 
         return [
@@ -285,6 +282,7 @@ class AftlbColisController extends Controller
             'reference_contenaire' => $contenaireRef
         ];
     }
+
 
     public function genererReferenceSelonMode($mode)
     {
@@ -628,24 +626,24 @@ class AftlbColisController extends Controller
                 $prefix = 'GEN'; // générique si pas défini
             }
 
-            // Vérifier si le dernier colis est fermé
+            // Récupérer le dernier colis pour ce mode
             $dernierColis = Colis::where('mode_transit', $data['mode_transit'])
                 ->orderByDesc('id')
                 ->first();
 
             if ($dernierColis && $dernierColis->etat === 'Fermé') {
-                // Réinitialiser le compteur à 1
+                // Si le dernier colis de ce mode est fermé → on réinitialise à 1
                 $numero = 1;
             } else {
-                // Récupérer le dernier numéro de référence existant pour ce mode de transit
+                // Sinon on continue à partir de la dernière référence de ce mode
                 $lastReference = Colis::where('mode_transit', $data['mode_transit'])
                     ->whereNotNull('reference_colis')
                     ->orderByDesc('id')
                     ->value('reference_colis');
 
                 if ($lastReference) {
-                    // Extraire le numéro à partir de la référence (ex: SD-0005-MAR → 5)
-                    preg_match('/-(\d+)-' . $prefix . '/', $lastReference, $matches);
+                    // Extraire le numéro depuis la référence (ex: SD-0005-MAR → 5)
+                    preg_match('/SD-(\d+)-' . $prefix . '/', $lastReference, $matches);
                     $numero = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
                 } else {
                     $numero = 1;
@@ -654,6 +652,7 @@ class AftlbColisController extends Controller
 
             // Générer la nouvelle référence
             $referenceColisPrincipale = sprintf("SD-%04d-%s", $numero, $prefix);
+
 
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int) $quantite_pour_ligne_article;
