@@ -801,6 +801,7 @@ private function generateReferenceParMode(string $mode_transit)
         $colisEnregistres = [];
         $erreursCreation = [];
 
+        $mode_transit = $data['mode_transit'] ?? 'maritime'; // Valeur par défaut si absente
         // On récupère le dernier colis pour ce mode de transit
         $dernierColis = Colis::where('mode_transit', $mode_transit)
             ->orderBy('id', 'desc')
