@@ -2641,7 +2641,7 @@ public function get_colis_bateau(Request $request)
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
             ->where('etat', 'Fermé')
-            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+            // ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
             ->get()
             ->groupBy('reference_colis');
 
