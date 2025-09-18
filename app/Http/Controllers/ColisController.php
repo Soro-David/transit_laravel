@@ -343,40 +343,43 @@ private function generateReferenceParMode(string $mode_transit)
         substr($user->first_name ?? 'X', 0, 1)
     );
 
-    // Récupérer le dernier id_reference uniquement pour ce mode_transit
-    $lastIdRef = DB::table('colis')
+    // Vérifier si le dernier colis de ce mode est "Fermé"
+    $dernierColis = DB::table('colis')
         ->where('mode_transit', $mode_transit)
-        ->max('id_reference');
+        ->orderByDesc('id')
+        ->first();
 
-    $nextIdRef = ($lastIdRef ?? 0) + 1;
+    if ($dernierColis && $dernierColis->etat === 'Fermé') {
+        // Si fermé => reset à 1
+        $nextIdRef = 1;
+    } else {
+        // Sinon on continue l'incrémentation
+        $lastIdRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->max('id_reference');
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
+    }
 
-    // Déterminer la référence du conteneur/vol en fonction du mode
+    // Déterminer la bonne référence de conteneur ou vol selon le mode
     if ($mode_transit === 'maritime') {
         $contenaireRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('etat', '!=', 'Fermé')
             ->orderByDesc('id')
-            ->value('reference_contenaire');
-
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceContenaire();
-        }
+            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
     } elseif ($mode_transit === 'aerien') {
         $contenaireRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('etat', '!=', 'Fermé')
             ->orderByDesc('id')
-            ->value('reference_vol');
-
-        if (!$contenaireRef) {
-            $contenaireRef = $this->generateReferenceVol();
-        }
+            ->value('reference_vol') ?? $this->generateReferenceVol();
     } else {
         throw new \Exception("Mode de transit invalide : $mode_transit");
     }
 
     // Format final de la référence du colis
     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+    $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
 
     return [
