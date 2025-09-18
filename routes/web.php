@@ -77,6 +77,11 @@ use App\Http\Controllers\ProspectController;
 use App\Http\Controllers\ColisTrackingController;
 
 
+use App\Http\Controllers\OrangeSmsController;
+
+Route::get('/test-sms', [OrangeSmsController::class, 'sendTestSms']);
+
+
 Route::get('/test-mail', function () {
     $emailData = [
         'reference_colis_principale' => 'TEST-12345',
@@ -306,6 +311,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-contenaire-colis',[ColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/get-vol-colis',[ColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/get-colis-hold',[ColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        Route::get('/get-colis-bateau',[ColisController::class, 'get_colis_bateau'])->name('get.colis.bateau');
         Route::get('/devis-hold',[ColisController::class, 'devis_hold'])->name('devis.hold');
         Route::get('/colis-valide',[ColisController::class, 'colis_valide'])->name('colis.valide');
         Route::get('/cargaison-ferme',[ColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');

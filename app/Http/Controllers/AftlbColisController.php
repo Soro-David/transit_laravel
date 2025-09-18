@@ -185,62 +185,7 @@ class AftlbColisController extends Controller
         return $baseReference; 
     }
    
-    // private function generateReferenceContenaire()
-    // {
-    //     $alphabet = range('A', 'Z');
-    //     $letterIndex = 0;
-    //     $increment = 1;
-    
-    //     do {
-    //         $currentLetter = $alphabet[$letterIndex];
-    //         $baseReference = "{$currentLetter}{$increment}";
-    
-    //         $exists = DB::table('colis')
-    //                     ->where('reference_contenaire', $baseReference)
-    //                     ->exists();
-    
-    //         if ($exists) {
-    //             $increment++;
-    //             if ($increment > 5) {
-    //                 $increment = 1;
-    //                 $letterIndex++;
-    //             }
-    //         }
-    //     } while ($exists && $letterIndex < count($alphabet));
-    
-    //     if ($letterIndex >= count($alphabet)) {
-    //         throw new \Exception("Plus de références de conteneur disponibles.");
-    //     }
-    
-    //     return $baseReference;
-    // }
-    
-    
-    // private function generateReferenceVol()
-    // {
-    //     $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-    //     $letterIndex = 0; // Commencer par 'A'
-    //     $increment = 1; // Commencer par 1
-    
-    //     do {
-    //         $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-    //         $baseReference = "{$currentLetter}{$increment}";
-    
-    //         // Vérifier si la référence existe dans la table `colis`
-    //         $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-    //         if ($exists) {
-    //             $increment++; // Incrémenter le numéro
-    
-    //             if ($increment > 5) {
-    //                 $increment = 1;
-    //                 $letterIndex++;
-    //             }
-    //         }
-    //     } while ($exists && $letterIndex < count($alphabet));
-    
-    //     return $baseReference;
-    // }
+
 
     private function generateReferenceContenaire()
     {
@@ -261,7 +206,6 @@ class AftlbColisController extends Controller
 
         return "TC" . $newNumber;
     }
-
 
     private function generateReferenceVol()
     {
@@ -296,18 +240,22 @@ class AftlbColisController extends Controller
             substr($user->first_name ?? 'X', 0, 1)
         );
 
-        // Agence cible
-        $agence = 'AFT Agence Louis Bleriot';
+        // Vérifier si le dernier colis de ce mode est "Fermé"
+        $dernierColis = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->orderByDesc('id')
+            ->first();
 
-        // Dernier identifiant de référence par mode + agence
-        $lastIdRef = DB::table('colis')
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->where('colis.mode_transit', $mode_transit)
-            ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
-            ->max('colis.id_reference');
-
-        // Incrémentation de l'ID de référence
-        $nextIdRef = ($lastIdRef ?? 0) + 1;
+        if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si fermé => reset à 1
+            $nextIdRef = 1;
+        } else {
+            // Sinon on continue l'incrémentation
+            $lastIdRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->max('id_reference');
+            $nextIdRef = ($lastIdRef ?? 0) + 1;
+        }
 
         // Déterminer la bonne référence de conteneur ou vol selon le mode
         if ($mode_transit === 'maritime') {
@@ -328,6 +276,7 @@ class AftlbColisController extends Controller
 
         // Format final de la référence du colis
         $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
         $reference = "{$initiales}-{$numero}-{$contenaireRef}";
 
         return [
@@ -336,10 +285,6 @@ class AftlbColisController extends Controller
             'reference_contenaire' => $contenaireRef
         ];
     }
-
-
-
-
 
     public function genererReferenceSelonMode($mode)
     {
@@ -671,21 +616,45 @@ class AftlbColisController extends Controller
 
             // 4. Boucle de création des colis physiques
             $colisEnregistres = [];
-            // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
-
-
+            // On initialise la référence du colis
             $referenceColisPrincipale = '';
 
+            // Vérifier le mode de transit
             if ($data['mode_transit'] === 'maritime') {
-                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+                $prefix = 'MAR';
             } elseif ($data['mode_transit'] === 'aerien') {
-                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+                $prefix = 'AER';
             } else {
-                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+                $prefix = 'GEN'; // générique si pas défini
             }
 
+            // Vérifier si le dernier colis est fermé
+            $dernierColis = Colis::where('mode_transit', $data['mode_transit'])
+                ->orderByDesc('id')
+                ->first();
 
-            // dd($referenceColisPrincipale);
+            if ($dernierColis && $dernierColis->etat === 'Fermé') {
+                // Réinitialiser le compteur à 1
+                $numero = 1;
+            } else {
+                // Récupérer le dernier numéro de référence existant pour ce mode de transit
+                $lastReference = Colis::where('mode_transit', $data['mode_transit'])
+                    ->whereNotNull('reference_colis')
+                    ->orderByDesc('id')
+                    ->value('reference_colis');
+
+                if ($lastReference) {
+                    // Extraire le numéro à partir de la référence (ex: SD-0005-MAR → 5)
+                    preg_match('/-(\d+)-' . $prefix . '/', $lastReference, $matches);
+                    $numero = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
+                } else {
+                    $numero = 1;
+                }
+            }
+
+            // Générer la nouvelle référence
+            $referenceColisPrincipale = sprintf("SD-%04d-%s", $numero, $prefix);
+
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int) $quantite_pour_ligne_article;
                 if ($quantite_pour_ligne_article <= 0) {
@@ -849,7 +818,7 @@ class AftlbColisController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback la transaction en cas d'erreur
             Log::error("Erreur critique lors de la création de colis/paiement: " . $e->getMessage(), ['exception' => $e->getTraceAsString()]);
-            dd($e->getMessage());
+            // dd($e->getMessage());
             return redirect()->back()->with('error', 'Une erreur interne est survenue lors de la création du dossier. Aucune donnée n\'a été enregistrée.');
         }
     }
@@ -2658,13 +2627,59 @@ public function edit_colis_valide($id)
         return redirect()->back()->with('success', 'Bateau supprimé.');
     }
     
-    public function liste_colis_par_bateau($reference_conteneur)
-    {
-        $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
-        // dd($colis);
-    
-        return view('AFT_LOUIS_BLERIOT.cargaison.liste_bateau', compact('colis'));
+public function liste_colis_par_bateau($reference_conteneur)
+{
+ $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
+
+    return view('AFT_LOUIS_BLERIOT.cargaison.liste_bateau', compact('colis'));
+}
+
+public function get_colis_bateau(Request $request)
+{
+    if ($request->ajax()) {
+        $colis = Colis::select(
+                'colis.reference_colis',
+                'colis.etat',
+                'colis.created_at',
+                'expediteurs.nom as expediteur_nom',
+                'expediteurs.prenom as expediteur_prenom',
+                'expediteurs.tel as expediteur_tel',
+                'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom',
+                'destinataires.prenom as destinataire_prenom',
+                'destinataires.agence as destinataire_agence',
+                'destinataires.tel as destinataire_tel'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('etat', 'Fermé')
+            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+            ->get()
+            ->groupBy('reference_colis');
+
+        $colisWithCount = $colis->map(function ($group, $reference) {
+            $first = $group->first();
+            return [
+                'reference_colis' => $reference,
+                'nombre_de_colis' => $group->count(),
+                'expediteur_nom' => $first->expediteur_nom,
+                'expediteur_prenom' => $first->expediteur_prenom,
+                'expediteur_tel' => $first->expediteur_tel,
+                'expediteur_agence' => $first->expediteur_agence,
+                'destinataire_nom' => $first->destinataire_nom,
+                'destinataire_prenom' => $first->destinataire_prenom,
+                'destinataire_tel' => $first->destinataire_tel,
+                'destinataire_agence' => $first->destinataire_agence,
+                'etat' => $first->etat === 'Devis' ? 'Devis validé' : $first->etat,
+                'created_at' => $first->created_at ? $first->created_at->format('d/m/Y') : null,
+                'colis' => $group
+            ];
+        })->values();
+
+        return DataTables::of($colisWithCount)
+            ->make(true);
     }
+}
     
     public function update_bateaux(Request $request, $id)
     {

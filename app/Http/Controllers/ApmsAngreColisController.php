@@ -98,203 +98,102 @@ class ApmsAngreColisController extends Controller
     
     private function generateReferenceContenaire()
     {
-        $alphabet = range('A', 'Z');
-        $letterIndex = 0;
-        $increment = 1;
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex];
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            $exists = DB::table('colis')
-                        ->where('reference_contenaire', $baseReference)
-                        ->exists();
-    
-            if ($exists) {
-                $increment++;
-                if ($increment > 5) {
-                    $increment = 1;
-                    $letterIndex++;
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet));
-    
-        if ($letterIndex >= count($alphabet)) {
-            throw new \Exception("Plus de références de conteneur disponibles.");
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "TC")
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur
+            $newNumber = 1;
         }
-    
-        return $baseReference;
+
+        return "TC" . $newNumber;
     }
-    
-    
+
     private function generateReferenceVol()
     {
-        $alphabet = range('A', 'Z'); // Générer les lettres de A à Z
-        $letterIndex = 0; // Commencer par 'A'
-        $increment = 1; // Commencer par 1
-    
-        do {
-            $currentLetter = $alphabet[$letterIndex]; // Obtenir la lettre actuelle
-            $baseReference = "{$currentLetter}{$increment}";
-    
-            // Vérifier si la référence existe dans la table `colis`
-            $exists = DB::table('colis')->where('reference_vol', $baseReference)->exists();
-    
-            if ($exists) {
-                $increment++; // Incrémenter le numéro
-    
-                // Si on atteint 6 (au-delà de 5), on passe à la lettre suivante
-                if ($increment > 5) {
-                    $increment = 1; // Réinitialiser le numéro
-                    $letterIndex++; // Passer à la lettre suivante
-                }
-            }
-        } while ($exists && $letterIndex < count($alphabet)); // Continuer tant qu'on trouve une référence existante
-    
-        return $baseReference;// Retourner la référence finale
-    }
-    // private function generateReferenceColisComplet()
-    // {
-    //     $user = Auth::user();
-
-    //     if (!$user) {
-            
-    //         throw new \Exception("Utilisateur non connecté.");
-    //     }
-
-    //     $initiales = strtoupper(substr($user->last_name ?? 'X', 0, 1) . substr($user->first_name ?? 'X', 0, 1));
-    
-    //     $contenaireRef = DB::table('colis')
-    //         ->where('etat', '!=', 'Fermé') // Consider using constants or an enum for 'etat'
-    //         ->orderByDesc('id')
-    //         ->value('reference_contenaire');
-
-    //     if (!$contenaireRef) {
-    //         $contenaireRef = $this->generateReferenceContenaire();
-    //         if (!$contenaireRef) {
-    //             throw new \Exception("Impossible de générer une référence de conteneur.");
-    //         }
-    //     }
-
-    //     $lastId = DB::table('colis')->max('id');
-
-    //     $nextId = ($lastId === null) ? 1 : $lastId + 1;
-
-    //     $numero = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-
-    //     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    //     return [
-    //         'reference_colis' => $reference,
-    //         'reference_contenaire' => $contenaireRef
-    //     ];
-    // }
-
-
-
-
-
-// private function generateReferenceParMode(string $mode_transit)
-// {
-//     $user = Auth::user();
-//     if (!$user) {
-//         throw new \Exception("Utilisateur non connecté.");
-//     }
-
-//     // Initiales : ex SE
-//     $initiales = strtoupper(
-//         substr($user->last_name ?? 'X', 0, 1) .
-//         substr($user->first_name ?? 'X', 0, 1)
-//     );
-
-//     // Agence fixée
-//     $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
-
-//     // 🔍 Requête avec correction TRIM et LOWER
-//     $lastIdRef = DB::table('colis')
-//         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-//         ->where('colis.mode_transit', $mode_transit)
-//         ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
-//         ->max('colis.id_reference');
-
-//     // 🚀 Incrément
-//     $nextIdRef = ($lastIdRef ?? 0) + 1;
-
-//     // 📦 Conteneur actif
-//     $contenaireRef = DB::table('colis')
-//         ->where('mode_transit', $mode_transit)
-//         ->where('etat', '!=', 'Fermé')
-//         ->orderByDesc('id')
-//         ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-
-//     // 🔢 Format
-//     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-//     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-//     return [
-//         'reference_colis' => $reference,
-//         'id_reference' => $nextIdRef,
-//         'reference_contenaire' => $contenaireRef
-//     ];
-// }
-
-private function generateReferenceParMode(string $mode_transit)
-{
-    $user = Auth::user();
-    if (!$user) {
-        throw new \Exception("Utilisateur non connecté.");
-    }
-
-    // Initiales de l'utilisateur (ex: SE)
-    $initiales = strtoupper(
-        substr($user->last_name ?? 'X', 0, 1) .
-        substr($user->first_name ?? 'X', 0, 1)
-    );
-
-    // Agence cible
-    $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche';
-
-    // Dernier identifiant de référence par mode + agence
-    $lastIdRef = DB::table('colis')
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->where('colis.mode_transit', $mode_transit)
-        ->whereRaw("LOWER(TRIM(expediteurs.agence)) = ?", [strtolower(trim($agence))])
-        ->max('colis.id_reference');
-
-    // Incrémentation de l'ID de référence
-    $nextIdRef = ($lastIdRef ?? 0) + 1;
-
-    // Déterminer la bonne référence de conteneur ou vol selon le mode
-    if ($mode_transit === 'maritime') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
+        // Récupérer la dernière référence enregistrée
+        $lastReference = DB::table('colis')
+            ->whereNotNull('reference_vol')
             ->orderByDesc('id')
-            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-    } elseif ($mode_transit === 'aerien') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
-            ->orderByDesc('id')
-            ->value('reference_vol') ?? $this->generateReferenceVol();
-    } else {
-        throw new \Exception("Mode de transit invalide : $mode_transit");
+            ->value('reference_vol');
+
+        if ($lastReference) {
+            // Extraire le numéro (tout ce qui vient après "A")
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol
+            $newNumber = 1;
+        }
+
+        return "A" . $newNumber;
     }
 
-    // Format final de la référence du colis
-    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+    private function generateReferenceParMode(string $mode_transit)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
 
-    return [
-        'reference_colis' => $reference,
-        'id_reference' => $nextIdRef,
-        'reference_contenaire' => $contenaireRef
-    ];
-}
+        // Initiales de l'utilisateur (ex: SE)
+        $initiales = strtoupper(
+            substr($user->last_name ?? 'X', 0, 1) .
+            substr($user->first_name ?? 'X', 0, 1)
+        );
 
+        // Vérifier si le dernier colis de ce mode est "Fermé"
+        $dernierColis = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->orderByDesc('id')
+            ->first();
 
+        if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si fermé => reset à 1
+            $nextIdRef = 1;
+        } else {
+            // Sinon on continue l'incrémentation
+            $lastIdRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->max('id_reference');
+            $nextIdRef = ($lastIdRef ?? 0) + 1;
+        }
 
+        // Déterminer la bonne référence de conteneur ou vol selon le mode
+        if ($mode_transit === 'maritime') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+        } elseif ($mode_transit === 'aerien') {
+            $contenaireRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('etat', '!=', 'Fermé')
+                ->orderByDesc('id')
+                ->value('reference_vol') ?? $this->generateReferenceVol();
+        } else {
+            throw new \Exception("Mode de transit invalide : $mode_transit");
+        }
+
+        // Format final de la référence du colis
+        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
+        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+        return [
+            'reference_colis' => $reference,
+            'id_reference' => $nextIdRef,
+            'reference_contenaire' => $contenaireRef
+        ];
+    }
 
     public function genererReferenceSelonMode($mode)
     {

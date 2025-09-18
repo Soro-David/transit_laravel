@@ -298,7 +298,6 @@ class ColisController extends Controller
             ->orderByDesc('id')
             ->value('reference_contenaire');
 
-            // dd($lastReference);
         if ($lastReference) {
             // Extraire le numéro (tout ce qui vient après "TC")
             $lastNumber = (int) str_replace('TC', '', $lastReference);
@@ -311,7 +310,6 @@ class ColisController extends Controller
         return "TC" . $newNumber;
     }
 
-
     private function generateReferenceVol()
     {
         // Récupérer la dernière référence enregistrée
@@ -320,7 +318,6 @@ class ColisController extends Controller
             ->orderByDesc('id')
             ->value('reference_vol');
 
-            // dd($lastReference);
         if ($lastReference) {
             // Extraire le numéro (tout ce qui vient après "A")
             $lastNumber = (int) str_replace('A', '', $lastReference);
@@ -330,10 +327,8 @@ class ColisController extends Controller
             $newNumber = 1;
         }
 
-        // dd($newNumber);
         return "A" . $newNumber;
     }
-
 
     private function generateReferenceParMode(string $mode_transit)
     {
@@ -348,17 +343,22 @@ class ColisController extends Controller
             substr($user->first_name ?? 'X', 0, 1)
         );
 
-        // Agence cible
-      
+        // Vérifier si le dernier colis de ce mode est "Fermé"
+        $dernierColis = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->orderByDesc('id')
+            ->first();
 
-        // Dernier identifiant de référence par mode + agence
-        $lastIdRef = DB::table('colis')
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->where('colis.mode_transit', $mode_transit)
-            ->max('colis.id_reference');
-
-        // Incrémentation de l'ID de référence
-        $nextIdRef = ($lastIdRef ?? 0) + 1;
+        if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si fermé => reset à 1
+            $nextIdRef = 1;
+        } else {
+            // Sinon on continue l'incrémentation
+            $lastIdRef = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->max('id_reference');
+            $nextIdRef = ($lastIdRef ?? 0) + 1;
+        }
 
         // Déterminer la bonne référence de conteneur ou vol selon le mode
         if ($mode_transit === 'maritime') {
@@ -381,7 +381,6 @@ class ColisController extends Controller
         $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
         $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
         $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-        
 
         return [
             'reference_colis' => $reference,
@@ -399,6 +398,7 @@ class ColisController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
 
     public function add_colis(Request $request)
@@ -799,10 +799,19 @@ class ColisController extends Controller
 
         $colisEnregistres = [];
         $erreursCreation = [];
-        $dernierIdReference = Colis::max('id_reference') ?? 0;
 
+        // On récupère le dernier colis enregistré
+        $dernierColis = Colis::orderBy('id', 'desc')->first();
 
-        $id_reference = $dernierIdReference + 1;
+        if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si le dernier est fermé, on réinitialise
+            $id_reference = 1;
+        } else {
+            // Sinon, on continue l’incrémentation
+            $dernierIdReference = Colis::max('id_reference') ?? 0;
+            $id_reference = $dernierIdReference + 1;
+        }
+
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
             if ($quantite_pour_ligne_article <= 0) continue;
@@ -813,11 +822,11 @@ class ColisController extends Controller
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
             $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
-    // On s'assure de ne pas diviser par zéro
-    $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
-    
+        // On s'assure de ne pas diviser par zéro
+        $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
+        
 
-    for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
+        for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
         
         
                 $colisItemData = [
@@ -990,17 +999,17 @@ class ColisController extends Controller
     }
 
 
-    // Dans votre modèle Colis
-protected static function boot()
-{
-    parent::boot();
+        // Dans votre modèle Colis
+    protected static function boot()
+    {
+        parent::boot();
 
-    static::creating(function ($colis) {
-        if (empty($colis->id_reference)) {
-            $colis->id_reference = Colis::max('id_reference') + 1;
-        }
-    });
-}
+        static::creating(function ($colis) {
+            if (empty($colis->id_reference)) {
+                $colis->id_reference = Colis::max('id_reference') + 1;
+            }
+        });
+    }
     public function editBon_livraison($id)
     {
         
@@ -2865,9 +2874,53 @@ public function destroy_bateaux($id)
 public function liste_colis_par_bateau($reference_conteneur)
 {
     $colis = Colis::where('reference_contenaire', $reference_conteneur)->get();
-    // dd($colis);
+        // dd($colis);
 
     return view('admin.cargaison.liste_bateau', compact('colis'));
+}
+
+public function get_colis_bateau(Request $request)
+{
+    if ($request->ajax()) {
+        $colis = Colis::select(
+                'colis.*',
+                'colis.reference_colis',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->whereIn('etat', ['Fermé']) // Corrigé avec whereIn
+            ->get()
+            ->groupBy('reference_colis');
+
+        $colisWithCount = $colis->map(function ($group, $reference) {
+            return [
+                'reference_colis' => $reference,
+                'nombre_de_colis' => $group->count(),
+                'expediteur_nom' => $group->first()->expediteur_nom,
+                'expediteur_prenom' => $group->first()->expediteur_prenom,
+                'expediteur_tel' => $group->first()->expediteur_tel,
+                'expediteur_agence' => $group->first()->expediteur_agence,
+                'destinataire_nom' => $group->first()->destinataire_nom,
+                'destinataire_prenom' => $group->first()->destinataire_prenom,
+                'destinataire_tel' => $group->first()->destinataire_tel,
+                'destinataire_agence' => $group->first()->destinataire_agence,
+                'etat' => $group->first()->etat === 'Devis' ? 'Devis validé' : $group->first()->etat,
+                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
+                'colis' => $group
+            ];
+        })->values();
+
+        return DataTables::of($colisWithCount)
+            ->make(true);
+    }
 }
 
 public function update_bateaux(Request $request, $id)
