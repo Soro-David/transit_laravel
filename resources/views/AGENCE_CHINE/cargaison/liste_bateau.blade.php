@@ -40,7 +40,7 @@
             responsive: true,
             scrollX: true, // permet le défilement horizontal si le tableau est large
             language: { url: "{{ asset('js/fr-FR.json') }}" },
-            ajax: '{{ route("chine_colis.get.colis.hold") }}',
+            ajax: '{{ route("chine_colis.get.colis.bateau") }}',
             columns: [
                 { data: 'reference_colis' },
                 { data: 'nombre_de_colis' },

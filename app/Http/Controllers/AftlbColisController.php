@@ -2622,49 +2622,53 @@ public function liste_colis_par_bateau($reference_conteneur)
     return view('AFT_LOUIS_BLERIOT.cargaison.liste_bateau', compact('colis'));
 }
 
-public function get_colis_bateau(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-                'colis.*',
-                'colis.reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->whereIn('etat', ['Fermé']) // Corrigé avec whereIn
-            ->get()
-            ->groupBy('reference_colis');
+    public function get_colis_bateau(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                    'colis.reference_colis',
+                    'colis.etat',
+                    'colis.created_at',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'expediteurs.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->where('etat', 'Fermé')
+                ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+                ->get()
+                ->groupBy('reference_colis');
 
-        $colisWithCount = $colis->map(function ($group, $reference) {
-            return [
-                'reference_colis' => $reference,
-                'nombre_de_colis' => $group->count(),
-                'expediteur_nom' => $group->first()->expediteur_nom,
-                'expediteur_prenom' => $group->first()->expediteur_prenom,
-                'expediteur_tel' => $group->first()->expediteur_tel,
-                'expediteur_agence' => $group->first()->expediteur_agence,
-                'destinataire_nom' => $group->first()->destinataire_nom,
-                'destinataire_prenom' => $group->first()->destinataire_prenom,
-                'destinataire_tel' => $group->first()->destinataire_tel,
-                'destinataire_agence' => $group->first()->destinataire_agence,
-                'etat' => $group->first()->etat === 'Devis' ? 'Devis validé' : $group->first()->etat,
-                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
-                'colis' => $group
-            ];
-        })->values();
+            $colisWithCount = $colis->map(function ($group, $reference) {
+                $first = $group->first();
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $first->expediteur_nom,
+                    'expediteur_prenom' => $first->expediteur_prenom,
+                    'expediteur_tel' => $first->expediteur_tel,
+                    'expediteur_agence' => $first->expediteur_agence,
+                    'destinataire_nom' => $first->destinataire_nom,
+                    'destinataire_prenom' => $first->destinataire_prenom,
+                    'destinataire_tel' => $first->destinataire_tel,
+                    'destinataire_agence' => $first->destinataire_agence,
+                    'etat' => $first->etat === 'Devis' ? 'Devis validé' : $first->etat,
+                    'created_at' => $first->created_at ? $first->created_at->format('d/m/Y') : null,
+                    'colis' => $group
+                ];
+            })->values();
 
-        return DataTables::of($colisWithCount)
-            ->make(true);
+            return DataTables::of($colisWithCount)
+                ->make(true);
+        }
     }
-}
+
     
     public function update_bateaux(Request $request, $id)
     {

@@ -695,6 +695,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/create-aft-louis-b', [AftlbColisController::class, 'create'])->name('create'); 
         Route::get('/get-colis-aft-louis-b', [AftlbColisController::class, 'get_colis'])->name('getColis');
         Route::get('/get-colis-hold-aft-louis-b', [AftlbColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+
+        Route::get('/get-colis-bateau-louis-b',[AftlbColisController::class, 'get_colis_bateau'])->name('get.colis.bateau');
         Route::get('/get-colis-dump-aft-louis-b', [AftlbColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-colis-contenaire-aft-louis-b', [AftlbColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/devis-hold-aftlb-louis-b', [AftlbColisController::class, 'devis_hold'])->name('devis.hold');
@@ -1409,6 +1411,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/create-aft_chine', [ChineColisController::class, 'create'])->name('create'); 
         Route::get('/get-colis-aft_chine', [ChineColisController::class, 'get_colis'])->name('getColis');
         Route::get('/get-colis-hold-aft_chine', [ChineColisController::class, 'get_colis_hold'])->name('get.colis.hold');
+        Route::get('/get-colis-bateau-aft_chine',[ChineColisController::class, 'get_colis_bateau'])->name('get.colis.bateau');
         Route::get('/get-colis-dump-aft_chine', [ChineColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-colis-contenaire-aft_chine', [ChineColisController::class, 'get_colis_contenaire'])->name('get.colis.contenaire');
         Route::get('/devis-hold-aft_chine', [ChineColisController::class, 'devis_hold'])->name('devis.hold');
