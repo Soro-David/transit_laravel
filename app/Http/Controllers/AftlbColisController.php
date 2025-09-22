@@ -227,64 +227,77 @@ class AftlbColisController extends Controller
         return "A" . $newNumber;
     }
 
-    private function generateReferenceParMode(string $mode_transit)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            throw new \Exception("Utilisateur non connecté.");
-        }
+private function generateReferenceParMode(string $mode_transit)
+{
+    $user = Auth::user();
+    if (!$user) {
+        throw new \Exception("Utilisateur non connecté.");
+    }
 
-        // Initiales de l'utilisateur (ex: SE)
-        $initiales = strtoupper(
-            substr($user->last_name ?? 'X', 0, 1) .
-            substr($user->first_name ?? 'X', 0, 1)
-        );
+    $agence = 'AFT Agence Louis Bleriot'; // ou récupérer dynamiquement si nécessaire
+    // Initiales de l'utilisateur (ex: SE)
+    $initiales = strtoupper(
+        substr($user->last_name ?? 'X', 0, 1) .
+        substr($user->first_name ?? 'X', 0, 1)
+    );
 
-        // Vérifier si le dernier colis de ce mode est "Fermé"
-        $dernierColis = DB::table('colis')
+    // Vérifier le dernier colis pour ce mode
+    $dernierColis = DB::table('colis')
+        ->where('mode_transit', $mode_transit)
+        ->where('agence', $agence)
+        ->orderByDesc('created_at')
+        ->first();
+
+
+        // dd($dernierColis);
+    if ($dernierColis && $dernierColis->etat === 'Fermé') {
+        // Si le dernier est fermé => reset
+        $nextIdRef = 1;
+    } else {
+        // Sinon on continue l'incrémentation
+        $lastColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
-            ->orderByDesc('id')
+            ->where('agence', $agence)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id') // sécurité en cas d’égalité de dates
             ->first();
 
-        if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si fermé => reset à 1
-            $nextIdRef = 1;
-        } else {
-            // Sinon on continue l'incrémentation
-            $lastIdRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->max('id_reference');
-            $nextIdRef = ($lastIdRef ?? 0) + 1;
-        }
+        $lastIdRef = $lastColis ? $lastColis->id_reference : null;
 
-        // Déterminer la bonne référence de conteneur ou vol selon le mode
-        if ($mode_transit === 'maritime') {
-            $contenaireRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->where('etat', '!=', 'Fermé')
-                ->orderByDesc('id')
-                ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-        } elseif ($mode_transit === 'aerien') {
-            $contenaireRef = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->where('etat', '!=', 'Fermé')
-                ->orderByDesc('id')
-                ->value('reference_vol') ?? $this->generateReferenceVol();
-        } else {
-            throw new \Exception("Mode de transit invalide : $mode_transit");
-        }
-
-        // Format final de la référence du colis
-        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-        $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
-        $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-        return [
-            'reference_colis' => $reference,
-            'id_reference' => $nextIdRef,
-            'reference_contenaire' => $contenaireRef
-        ];
+        $nextIdRef = ($lastIdRef ?? 0) + 1;
     }
+
+    // dd($nextIdRef);
+    // Déterminer la bonne référence conteneur/vol
+    if ($mode_transit === 'maritime') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('agence', $agence)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
+    } elseif ($mode_transit === 'aerien') {
+        $contenaireRef = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('agence', $agence)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->value('reference_vol') ?? $this->generateReferenceVol();
+    } else {
+        throw new \Exception("Mode de transit invalide : $mode_transit");
+    }
+
+    // Format final de la référence
+    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+    $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
+    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
+
+    return [
+        'reference_colis' => $reference,
+        'id_reference' => $nextIdRef,
+        'reference_contenaire' => $contenaireRef
+    ];
+}
 
 
     public function genererReferenceSelonMode($mode)
@@ -621,6 +634,35 @@ class AftlbColisController extends Controller
             // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
 
 
+            $mode_transit = $data['mode_transit'] ?? ''; // Valeur par défaut si absente
+            $agence = $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null;
+             // On récupère le dernier colis pour ce mode de transit
+
+                $dernierColis = DB::table('colis')
+                    ->where('mode_transit', $mode_transit)
+                    ->where('agence', $agence)
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id') 
+                    ->first();
+
+            if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si le dernier est fermé => reset
+                $nextIdRef = 1;
+            } else {
+                // Sinon on continue l'incrémentation
+                $lastColis = DB::table('colis')
+                    ->where('mode_transit', $mode_transit)
+                    ->where('agence', $agence)
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id') // sécurité en cas d’égalité de dates
+                    ->first();
+
+                $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+
+                $id_reference = ($lastIdRef ?? 0) + 1;
+            }
+
+
             $referenceColisPrincipale = '';
 
             if ($data['mode_transit'] === 'maritime') {
@@ -628,12 +670,12 @@ class AftlbColisController extends Controller
             } elseif ($data['mode_transit'] === 'aerien') {
                 $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
             } else {
-                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid());
             }
 
 
-            // dd($referenceColisPrincipale);
 
+            // dd($referenceColisPrincipale, $data['mode_transit'], $id_reference);
             foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
                 $quantite_pour_ligne_article = (int) $quantite_pour_ligne_article;
                 if ($quantite_pour_ligne_article <= 0) {
@@ -642,16 +684,6 @@ class AftlbColisController extends Controller
 
                 $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
                 $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
-                
-                // Récupérer le dernier id_reference pour cette agence et ce mode de transit
-                $lastIdRef = Colis::query()
-                    ->where('mode_transit', $data['mode_transit'])
-                    ->whereHas('expediteur', function($query) use ($agence) {
-                        $query->where('agence', $agence);
-                    })
-                    ->max('id_reference');
-                
-                $id_reference = ($lastIdRef ?? 0) + 1;
                 $prixParColisPhysique = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
 
                 for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
@@ -661,6 +693,8 @@ class AftlbColisController extends Controller
                         'reference_colis' => $referenceColisPrincipale,
                         'reference_contenaire' => $data['reference_contenaire'] ?? null,
                         'id_reference' => $id_reference,
+                        'agence'=> $agence,
+                        'agence' => "AFT Agence Louis Bleriot",
                         'quantite_colis' => 1,
                         'service' => $data['service'][$index] ?? null,
                         'prix_transit_colis' => $prixParColisPhysique,

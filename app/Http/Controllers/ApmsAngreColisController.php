@@ -143,40 +143,52 @@ private function generateReferenceParMode(string $mode_transit)
         throw new \Exception("Utilisateur non connecté.");
     }
 
+    $agence = 'IPMS-SIMEX-CI Angre 8ème Tranche'; // ou récupérer dynamiquement si nécessaire
     // Initiales de l'utilisateur (ex: SE)
     $initiales = strtoupper(
         substr($user->last_name ?? 'X', 0, 1) .
         substr($user->first_name ?? 'X', 0, 1)
     );
 
-    $mode_transit = $data['mode_transit'] ?? 'maritime';
-    // Vérifier si le dernier colis de ce mode est "Fermé"
+    // Vérifier le dernier colis pour ce mode
     $dernierColis = DB::table('colis')
         ->where('mode_transit', $mode_transit)
-        ->orderByDesc('id')
+        ->where('agence', $agence)
+        ->orderByDesc('created_at')
         ->first();
 
+
+        // dd($dernierColis);
     if ($dernierColis && $dernierColis->etat === 'Fermé') {
-        // Si fermé => reset à 1
+        // Si le dernier est fermé => reset
         $nextIdRef = 1;
     } else {
         // Sinon on continue l'incrémentation
-        $lastIdRef = DB::table('colis')
+        $lastColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
-            ->max('id_reference');
+            ->where('agence', $agence)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id') // sécurité en cas d’égalité de dates
+            ->first();
+
+        $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+
         $nextIdRef = ($lastIdRef ?? 0) + 1;
     }
 
-    // Déterminer la bonne référence de conteneur ou vol selon le mode
+    // dd($nextIdRef);
+    // Déterminer la bonne référence conteneur/vol
     if ($mode_transit === 'maritime') {
         $contenaireRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
+            ->where('agence', $agence)
             ->where('etat', '!=', 'Fermé')
             ->orderByDesc('id')
             ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
     } elseif ($mode_transit === 'aerien') {
         $contenaireRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
+            ->where('agence', $agence)
             ->where('etat', '!=', 'Fermé')
             ->orderByDesc('id')
             ->value('reference_vol') ?? $this->generateReferenceVol();
@@ -184,7 +196,7 @@ private function generateReferenceParMode(string $mode_transit)
         throw new \Exception("Mode de transit invalide : $mode_transit");
     }
 
-    // Format final de la référence du colis
+    // Format final de la référence
     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
     $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
@@ -446,6 +458,35 @@ private function generateReferenceParMode(string $mode_transit)
 
         // --- Création des Colis, Paiements et QR Codes ---
         $colisEnregistres = []; // Pour stocker les modèles Colis sauvegardés
+        $mode_transit = $data['mode_transit'] ?? ''; // Valeur par défaut si absente
+        $agence = $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null;
+        // On récupère le dernier colis pour ce mode de transit
+
+
+                $dernierColis = DB::table('colis')
+                    ->where('mode_transit', $mode_transit)
+                    ->where('agence', $agence)
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id') 
+                    ->first();
+
+
+            if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si le dernier est fermé => reset
+                $nextIdRef = 1;
+            } else {
+                // Sinon on continue l'incrémentation
+                $lastColis = DB::table('colis')
+                    ->where('mode_transit', $mode_transit)
+                     ->where('agence', $agence)
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->first();
+
+                $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+
+                $id_reference = ($lastIdRef ?? 0) + 1;
+            }
         $erreursCreation = [];
 
         foreach ($data['quantite_colis'] as $index => $quantite) {
@@ -456,22 +497,19 @@ private function generateReferenceParMode(string $mode_transit)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
 
-            $referenceColis = $data['reference_colis'] ?? ('REF-' . uniqid());
-            $agence = $data['agence_expedition'] ?? $data['agence_expedition_societe'] ?? null;
-
-            //    dd($agence);
-                $lastIdRef = DB::table('colis')
-                    ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                    ->where('colis.mode_transit', $data['mode_transit'])
-                    ->where('expediteurs.agence', $agence)
-                    ->max('colis.id_reference');
-
-                $id_reference = ($lastIdRef ?? 0) + 1;
+            if ($data['mode_transit'] === 'maritime') {
+                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
+            } elseif ($data['mode_transit'] === 'aerien') {
+                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
+            } else {
+                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
+            }
 
             $colisItemData = [
                 'devise' => 'FCFA',
-                'reference_colis' => $referenceColis,
+                'reference_colis' => $referenceColisPrincipale,
                 'id_reference' => $id_reference,
+                'agence' => $agence,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => $quantite,
                 'service' => $data['service'][$index] ?? null,

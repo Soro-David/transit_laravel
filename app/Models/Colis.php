@@ -37,7 +37,8 @@ class Colis extends Model
         'devise',
         'agent_id',
         'categorie_client',
-        'id_reference'
+        'id_reference',
+        'agence',
         
     ];
 

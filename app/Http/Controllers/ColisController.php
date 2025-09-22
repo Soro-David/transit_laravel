@@ -343,24 +343,32 @@ private function generateReferenceParMode(string $mode_transit)
         substr($user->first_name ?? 'X', 0, 1)
     );
 
-    // Vérifier si le dernier colis de ce mode est "Fermé"
+    // Vérifier le dernier colis pour ce mode
     $dernierColis = DB::table('colis')
         ->where('mode_transit', $mode_transit)
-        ->orderByDesc('id')
+        ->orderByDesc('created_at')
         ->first();
 
+
+        // dd($dernierColis);
     if ($dernierColis && $dernierColis->etat === 'Fermé') {
-        // Si fermé => reset à 1
+        // Si le dernier est fermé => reset
         $nextIdRef = 1;
     } else {
         // Sinon on continue l'incrémentation
-        $lastIdRef = DB::table('colis')
+        $lastColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
-            ->max('id_reference');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id') // sécurité en cas d’égalité de dates
+            ->first();
+
+        $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+
         $nextIdRef = ($lastIdRef ?? 0) + 1;
     }
 
-    // Déterminer la bonne référence de conteneur ou vol selon le mode
+    // dd($nextIdRef);
+    // Déterminer la bonne référence conteneur/vol
     if ($mode_transit === 'maritime') {
         $contenaireRef = DB::table('colis')
             ->where('mode_transit', $mode_transit)
@@ -377,7 +385,7 @@ private function generateReferenceParMode(string $mode_transit)
         throw new \Exception("Mode de transit invalide : $mode_transit");
     }
 
-    // Format final de la référence du colis
+    // Format final de la référence
     $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
     $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
@@ -388,6 +396,7 @@ private function generateReferenceParMode(string $mode_transit)
         'reference_contenaire' => $contenaireRef
     ];
 }
+
 
 
     public function genererReferenceSelonMode($mode)
@@ -763,9 +772,9 @@ private function generateReferenceParMode(string $mode_transit)
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
         // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
 
-
         $referenceColisPrincipale = '';
 
+        
             if ($data['mode_transit'] === 'maritime') {
                 $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
             } elseif ($data['mode_transit'] === 'aerien') {
@@ -773,7 +782,6 @@ private function generateReferenceParMode(string $mode_transit)
             } else {
                 $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
             }
-            // dd($referenceColisPrincipale);
         // --- CORRECTION 1 : Création du paiement principal en amont ---
         // Cet enregistrement représente la transaction globale.
         $paiementPrincipal = null;
@@ -801,23 +809,39 @@ private function generateReferenceParMode(string $mode_transit)
         $colisEnregistres = [];
         $erreursCreation = [];
 
-        $mode_transit = $data['mode_transit'] ?? 'maritime'; // Valeur par défaut si absente
+        // dd($data);
+        $mode_transit = $data['mode_transit'] ?? ''; // Valeur par défaut si absente
+        $agence = $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'];
+        // dd($agence);
         // On récupère le dernier colis pour ce mode de transit
-        $dernierColis = Colis::where('mode_transit', $mode_transit)
-            ->orderBy('id', 'desc')
+
+        $dernierColis = DB::table('colis')
+            ->where('mode_transit', $mode_transit)
+            ->where('agence', $agence)
+            ->orderByDesc('created_at')
             ->first();
 
-        if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si le dernier colis de CE mode est fermé → on redémarre à 1
-            $id_reference = 1;
-        } else {
-            // Sinon on incrémente à partir du dernier id_reference de CE mode
-            $dernierIdReference = Colis::where('mode_transit', $mode_transit)
-                ->max('id_reference') ?? 0;
 
-            $id_reference = $dernierIdReference + 1;
+            // dd($dernierColis);
+            // dd($dernierColis);
+        if ($dernierColis && $dernierColis->etat === 'Fermé') {
+            // Si le dernier est fermé => reset
+            $nextIdRef = 1;
+        } else {
+            // Sinon on continue l'incrémentation
+            $lastColis = DB::table('colis')
+                ->where('mode_transit', $mode_transit)
+                ->where('agence', $agence)
+                ->orderByDesc('created_at')
+                ->orderByDesc('id') // sécurité en cas d’égalité de dates
+                ->first();
+
+            $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+
+            $id_reference = ($lastIdRef ?? 0) + 1;
         }
 
+        // dd($id_reference);
 
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -832,6 +856,7 @@ private function generateReferenceParMode(string $mode_transit)
         // On s'assure de ne pas diviser par zéro
         $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
         
+        // dd($referenceColisPrincipale, $id_reference, $agence, $prixUnitairePourCetteLigne);
 
         for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
         
@@ -840,6 +865,7 @@ private function generateReferenceParMode(string $mode_transit)
                     'devise' => $data['devise'] ?? null,
                     'reference_colis' => $referenceColisPrincipale,
                     'id_reference' => $id_reference,
+                    'agence'=>$agence,
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1,
                     'service' => $data['service'][$index] ?? null,
@@ -1409,7 +1435,7 @@ private function generateReferenceParMode(string $mode_transit)
         // Chaque objet Colis aura son propre qr_code_path, type_colis, etc.
         $colisPourEtiquettes = Colis::where('reference_colis', $reference_colis)
                                    ->with(['expediteur', 'destinataire']) // Charger les relations
-                                   ->get(); // Important: ->get() pour avoir une collection
+                                   ->get();
     
         if ($colisPourEtiquettes->isEmpty()) {
             // Cela ne devrait pas arriver si $colisInitial a été trouvé, mais c'est une sécurité
@@ -1417,15 +1443,15 @@ private function generateReferenceParMode(string $mode_transit)
         }
     
         // 3. La vue PDF s'attend à une collection de colis et à un nombre total.
-        //    Chaque élément de $colisPourEtiquettes EST une étiquette à générer.
+        //    Chaque élément de $colisPourEtiquettes  EST une étiquette à générer.
         $pdf = PDF::loadView('admin.colis.add.edit_etiquette', [
-                'colis_collection' => $colisPourEtiquettes, // Passer la collection de colis
-                'totalEtiquettes' => $colisPourEtiquettes->count() // Nombre total d'étiquettes
+                'colis_collection' => $colisPourEtiquettes,
+                'totalEtiquettes' => $colisPourEtiquettes->count()
             ])
             ->setPaper('a6', 'landscape') 
             ->setOption('isRemoteEnabled', true);
     
-        // 4. Retourner le PDF pour téléchargement
+        // 4. Retourner le PDF pour téléchargement  
         $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $reference_colis);
         $fileName = 'etiquettes_' . $safeRef . '.pdf';
     

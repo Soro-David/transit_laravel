@@ -375,6 +375,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/cinetpay/notify', [ColisController::class, 'cinetpayNotify'])->name('cinetpay.notify');
         Route::get('/generer/qrcode.colis', [ColisController::class, 'generer_qrcode'])->name('generer.qrcode');
 
+        Route::post('/generate-reference', [ColisController::class, 'generateReferenceAjax'])
+            ->name('generateReference');
+
         //Generer Reference colis
         Route::get('/generer-reference/{mode}', [ColisController::class, 'genererReferenceSelonMode']);
 

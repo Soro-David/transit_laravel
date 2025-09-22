@@ -330,7 +330,7 @@ public function updateColisEntrepot(Request $request)
 
 
 // Fonction Ajax pour le Scan chargement
-// {{ route("scan.get.colis.charge") }}
+// {{ route("scan.get.colis.charge") }} 
 public function updateColisCharge(Request $request)
 {
     
