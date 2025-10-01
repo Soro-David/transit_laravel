@@ -23,11 +23,12 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
+                                                <th>ST Paiement</th>
                                                 <th>Reference</th>
                                                 <th>Nombre de colis</th>
                                                 <th>Expéditeur</th>
                                                 <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
+                                                <th>Agence Expéditeur</th>
                                                 <th>Destinataire</th>
                                                 <th>Téléphone</th>
                                                 <th>Agence Destination</th>
@@ -64,6 +65,45 @@
         </div>
     </div>
     
+        {{-- ===== MODALE DE PAIEMENT ===== --}}
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Enregistrer un Paiement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="paymentForm">
+                    @csrf
+                    <div class="modal-body">
+                        <input type="hidden" id="modalReferenceColis" name="reference_colis">
+                        <input type="hidden" id="modalColisIds" name="colis_ids">
+                        <div class="mb-3">
+                            <label for="modalDisplayReference" class="form-label">Référence Colis</label>
+                            <input type="text" class="form-control" id="modalDisplayReference" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalTotalAmount" class="form-label">Montant Total Dû</label>
+                            <input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;">
+                        </div>
+                         <div class="mb-3">
+                            <label for="modalAmountAlreadyPaid" class="form-label">Montant Déjà Payé</label>
+                            <input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalNewPaymentAmount" class="form-label">Montant du Nouveau Paiement <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmount" name="montant_a_payer" required placeholder="0.00">
+                            <div class="invalid-feedback" id="paymentAmountError"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript for DataTable and Export -->
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -98,35 +138,34 @@ document.addEventListener("DOMContentLoaded", function () {
         resultElement.innerText = `Résultat : ${decodedText}`;
 
         // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
-// Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
-$.ajax({
-    url: "{{ route('scan.update.colis.entrepot') }}",
-    type: "POST",
-    headers: {
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-    },
-    data: {
-        colisId: referenceColis, // Envoie la référence extraite
-        id: identifiant,         // Envoie l'identifiant extrait
-    },
-    success: function (response) {
-        console.log("Réponse du serveur :", response);
-        // Affichage des messages retournés par le serveur
-        if (response.success) {
-            resultElement.innerText = response.messages.join("\n");
-        } else {
-            resultElement.innerText = "Erreur : " + response.messages.join("\n");
-        }
-    },
-    error: function (error) {
-        console.error("Erreur lors du chargement :", error);
-        if (error.responseJSON && error.responseJSON.messages) {
-            resultElement.innerText = error.responseJSON.messages.join("\n");
-        } else {
-            resultElement.innerText = "Erreur de chargement du colis.";
-        }
-    },
-});
+        $.ajax({
+            url: "{{ route('scan.update.colis.entrepot') }}",
+            type: "POST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            },
+            data: {
+                colisId: referenceColis, // Envoie la référence extraite
+                id: identifiant,         // Envoie l'identifiant extrait
+            },
+            success: function (response) {
+                console.log("Réponse du serveur :", response);
+                // Affichage des messages retournés par le serveur
+                if (response.success) {
+                    resultElement.innerText = response.messages.join("\n");
+                } else {
+                    resultElement.innerText = "Erreur : " + response.messages.join("\n");
+                }
+            },
+            error: function (error) {
+                console.error("Erreur lors du chargement :", error);
+                if (error.responseJSON && error.responseJSON.messages) {
+                    resultElement.innerText = error.responseJSON.messages.join("\n");
+                } else {
+                    resultElement.innerText = "Erreur de chargement du colis.";
+                }
+            },
+        });
 
 
         // Arrêt du scanner et mise à jour de l'affichage
@@ -188,117 +227,180 @@ $.ajax({
     restartButton.addEventListener("click", startScanner);
 });
 
-    $(document).ready(function () {
-        // Initialisation de la table DataTable
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-            ajax: '{{ route("scan.get.colis.entrepot") }}', // Récupération des données via AJAX
-            columns: [
+$(document).ready(function () {
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
+
+    var table = $("#productTable").DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("scan.get.colis.entrepot") }}',
+        columns: [
+            { data: 'statut_paiement', className: 'text-center' },
             { data: 'reference_colis' },
-            { data: 'nombre_de_colis' },
+            { data: 'nombre_de_colis', className: 'text-center' },
             {
                 data: null,
-                render: function (data, type, row) {
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
+                render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); }
             },
             { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
             {
                 data: null,
-                render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                }
-            },
-            { 
-                data: 'destinataire_agence',
-                name: 'destinataire_agence.nom_agence',
-                render: function(data, type, row) {
-                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                        return 'DS Translog Angré 8ème Tranche';
-                    } else if (data === 'IPMS-SIMEX-CI') {
-                        return 'DS Translog Carrefour Angré';
-                    }
-                    return data;
-                }
+                render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); }
             },
             { data: 'destinataire_tel' },
             {
-                data: 'created_at',
-                render: function (data) {
-                    if (!data) {
-                        return ''; // Retourne une chaîne vide si la date est null
-                    }
-                    var date = new Date(data);
-                    if (isNaN(date.getTime())) {
-                        return ''; // Vérifie si la date est invalide
-                    }
-                    var day = ('0' + date.getDate()).slice(-2);
-                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    var year = date.getFullYear();
-                    return day + '/' + month + '/' + year;
+                data: 'destinataire_agence',
+                render: function(data) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') return 'DS Translog Angré 8ème Tranche';
+                    if (data === 'IPMS-SIMEX-CI') return 'DS Translog Carrefour Angré';
+                    return data;
+                }
+            },
+            { data: 'etat' },
+            { data: 'created_at' },
+            { 
+                data: 'action',
+                orderable: false,
+                searchable: false,
+                className: 'text-center',
+                render: function(data, type, row) {
+                    return `<div class="action-buttons">${data}</div>`;
                 }
             }
-
         ],
-            dom: 'Bfrtip', // Placement des boutons
-            buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'Liste des Colis en attente',
-                     exportOptions: {
-                        columns: [0,1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
-                // Bouton PDF
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Exporter en PDF',
-                    title: 'Liste des Colis en attente',
-                    orientation: 'landscape', // Mode paysage
-                    pageSize: 'A4', // Taille de la page
-                    customize: function (doc) {
-                        // Ajout du logo encodé en Base64 dans le PDF
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        toDataURL(logoUrl, function (dataUrl) {
-                            // Ajout de l'image au début du contenu PDF
-                            console.log(dataUrl);
-                            doc.content.unshift({
-                                image: dataUrl,
-                                width: 100, // Taille du logo
-                                alignment: 'center',
-                                margin: [0, 0, 0, 10] // Espacement
-                            });
-                        });
-                    }
-                },
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'Liste des Colis en attente',
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                        $(win.document.body).find('h1').after(logo);
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                    }
-                }
-            ]
-        });
-
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excelHtml5', text: 'Exporter en Excel', title: 'Liste des Colis en Entrepôt',
+                exportOptions: { columns: [1,2,3,4,5,6,7,8,9] }
+            },
+            {
+                extend: 'print', text: 'Imprimer', title: 'Liste des Colis en Entrepôt',
+                exportOptions: { columns: [1,2,3,4,5,6,7,8,9] }
+            }
+        ],
+        order: [[ 1, 'desc' ]]
     });
+
+    // Rafraîchissement automatique toutes les 5 secondes
+    setInterval(function() {
+        table.ajax.reload(null, false); 
+    }, 5000);
+
+    // --- Logique modale paiement ---
+    $('#productTable tbody').on('click', '.pay-btn', function (e) {
+        e.preventDefault();
+        var button = $(this);
+        var reference = button.data('reference');
+        var total = parseFloat(button.data('total'));
+        var paid = parseFloat(button.data('paid'));
+        var colisIds = JSON.stringify(button.data('colis-ids'));
+        var remainingDue = total - paid;
+
+        $('#paymentForm').data('remaining-due', remainingDue.toFixed(2));
+
+        function formatCurrency(value) {
+            return Number(value).toLocaleString('fr-CI', { style: 'currency', currency: 'XOF' });
+        }
+
+        $('#modalDisplayReference').val(reference);
+        $('#modalTotalAmount').val(formatCurrency(total));
+        $('#modalAmountAlreadyPaid').val(formatCurrency(paid));
+        $('#modalReferenceColis').val(reference);
+        $('#modalColisIds').val(colisIds);
+        $('#modalNewPaymentAmount').val('').removeClass('is-invalid');
+        $('#paymentAmountError').text('').hide();
+        $('#paymentModal').modal('show');
+    });
+
+    $('#paymentForm').on('submit', function(e) {
+        e.preventDefault();
+        $('#modalNewPaymentAmount').removeClass('is-invalid');
+        $('#paymentAmountError').text('').hide();
+
+        var newPaymentAmount = parseFloat($('#modalNewPaymentAmount').val());
+        var remainingDue = parseFloat($('#paymentForm').data('remaining-due'));
+
+        if (isNaN(newPaymentAmount) || newPaymentAmount <= 0) {
+            $('#modalNewPaymentAmount').addClass('is-invalid');
+            $('#paymentAmountError').text('Veuillez saisir un montant valide et positif.').show();
+            return;
+        }
+        if (newPaymentAmount > remainingDue) {
+            $('#modalNewPaymentAmount').addClass('is-invalid');
+            $('#paymentAmountError').text('Le montant saisi ne peut pas dépasser le solde restant.').show();
+            return;
+        }
+
+        var form = $(this);
+        var submitButton = $('#submitPaymentBtn');
+        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
+
+        $.ajax({
+            url: '{{ route("colis.valide.payer") }}',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                $('#paymentModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Succès!', text: response.success, timer: 2500, showConfirmButton: false });
+                table.ajax.reload(null, false);
+            },
+            error: function(xhr) {
+                var errorMessage = 'Une erreur est survenue.';
+                if (xhr.status === 422 && xhr.responseJSON.errors) {
+                    $('#modalNewPaymentAmount').addClass('is-invalid');
+                    $('#paymentAmountError').text(xhr.responseJSON.errors.montant_a_payer[0]).show();
+                    errorMessage = 'Veuillez corriger les erreurs.';
+                } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+                Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMessage });
+            },
+            complete: function () {
+                submitButton.prop('disabled', false).html('Enregistrer Paiement');
+            }
+        });
+    });
+
+    $('#productTable tbody').on('click', '.delete-btn', function (e) {
+        e.preventDefault();
+        const button = $(this);
+        const deleteUrl = button.data('url');
+        const reference = button.data('reference');
+
+        Swal.fire({
+            title: 'Êtes-vous sûr?',
+            html: `Voulez-vous vraiment archiver le(s) colis avec la référence <strong>${reference}</strong> ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, archiver!',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (response) {
+                        Swal.fire('Archivé!', response.success, 'success');
+                        table.ajax.reload(null, false);
+                    },
+                    error: function (xhr) {
+                        let errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Erreur lors de l\'archivage.';
+                        Swal.fire('Erreur!', errorMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
+});
 
 </script>
     
@@ -313,6 +415,21 @@ $.ajax({
       height: 400px;
       border: 1px solid #c2bdbd; 
     }
+
+    /* ==== CORRECTION POUR L'ALIGNEMENT DES BOUTONS D'ACTION ==== */
+    .action-buttons {
+        display: flex;
+        justify-content: center; /* Centre les boutons dans la cellule */
+        align-items: center;     /* Aligne verticalement au cas où */
+        gap: 5px;                /* Ajoute un petit espace entre les boutons */
+        flex-wrap: nowrap;       /* Empêche les boutons de passer à la ligne */
+    }
+
+    .action-buttons .btn {
+        width: auto !important; /* Annule la largeur de 100% spécifiquement pour ces boutons */
+        flex-shrink: 0;         /* Empêche les boutons de se rétrécir s'il manque de place */
+    }
+    /* ==== FIN DE LA CORRECTION ==== */
 
 
     .btn {

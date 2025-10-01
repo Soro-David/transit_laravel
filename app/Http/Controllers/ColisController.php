@@ -44,6 +44,7 @@ use App\Mail\ColisValidatedMail;
 
 use App\Services\InfobipSmsService;
 use App\Services\InfobipEmailService;
+use Illuminate\Support\Facades\Validator;
 
 
 class ColisController extends Controller
@@ -100,14 +101,70 @@ class ColisController extends Controller
     }
 
 
-    public function autocompleteProduit(Request $request)
-    {
-        $query = $request->get('query');
-        $produits = Produit::where('description', 'like', '%' . $query . '%')
-                        ->limit(15)
-                        ->get(['id', 'description', 'prix']); // Sélectionner les champs à renvoyer
-        return response()->json($produits);
-    }
+
+public function autocompleteProduit(Request $request)
+{
+    $query = $request->get('query');
+    $produits = Produit::where('categorie', 'Colis')
+        ->where('description', 'like', '%' . $query . '%')
+        ->limit(15)
+        ->get(['id', 'description', 'prix']);
+
+    return response()->json($produits);
+}
+
+public function autocompleteService(Request $request)
+{
+    $query = $request->get('query');
+    $services = Produit::where('categorie', 'Service')
+        ->where('description', 'like', '%' . $query . '%')
+        ->limit(15)
+        ->get(['id', 'description', 'prix']);
+
+    return response()->json($services);
+}
+
+public function storeProduit(Request $request)
+{
+    $messages = [
+        'description.required' => 'La description est requise.',
+        'categorie.required' => 'Le champ catégorie est requis.',
+        'prix.required' => 'Le prix est requis.',
+        'agence.required' => 'L\'agence est requise.',
+    ];
+
+    $request->validate([
+        'description' => 'required|string|max:255',
+        'categorie' => 'required|string|in:Colis',
+        'prix' => 'required|numeric|min:0',
+        'agence' => 'required|string|max:255',
+    ], $messages);
+
+    Produit::create($request->all());
+
+    return response()->json(['message' => 'Produit ajouté avec succès !'], 201);
+}
+
+public function storeService(Request $request)
+{
+    $messages = [
+        'description.required' => 'La description est requise.',
+        'categorie.required' => 'Le champ catégorie est requis.',
+        'prix.required' => 'Le prix est requis.',
+        'agence.required' => 'L\'agence est requise.',
+    ];
+
+    $request->validate([
+        'description' => 'required|string|max:255',
+        'categorie' => 'required|string|in:Service',
+        'prix' => 'required|numeric|min:0',
+        'agence' => 'required|string|max:255',
+    ], $messages);
+
+    Produit::create($request->all());
+
+    return response()->json(['message' => 'Service ajouté avec succès !'], 201);
+}
 
     public function liste_ballon()
     {
@@ -142,25 +199,6 @@ class ColisController extends Controller
         }
     }
 
-    public function storeProduit(Request $request)
-    {
-        $request->validate([
-            'description' => 'required|string|max:255',
-            'categorie' => 'required|string|max:100|in:Colis,Service,Remise',
-            'prix' => 'required|numeric|min:0',
-            'agence' => 'required|string|max:255',
-
-        ]);
-    
-        Produit::create([
-            'description' => $request->description,
-            'categorie' => $request->categorie,
-            'prix' => $request->prix,
-            'agence' => $request->agence,
-        ]);
-    
-        return response()->json(['message' => 'Produit ajouté avec succès !'], 201);
-    }
 
 
     public function create(Request $request)
@@ -265,137 +303,6 @@ class ColisController extends Controller
         return view('admin.colis.add.step3');
     }
 
-    private function generateParcelReference()
-    {
-        $user = Auth::user();
-        if (!$user) {
-            throw new \Exception("Utilisateur non connecté.");
-        }
-
-        $firstLetterNom = strtoupper(substr($user->last_name, 0, 1));
-        $firstLetterPrenom = strtoupper(substr($user->first_name, 0, 1));
-        $monthLetter = strtoupper(now()->format('F')[0]); // Première lettre du mois en anglais ('J' pour January, 'F' for February...)
-
-        $increment = 1;
-        $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-
-        // Boucle pour trouver la première référence non utilisée pour cette combinaison utilisateur/mois
-        while (DB::table('colis')->where('reference_colis', $baseReference)->exists()) {
-            $increment++;
-            $baseReference = "{$firstLetterNom}{$firstLetterPrenom}-{$monthLetter}-{$increment}";
-        }
-
-        return $baseReference; // Retourne la référence unique pour ce colis
-    }
-   
-
-
-    private function generateReferenceContenaire()
-    {
-        // Récupérer la dernière référence enregistrée
-        $lastReference = DB::table('colis')
-            ->whereNotNull('reference_contenaire')
-            ->orderByDesc('id')
-            ->value('reference_contenaire');
-
-        if ($lastReference) {
-            // Extraire le numéro (tout ce qui vient après "TC")
-            $lastNumber = (int) str_replace('TC', '', $lastReference);
-            $newNumber = $lastNumber + 1;
-        } else {
-            // Premier conteneur
-            $newNumber = 1;
-        }
-
-        return "TC" . $newNumber;
-    }
-
-    private function generateReferenceVol()
-    {
-        // Récupérer la dernière référence enregistrée
-        $lastReference = DB::table('colis')
-            ->whereNotNull('reference_vol')
-            ->orderByDesc('id')
-            ->value('reference_vol');
-
-        if ($lastReference) {
-            // Extraire le numéro (tout ce qui vient après "A")
-            $lastNumber = (int) str_replace('A', '', $lastReference);
-            $newNumber = $lastNumber + 1;
-        } else {
-            // Premier vol
-            $newNumber = 1;
-        }
-
-        return "A" . $newNumber;
-    }
-
-private function generateReferenceParMode(string $mode_transit)
-{
-    $user = Auth::user();
-    if (!$user) {
-        throw new \Exception("Utilisateur non connecté.");
-    }
-
-    // Initiales de l'utilisateur (ex: SE)
-    $initiales = strtoupper(
-        substr($user->last_name ?? 'X', 0, 1) .
-        substr($user->first_name ?? 'X', 0, 1)
-    );
-
-    // Vérifier le dernier colis pour ce mode
-    $dernierColis = DB::table('colis')
-        ->where('mode_transit', $mode_transit)
-        ->orderByDesc('created_at')
-        ->first();
-
-
-        // dd($dernierColis);
-    if ($dernierColis && $dernierColis->etat === 'Fermé') {
-        // Si le dernier est fermé => reset
-        $nextIdRef = 1;
-    } else {
-        // Sinon on continue l'incrémentation
-        $lastColis = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id') // sécurité en cas d’égalité de dates
-            ->first();
-
-        $lastIdRef = $lastColis ? $lastColis->id_reference : null;
-
-        $nextIdRef = ($lastIdRef ?? 0) + 1;
-    }
-
-    // dd($nextIdRef);
-    // Déterminer la bonne référence conteneur/vol
-    if ($mode_transit === 'maritime') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
-            ->orderByDesc('id')
-            ->value('reference_contenaire') ?? $this->generateReferenceContenaire();
-    } elseif ($mode_transit === 'aerien') {
-        $contenaireRef = DB::table('colis')
-            ->where('mode_transit', $mode_transit)
-            ->where('etat', '!=', 'Fermé')
-            ->orderByDesc('id')
-            ->value('reference_vol') ?? $this->generateReferenceVol();
-    } else {
-        throw new \Exception("Mode de transit invalide : $mode_transit");
-    }
-
-    // Format final de la référence
-    $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
-    $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
-    $reference = "{$initiales}-{$numero}-{$contenaireRef}";
-
-    return [
-        'reference_colis' => $reference,
-        'id_reference' => $nextIdRef,
-        'reference_contenaire' => $contenaireRef
-    ];
-}
 
 
 
@@ -409,26 +316,195 @@ private function generateReferenceParMode(string $mode_transit)
         }
     }
 
+    public function getReference(Request $request)
+    {
+        $request->validate([
+            'mode_transit' => 'required|in:maritime,aerien',
+            'agence_expediteur' => 'required|string',
+        ]);
 
+        try {
+            $mode = $request->input('mode_transit');
+            $nomAgence = $request->input('agence_expediteur');
 
+            $referenceData = $this->generateReferenceParMode($mode, $nomAgence);
+
+            return response()->json($referenceData);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    
     public function add_colis(Request $request)
     {
         $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->distinct()->pluck('pays_agence');
-        $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+        // $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get(); // Cette ligne ne semble pas utilisée, vous pouvez aussi la supprimer
         $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
-        // dd($agences);
-        // Génère juste les références, sans enregistrer encore dans la base
-        // $referenceColis = $this->generateReferenceParMode();
-        $referenceColis_maritime = $this->generateReferenceParMode('maritime');
-        $referenceColis_aerien = $this->generateReferenceParMode('aerien');
-        // dd($referenceColis_maritime);
+
+        // La vue n'a plus besoin des variables de référence pré-générées
         return view('admin.colis.add_colis', compact(
-            'agencesExpedition', 'agencesDestination', 'paysUniques', 'referenceColis_maritime','referenceColis_aerien'
+            'agencesExpedition', 
+            'agencesDestination', 
+            'paysUniques'
+            // 'referenceColis_maritime', // Supprimer
+            // 'referenceColis_aerien'      // Supprimer
         ));
     }
     
-    
+
+    private function generateReferenceContenaire()
+    {
+        // Récupérer la dernière référence pour cette agence spécifique
+        $lastReference = DB::table('colis')
+            // ->where('agence', $nomAgence) // Ajout du filtre par agence
+            ->where('mode_transit', 'maritime')
+            ->whereNotNull('reference_contenaire')
+            ->orderByDesc('id')
+            ->value('reference_contenaire');
+
+        if ($lastReference) {
+            $lastNumber = (int) str_replace('TC', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier conteneur pour cette agence
+            $newNumber = 1;
+        }
+
+        return "TC" . $newNumber;
+    }
+
+    private function generateReferenceVol()
+    {
+        // Récupérer la dernière référence pour cette agence spécifique
+        $lastReference = DB::table('colis')
+            // ->where('agence', $nomAgence)
+            ->where('mode_transit', 'aerien')
+            ->whereNotNull('reference_vol')
+            ->orderByDesc('id')
+            ->value('reference_vol');
+
+            // dd($lastReference);
+        if ($lastReference) {
+            $lastNumber = (int) str_replace('A', '', $lastReference);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Premier vol pour cette agence
+            $newNumber = 1;
+        }
+
+        // dd($newNumber);
+        return "A" . $newNumber;
+    }
+
+    private function generateReferenceParMode(string $mode_transit, string $nomAgence)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            throw new \Exception("Utilisateur non connecté.");
+        }
+
+        // Initiales de l'utilisateur
+        $initiales = strtoupper(
+            substr($user->last_name ?? 'X', 0, 1) .
+            substr($user->first_name ?? 'X', 0, 1)
+        );
+
+        // Colonnes dynamiques selon le mode
+        if ($mode_transit === 'maritime') {
+            $colName = 'reference_contenaire';
+        } elseif ($mode_transit === 'aerien') {
+            $colName = 'reference_contenaire';
+        } else {
+            throw new \Exception("Mode de transit invalide : $mode_transit");
+        }
+
+        // dd($mode_transit);
+        // Recherche d'une référence ouverte pour cette agence
+        $referenceMaitre = Colis::where('mode_transit', $mode_transit)
+            ->where('agence', $nomAgence)
+            ->where('etat', '!=', 'Fermé')
+            ->orderByDesc('id')
+            ->first();
+
+            // dd( $referenceMaitre);
+        // Si aucune référence existante, en générer une nouvelle
+            if ($mode_transit === 'maritime') {
+                $referenceMaitre = Colis::where('mode_transit', 'maritime')
+                    ->where('agence', $nomAgence)
+                    ->where('etat', '!=', 'Fermé')
+                    ->orderByDesc('id')
+                    ->first();
+
+                if (!$referenceMaitre) {
+                    $nouvelleRef = $this->generateReferenceContenaire($nomAgence);
+
+                    $referenceMaitre = new Colis([
+                        'reference_contenaire' => $nouvelleRef,
+                        'id_reference' => 0,
+                    ]);
+                }
+
+            } elseif ($mode_transit === 'aerien') {
+                $referenceMaitre = Colis::where('mode_transit', 'aerien')
+                    ->where('agence', $nomAgence)
+                    ->where('etat', '!=', 'Fermé')
+                    ->orderByDesc('id')
+                    ->first();
+
+                if (!$referenceMaitre) {
+                    $nouvelleRef = $this->generateReferenceVol($nomAgence);
+
+                    // dd($nouvelleRef);
+                    $referenceMaitre = new Colis([
+                        'reference_contenaire' => $nouvelleRef,
+                        'id_reference' => 0,
+                    ]);
+                }
+
+            } else {
+                throw new \Exception("Mode de transit invalide : $mode_transit");
+            }
+
+
+
+            // Cherche le dernier colis lié à cette référence
+            $dernierColisPourCetteRef = Colis::where($colName, $referenceMaitre->$colName)
+                ->where('agence', $nomAgence)
+                ->where('mode_transit', $mode_transit)
+                ->orderByDesc('id_reference')
+                ->first();
+
+
+            // dd($dernierColisPourCetteRef);
+
+        $nextIdRef = ($dernierColisPourCetteRef?->id_reference ?? 0) + 1;
+
+
+        // Numéro formaté
+        $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
+        $colValue = $referenceMaitre->$colName ?? null;
+
+        // dd($colValue);
+
+        if (is_null($colValue) && !empty($referenceMaitre->reference_colis)) {
+            // Récupérer la partie après le dernier tiret "-"
+            $parts = explode('-', $referenceMaitre->reference_colis);
+            $colValue = end($parts); // Exemple : "TC1"
+        }
+
+        $reference = "{$initiales}-{$numero}-{$colValue}";
+
+
+        // Résultat final
+        return [
+            'reference_colis' => $reference,
+            'id_reference' => $nextIdRef,
+            $colName => $referenceMaitre->$colName,
+        ];
+    }
     
     
     private function getOrCreateContenaireReference()
@@ -525,7 +601,7 @@ private function generateReferenceParMode(string $mode_transit)
     
             // Valider que la mise à jour a affecté le nombre attendu d'enregistrements
             if ($updatedCount !== $count) {
-                DB::rollBack(); // Annulez la transaction si la mise à jour n'est pas cohérente
+                DB::rollBack();
                 return redirect()->back()->with('error', 'Erreur lors de la mise à jour des colis. Veuillez réessayer.');
             }
     
@@ -551,10 +627,10 @@ private function generateReferenceParMode(string $mode_transit)
             // Valider les données reçues
             $validated = $request->all();
     
+            // dd($validated);
             // Sauvegarder les données de la session
             $request->session()->put('step1', $validated);
-            // Passer à l'étape suivante de paiement
-            return redirect()->route('colis.create.payement');
+            return redirect()->route('colis.generer.qrcode');
         } catch (\Exception $e) {
             \Log::error('Erreur lors de l\'enregistrement du colis : ' . $e->getMessage());
             return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'enregistrement du colis. Veuillez réessayer.');
@@ -689,7 +765,6 @@ private function generateReferenceParMode(string $mode_transit)
             session('step2', [])
         );
 
-        // dd($data);
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
             return redirect()->back()->with('error', 'Les données de la session sont invalides ou incomplètes. Veuillez recommencer.');
@@ -715,7 +790,7 @@ private function generateReferenceParMode(string $mode_transit)
             'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
-            'agence' => $data['agence_expedition_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'] ?? '', // Ajout de agence_expedition au cas où
+            'agence' => $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expediteur'] ?? '', // Ajout de agence_expedition au cas où
             'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
         ];
 
@@ -724,7 +799,7 @@ private function generateReferenceParMode(string $mode_transit)
             'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
             'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? '',
             'tel' => $destinataireTel, // numéro complet avec indicatif
-            'agence' => $data['agence_destination_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destination'] ?? '', // Ajout de agence_destination au cas où
+            'agence' => $data['agence_destinataire_societe'] ?? $data['agence_particulier_destinataire'] ?? $data['agence_destinataire'] ?? '', // Ajout de agence_destination au cas où
             'lieu_destination' => $data['adresse_destinataire_societe'] ?? $data['adresse_destinataire'] ?? 'null', // Correction pour l'adresse
         ];
 
@@ -738,10 +813,11 @@ private function generateReferenceParMode(string $mode_transit)
         }
 
         // dd($expediteur, $destinataire);
-        $payementDataSession = session('step2', []);
+        $payementDataSession = session('step1', []);
         $montantTotalEstime = collect($data['prix'] ?? [])->sum();
         
         $modePaiement = $payementDataSession['mode_payement'] ?? null;
+        // dd($modePaiement);
         $montantPaiementTransaction = 0;
 
         if ($modePaiement === 'cash') {
@@ -768,6 +844,7 @@ private function generateReferenceParMode(string $mode_transit)
         } elseif ($modePaiement) {
             $statutPaiementGlobal = 'payé';
         }
+        // dd($montantPaiementTransaction);
 
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
         // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
@@ -775,15 +852,8 @@ private function generateReferenceParMode(string $mode_transit)
         $referenceColisPrincipale = '';
 
         
-            if ($data['mode_transit'] === 'maritime') {
-                $referenceColisPrincipale = $data['reference_colis_maritime'] ?? ('REF-MAR-' . strtoupper(uniqid()));
-            } elseif ($data['mode_transit'] === 'aerien') {
-                $referenceColisPrincipale = $data['reference_colis_aerien'] ?? ('REF-AER-' . strtoupper(uniqid()));
-            } else {
-                $referenceColisPrincipale = 'REF-' . strtoupper(uniqid()); // Fallback
-            }
         // --- CORRECTION 1 : Création du paiement principal en amont ---
-        // Cet enregistrement représente la transaction globale.
+        // Cet enregistrement représente  la transaction globale.
         $paiementPrincipal = null;
         try {
             $basePaiementData = [
@@ -796,7 +866,7 @@ private function generateReferenceParMode(string $mode_transit)
                 'date_validation' => now(),
                 'expediteur_id' => $expediteur->id,
                 'agent_id' => $agentId,
-                'montant' => $montantTotalEstime, // Montant total attendu
+                'montant' => $montantTotalEstime,
                 'montant_paye' => $montantPaiementTransaction,
                 'colis_id' => null, // Ce paiement n'est pas lié à un seul colis, mais à l'ensemble
             ];
@@ -811,10 +881,12 @@ private function generateReferenceParMode(string $mode_transit)
 
         // dd($data);
         $mode_transit = $data['mode_transit'] ?? ''; // Valeur par défaut si absente
-        $agence = $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expedition'];
-        // dd($agence);
+        $agence = $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expediteur'];
         // On récupère le dernier colis pour ce mode de transit
 
+        $reference_colis = $data['reference_colis'] ?? null;
+
+        // Récupération du dernier colis pour le mode de transit et l'agence
         $dernierColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('agence', $agence)
@@ -822,26 +894,55 @@ private function generateReferenceParMode(string $mode_transit)
             ->first();
 
 
-            // dd($dernierColis);
-            // dd($dernierColis);
-        if ($dernierColis && $dernierColis->etat === 'Fermé') {
-            // Si le dernier est fermé => reset
-            $nextIdRef = 1;
+        // Si aucun colis n'existe, on prend directement la référence passée
+        if (!$dernierColis) {
+            $referenceColisPrincipale = $reference_colis;
+            $id_reference = 1;
+            $message = null;
+
+            // dd($referenceColisPrincipale, $id_reference, $message);
         } else {
-            // Sinon on continue l'incrémentation
-            $lastColis = DB::table('colis')
-                ->where('mode_transit', $mode_transit)
-                ->where('agence', $agence)
-                ->orderByDesc('created_at')
-                ->orderByDesc('id') // sécurité en cas d’égalité de dates
-                ->first();
+            // À partir d'ici, $dernierColis existe
+            $id_reference = 1; // valeur par défaut
 
-            $lastIdRef = $lastColis ? $lastColis->id_reference : null;
+            // Vérifie l'état du dernier colis (sécurisé si etat est null)
+            if (isset($dernierColis->etat) && $dernierColis->etat === 'Fermé') {
+                $id_reference = 1;
+            } else {
+                // Incrémente l'id_reference par rapport au dernier colis existant
+                $lastColis = DB::table('colis')
+                    ->where('mode_transit', $mode_transit)
+                    ->where('agence', $agence)
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->first();
 
-            $id_reference = ($lastIdRef ?? 0) + 1;
+                $lastIdRef = $lastColis ? $lastColis->id_reference : 0;
+                $id_reference = $lastIdRef + 1;
+            }
+
+            // Détermine la référence principale
+            $referenceColisPrincipale = $dernierColis->reference_colis;
+            $message = null;
+
+            // Vérifie si la référence existe déjà
+            if (!is_null($reference_colis) && $reference_colis === $dernierColis->reference_colis) {
+                $message = "La référence '$reference_colis' existe déjà, elle va être incrémentée.";
+            }
+
+            // Incrémente la partie numérique centrale automatiquement SEULEMENT si dernierColis existe
+            $parts = explode('-', $referenceColisPrincipale); // AA-0001-TC1 => ['AA', '0001', 'TC1']
+            if (isset($parts[1])) {
+                $numero = (int)$parts[1] + 1;
+                $parts[1] = str_pad($numero, strlen($parts[1]), '0', STR_PAD_LEFT);
+                $reference_colis = implode('-', $parts);
+            }
+
+            // Met à jour la référence principale
+            $referenceColisPrincipale = $reference_colis;
         }
 
-        // dd($id_reference);
+        // dd($referenceColisPrincipale);
 
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -854,10 +955,8 @@ private function generateReferenceParMode(string $mode_transit)
             
             $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
         // On s'assure de ne pas diviser par zéro
-        $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne / $quantite_pour_ligne_article) : 0;
+        $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne) : 0;
         
-        // dd($referenceColisPrincipale, $id_reference, $agence, $prixUnitairePourCetteLigne);
-
         for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
         
         
@@ -869,6 +968,8 @@ private function generateReferenceParMode(string $mode_transit)
                     'reference_contenaire' => $data['reference_contenaire'] ?? null,
                     'quantite_colis' => 1,
                     'service' => $data['service'][$index] ?? null,
+                    'montant_service' => $data['prix_service'][$index] ?? null,
+                    'produit' => $data['produit'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids_colis'][$index] ?? null,
                     'mode_transit' => $data['mode_transit'] ?? null,
@@ -945,10 +1046,12 @@ private function generateReferenceParMode(string $mode_transit)
         $firstColis = $colisEnregistresCollection->first(); 
         $devise = $firstColis->devise ?? 'EUR';
 
+        // dd($firstColis);
         session()->forget(['step1', 'step2']);
 
         $totalQuantitePhysique = $colisEnregistresCollection->count();
-        $totalPrixTransit = $colisEnregistresCollection->sum('prix_transit_colis');
+        $totalPrixTransit = ($colisEnregistresCollection->sum('prix_transit_colis') + $firstColis['montant_service']);
+
         $restePaye = $totalPrixTransit - $montantPaiementTransaction;
         if ($modePaiement === 'delivery') {
             $restePaye = $totalPrixTransit;
@@ -1017,7 +1120,6 @@ private function generateReferenceParMode(string $mode_transit)
                 ]);
             }
 
-        // dd($firstColis->destinataire->tel);
         // dd($colisEnregistresCollection, $expediteurTelForSms, $destinataireTelForSms,$firstColis);
         return view('admin.colis.add.complete', [
             'colis' => $colisEnregistresCollection,
@@ -1257,15 +1359,16 @@ private function generateReferenceParMode(string $mode_transit)
 
     public function editFacture($id)
     {
+        // 1. Récupérer le colis principal
         $colis_principal = Colis::find($id);
-
         if (!$colis_principal) {
             return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
         }
 
+        // 2. Récupérer tous les colis partageant la même référence
         $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
-                                ->with(['expediteur', 'destinataire', 'paiement'])
-                                ->get();
+            ->with(['expediteur', 'destinataire'])
+            ->get();
 
         if ($colisCollection->isEmpty()) {
             return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
@@ -1273,112 +1376,105 @@ private function generateReferenceParMode(string $mode_transit)
 
         $firstColis = $colisCollection->first();
 
+        // --- 3. Préparation des données de base de la facture ---
         $date_facture = now();
-        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
+        $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
-        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
-        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
+        $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
+        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
         $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
         $reference_colis = $firstColis->reference_colis;
         $devise = $firstColis->devise;
-        // --- Group and Aggregate Colis Data by Service/Description ---
-        $groupedItems = [];
-        $prix_total_invoice = 0; // Initialize total for the entire invoice
 
-        foreach ($colisCollection as $colis) {
-            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
-            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
-            // Use description as the main grouping key (service)
-            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
+        // --- 4. Regroupement par produit ---
+        $colisParProduit = $colisCollection->groupBy('produit');
 
-            // Calculate Unit Price - Crucial: Assumes items with the same description have the same unit price for this invoice.
-            // We'll take the unit price from the first item encountered for this service description.
-            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
+        $produitsGroupes = [];
+        $sous_total_produits = 0;
+        $quantite_totale_generale = 0;
 
-            // Define the group key based on the service description
-            $groupKey = $serviceDescription;
-            // dd($groupKey);
-            if (!isset($groupedItems[$groupKey])) {
-                // Initialize the group if it's the first time we see this service
-                $groupedItems[$groupKey] = [
-                    'service'           => $serviceDescription,
-                    'quantite_totale'   => 0, // Will be summed
-                    'montant_total_ligne' => 0, // Will be summed
-                    'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
-                    // Optionally store other details from the first item if needed (like type_colis)
-                    'type_colis'        => $colis->type_colis ?? 'N/A',
-                ];
-            } else {
-                 // Optional: You might want to check if the unit price is consistent here.
-                 // If $prixUnitaire is different from $groupedItems[$groupKey]['prix_unitaire'],
-                 // you have items with the same description but different prices, which might need specific handling.
-                 // For now, we assume the first unit price encountered is the correct one for the group.
-            }
+        foreach ($colisParProduit as $nomProduit => $items) {
+            $nombre_colis_par_produit = $items->count();
 
+            // Ici : si tu veux additionner le prix_transit_colis de chaque colis (sans multiplier par quantité)
+            $montant_total_ligne = $items->sum('prix_transit_colis');
 
-            // Aggregate quantity and total amount for the group
-            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
-            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
+            // Prix unitaire moyen = total / nombre de colis
+            $prix_unitaire = ($nombre_colis_par_produit > 0)
+                ? $montant_total_ligne / $nombre_colis_par_produit
+                : 0;
 
-            // Accumulate the overall invoice total
-            $prix_total_invoice += $prixLigne;
+            $produitsGroupes[] = [
+                'produit' => $nomProduit,
+                'nombre_colis' => $nombre_colis_par_produit,
+                'prix_unitaire_moyen' => $prix_unitaire,
+                'montant_total_ligne' => $montant_total_ligne,
+            ];
+
+            $sous_total_produits += $montant_total_ligne;
+            $quantite_totale_generale += $nombre_colis_par_produit;
         }
-        // dd($groupedItems);
-        // Convert the grouped items associative array to a simple indexed array for the view
-        $invoiceItems = array_values($groupedItems);
 
-        // --- Payment Information ---
+        // --- 5. Service ---
+        $service_info = null;
+        if ($firstColis->service && (float)$firstColis->montant_service > 0) {
+            $service_info = [
+                'service' => $firstColis->service,
+                'montant_service' => (float)$firstColis->montant_service,
+            ];
+        }
+
+        $montant_service_total = $service_info ? $service_info['montant_service'] : 0;
+        $prix_total_invoice = $sous_total_produits + $montant_service_total;
+
+        // --- 6. Paiements ---
         $ids_colis = $colisCollection->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
 
-        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontantDue = $prix_total_invoice;
+        $mode_payement = $paiements->pluck('methode_paiement')->unique()->implode(', ');
         $totalMontantPaye = $paiements->sum('montant_paye');
-        $restePaye = $totalMontantDue - $totalMontantPaye;
+        $restePaye = $prix_total_invoice - $totalMontantPaye;
 
-        // --- Agent and Invoice Record ---
+        // --- 7. Agent ---
         $agent = Auth::user();
-        $id_agent = $agent->id;
-        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
+        $nom_agent = trim($agent->first_name . ' ' . $agent->last_name);
 
-        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
-        if (!$existingInvoice) {
-             Invoice::create([
-                 'nom_agent' => $nom_agent,
-                 'nom_expediteur' => $expediteur,
-                 'nom_destinataire' => $destinataire,
-                 'expediteur_id' => optional($firstColis->expediteur)->id,
-                 'destinataire_id' => optional($firstColis->destinataire)->id,
-                 'agent_id' => $id_agent,
-                 'montant' => $prix_total_invoice ?? 0,
-                 'numero_facture' => $numero_facture,
-             ]);
-        }
+        Invoice::updateOrCreate(
+            ['numero_facture' => $numero_facture],
+            [
+                'nom_agent' => $nom_agent,
+                'nom_expediteur' => $expediteur,
+                'nom_destinataire' => $destinataire,
+                'expediteur_id' => optional($firstColis->expediteur)->id,
+                'destinataire_id' => optional($firstColis->destinataire)->id,
+                'agent_id' => $agent->id,
+                'montant' => $prix_total_invoice,
+                'reference_colis' => $reference_colis,
+            ]
+        );
 
-        // --- Pass data to the view ---
-        // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
-        $prix_total = $prix_total_invoice;
-
-        return view('admin.colis.add.edit_invoice', compact(
+        // --- 8. Retourner la vue ---
+        return view('admin.invoice.edit_invoice', compact(
             'date_facture',
             'reference_colis',
             'expediteur',
             'tel_expediteur',
             'destinataire',
             'tel_destinataire',
-            'prix_total',
+            'adresse_destinataire',
+            'prix_total_invoice',
+            'sous_total_produits',
+            'service_info',
             'mode_payement',
-            'invoiceItems',
+            'produitsGroupes',
             'numero_facture',
             'totalMontantPaye',
             'restePaye',
-            'devise',
-            'adresse_destinataire'
-
-            
+            'devise'
         ));
     }
+
 
 
     public function editEtiquette($id)
@@ -1437,6 +1533,7 @@ private function generateReferenceParMode(string $mode_transit)
                                    ->with(['expediteur', 'destinataire']) // Charger les relations
                                    ->get();
     
+        // dd($colisPourEtiquettes);
         if ($colisPourEtiquettes->isEmpty()) {
             // Cela ne devrait pas arriver si $colisInitial a été trouvé, mais c'est une sécurité
             abort(404, 'Aucun colis trouvé pour cette référence.');
@@ -1459,132 +1556,126 @@ private function generateReferenceParMode(string $mode_transit)
     }
     
 
-    public function imprimerFacture($id)
-    {
-        $colis_principal = Colis::find($id);
-
-        if (!$colis_principal) {
-            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-        }
-
-        $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
-                                ->with(['expediteur', 'destinataire', 'paiement'])
-                                ->get();
-
-        if ($colisCollection->isEmpty()) {
-            return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
-        }
-
-        $firstColis = $colisCollection->first();
-
-        // --- Prepare base invoice data ---
-        $date_facture = now();
-        $expediteur = optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom;
-        $tel_expediteur = optional($firstColis->expediteur)->tel;
-        $destinataire = optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom;
-        $tel_destinataire = optional($firstColis->destinataire)->tel;
-        $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
-        $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
-        $reference_colis = $firstColis->reference_colis;
-        $devise = $firstColis->devise;
-        // --- Group and Aggregate Colis Data by Service/Description ---
-        $groupedItems = [];
-        $prix_total_invoice = 0; // Initialize total for the entire invoice
-
-        foreach ($colisCollection as $colis) {
-            $prixLigne = (float)($colis->prix_transit_colis ?? 0);
-            $quantiteLigne = (int)($colis->quantite_colis ?: 1);
-            // Use description as the main grouping key (service)
-            $serviceDescription = trim($colis->service ?? 'Service Non Défini');
-
-            // Calculate Unit Price - Crucial: Assumes items with the same description have the same unit price for this invoice.
-            // We'll take the unit price from the first item encountered for this service description.
-            $prixUnitaire = ($quantiteLigne != 0) ? $prixLigne / $quantiteLigne : 0;
-
-            // Define the group key based on the service description
-            $groupKey = $serviceDescription;
-            if (!isset($groupedItems[$groupKey])) {
-                // Initialize the group if it's the first time we see this service
-                $groupedItems[$groupKey] = [
-                    'service'           => $serviceDescription,
-                    'quantite_totale'   => 0, // Will be summed
-                    'montant_total_ligne' => 0, // Will be summed
-                    'prix_unitaire'     => $prixUnitaire, // Store the unit price from the first item
-                    // Optionally store other details from the first item if needed (like type_colis)
-                    'type_colis'        => $colis->type_colis ?? 'N/A',
-                    
-                ];
-            } else {
-                 // Optional: You might want to check if the unit price is consistent here.
-                 // If $prixUnitaire is different from $groupedItems[$groupKey]['prix_unitaire'],
-                 // you have items with the same description but different prices, which might need specific handling.
-                 // For now, we assume the first unit price encountered is the correct one for the group.
-            }
-
-
-            // Aggregate quantity and total amount for the group
-            $groupedItems[$groupKey]['quantite_totale'] += $quantiteLigne;
-            $groupedItems[$groupKey]['montant_total_ligne'] += $prixLigne;
-
-            // Accumulate the overall invoice total
-            $prix_total_invoice += $prixLigne;
-        }
-        // dd($groupedItems);
-        // Convert the grouped items associative array to a simple indexed array for the view
-        $invoiceItems = array_values($groupedItems);
-
-        // --- Payment Information ---
-        $ids_colis = $colisCollection->pluck('id')->toArray();
-        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
-
-        $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontantDue = $prix_total_invoice;
-        $totalMontantPaye = $paiements->sum('montant_paye');
-        $restePaye = $totalMontantDue - $totalMontantPaye;
-
-        // --- Agent and Invoice Record ---
-        $agent = Auth::user();
-        $id_agent = $agent->id;
-        $nom_agent = $agent->first_name . ' ' . $agent->last_name;
-
-        $existingInvoice = Invoice::where('numero_facture', $numero_facture)->first();
-        if (!$existingInvoice) {
-             Invoice::create([
-                 'nom_agent' => $nom_agent,
-                 'nom_expediteur' => $expediteur,
-                 'nom_destinataire' => $destinataire,
-                 'expediteur_id' => optional($firstColis->expediteur)->id,
-                 'destinataire_id' => optional($firstColis->destinataire)->id,
-                 'agent_id' => $id_agent,
-                 'montant' => $prix_total_invoice ?? 0,
-                 'numero_facture' => $numero_facture,
-             ]);
-        }
-
-        $devise = $firstColis['devise'];
-
-        // --- Pass data to the view ---
-        // Rename $prix_total_invoice back to $prix_total if the view expects that name for the grand total
-        $prix_total = $prix_total_invoice;
-
-        return view('admin.invoice.edit_invoice', compact(
-            'date_facture',
-            'reference_colis',
-            'expediteur',
-            'tel_expediteur',
-            'destinataire',
-            'tel_destinataire',
-            'prix_total', // Grand total for the invoice
-            'mode_payement',
-            'invoiceItems', // The grouped data
-            'numero_facture',
-            // 'totalMontant' is redundant if it's the same as 'prix_total'
-            'totalMontantPaye',
-            'restePaye',
-            'devise'
-            ,'adresse_destinataire'
-        ));
+public function imprimerFacture($id)
+{
+    // 1. Récupérer le colis principal
+    $colis_principal = Colis::find($id);
+    if (!$colis_principal) {
+        return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
     }
+
+    // 2. Récupérer tous les colis partageant la même référence
+    $colisCollection = Colis::where('reference_colis', $colis_principal->reference_colis)
+        ->with(['expediteur', 'destinataire'])
+        ->get();
+
+    if ($colisCollection->isEmpty()) {
+        return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
+    }
+
+    $firstColis = $colisCollection->first();
+
+    // --- 3. Préparation des données de base de la facture ---
+    $date_facture = now();
+    $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
+    $tel_expediteur = optional($firstColis->expediteur)->tel;
+    $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
+    $tel_destinataire = optional($firstColis->destinataire)->tel;
+    $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
+    $numero_facture = 'FA-' . str_pad($firstColis->id, 5, '0', STR_PAD_LEFT);
+    $reference_colis = $firstColis->reference_colis;
+    $devise = $firstColis->devise;
+
+    // --- 4. Regroupement par produit ---
+    $colisParProduit = $colisCollection->groupBy('produit');
+
+    $produitsGroupes = [];
+    $sous_total_produits = 0;
+    $quantite_totale_generale = 0;
+
+    foreach ($colisParProduit as $nomProduit => $items) {
+        $nombre_colis_par_produit = $items->count();
+
+        // Ici : si tu veux additionner le prix_transit_colis de chaque colis (sans multiplier par quantité)
+        $montant_total_ligne = $items->sum('prix_transit_colis');
+
+        // Prix unitaire moyen = total / nombre de colis
+        $prix_unitaire = ($nombre_colis_par_produit > 0)
+            ? $montant_total_ligne / $nombre_colis_par_produit
+            : 0;
+
+        $produitsGroupes[] = [
+            'produit' => $nomProduit,
+            'nombre_colis' => $nombre_colis_par_produit,
+            'prix_unitaire_moyen' => $prix_unitaire,
+            'montant_total_ligne' => $montant_total_ligne,
+        ];
+
+        $sous_total_produits += $montant_total_ligne;
+        $quantite_totale_generale += $nombre_colis_par_produit;
+    }
+
+    // --- 5. Service ---
+    $service_info = null;
+    if ($firstColis->service && (float)$firstColis->montant_service > 0) {
+        $service_info = [
+            'service' => $firstColis->service,
+            'montant_service' => (float)$firstColis->montant_service,
+        ];
+    }
+
+    $montant_service_total = $service_info ? $service_info['montant_service'] : 0;
+    $prix_total_invoice = $sous_total_produits + $montant_service_total;
+
+    // --- 6. Paiements ---
+    $ids_colis = $colisCollection->pluck('id')->toArray();
+    $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+
+    $mode_payement = $paiements->pluck('methode_paiement')->unique()->implode(', ');
+    $totalMontantPaye = $paiements->sum('montant_paye');
+    $restePaye = $prix_total_invoice - $totalMontantPaye;
+
+    // --- 7. Agent ---
+    $agent = Auth::user();
+    $nom_agent = trim($agent->first_name . ' ' . $agent->last_name);
+
+    Invoice::updateOrCreate(
+        ['numero_facture' => $numero_facture],
+        [
+            'nom_agent' => $nom_agent,
+            'nom_expediteur' => $expediteur,
+            'nom_destinataire' => $destinataire,
+            'expediteur_id' => optional($firstColis->expediteur)->id,
+            'destinataire_id' => optional($firstColis->destinataire)->id,
+            'agent_id' => $agent->id,
+            'montant' => $prix_total_invoice,
+            'reference_colis' => $reference_colis,
+        ]
+    );
+
+    // --- 8. Retourner la vue ---
+    return view('admin.invoice.edit_invoice', compact(
+        'date_facture',
+        'reference_colis',
+        'expediteur',
+        'tel_expediteur',
+        'destinataire',
+        'tel_destinataire',
+        'adresse_destinataire',
+        'prix_total_invoice',
+        'sous_total_produits',
+        'service_info',
+        'mode_payement',
+        'produitsGroupes',
+        'numero_facture',
+        'totalMontantPaye',
+        'restePaye',
+        'devise'
+    ));
+}
+
+
+
 
     public function editInvoice($id)
     {
@@ -1615,7 +1706,7 @@ private function generateReferenceParMode(string $mode_transit)
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
         $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
-    
+        
         // Préparer les paiements associés à ces colis
         $ids_colis = $colisEnregistres->pluck('id')->toArray();
         $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
@@ -1625,6 +1716,8 @@ private function generateReferenceParMode(string $mode_transit)
     
         $restePaye = $totalMontant - $totalMontantPaye;
     
+        // dd($totalQuantite, $totalPrixTransit,$restePaye);
+
         return view('admin.invoice.edit', [
             'colis' => $colisEnregistres,
             'first' => $firstInfo,
@@ -1823,7 +1916,159 @@ private function generateReferenceParMode(string $mode_transit)
         }
     }
 
+    public function get_tout_colis(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
 
+                $colis = Colis::select(
+                    'colis.id',
+                    'colis.reference_colis',
+                    'colis.quantite_colis',
+                    'colis.prix_transit_colis',
+                    'colis.expediteur_id', // Garder les IDs si besoin pour les relations
+                    'colis.destinataire_id',
+                    'colis.etat',
+                    'colis.created_at',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'colis.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                // ->where('colis.etat', 'Validé')
+                ->whereNull('colis.archived_at') // Exclure les colis archivés
+                ->orderBy('colis.created_at', 'desc') // Optionnel: trier
+                ->get();
+
+                $colisIds = $colis->pluck('id')->unique()->toArray();
+
+                $paiements = Paiement::whereIn('colis_id', $colisIds)
+                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye')) // Sommer directement en SQL
+                                    ->groupBy('colis_id')
+                                    ->get()
+                                    ->keyBy('colis_id'); 
+
+                $colisGrouped = $colis->groupBy('reference_colis');
+
+                $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+                    $firstColis = $group->first(); // Prendre le premier colis comme référence pour certaines infos
+                    $quantiteTotale = $group->sum('quantite_colis');
+                    $prixTotalColis = $group->sum('prix_transit_colis');
+                    $montantTotalPaye = 0;
+                    $colisIdsInGroup = $group->pluck('id')->toArray(); // IDs des colis dans ce groupe
+
+                    foreach ($colisIdsInGroup as $colisId) {
+                        if (isset($paiements[$colisId])) {
+                            $montantTotalPaye += $paiements[$colisId]->total_paye;
+                        }
+                    }
+
+                    $paymentStatus = 'impaye';
+                    $tolerance = 0.01; // Tolérance pour les comparaisons flottantes
+
+                    if ($montantTotalPaye > 0) {
+                        if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
+                            $paymentStatus = 'paye'; // Totalement payé
+                        } elseif ($montantTotalPaye < $prixTotalColis) {
+                            $paymentStatus = 'partiel'; // Partiellement payé
+                        }
+                    }
+
+                    return [
+                        'reference_colis' => $reference,
+                        'nombre_de_colis' => $quantiteTotale, // Somme des quantités
+                        'expediteur_nom' => $firstColis->expediteur_nom,
+                        'expediteur_prenom' => $firstColis->expediteur_prenom,
+                        'expediteur_tel' => $firstColis->expediteur_tel,
+                        'expediteur_agence' => $firstColis->expediteur_agence,
+                        'destinataire_nom' => $firstColis->destinataire_nom,
+                        'destinataire_prenom' => $firstColis->destinataire_prenom,
+                        'destinataire_tel' => $firstColis->destinataire_tel,
+                        'destinataire_agence' => $firstColis->destinataire_agence,
+                        'etat' => $firstColis->etat, // L'état devrait être le même pour tout le groupe
+                        'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A', // Formatage de la date
+                        'payment_status' => $paymentStatus, // Statut calculé
+                        'prix_total' => $prixTotalColis, // Prix total du groupe
+                        'montant_paye' => $montantTotalPaye, // Montant total payé pour le groupe
+                        'colis_ids' => json_encode($colisIdsInGroup),
+                        'first_colis_id' => $firstColis->id
+                    ];
+                })->values();
+
+                return DataTables::of($processedData)
+                    ->addColumn('statut_paiement', function ($row) {
+                        // Générer l'icône de statut de paiement avec tooltip
+                        $status = $row['payment_status'];
+                        $iconClass = ''; $iconColor = ''; $title = '';
+                        $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
+                        $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
+                        switch ($status) {
+                            case 'paye':
+                                $iconClass = 'fas fa-check-circle'; $iconColor = 'green';
+                                $title = 'Payé (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
+                                break;
+                            case 'partiel':
+                                $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange';
+                                $title = 'Paiement Partiel (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
+                                break;
+                            case 'impaye':
+                            default:
+                                $iconClass = 'fas fa-times-circle'; $iconColor = 'red';
+                                $title = 'Impayé (0 / ' . $prixTotalFormatted . ')';
+                                break;
+                        }
+                        return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
+                    })
+                    ->addColumn('action', function ($row) {
+                        // Générer les boutons d'action
+                        $reference = $row['reference_colis'];
+                        $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
+
+                        $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
+                        $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
+
+                     
+
+                        $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
+                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                            data-total="' . $row['prix_total'] . '"
+                                            data-paid="' . $row['montant_paye'] . '"
+                                            data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                                            title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </button>';
+
+                        $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
+                                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                                data-url="' . $deleteUrl . '"
+                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                            <i class="fas fa-trash"></i>
+                                        </button>';
+
+
+                        return '<div class="action-buttons-container">'
+                               . $payBtn
+                               . $deleteBtn
+                               . '</div>';
+                    })
+                    ->rawColumns(['action', 'statut_paiement'])
+                    ->make(true); 
+
+            } catch (\Exception $e) {
+                Log::error('Erreur dans get_colis_valide: ' . $e->getMessage());
+                return response()->json(['error' => 'Une erreur interne est survenue.'], 500);
+            }
+        }
+
+        Log::warning("Requête non-AJAX reçue sur get_colis_valide");
+        abort(404); 
+    }
 
     public function get_colis_valide(Request $request)
     {
@@ -2389,60 +2634,257 @@ public function get_colis_hold(Request $request)
     }
     
 
-    
-
-
-
     public function edit_colis_valide($id)
     {
-        $colis_principal = Colis::find($id);
-        if (!$colis_principal) {
-            return redirect()->route('colis.hold')->with('error', 'Colis non trouvé.');
-        }
-    
-        // On récupère tous les colis de la même référence
+        // findOrFail gère automatiquement le cas où le colis n'existe pas (erreur 404).
+        $colis_principal = Colis::findOrFail($id);
+
+        // Récupérer tous les colis de la même référence avec leurs relations.
         $colis_groupe_total = Colis::with(['expediteur', 'destinataire'])
-                                    ->where('reference_colis', $colis_principal->reference_colis)
-                                    ->get();
-    
+            ->where('reference_colis', $colis_principal->reference_colis)
+            ->get();
+
         if ($colis_groupe_total->isEmpty()) {
             return redirect()->route('colis.hold')->with('warning', 'Aucun colis trouvé avec cette référence.');
         }
-        
-        // --- NOUVELLE LOGIQUE : REGROUPEMENT PAR DESCRIPTION ---
-        // On groupe la collection par la colonne 'service' (Nature du colis)
-        $groupes_par_service = $colis_groupe_total->groupBy('service');
-    
-        $colis_recap_list = []; // Un tableau pour stocker nos fiches récapitulatives
-    
-        foreach ($groupes_par_service as $service => $groupe) {
+
+        // 1. On récupère les informations globales (partagées par tous les colis de la transaction)
+        $info_partagees = $colis_groupe_total->first();
+
+        // 2. On groupe les colis par 'produit' pour un affichage clair et cohérent.
+        $groupes_par_produit = $colis_groupe_total->groupBy('produit');
+
+        // 3. Transformer les groupes en une liste d'objets récapitulatifs pour la vue.
+        $colis_recap_list = $groupes_par_produit->map(function ($groupe, $produit) {
             $premier_colis_du_groupe = $groupe->first();
-    
-            // Pour chaque groupe de service, on crée un objet récapitulatif
-            $colis_recap_list[] = (object)[
-                'expediteur' => $premier_colis_du_groupe->expediteur,
-                'destinataire' => $premier_colis_du_groupe->destinataire,
-                'mode_transit' => $premier_colis_du_groupe->mode_transit,
-                'reference_colis' => $premier_colis_du_groupe->reference_colis,
-                
-                'service' => $service, // La nature du colis (ex: 'ANANA', 'Arachides')
-                
-                // On somme les valeurs numériques de ce sous-groupe
-                'quantite_colis' => $groupe->sum('quantite_colis'),
-                'valeur_colis' => $groupe->sum('valeur_colis'),
-                'poids_colis' => $groupe->sum('poids_colis'),
+
+            return (object)[
+                'produit'            => $produit,
+                'quantite_colis'     => $groupe->sum('quantite_colis'),
+                'poids_colis'        => $groupe->sum('poids_colis'),
                 'prix_transit_colis' => $groupe->sum('prix_transit_colis'),
-                'dimension_result' => $groupe->pluck('dimension_result')->unique()->implode(' | '),
-                
-                // On passe les items de ce sous-groupe
-                'items' => $groupe
+                'mode_transit'       => $premier_colis_du_groupe->mode_transit,
+                'reference_colis'    => $premier_colis_du_groupe->reference_colis,
+                'id_reference'       => $premier_colis_du_groupe->id_reference,
+                'devise'             => $premier_colis_du_groupe->devise,
+                'montant_service'    => $premier_colis_du_groupe->montant_service,
+                'service'            => $premier_colis_du_groupe->service,
+                'dimension_result'   => $groupe->pluck('dimension_result')->unique()->implode(' | '),
+                'items'              => $groupe, // On garde les items pour récupérer leurs IDs dans la vue.
             ];
-        }
-        // --- FIN DE LA NOUVELLE LOGIQUE ---
-    
-        // On envoie la LISTE des fiches récapitulatives à la vue
-        return view('admin.colis.edit_colis_valide',  ['colis_recap_list' => $colis_recap_list]);
+        })->values();
+
+        return view('admin.colis.edit_colis_valide', [
+            'colis_recap_list' => $colis_recap_list,
+            'info_partagees'   => $info_partagees,
+        ]);
     }
+
+    public function updateMultipleColis(Request $request)
+    {
+        $validatedData = $request->all();
+        $finalRedirectColisId = null; // Variable pour stocker l'ID du colis pour la redirection
+
+        // dd($validatedData);
+        try {
+            DB::transaction(function () use ($validatedData, $request, &$finalRedirectColisId) {
+                $id_reference = $validatedData['id_reference'];
+
+                // ================================================================
+                // 1. CRÉATION / MISE À JOUR EXPÉDITEUR ET DESTINATAIRE
+                // ================================================================
+                $expediteur = Expediteur::updateOrCreate(
+                    ['tel' => $validatedData['tel_expediteur']],
+                    [
+                        'nom'    => $validatedData['nom_expediteur'],
+                        'prenom' => $validatedData['prenom_expediteur'],
+                        'agence' => $validatedData['agence_expediteur']
+                    ]
+                );
+
+                $destinataire = Destinataire::updateOrCreate(
+                    ['tel' => $validatedData['tel_destinataire']],
+                    [
+                        'nom'    => $validatedData['nom_destinataire'],
+                        'prenom' => $validatedData['prenom_destinataire'],
+                        'agence' => $validatedData['agence_destinataire']
+                    ]
+                );
+
+                // ================================================================
+                // 2. MISE À JOUR DES COLIS EXISTANTS
+                // ================================================================
+                if (!empty($validatedData['groupes'])) {
+                    foreach ($validatedData['groupes'] as $groupData) {
+                        if (empty($groupData['colis_ids'])) continue;
+
+                        $colisIds = $groupData['colis_ids'];
+                        $quantite = count($colisIds);
+
+                        $prixTotalGroupe = (float)($groupData['prix_transit_colis'] ?? 0);
+                        $poidsTotalGroupe = (float)($groupData['poids_colis'] ?? 0);
+
+                        $prixUnitaire = $quantite > 0 ? $prixTotalGroupe / $quantite : 0;
+                        $poidsUnitaire = $quantite > 0 ? $poidsTotalGroupe / $quantite : 0;
+
+                        // dd( $prixUnitaire,$poidsUnitaire);
+                        Colis::whereIn('id', $colisIds)->update([
+                            'expediteur_id'      => $expediteur->id,
+                            'destinataire_id'    => $destinataire->id,
+                            'agence'             => $validatedData['agence_expediteur'],
+                            'produit'            => $groupData['produit'],
+                            'mode_transit'       => $groupData['mode_transit'],
+                            'dimension_result'   => $groupData['dimension_result'] ?? null,
+                            'poids_colis'        => $poidsUnitaire,
+                            'prix_transit_colis' => $prixUnitaire,
+                            'service'            => $validatedData['service'] ?? null,
+                            'montant_service'    => isset($validatedData['service']) ? ($validatedData['montant_service'] ?? 0) : null,
+                        ]);
+
+                        // Capture le premier colis existant si aucun nouveau n'est créé
+                        if ($finalRedirectColisId === null && !empty($colisIds)) {
+                            $finalRedirectColisId = $colisIds[0];
+                        }
+                    }
+                }
+
+                // ================================================================
+                // 3. SUPPRESSION DES COLIS
+                // ================================================================
+                if ($request->has('deleted_ids')) {
+                    $idsASupprimer = array_filter($request->input('deleted_ids'));
+                    if (!empty($idsASupprimer)) {
+                        $colisASupprimer = Colis::whereIn('id', $idsASupprimer)->get();
+
+                        foreach ($colisASupprimer as $colis) {
+                            $fullPath = public_path($colis->qr_code_path);
+                            if ($colis->qr_code_path && File::exists($fullPath)) {
+                                File::delete($fullPath);
+                            }
+                        }
+                        Colis::destroy($idsASupprimer);
+                    }
+                }
+
+                // ================================================================
+                // 4. CRÉATION DE NOUVEAUX COLIS
+                // ================================================================
+                if (!empty($validatedData['new_group'])) {
+                    foreach ($validatedData['new_group'] as $newGroupData) {
+                        $quantite = max(1, (int)($newGroupData['quantite_colis'] ?? 1));
+                        $prixTotalGroupe = (float)($newGroupData['prix_transit_colis'] ?? 0);
+                        $poidsTotalGroupe = (float)($newGroupData['poids_colis'] ?? 0);
+
+                        $prixUnitaire = $quantite > 0 ? $prixTotalGroupe / $quantite : 0;
+                        $poidsUnitaire = $quantite > 0 ? $poidsTotalGroupe / $quantite : 0;
+
+                        for ($i = 0; $i < $quantite; $i++) {
+                            $colisModel = Colis::create([
+                                'reference_colis'    => $validatedData['reference_colis'],
+                                'id_reference'       => $id_reference,
+                                'mode_transit'       => $newGroupData['mode_transit'] ?? 'maritime',
+                                'expediteur_id'      => $expediteur->id,
+                                'destinataire_id'    => $destinataire->id,
+                                'agent_id'           => auth()->user()->agent->id ?? null,
+                                'agence'             => $validatedData['agence_expediteur'],
+                                'produit'            => $newGroupData['produit'],
+                                'devise'             => $validatedData['devise'] ?? '€',
+                                'quantite_colis'     => 1,
+                                'poids_colis'        => $poidsUnitaire,
+                                'prix_transit_colis' => $prixUnitaire,
+                                'dimension_result'   => $newGroupData['dimension'] ?? null,
+                                'description_colis'  => $newGroupData['description_colis'] ?? $newGroupData['produit'],
+                                'status'             => 'en_attente',
+                                'etat'               => 'Validé',
+                                'qr_code_path'       => null,
+                                'service'            => $validatedData['service'] ?? null,
+                                'montant_service'    => isset($validatedData['service']) ? ($validatedData['montant_service'] ?? 0) : null,
+                            ]);
+
+                            // Génération du QR Code
+                            $qrCodePath = $this->generateAndStoreQrCode($colisModel, $expediteur, $destinataire);
+                            $colisModel->update(['qr_code_path' => $qrCodePath]);
+
+                            if ($finalRedirectColisId === null) {
+                                $finalRedirectColisId = $colisModel->id;
+                            }
+                        }
+                    }
+                }
+
+                // ================================================================
+                // 5. FILET DE SÉCURITÉ : si aucun colis capturé, on en prend un au hasard
+                // ================================================================
+                if ($finalRedirectColisId === null) {
+                    $anyRemainingColis = Colis::where('id_reference', $id_reference)->first();
+                    if ($anyRemainingColis) {
+                        $finalRedirectColisId = $anyRemainingColis->id;
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error("Erreur lors de la mise à jour groupée des colis: " . $e->getMessage() . " Ligne: " . $e->getLine());
+            return back()->with('error', 'Une erreur critique est survenue. Aucune modification n\'a été enregistrée.');
+        }
+
+        // ================================================================
+        // 6. REDIRECTION FINALE
+        // ================================================================
+        if ($finalRedirectColisId) {
+            return redirect()->route('colis.valide.edit.invoice', ['id' => $finalRedirectColisId])
+                ->with('success', 'Les modifications ont été enregistrées avec succès !');
+        }
+
+        return redirect()->route('colis.colis.valide')
+            ->with('success', 'Les modifications ont été enregistrées avec succès !');
+    }
+
+    private function generateAndStoreQrCode(Colis $colis, Expediteur $expediteur, Destinataire $destinataire): string
+    {
+        // 1. Contenu du QR Code
+        $qrData = [
+            'ID'     => $colis->id,
+            'Ref'    => $colis->reference_colis,
+            'Exp'    => $expediteur->nom . ' ' . $expediteur->prenom,
+            'Dest'   => "{$destinataire->nom} / {$destinataire->tel}",
+            'Agence' => $colis->agence
+        ];
+
+        // Transformer en texte ligne par ligne
+        $qrCodeContent = implode("\n", array_map(
+            fn($k, $v) => "$k: $v",
+            array_keys($qrData),
+            array_values($qrData)
+        ));
+
+        // Générer le QR code
+        $qrCode = QrCode::create($qrCodeContent)
+            ->setSize(300)
+            ->setMargin(10);
+
+        $writer = new PngWriter();
+        $pngResult = $writer->write($qrCode);
+
+
+        // 3. Nom unique
+        $safeRef = preg_replace('/[^A-Za-z0-9\-_\.]/', '_', $colis->reference_colis);
+        $fileName = 'colis_' . $safeRef . '_id' . $colis->id . '_' . time() . '.png';
+        $filePath = 'qrcodes/' . $fileName;
+        $fullPath = public_path($filePath);
+
+        // 4. Créer le dossier si inexistant
+        $directory = dirname($fullPath);
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        // 5. Sauvegarder l'image
+        file_put_contents($fullPath, $pngResult->getString());
+
+        // 6. Retourner le chemin relatif (public/qrcodes/...)
+        return $filePath;
+    }
+
 
  
     public function update_hold(Request $request, InfobipSmsService $infobipSmsService)
@@ -2468,7 +2910,7 @@ public function get_colis_hold(Request $request)
             
             if ($nombreDeColisDansGroupe > 0) {
                 $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
-                $allColisIds = array_merge($allColisIds, $colisIds); // Fusionner les IDs pour la collection finale
+                $allColisIds = array_merge($allColisIds, $colisIds);
     
                 foreach ($colisIds as $colisId) {
                     $colis = Colis::find($colisId);
@@ -2487,7 +2929,7 @@ public function get_colis_hold(Request $request)
         $premierColis = Colis::find($allColisIds[0]);
         $colisCollection = Colis::whereIn('id', $allColisIds)->get();
     
-        // Création de l'objet paiement factice pour l'email
+        // Création de l'objet paiement factice pour l'email 
         $paiementFactice = new Paiement();
         $paiementFactice->montant = $prixTotalGeneral; // Utiliser le prix total général
         $paiementFactice->montant_paye = 0;
@@ -2513,418 +2955,70 @@ public function get_colis_hold(Request $request)
             Log::error('Erreur envoi SMS: ' . $e->getMessage());
         }
 
-    return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
-}
+        return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
+    }
 
-public function update_colis_valide(Request $request, $id)
-{
-    // Validation des données
-    $request->validate([
-        // 'destinataire_agence' => 'required|string|max:255',
-        // 'destinataire_tel' => 'required|string|max:255',
-        // 'quantite_colis' => 'required|numeric',
-        // 'valeur_colis' => 'required|numeric',
-        // 'mode_transit' => 'required|string|max:255',
-        // 'poids_colis' => 'required|numeric',
-        // 'prix_transit_colis' => 'required|numeric',
-    ]);
-
-    // Récupération du colis
-    $colis = Colis::findOrFail($id);
-    $request->validate([
-        'nom_expediteur' => 'required|string|max:255',
-        'prenom_expediteur' => 'required|string|max:255',
-        'destinataire_tel' => 'required|string|max:15', // Ajustez la validation selon vos besoins
-        'agence_expediteur' => 'required|string|max:255',
-        'nom_destinataire' => 'required|string|max:255',
-        'prenom_destinataire' => 'required|string|max:255',
-        'destinataire_tel' => 'required|string|max:15',
-        'agence_destinataire' => 'required|string|max:255',
-        'quantite_colis' => 'required|integer|min:1',
-        'valeur_colis' => 'required|numeric|min:0',
-        'mode_transit' => 'nullable|string|max:255',
-        'poids_colis' => 'required|numeric|min:0',
-        'prix_transit_colis' => 'required|numeric|min:0',
-        'service' => 'required|numeric|min:0',
-        
-    ]);
-
-    // Mise à jour des informations du colis
-    $colis->update([
-        'nom_expediteur' => $request->nom_expediteur,
-        'prenom_expediteur' => $request->prenom_expediteur,
-        'tel_expediteur' => $request->destinataire_tel,
-        'agence_expediteur' => $request->agence_expediteur,
-        'nom_destinataire' => $request->nom_destinataire,
-        'prenom_destinataire' => $request->prenom_destinataire,
-        'tel_destinataire' => $request->destinataire_tel,
-        'agence_destinataire' => $request->agence_destinataire,
-        'quantite_colis' => $request->quantite_colis,
-        'valeur_colis' => $request->valeur_colis,
-        'mode_transit' => $request->mode_transit,
-        'poids_colis' => $request->poids_colis,
-        'service' => $request->service,
-        'prix_transit_colis' => $request->prix_transit_colis,
-    ]);
-    // dd($colis);
-    // Redirection avec un message de succès
-    return redirect()->route('colis.update_valide')->with('success', 'Colis mis à jour avec succès !');
-}
-
-public function updateMultipleColis(Request $request)
-{
-    // 1. Valider toutes les données entrantes
-    $validatedData = $request->validate([
-        // Valider les informations communes (expéditeur/destinataire)
-        'nom_expediteur' => 'required|string|max:255',
-        'prenom_expediteur' => 'required|string|max:255',
-        'tel_expediteur' => 'required|string',
-        'agence_expediteur' => 'required|string',
-        'nom_destinataire' => 'required|string|max:255',
-        'prenom_destinataire' => 'required|string|max:255',
-        'tel_destinataire' => 'required|string',
-        'agence_destinataire' => 'required|string',
-
-        // Valider la structure des groupes
-        'groupes' => 'required|array',
-        'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
-        'groupes.*.service' => 'nullable|string',
-        'groupes.*.colis_ids' => 'required|array',
-        'groupes.*.colis_ids.*' => 'exists:colis,id',
-    ]);
-
-    $groupes = $validatedData['groupes'];
-    
-    // 2. Mettre à jour les informations de l'expéditeur et du destinataire
-    // Ces informations sont communes à tous les colis, donc on ne le fait qu'une fois.
-    try {
-        // On récupère l'ID du tout premier colis pour trouver l'expéditeur/destinataire
-        $premierColisId = $groupes[0]['colis_ids'][0];
-        $premierColis = Colis::findOrFail($premierColisId);
-        
-        $premierColis->expediteur->update([
-            'nom' => $validatedData['nom_expediteur'],
-            'prenom' => $validatedData['prenom_expediteur'],
-            'tel' => $validatedData['tel_expediteur'],
-            'agence' => $validatedData['agence_expediteur'],
+    public function update_colis_valide(Request $request, $id)
+    {
+        // Validation des données
+        $request->validate([
+            // 'destinataire_agence' => 'required|string|max:255',
+            // 'destinataire_tel' => 'required|string|max:255',
+            // 'quantite_colis' => 'required|numeric',
+            // 'valeur_colis' => 'required|numeric',
+            // 'mode_transit' => 'required|string|max:255',
+            // 'poids_colis' => 'required|numeric',
+            // 'prix_transit_colis' => 'required|numeric',
         ]);
 
-        $premierColis->destinataire->update([
-            'nom' => $validatedData['nom_destinataire'],
-            'prenom' => $validatedData['prenom_destinataire'],
-            'tel' => $validatedData['tel_destinataire'],
-            'agence' => $validatedData['agence_destinataire'],
+        // Récupération du colis
+        $colis = Colis::findOrFail($id);
+        $request->validate([
+            'nom_expediteur' => 'required|string|max:255',
+            'prenom_expediteur' => 'required|string|max:255',
+            'destinataire_tel' => 'required|string|max:15', // Ajustez la validation selon vos besoins
+            'agence_expediteur' => 'required|string|max:255',
+            'nom_destinataire' => 'required|string|max:255',
+            'prenom_destinataire' => 'required|string|max:255',
+            'destinataire_tel' => 'required|string|max:15',
+            'agence_destinataire' => 'required|string|max:255',
+            'quantite_colis' => 'required|integer|min:1',
+            'valeur_colis' => 'required|numeric|min:0',
+            'mode_transit' => 'nullable|string|max:255',
+            'poids_colis' => 'required|numeric|min:0',
+            'prix_transit_colis' => 'required|numeric|min:0',
+            'service' => 'required|numeric|min:0',
+            
         ]);
-    } catch (\Exception $e) {
-        Log::error("Erreur lors de la mise à jour de l'expéditeur/destinataire : " . $e->getMessage());
-        return back()->with('error', 'Erreur lors de la mise à jour des informations de contact.');
+
+        // Mise à jour des informations du colis
+        $colis->update([
+            'nom_expediteur' => $request->nom_expediteur,
+            'prenom_expediteur' => $request->prenom_expediteur,
+            'tel_expediteur' => $request->destinataire_tel,
+            'agence_expediteur' => $request->agence_expediteur,
+            'nom_destinataire' => $request->nom_destinataire,
+            'prenom_destinataire' => $request->prenom_destinataire,
+            'tel_destinataire' => $request->destinataire_tel,
+            'agence_destinataire' => $request->agence_destinataire,
+            'quantite_colis' => $request->quantite_colis,
+            'valeur_colis' => $request->valeur_colis,
+            'mode_transit' => $request->mode_transit,
+            'poids_colis' => $request->poids_colis,
+            'service' => $request->service,
+            'prix_transit_colis' => $request->prix_transit_colis,
+        ]);
+        // dd($colis);
+        // Redirection avec un message de succès
+        return redirect()->route('colis.update_valide')->with('success', 'Colis mis à jour avec succès !');
     }
 
 
-    // 3. Boucler sur chaque groupe de colis (par "Nature") pour mettre à jour les prix
-    foreach ($groupes as $groupeData) {
-        $colisIds = $groupeData['colis_ids'];
-        $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
-        $nombreDeColisDansGroupe = count($colisIds);
-        
-        if ($nombreDeColisDansGroupe > 0) {
-            // Diviser le prix total du groupe par le nombre de colis dans CE groupe
-            $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
-
-            // Mettre à jour chaque colis de ce groupe avec le prix unitaire calculé
-            // et la nature du colis si elle a été modifiée
-            foreach ($colisIds as $colisId) {
-                $colis = Colis::find($colisId);
-                if ($colis) {
-                    $colis->update([
-                        'prix_transit_colis' => $prixUnitaire,
-                        'service' => $groupeData['service'] // Mise à jour de la nature du colis
-                    ]);
-                }
-            }
-        }
-    }
-    
-    // 4. Redirection avec un message de succès
-
-        return redirect()->route('colis.colis.valide')->with('success', 'Colis mis à jour avec succès !');
-    }
-
-public function get_colis_contenaire(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-            'colis.id', // Ajout de l'id pour éviter les erreurs
-            'colis.reference_colis',
-            'expediteurs.nom as expediteur_nom', 
-            'expediteurs.prenom as expediteur_prenom', 
-            'expediteurs.tel as expediteur_tel', 
-            'expediteurs.agence as expediteur_agence', 
-            'destinataires.nom as destinataire_nom', 
-            'destinataires.prenom as destinataire_prenom', 
-            'destinataires.agence as destinataire_agence', 
-            'destinataires.tel as destinataire_tel',
-            'colis.etat',
-            'colis.created_at'
-        )
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-        ->where('colis.mode_transit', 'maritime')  
-        ->where('colis.etat', 'Chargé')
-        ->get();
-
-        $colisGrouped = $colis->groupBy('reference_colis');
-
-        $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-            return [
-                'reference_colis' => $reference,
-                'nombre_de_colis' => $group->count(),
-                'expediteur_nom' => $group->first()->expediteur_nom,
-                'expediteur_prenom' => $group->first()->expediteur_prenom,
-                'expediteur_tel' => $group->first()->expediteur_tel,
-                'expediteur_agence' => $group->first()->expediteur_agence,
-                'destinataire_nom' => $group->first()->destinataire_nom,
-                'destinataire_prenom' => $group->first()->destinataire_prenom,
-                'destinataire_tel' => $group->first()->destinataire_tel,
-                'destinataire_agence' => $group->first()->destinataire_agence,
-                'etat' => $group->first()->etat,
-                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
-                'colis' => $group,
-                'id' => $group->first()->id // Ajout de l'ID pour action
-            ];
-        })->values();
-
-        return DataTables::of($colisWithCount)
-            ->addColumn('etat', function ($row) {
-                return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
-            })
-            ->addColumn('action', function ($row) {
-                $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
-                return '
-                   <div class="d-flex align-items-center gap-2">
-                        <div class="btn-group">
-                            <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </div> 
-                    </div>
-                ';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
-    }
-}
-
-public function get_colis_vol(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-            'colis.id', // Ajout de l'id pour éviter les erreurs
-            'colis.reference_colis',
-            'expediteurs.nom as expediteur_nom', 
-            'expediteurs.prenom as expediteur_prenom', 
-            'expediteurs.tel as expediteur_tel', 
-            'expediteurs.agence as expediteur_agence', 
-            'destinataires.nom as destinataire_nom', 
-            'destinataires.prenom as destinataire_prenom', 
-            'destinataires.agence as destinataire_agence', 
-            'destinataires.tel as destinataire_tel',
-            'colis.etat',
-            'colis.created_at'
-        )
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-        ->where('colis.mode_transit', 'Aerien')
-        ->where('colis.etat', 'Chargé')
-        ->get();
-
-        $colisGrouped = $colis->groupBy('reference_colis');
-
-        $colisWithCount = $colisGrouped->map(function ($group, $reference) {
-            return [
-                'reference_colis' => $reference,
-                'nombre_de_colis' => $group->count(),
-                'expediteur_nom' => $group->first()->expediteur_nom,
-                'expediteur_prenom' => $group->first()->expediteur_prenom,
-                'expediteur_tel' => $group->first()->expediteur_tel,
-                'expediteur_agence' => $group->first()->expediteur_agence,
-                'destinataire_nom' => $group->first()->destinataire_nom,
-                'destinataire_prenom' => $group->first()->destinataire_prenom,
-                'destinataire_tel' => $group->first()->destinataire_tel,
-                'destinataire_agence' => $group->first()->destinataire_agence,
-                'etat' => $group->first()->etat,
-                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
-                'colis' => $group,
-                'id' => $group->first()->id // Ajout de l'ID pour action
-            ];
-        })->values();
-
-        return DataTables::of($colisWithCount)
-            ->addColumn('etat', function ($row) {
-                return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
-            })
-            ->addColumn('action', function ($row) {
-                $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
-                return '
-                   <div class="d-flex align-items-center gap-2">
-                        <div class="btn-group">
-                            <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </div> 
-                    </div>
-                ';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
-    }
-}
-
-
-
-public function devis_hold(Request $request)
-{
-    return view('admin.devis.hold');
-}
-public function colis_valide(Request $request)
-{
-    return view('admin.colis.valide');
-}
-public function getColisInfo($reference)
-{
-    $colis = Colis::with('expediteur', 'destinataire')
-        ->where('reference_colis', $reference)
-        ->first();
-
-    if ($colis) {
-        return response()->json($colis);
-    } else {
-        return response()->json(null); // Or return an appropriate error code
-    }
-}
-
-public function cargaison_ferme(Request $request)
-{
-    // Récupérer les agences de destination
-    $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
-
-    // Étape 1 : Récupérer tous les colis fermés
-    $colisFermes = Colis::where('etat', 'Fermé')->get(['reference_contenaire', 'reference_vol']);
-
-    // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
-    $referencesColis = collect($colisFermes)
-        ->flatMap(function ($colis) {
-            return [$colis->reference_contenaire, $colis->reference_vol];
-        })
-        ->filter()
-        ->unique()
-        ->values()
-        ->toArray();
-
-    // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
-    $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
-        ->selectRaw('reference_conteneur, COUNT(*) as total')
-        ->groupBy('reference_conteneur')
-        ->pluck('total', 'reference_conteneur')
-        ->toArray();
-
-    // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
-    $referenceFermes = collect($referencesColis)
-        ->filter(function ($ref) use ($referencesBateauxCounts) {
-            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
-        })
-        ->values()
-        ->toArray();
-
-    // Mois et année
-    $mois = Carbon::now()->translatedFormat('F');
-    $annee = Carbon::now()->year;
-
-    return view('admin.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
-}
-
-public function get_cargaison_ferme(Request $request)
-{
-    if ($request->ajax()) {
-        $bateaux = Bateaux::select(
-            'id',
-            'reference_bateau',
-            'reference_conteneur',
-            'created_at as date_depart',
-            'date_arriver'
-        )->get();
-            // dd($bateaux);
-        return DataTables::of($bateaux)
-            ->editColumn('date_depart', function ($row) {
-                return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
-            })
-            ->editColumn('date_arriver', function ($row) {
-                return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
-            })
-            ->addColumn('actions', function ($row) {
-                $editUrl = route('colis.bateaux.edit', $row->id);
-                $deleteUrl = route('colis.bateaux.destroy', $row->id);
-                $listColisUrl = route('colis.liste.bateau', $row->reference_conteneur);
-            
-                return '
-                    <div class="d-flex justify-content-center gap-1">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-warning rounded-circle" title="Modifier">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="' . $listColisUrl . '" class="btn btn-sm btn-info rounded-circle" title="Voir les colis">
-                            <i class="fas fa-box"></i>
-                        </a>
-                        <form action="' . $deleteUrl . '" method="POST" onsubmit="return confirm(\'Confirmer la suppression ?\')">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="submit" class="btn dt-button btn-sm btn-danger rounded-circle" title="Annuler">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </form>
-            
-                        
-                    </div>
-                ';
-            })            
-            ->rawColumns(['actions'])
-            ->make(true);
-    }
-}
-
-public function edit_bateaux($id)
-{
-    $bateau = Bateaux::findOrFail($id);
-    return view('admin.cargaison.edit_bateau', compact('bateau'));
-}
-
-public function destroy_bateaux($id)
-{
-    $bateau = Bateaux::findOrFail($id);
-    $bateau->delete();
-
-    return redirect()->back()->with('success', 'Bateau supprimé.');
-}
-
-public function liste_colis_par_bateau($reference_conteneur)
-{
-        $colis = Colis::where(function($query) use ($reference_conteneur) {
-                    $query->where('reference_contenaire', $reference_conteneur)
-                        ->orWhere(function($q) use ($reference_conteneur) {
-                            $q->whereNull('reference_contenaire')
-                                ->where('reference_colis', 'like', "%-$reference_conteneur");
-                        });
-                })
-                ->selectRaw('reference_colis, SUM(quantite_colis) as quantite_colis, SUM(poids_colis) as poids_colis')
-                ->groupBy('reference_colis')
-                ->get();
-
-    return view('admin.cargaison.liste_bateau', compact('colis'));
-}
-
-public function get_colis_bateau(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-                'colis.*',
+    public function get_colis_contenaire(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.id', // Ajout de l'id pour éviter les erreurs
                 'colis.reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
@@ -2933,57 +3027,770 @@ public function get_colis_bateau(Request $request)
                 'destinataires.nom as destinataire_nom', 
                 'destinataires.prenom as destinataire_prenom', 
                 'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat',
+                'colis.created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.mode_transit', 'maritime')  
+            ->where('colis.etat', 'Chargé')
+            ->get();
+
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'colis' => $group,
+                    'id' => $group->first()->id // Ajout de l'ID pour action
+                ];
+            })->values();
+
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
+                })
+                ->addColumn('action', function ($row) {
+                    $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
+                    return '
+                    <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group">
+                                <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div> 
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    public function get_colis_vol(Request $request)
+    {
+        if ($request->ajax()) {
+            $colis = Colis::select(
+                'colis.id', // Ajout de l'id pour éviter les erreurs
+                'colis.reference_colis',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel',
+                'colis.etat',
+                'colis.created_at'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.mode_transit', 'Aerien')
+            ->where('colis.etat', 'Chargé')
+            ->get();
+
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $colisWithCount = $colisGrouped->map(function ($group, $reference) {
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $group->count(),
+                    'expediteur_nom' => $group->first()->expediteur_nom,
+                    'expediteur_prenom' => $group->first()->expediteur_prenom,
+                    'expediteur_tel' => $group->first()->expediteur_tel,
+                    'expediteur_agence' => $group->first()->expediteur_agence,
+                    'destinataire_nom' => $group->first()->destinataire_nom,
+                    'destinataire_prenom' => $group->first()->destinataire_prenom,
+                    'destinataire_tel' => $group->first()->destinataire_tel,
+                    'destinataire_agence' => $group->first()->destinataire_agence,
+                    'etat' => $group->first()->etat,
+                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y H:i'): null,
+                    'colis' => $group,
+                    'id' => $group->first()->id // Ajout de l'ID pour action
+                ];
+            })->values();
+
+            return DataTables::of($colisWithCount)
+                ->addColumn('etat', function ($row) {
+                    return $row['etat'] === 'Chargé' ? 'Dévis Chargé' : 'Colis Chargé';
+                })
+                ->addColumn('action', function ($row) {
+                    $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $row['reference_colis']]);
+                    return '
+                    <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group">
+                                <a href="' . $deleteUrl . '" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div> 
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+
+
+    public function devis_hold(Request $request)
+    {
+        return view('admin.devis.hold');
+    }
+    public function colis_valide(Request $request)
+    {
+        return view('admin.colis.valide');
+    }
+
+    public function tout_colis(Request $request)
+    {
+        return view('admin.colis.tout_colis');
+    }
+    public function getColisInfo($reference)
+    {
+        $colis = Colis::with('expediteur', 'destinataire')
+            ->where('reference_colis', $reference)
+            ->first();
+
+        if ($colis) {
+            return response()->json($colis);
+        } else {
+            return response()->json(null); // Or return an appropriate error code
+        }
+    }
+
+    public function cargaison_ferme(Request $request)
+    {
+        // Récupérer les agences de destination
+        $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+    
+        // --- MODIFICATION 1 : Séparer les références par mode de transit ---
+
+        // Étape 1 : Récupérer les colis fermés avec leur mode de transit
+        $colisFermesMaritimes = Colis::where('etat', 'Fermé')
+            ->where('mode_transit', 'maritime')
+            ->pluck('reference_contenaire')
+            ->filter()
+            ->unique();
+
+        $colisFermesAeriens = Colis::where('etat', 'Fermé')
+            ->where('mode_transit', 'aérien')
+            ->pluck('reference_vol')
+            ->filter()
+            ->unique();
+
+        // Étape 2 : Récupérer les références avec le nombre d’occurrences dans Bateaux
+        $allReferences = $colisFermesMaritimes->merge($colisFermesAeriens)->toArray();
+        $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $allReferences)
+            ->selectRaw('reference_conteneur, COUNT(*) as total')
+            ->groupBy('reference_conteneur')
+            ->pluck('total', 'reference_conteneur');
+
+        // Étape 3 : Garder les références qui n'existent pas OU qui existent 1 fois pour chaque type
+        $referenceMaritimes = $colisFermesMaritimes->filter(function ($ref) use ($referencesBateauxCounts) {
+            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+        })->values()->toArray();
+
+        $referenceAeriens = $colisFermesAeriens->filter(function ($ref) use ($referencesBateauxCounts) {
+            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+        })->values()->toArray();
+
+        // Mois et année pour la génération de référence
+        $mois = Carbon::now()->translatedFormat('F');
+        $annee = Carbon::now()->year;
+
+        return view('admin.cargaison.cargaison_ferme', compact(
+            'agencesDestination',
+            'referenceMaritimes', // Envoi des références maritimes
+            'referenceAeriens',   // Envoi des références aériennes
+            'mois',
+            'annee'
+        ));
+    }
+
+
+
+    public function get_cargaison_ferme(Request $request)
+    {
+        if ($request->ajax()) {
+            $bateaux = Bateaux::select(
+                'id',
+                'reference_bateau',
+                'reference_conteneur',
+                'created_at as date_depart',
+                'date_arriver'
+            )->get();
+                // dd($bateaux);
+            return DataTables::of($bateaux)
+                ->editColumn('date_depart', function ($row) {
+                    return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+                })
+                ->editColumn('date_arriver', function ($row) {
+                    return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
+                })
+                ->addColumn('actions', function ($row) {
+                    $editUrl = route('colis.bateaux.edit', $row->id);
+                    $deleteUrl = route('colis.bateaux.destroy', $row->id);
+                    $listColisUrl = route('colis.liste.bateau', $row->reference_conteneur);
+                
+                    return '
+                        <div class="d-flex justify-content-center gap-1">
+                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning rounded-circle" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="' . $listColisUrl . '" class="btn btn-sm btn-info rounded-circle" title="Voir les colis">
+                                <i class="fas fa-box"></i>
+                            </a>
+                            <form action="' . $deleteUrl . '" method="POST" onsubmit="return confirm(\'Confirmer la suppression ?\')">
+                                ' . csrf_field() . method_field('DELETE') . '
+                                <button type="submit" class="btn dt-button btn-sm btn-danger rounded-circle" title="Annuler">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                
+                            
+                        </div>
+                    ';
+                })            
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
+    }
+
+    public function edit_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        return view('admin.cargaison.edit_bateau', compact('bateau'));
+    }
+
+    public function destroy_bateaux($id)
+    {
+        $bateau = Bateaux::findOrFail($id);
+        $bateau->delete();
+
+        return redirect()->back()->with('success', 'Bateau supprimé.');
+    }
+
+    public function liste_colis_par_bateau($reference_conteneur)
+    {
+            $colis = Colis::where(function($query) use ($reference_conteneur) {
+                        $query->where('reference_contenaire', $reference_conteneur)
+                            ->orWhere(function($q) use ($reference_conteneur) {
+                                $q->whereNull('reference_contenaire')
+                                    ->where('reference_colis', 'like', "%-$reference_conteneur");
+                            });
+                    })
+                    ->selectRaw('reference_colis, SUM(quantite_colis) as quantite_colis, SUM(poids_colis) as poids_colis')
+                    ->groupBy('reference_colis')
+                    ->get();
+
+        return view('admin.cargaison.liste_bateau', compact('colis'));
+    }
+
+    public function get_colis_bateau(Request $request)
+    {
+        if ($request->ajax()) {
+            // 1. Récupération des colis
+            $colis = Colis::select(
+                    'colis.*',
+                    'expediteurs.nom as expediteur_nom',
+                    'expediteurs.prenom as expediteur_prenom',
+                    'expediteurs.tel as expediteur_tel',
+                    'expediteurs.agence as expediteur_agence',
+                    'destinataires.nom as destinataire_nom',
+                    'destinataires.prenom as destinataire_prenom',
+                    'destinataires.agence as destinataire_agence',
+                    'destinataires.tel as destinataire_tel'
+                )
+                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+                ->whereIn('etat', ['Fermé'])
+                ->get();
+
+            // 2. Extraire les IDs uniques des colis
+            $colisIds = $colis->pluck('id')->unique()->toArray();
+
+            // 3. Récupérer les paiements liés
+            $paiements = Paiement::whereIn('colis_id', $colisIds)
+                                ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                                ->groupBy('colis_id')
+                                ->get()
+                                ->keyBy('colis_id');
+
+            // 4. Grouper les colis par référence
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            // 5. Construire la data finale
+            $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+                $firstColis = $group->first();
+                $quantiteTotale = $group->sum('quantite_colis');
+                $prixTotalColis = $group->sum('prix_transit_colis');
+
+                $montantTotalPaye = 0;
+                foreach ($group->pluck('id') as $colisId) {
+                    if (isset($paiements[$colisId])) {
+                        $montantTotalPaye += $paiements[$colisId]->total_paye;
+                    }
+                }
+
+                // Calcul du statut paiement
+                $paymentStatus = 'impaye';
+                $tolerance = 0.01;
+                if ($montantTotalPaye > 0) {
+                    if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
+                        $paymentStatus = 'paye';
+                    } elseif ($montantTotalPaye < $prixTotalColis) {
+                        $paymentStatus = 'partiel';
+                    }
+                }
+
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $quantiteTotale,
+                    'expediteur_nom' => $firstColis->expediteur_nom,
+                    'expediteur_prenom' => $firstColis->expediteur_prenom,
+                    'expediteur_tel' => $firstColis->expediteur_tel,
+                    'expediteur_agence' => $firstColis->expediteur_agence,
+                    'destinataire_nom' => $firstColis->destinataire_nom,
+                    'destinataire_prenom' => $firstColis->destinataire_prenom,
+                    'destinataire_tel' => $firstColis->destinataire_tel,
+                    'destinataire_agence' => $firstColis->destinataire_agence,
+                    'etat' => $firstColis->etat,
+                    'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A',
+                    'payment_status' => $paymentStatus,
+                    'prix_total' => $prixTotalColis,
+                    'montant_paye' => $montantTotalPaye,
+                    'colis_ids' => json_encode($group->pluck('id')->toArray()),
+                    'first_colis_id' => $firstColis->id
+                ];
+            })->values();
+
+            // 6. Retour DataTables
+            return DataTables::of($processedData)
+                ->addColumn('statut_paiement', function ($row) {
+                    $status = $row['payment_status'];
+                    $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
+                    $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
+
+                    switch ($status) {
+                        case 'paye':
+                            return '<span title="Payé (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')">
+                                        <i class="fas fa-check-circle" style="color:green;font-size:1.3em;"></i>
+                                    </span>';
+                        case 'partiel':
+                            return '<span title="Paiement Partiel (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')">
+                                        <i class="fas fa-exclamation-circle" style="color:orange;font-size:1.3em;"></i>
+                                    </span>';
+                        default:
+                            return '<span title="Impayé (0 / ' . $prixTotalFormatted . ')">
+                                        <i class="fas fa-times-circle" style="color:red;font-size:1.3em;"></i>
+                                    </span>';
+                    }
+                })
+                ->addColumn('action', function ($row) {
+                    $reference = $row['reference_colis'];
+                    // $editUrl = route('colis.valide.edit', ['id' => $row['first_colis_id']]);
+                    $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $row['first_colis_id']]);
+                    // $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $reference]);
+
+                    return '<div class="action-buttons-container">
+                            
+                                <button type="button" class="btn btn-sm btn-success pay-btn"
+                                        data-reference="' . e($reference) . '"
+                                        data-total="' . $row['prix_total'] . '"
+                                        data-paid="' . $row['montant_paye'] . '"
+                                        data-colis-ids="' . e($row['colis_ids']) . '"
+                                        title="Enregistrer un Paiement">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                                <a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Facture">
+                                    <i class="fas fa-file-invoice"></i>
+                                </a>
+                            </div>';
+                })
+                ->rawColumns(['action', 'statut_paiement'])
+                ->make(true);
+        }
+    }
+
+    public function historique_contenaire()
+    {
+        // Récupère toutes les agences distinctes depuis les colis
+        $agences = Colis::whereNotNull('agence')
+            ->select('agence')
+            ->distinct()
+            ->orderBy('agence', 'asc')
+            ->pluck('agence');
+
+        return view('admin.cargaison.historique_contenaire', compact('agences'));
+    }
+
+    public function get_contenaires(Request $request)
+    {
+        $query = Colis::select('reference_contenaire', 'agence')
+            ->whereNotNull('reference_contenaire');
+
+        // Filtrer par agence
+        if ($request->filled('agence')) {
+            $query->where('agence', $request->agence);
+        }
+
+        // DataTables avec distinct sur référence
+        return datatables()
+            ->of($query->groupBy('reference_contenaire', 'agence'))
+            ->addColumn('action', function ($row) {
+                $listColisUrl = route('cargaison.liste.colis.par.contenaire', [
+                    'reference_contenaire' => $row->reference_contenaire
+                ]);
+                return '<div class="d-flex justify-content-center">
+                            <a href="' . $listColisUrl . '" class="btn btn-sm btn-info">
+                                <i class="fas fa-list"></i> &nbsp; Liste des colis
+                            </a>
+                        </div>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function liste_colis_par_contenaire($reference_contenaire)
+    {
+        // Cette méthode était déjà correcte
+        return view('admin.cargaison.liste_colis_contenaire', compact('reference_contenaire'));
+    }
+
+    public function get_colis_pour_contenaire(Request $request, $reference_contenaire)
+    {
+        if (!$request->ajax()) {
+            abort(404);
+        }
+
+        // 1. Requête de base pour les colis (inchangée)
+        $colis = Colis::select(
+                'colis.*',
+                'expediteurs.nom as expediteur_nom', 'expediteurs.prenom as expediteur_prenom', 'expediteurs.tel as expediteur_tel', 'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom', 'destinataires.prenom as destinataire_prenom', 'destinataires.agence as destinataire_agence', 'destinataires.tel as destinataire_tel'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.reference_contenaire', $reference_contenaire)
+            ->get();
+
+        // 2. Récupération des paiements associés (inchangée)
+        $colisIds = $colis->pluck('id')->unique()->toArray();
+        $paiements = Paiement::whereIn('colis_id', $colisIds)
+                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                    ->groupBy('colis_id')
+                    ->get()
+                    ->keyBy('colis_id');
+
+        // 3. Groupement par référence pour agréger les colis (inchangé)
+        $colisGrouped = $colis->groupBy('reference_colis');
+
+        // 4. Préparation des données pour DataTables (MODIFIÉ)
+        $processedData = $colisGrouped->map(function ($group) use ($paiements) {
+            $firstColis = $group->first();
+            $quantiteTotale = $group->sum('quantite_colis');
+            $prixTotalColis = $group->sum('prix_transit_colis');
+            $colisIdsInGroup = $group->pluck('id')->toArray();
+
+            // Calcul du montant total payé pour le groupe
+            $montantTotalPaye = collect($colisIdsInGroup)->reduce(function ($carry, $id) use ($paiements) {
+                return $carry + ($paiements->get($id)->total_paye ?? 0);
+            }, 0);
+
+            // Détermination du statut de paiement
+            $paymentStatus = 'impaye';
+            $tolerance = 0.01; // Pour gérer les imprécisions des flottants
+            if ($montantTotalPaye > 0) {
+                $paymentStatus = abs($prixTotalColis - $montantTotalPaye) < $tolerance ? 'paye' : 'partiel';
+            }
+
+            // --- DÉBUT DES MODIFICATIONS ---
+
+            // Génération du badge de statut directement ici
+            $statusHtml = '';
+            switch ($paymentStatus) {
+                case 'paye':
+                    $statusHtml = '<span class="badge bg-success">Payé</span>';
+                    break;
+                case 'partiel':
+                    $statusHtml = '<span class="badge bg-warning text-dark">Partiel</span>';
+                    break;
+                default:
+                    $statusHtml = '<span class="badge bg-danger">Impayé</span>';
+            }
+
+            // Génération du bouton d'action directement ici
+            // Note: l'ID utilisé pour le paiement peut être celui du premier colis du groupe
+            $actionHtml = '<button class="btn btn-primary btn-sm" onclick="showPaymentModal('.$firstColis->id.')" title="Payer">Payer</button>';
+
+            // Construction de l'objet final avec les clés attendues par le JavaScript
+            return [
+                'statut_paiement'     => $statusHtml, // Clé correspondante à la 1ère colonne JS
+                'reference_colis'     => $firstColis->reference_colis,
+                'nombre_de_colis'     => $quantiteTotale,
+                'expediteur_nom'      => $firstColis->expediteur_nom,
+                'expediteur_prenom'   => $firstColis->expediteur_prenom,
+                'expediteur_tel'      => $firstColis->expediteur_tel,
+                'expediteur_agence'   => $firstColis->expediteur_agence,
+                'destinataire_nom'    => $firstColis->destinataire_nom,
+                'destinataire_prenom' => $firstColis->destinataire_prenom,
+                'destinataire_tel'    => $firstColis->destinataire_tel,
+                'destinataire_agence' => $firstColis->destinataire_agence,
+                'created_at'          => $firstColis->created_at?->format('d/m/Y H:i') ?? 'N/A',
+                'action'              => $actionHtml, // Clé correspondante à la dernière colonne JS
+            ];
+            // --- FIN DES MODIFICATIONS ---
+
+        })->values(); // Important pour réindexer le tableau pour DataTables
+
+        // 5. Retour DataTables (SIMPLIFIÉ)
+        return DataTables::of($processedData)
+            // On indique seulement quelles colonnes contiennent du HTML à ne pas échapper
+            ->rawColumns(['statut_paiement', 'action'])
+            ->make(true);
+    }
+
+
+    public function enregistrer_paiement(Request $request)
+    {
+
+        return response()->json(['success' => 'Paiement enregistré avec succès!']);
+    }
+
+    public function historique_vol()
+    {
+        $agences = Colis::whereNotNull('agence')
+                        ->select('agence')
+                        ->distinct()
+                        ->orderBy('agence', 'asc')
+                        ->pluck('agence');
+
+        return view('admin.cargaison.historique_vol', compact('agences'));
+    }
+
+    /**
+     * Fournit les données des vols pour DataTables, avec filtrage par agence.
+     */
+    public function get_vol(Request $request)
+    {
+        $query = Colis::select('reference_vol', 'agence')
+            ->whereNotNull('reference_vol');
+
+        // Filtrer par agence si une agence est sélectionnée
+        if ($request->filled('agence')) {
+            $query->where('agence', $request->agence);
+        }
+
+        // DataTables avec un regroupement pour n'afficher chaque vol qu'une seule fois par agence
+        return datatables()
+            ->of($query->groupBy('reference_vol', 'agence'))
+            ->addColumn('action', function ($row) {
+                // **** CORRECTION : La route a été renommée pour plus de cohérence ****
+                $listColisUrl = route('cargaison.liste.colis.par.vol', [
+                    'reference_vol' => $row->reference_vol
+                ]);
+                return '<div class="d-flex justify-content-center">
+                            <a href="' . $listColisUrl . '" class="btn btn-sm btn-info">
+                                <i class="fas fa-list"></i> &nbsp; Liste des colis
+                            </a>
+                        </div>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    /**
+     * Affiche la page de la liste des colis pour un vol spécifique.
+     */
+    public function liste_colis_par_vol($reference_vol)
+    {
+        return view('admin.cargaison.liste_colis_vol', compact('reference_vol'));
+    }
+
+    /**
+     * Fournit les données des colis pour un vol spécifique à DataTables.
+     */
+    public function get_colis_pour_vol(Request $request, $reference_vol)
+    {
+        if (!$request->ajax()) {
+            return abort(404);
+        }
+
+        // ------------------------------
+        // 1. Récupération des colis pour le vol spécifié
+        // ------------------------------
+        $colisQuery = Colis::select(
+                'colis.*',
+                'expediteurs.nom as expediteur_nom',
+                'expediteurs.prenom as expediteur_prenom',
+                'expediteurs.tel as expediteur_tel',
+                'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom',
+                'destinataires.prenom as destinataire_prenom',
+                'destinataires.agence as destinataire_agence',
                 'destinataires.tel as destinataire_tel'
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->whereIn('etat', ['Fermé']) // Corrigé avec whereIn
-            ->get()
-            ->groupBy('reference_colis');
+            ->where('colis.reference_vol', $reference_vol);
+            
+        // **** CORRECTION CRITIQUE : Suppression du filtre en dur sur l'agence ****
+        // La ligne ci-dessous a été supprimée car elle limitait TOUJOURS les résultats
+        // à 'Agence de Chine', peu importe le vol sélectionné.
+        // ->where('colis.agence', 'Agence de Chine') 
 
-        $colisWithCount = $colis->map(function ($group, $reference) {
+        $colis = $colisQuery->get();
+
+        // ------------------------------
+        // 2. Récupération des paiements
+        // ------------------------------
+        $colisIds = $colis->pluck('id')->unique()->toArray();
+
+        $paiements = Paiement::whereIn('colis_id', $colisIds)
+                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                    ->groupBy('colis_id')
+                    ->get()
+                    ->keyBy('colis_id');
+
+        // ------------------------------
+        // 3. Groupement par référence_colis
+        // ------------------------------
+        $colisGrouped = $colis->groupBy('reference_colis');
+
+        // ------------------------------
+        // 4. Préparation des données pour DataTables
+        // ------------------------------
+        $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+            $firstColis = $group->first();
+            $quantiteTotale = $group->sum('quantite_colis');
+            $prixTotalColis = $group->sum('prix_transit_colis');
+            $colisIdsInGroup = $group->pluck('id')->toArray();
+
+            $montantTotalPaye = 0;
+            foreach ($colisIdsInGroup as $colisId) {
+                $montantTotalPaye += $paiements[$colisId]->total_paye ?? 0;
+            }
+
+            $paymentStatus = 'impaye';
+            $tolerance = 0.01;
+            if ($montantTotalPaye > 0) {
+                if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
+                    $paymentStatus = 'paye';
+                } elseif ($montantTotalPaye < $prixTotalColis) {
+                    $paymentStatus = 'partiel';
+                }
+            }
+
             return [
-                'reference_colis' => $reference,
-                'nombre_de_colis' => $group->count(),
-                'expediteur_nom' => $group->first()->expediteur_nom,
-                'expediteur_prenom' => $group->first()->expediteur_prenom,
-                'expediteur_tel' => $group->first()->expediteur_tel,
-                'expediteur_agence' => $group->first()->expediteur_agence,
-                'destinataire_nom' => $group->first()->destinataire_nom,
-                'destinataire_prenom' => $group->first()->destinataire_prenom,
-                'destinataire_tel' => $group->first()->destinataire_tel,
-                'destinataire_agence' => $group->first()->destinataire_agence,
-                'etat' => $group->first()->etat === 'Devis' ? 'Devis validé' : $group->first()->etat,
-                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
-                'colis' => $group
+                'reference_colis'     => $reference,
+                'nombre_de_colis'     => $quantiteTotale,
+                'expediteur_nom'      => $firstColis->expediteur_nom,
+                'expediteur_prenom'   => $firstColis->expediteur_prenom,
+                'expediteur_tel'      => $firstColis->expediteur_tel,
+                'expediteur_agence'   => $firstColis->expediteur_agence,
+                'destinataire_nom'    => $firstColis->destinataire_nom,
+                'destinataire_prenom' => $firstColis->destinataire_prenom,
+                'destinataire_tel'    => $firstColis->destinataire_tel,
+                'destinataire_agence' => $firstColis->destinataire_agence,
+                'etat'                => $firstColis->etat,
+                'created_at'          => $firstColis->created_at?->format('d/m/Y H:i') ?? 'N/A',
+                'payment_status'      => $paymentStatus,
+                'prix_total'          => $prixTotalColis,
+                'montant_paye'        => $montantTotalPaye,
+                'colis_ids'           => json_encode($colisIdsInGroup),
+                'first_colis_id'      => $firstColis->id,
             ];
         })->values();
 
-        return DataTables::of($colisWithCount)
+        // ------------------------------
+        // 5. DataTables : ajout des colonnes calculées
+        // ------------------------------
+        return DataTables::of($processedData)
+            ->addColumn('statut_paiement', function ($row) {
+                // ... (code inchangé)
+                $status = $row['payment_status'];
+                $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
+                $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
+
+                switch ($status) {
+                    case 'paye':
+                        $iconClass = 'fas fa-check-circle'; $iconColor = 'green';
+                        $title = "Payé ($montantPayeFormatted / $prixTotalFormatted)";
+                        break;
+                    case 'partiel':
+                        $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange';
+                        $title = "Paiement Partiel ($montantPayeFormatted / $prixTotalFormatted)";
+                        break;
+                    default:
+                        $iconClass = 'fas fa-times-circle'; $iconColor = 'red';
+                        $title = "Impayé (0 / $prixTotalFormatted)";
+                        break;
+                }
+                return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color:' . $iconColor . '; font-size:1.3em;"></i></span>';
+            })
+            ->addColumn('action', function ($row) {
+                // ... (code inchangé)
+                $reference = $row['reference_colis'];
+                $firstColisId = $row['first_colis_id'];
+                $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColisId]);
+
+                $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
+                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                data-total="' . $row['prix_total'] . '"
+                                data-paid="' . $row['montant_paye'] . '"
+                                data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                                title="Enregistrer un Paiement">
+                            <i class="fas fa-dollar-sign"></i></button>';
+                $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture"><i class="fas fa-file-invoice"></i></a>';
+                return '<div class="action-buttons-container">' . $payBtn . $invoiceBtn . '</div>';
+            })
+            ->rawColumns(['action', 'statut_paiement'])
             ->make(true);
     }
-}
 
-public function update_bateaux(Request $request, $id)
-{
-    // dd($request->all());
-    $request->validate([
-        'reference_bateau' => 'required|string|max:255',
-        'reference_contenaire' => 'required|string|max:255',
-        'date_depart' => 'required|date',
-        'date_arriver' => 'required|date|after_or_equal:date_depart',
-    ]);
+    
+    public function update_bateaux(Request $request, $id)
+    {
+        $request->validate([
+            'date_depart' => 'required|date',
+            'date_arriver' => 'required|date|after:date_depart',
+            'compagnie' => 'nullable|string|max:255',
+            'numero_bateau' => 'nullable|string|max:255',
+            'nom_bateau' => 'nullable|string|max:255',
+            'numero_ballon' => 'nullable|string|max:255',
+            'nom_ballon' => 'nullable|string|max:255',
+        ]);
+    
+        // 2. RÉCUPÉRATION DU MODÈLE
+        $bateau = Bateaux::findOrFail($id);
 
-    $bateau = Bateaux::findOrFail($id);
-    $bateau->reference_bateau = $request->reference_bateau;
-    $bateau->reference_conteneur = $request->reference_contenaire;
-    $bateau->created_at = $request->date_depart;
-    $bateau->date_arriver = $request->date_arriver;
-    // dd($bateau);
-    $bateau->save();
-
-    return redirect()->route('colis.cargaison.ferme')->with('success', 'Bateau modifié avec succès.');
-}
+        $bateau->update([
+            'created_at' => $request->date_depart,
+            'date_arriver' => $request->date_arriver,
+            'compagnie' => $request->compagnie,
+            'numero_bateau' => $request->numero_bateau,
+            'nom_bateau' => $request->nom_bateau,
+            'numero_ballon' => $request->numero_ballon,
+            'nom_ballon' => $request->nom_ballon,
+        ]);
+    
+        // 4. REDIRECTION
+        return redirect()->route('colis.cargaison.ferme')->with('success', 'Véhicule de navigation modifié avec succès.');
+    }
 
 
 

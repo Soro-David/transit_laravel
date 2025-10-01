@@ -39,6 +39,8 @@ class Colis extends Model
         'categorie_client',
         'id_reference',
         'agence',
+        'produit',
+        'montant_service'
         
     ];
 

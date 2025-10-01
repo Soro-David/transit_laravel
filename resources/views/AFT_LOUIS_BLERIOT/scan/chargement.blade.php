@@ -1,61 +1,59 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agent')
+
 @section('content-header')
-{{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
 <section class="py-3">
-        <form action="" method="POST" class="mt-4">
-            @csrf
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Colis Chargés</h4><br>
-                            <div id="products-container">
-                                <div class="text-right">
-                                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
-                                        Scanner pour charger
-                                    </button>
-                                </div><br>
-                                <div class="table-responsive">
-                                    <table id="productTable" class="table table-bordered table-striped display">
-                                        <thead>
-                                            <tr>
-                                                <th>Référence</th>
-                                                <th>Nombre de colis</th>
-                                                <th>Expéditeur</th>
-                                                <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
-                                                <th>Destinataire</th>
-                                                <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Téléphone</th>
-                                                <th>Date</th>
-                                                <th>Action</th>
-
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
+    <form action="" method="POST" class="mt-4">
+        @csrf
+        <div class="row">
+            <div class="col-md-12">
+                <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                    <h4 class="text-left mt-4">Colis Chargés</h4><br>
+                    <div id="products-container">
+                        <div class="text-right">
+                            <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
+                                Scanner pour charger
+                            </button>
+                        </div><br>
+                        <div class="table-responsive">
+                            <table id="productTable" class="table table-bordered table-striped display">
+                                <thead>
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Nombre de colis</th>
+                                        <th>Expéditeur</th>
+                                        <th>Téléphone</th>
+                                        <th>Agence Expéditeur</th>
+                                        <th>Destinataire</th>
+                                        <th>Téléphone</th>
+                                        <th>Agence Destinataire</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-        </form>
+            </div>
+        </div>
+    </form>
 
-    <!-- Modal for editing -->
+    <!-- Modal de scan -->
     <div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
         <div class="modal-dialog" style="max-width: 600px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Scanner les colis pour le déchargement</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Scanner les colis pour le chargement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="reader" ></div>
-                    <p id="result">Résultat : Aucun</p>
+                    <div id="reader"></div>
+                    <p id="result" class="mt-3">Résultat : Aucun</p>
                     <div class="d-flex justify-content-center">
                         <button id="restartScan" class="btn btn-primary mt-3" style="display: none;">Relancer le scan</button>
                     </div>
@@ -63,328 +61,183 @@
             </div>
         </div>
     </div>
-    
 
-    <!-- JavaScript for DataTable and Export -->
-        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- JS -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
+
 <script>
+    var table;
 
-document.addEventListener("DOMContentLoaded", function () {
-    const html5QrCode = new Html5Qrcode("reader");
-    const resultElement = document.getElementById("result");
-    const restartButton = document.getElementById("restartScan");
-    const readerElement = document.getElementById("reader");
-    const modal = document.getElementById("scanner_entrepot");
+    document.addEventListener("DOMContentLoaded", function () {
+        const html5QrCode = new Html5Qrcode("reader");
+        const resultElement = document.getElementById("result");
+        const restartButton = document.getElementById("restartScan");
+        const readerElement = document.getElementById("reader");
+        const modal = document.getElementById("scanner_entrepot");
 
-    const onScanSuccess = (decodedText) => {
-        // Extraction de la référence et de l'identifiant à l'aide d'expressions régulières
-        const referenceMatch = decodedText.match(/Ref:\s*(\S+)/i);
-        const idMatch = decodedText.match(/ID:\s*(\S+)/i);
+        // Fonction déclenchée lors d’un scan
+        const onScanSuccess = (decodedText) => {
+            const referenceMatch = decodedText.match(/Ref:\s*(\S+)/i);
+            const idMatch = decodedText.match(/ID:\s*(\S+)/i);
 
-        // Vérifier que les deux valeurs ont bien été extraites
-        if (!referenceMatch || !idMatch) {
-            console.error("Impossible d'extraire la référence ou l'identifiant.");
-            resultElement.innerText = "Erreur : données QR code invalides.";
-            return;
-        }
+            if (!referenceMatch || !idMatch) {
+                resultElement.innerText = "❌ QR Code invalide.";
+                return;
+            }
 
-        // Extraction des valeurs capturées
-        const referenceColis = referenceMatch[1];
-        const identifiant = idMatch[1];
+            const referenceColis = referenceMatch[1];
+            const identifiant = idMatch[1];
+            resultElement.innerText = `📦 Scan détecté : ${decodedText}`;
 
-        console.log(`Code détecté : ${decodedText}`);
-        console.log(`Référence : ${referenceColis}`);
-        console.log(`Identifiant : ${identifiant}`);
-        resultElement.innerText = `Résultat : ${decodedText}`;
+            $.ajax({
+                url: "{{ route('aftlb_scan.update.colis.charge') }}",
+                type: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                },
+                data: { colisId: referenceColis, id: identifiant },
+                success: function (response) {
+                    resultElement.innerText = response.messages?.join("\n") || "✅ Colis chargé avec succès.";
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+                },
+                error: function (error) {
+                    let errorMsg = "Erreur de chargement du colis.";
+                    if (error.responseJSON?.messages) {
+                        errorMsg = error.responseJSON.messages.join("\n");
+                    }
+                    resultElement.innerText = `❌ ${errorMsg}`;
+                },
+            });
 
-        // Envoi des données extraites via une requête AJAX pour mettre à jour l'état du colis
-        $.ajax({
-            url: "{{ route('aftlb_scan.update.colis.charge') }}",
-            type: "POST",
-            headers: {
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-            },
-            data: {
-                colisId: referenceColis, // Envoie la référence extraite
-                id: identifiant,          // Envoie l'identifiant extrait
-            },
-            success: function (response) {
-                console.log("Réponse du serveur :", response);
-                // Affichage des messages retournés par le serveur
-                if (response.messages && Array.isArray(response.messages)) {
-                    resultElement.innerText = response.messages.join("\n");
-                } else {
-                    resultElement.innerText = "Réponse inconnue du serveur.";
-                }
-            },
-            error: function (error) {
-                console.error("Erreur lors du chargement :", error);
-                if (error.responseJSON && error.responseJSON.messages) {
-                    resultElement.innerText = error.responseJSON.messages.join("\n");
-                } else {
-                    resultElement.innerText = "Erreur de chargement du colis.";
-                }
-            },
-        });
-
-        // Arrêt du scanner et mise à jour de l'affichage
-        html5QrCode
-            .stop()
-            .then(() => {
+            // Stoppe la caméra après un scan
+            html5QrCode.stop().then(() => {
                 readerElement.style.display = "none";
                 restartButton.style.display = "block";
-            })
-            .catch((err) => {
-                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
             });
-    };
+        };
 
-    const startScanner = () => {
-        // Affiche l'élément du lecteur
-        readerElement.style.display = "block";
+        // Démarrage du scanner
+        const startScanner = () => {
+            readerElement.style.display = "block";
+            restartButton.style.display = "none";
+            resultElement.innerText = "Résultat : En attente...";
 
-        // Vérifie que l'élément #reader a des dimensions valides
-        if (!readerElement || readerElement.offsetWidth === 0 || readerElement.offsetHeight === 0) {
-            console.error("Erreur : L'élément #reader n'a pas de dimensions valides.");
-            return;
-        }
-
-        // Démarrage du scanner avec les options définies
-        html5QrCode
-            .start(
+            html5QrCode.start(
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess
-            )
-            .then(() => {
-                resultElement.innerText = "Résultat : En attente...";
-                restartButton.style.display = "none";
-            })
-            .catch((err) => {
-                console.error(`Impossible de démarrer le scanner : ${err}`);
+            ).catch((err) => {
+                console.error("Impossible de démarrer le scanner :", err);
             });
-    };
+        };
 
-    // Démarrer le scanner dès que la modale est affichée
-    modal.addEventListener("shown.bs.modal", function () {
-        setTimeout(startScanner, 500);
+        // Quand la modale s'ouvre
+        modal.addEventListener("shown.bs.modal", function () {
+            setTimeout(startScanner, 300);
+        });
+
+        // Quand la modale se ferme
+        modal.addEventListener("hidden.bs.modal", function () {
+            html5QrCode.stop().catch(() => {});
+        });
+
+        // Relancer le scan manuellement
+        restartButton.addEventListener("click", startScanner);
     });
 
-    // Arrêter le scanner lorsque la modale est fermée
-    modal.addEventListener("hidden.bs.modal", function () {
-        html5QrCode
-            .stop()
-            .then(() => {
-                console.log("Scanner arrêté avec succès.");
-            })
-            .catch((err) => {
-                console.error(`Erreur lors de l'arrêt du scanner : ${err}`);
-            });
-    });
-
-    // Bouton de redémarrage du scanner
-    restartButton.addEventListener("click", startScanner);
-});
-
-
-       $(document).ready(function () {
-        // Initialisation de la table DataTable
-        var table = $("#productTable").DataTable({
+    $(document).ready(function () {
+        table = $("#productTable").DataTable({
             responsive: true,
-            language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-            ajax: '{{ route("aftlb_scan.get.colis.charge") }}', // Récupération des données via AJAX
+            language: { url: "{{ asset('js/fr-FR.json') }}" },
+            ajax: '{{ route("aftlb_scan.get.colis.charge") }}',
             columns: [
-            { data: 'reference_colis' },
-            { data: 'nombre_de_colis' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
-            },
-            { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                }
-            },
-            { data: 'destinataire_tel' },
-            { 
-                data: 'destinataire_agence',
-                name: 'destinataire_agence.nom_agence',
-                render: function(data, type, row) {
-                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                        return 'DS Translog Angré 8ème Tranche';
-                    } else if (data === 'IPMS-SIMEX-CI') {
-                        return 'DS Translog Carrefour Angré';
+                { data: 'reference_colis' },
+                { data: 'nombre_de_colis' },
+                { data: null, render: (d) => `${d.expediteur_nom} ${d.expediteur_prenom}` },
+                { data: 'expediteur_tel' },
+                { data: 'expediteur_agence' },
+                { data: null, render: (d) => `${d.destinataire_nom} ${d.destinataire_prenom}` },
+                { data: 'destinataire_tel' },
+                { 
+                    data: 'destinataire_agence',
+                    render: function(data) {
+                        if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') return 'DS Translog Angré 8ème Tranche';
+                        if (data === 'IPMS-SIMEX-CI') return 'DS Translog Carrefour Angré';
+                        return data;
                     }
-                    return data;
-                }
-            },
-            {
-                data: 'created_at',
-                render: function (data) {
-                    if (!data) return '';
-                    const date = new Date(data);
-                    if (isNaN(date.getTime())) return '';
-                    const day = ('0' + date.getDate()).slice(-2);
-                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    const year = date.getFullYear();
-                    return day + '/' + month + '/' + year;
-                }
-            },
-            { data: 'action', orderable: false, searchable: false }
-
-        ],
-            dom: 'Bfrtip', // Placement des boutons
-        buttons: [
-                // Bouton Excel
+                },
+                {
+                    data: 'created_at',
+                    render: function (data) {
+                        if (!data) return '';
+                        const date = new Date(data);
+                        return `${('0' + date.getDate()).slice(-2)}/${('0' + (date.getMonth() + 1)).slice(-2)}/${date.getFullYear()}`;
+                    }
+                },
+                { data: 'action', orderable: false, searchable: false }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
                 {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7,8] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
+                    title: 'MANIFESTE',
+                    exportOptions: { columns: [0,1,2,3,4,5,6,7] }
                 },
-
-                // Bouton Imprimer
                 {
                     extend: 'print',
                     text: 'Imprimer',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [0,1, 2, 3, 4, 5, 6,7,8] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
+                    title: 'MANIFESTE',
+                    exportOptions: { columns: [0,1,2,3,4,5,6,7] },
                     customize: function (win) {
                         var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        
-                        // Ajouter le logo
+                        var logo = `<img src="${logoUrl}" alt="Logo" style="position:absolute; top:10px; left:20px; width:100px;">`;
                         $(win.document.body).prepend(logo);
-                        
-                        // Centrer le titre
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                            
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                        
-                        // Cacher les colonnes non souhaitées
-                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
-                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
+                        $(win.document.body).find('h1').css('text-align', 'center').css('margin-top', '20px');
+                        $(win.document.body).find('table').css('margin-top', '40px');
                     }
                 }
-        ],
+            ],
         });
-
     });
-
 </script>
-    
-    {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
-    
-</section>
 
 <style>
-    
-     #reader {
-      width: 100%;
-      height: 400px;
-      border: 1px solid #c2bdbd; 
-    }
-
-
-    .btn {
-        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 200px; /* Largeur maximale sur les grands écrans */
-        font-size: 16px;
-        height: 40px;
-
-    }
-
-    .dataTable-wrapper {
-        width: 100%; /* Prend toute la largeur disponible */
-        max-width: 1000px; /* Largeur maximale pour les grands écrans */
-        margin: 0 auto; /* Centrer le tableau */
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #f9f9f9;
-    }
-
-    #camera, #snapshot {
-        max-width: 100%; /* Rendre la caméra et l'image capturée responsive */
-        height: auto;
-        margin: 10px auto;
-    }
-
-    .modal-dialog {
-        max-width: 90%; /* Rendre les modals adaptatifs */
-        margin: auto;
-    }
-
-    .dt-button {
-        padding: 10px 10px;
-        font-size: 14px;
-    }
-
-    @media (max-width: 768px) {
-        h4 {
-            font-size: 18px; /* Réduction de la taille des titres */
-        }
-
-        .btn {
-        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 200px; /* Largeur maximale sur les grands écrans */
-        font-size: 16px;
-        height: 40px;
-
-    }
-
-        .table-responsive {
-            overflow-x: auto; /* Assurer un défilement horizontal sur les petits écrans */
-        }
-    }
-    #camera {
-            width: 100%;
-            max-height: 300px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .image-preview {
-            margin-top: 15px;
-            width: 100%;
-            max-height: 300px;
-            border: 2px dashed #ffa500;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f9f9f9;
-            position: relative;
-        }
-
-        .image-preview canvas {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        .image-placeholder {
-            color: #ccc;
-            font-size: 18px;
-            position: absolute;
-            text-align: center;
-        }
-
+#reader {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #c2bdbd; 
+}
+.btn {
+    width: 100%;
+    max-width: 200px;
+    font-size: 16px;
+    height: 40px;
+}
+.dataTable-wrapper {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+.modal-dialog {
+    max-width: 90%;
+    margin: auto;
+}
+.dt-button {
+    padding: 10px 10px;
+    font-size: 14px;
+}
+@media (max-width: 768px) {
+    h4 { font-size: 18px; }
+    .btn { max-width: 200px; font-size: 16px; height: 40px; }
+    .table-responsive { overflow-x: auto; }
+}
 </style>
 @endsection

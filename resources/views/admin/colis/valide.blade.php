@@ -52,7 +52,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="paymentForm">
-                    @csrf 
+                    @csrf
                     <div class="modal-body">
                         <input type="hidden" id="modalReferenceColis" name="reference_colis">
                         <input type="hidden" id="modalColisIds" name="colis_ids"> {{-- Pour passer les IDs (chaîne JSON) --}}
@@ -200,7 +200,7 @@ $(document).ready(function () {
                  searchable: true, orderable: true // Permettre recherche/tri
             },
             { data: 'destinataire_tel', name: 'destinataires.tel' }, // Utiliser le nom de table correct
-            { 
+            {
                 data: 'destinataire_agence',
                 name: 'destinataire_agence.nom_agence',
                 render: function(data, type, row) {
@@ -244,17 +244,17 @@ $(document).ready(function () {
                     customize: function (win) {
                         var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                         var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        
+
                         // Ajouter le logo
                         $(win.document.body).prepend(logo);
-                        
+
                         // Centrer le titre
                         $(win.document.body).find('h1')
                             .css('text-align', 'center')
                             .css('margin-top', '10px');
-                            
+
                         $(win.document.body).find('table').css('margin-top', '30px');
-                        
+
                         // Cacher les colonnes non souhaitées
                         $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
                         $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
@@ -272,21 +272,25 @@ $(document).ready(function () {
 
         var button = $(this);
         var reference = button.data('reference');
-        var total = parseFloat(button.data('total')).toFixed(2);
-        var paid = parseFloat(button.data('paid')).toFixed(2);
+        var total = parseFloat(button.data('total')); // Garder en nombre pour le calcul
+        var paid = parseFloat(button.data('paid'));   // Garder en nombre pour le calcul
         var colisIds = JSON.stringify(button.data('colis-ids'));
 
-        console.log("Opening payment modal for reference:", reference);
-        console.log("Total:", total, "Paid:", paid, "Colis IDs:", colisIds);
+        // Calculer le montant restant à payer
+        var remainingDue = total - paid;
+        // Stocker cette valeur sur le formulaire pour y accéder facilement lors de la soumission
+        $('#paymentForm').data('remaining-due', remainingDue.toFixed(2));
 
-        // Fonction pour formater les nombres en devise (exemple EUR, ajuster si besoin XOF, etc.)
+        console.log("Opening payment modal for reference:", reference);
+        console.log("Total:", total, "Paid:", paid, "Remaining:", remainingDue, "Colis IDs:", colisIds);
+
+
+        // Fonction pour formater les nombres en devise (exemple XOF)
         function formatCurrency(value) {
-            // Vérifier si la valeur est un nombre valide
             const num = Number(value);
-            if (isNaN(num)) {
-                return 'N/A'; // Ou une autre valeur par défaut
-            }
-            return num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }); // Ajuster 'EUR'
+            if (isNaN(num)) return 'N/A';
+            // Ajuster 'fr-CI' et 'XOF' selon votre localisation
+            return num.toLocaleString('fr-CI', { style: 'currency', currency: 'XOF' });
         }
 
         // Remplir les champs de la modale
@@ -308,21 +312,44 @@ $(document).ready(function () {
     $('#paymentForm').on('submit', function(e) {
         e.preventDefault(); // Empêcher la soumission standard du formulaire
 
+        // Vider les erreurs précédentes
+        $('#modalNewPaymentAmount').removeClass('is-invalid');
+        $('#paymentAmountError').text('').hide();
+
+        // ======================= DEBUT DE LA VALIDATION CÔTÉ CLIENT =======================
+        var newPaymentAmount = parseFloat($('#modalNewPaymentAmount').val());
+        var remainingDue = parseFloat($('#paymentForm').data('remaining-due'));
+
+        // Cas 1 : Le montant n'est pas un nombre ou est négatif/nul
+        if (isNaN(newPaymentAmount) || newPaymentAmount <= 0) {
+            $('#modalNewPaymentAmount').addClass('is-invalid');
+            $('#paymentAmountError').text('Veuillez saisir un montant valide et positif.').show();
+            return; // Bloque l'envoi AJAX
+        }
+
+        // Cas 2 : Le montant saisi est supérieur au montant restant
+        if (newPaymentAmount > remainingDue) {
+            $('#modalNewPaymentAmount').addClass('is-invalid');
+            $('#paymentAmountError').text('Le montant saisi ne peut pas dépasser le solde restant.').show();
+            Swal.fire({
+                icon: 'error',
+                title: 'Montant Invalide',
+                text: 'Le montant du paiement est supérieur au solde restant à payer.'
+            });
+            return; // Bloque l'envoi AJAX
+        }
+        // ======================= FIN DE LA VALIDATION CÔTÉ CLIENT =======================
+
         var form = $(this);
         var submitButton = $('#submitPaymentBtn');
         var originalButtonText = submitButton.html();
         submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'); // Indicateur de chargement
 
-        // Vider les erreurs précédentes
-        $('#modalNewPaymentAmount').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide();
-
         $.ajax({
             url: '{{ route("colis.valide.payer") }}', // Utiliser la route nommée pour l'enregistrement du paiement
             type: 'POST',
-            data: form.serialize(), // Envoyer les données du formulaire (inclut CSRF, reference_colis, colis_ids, montant_a_payer)
-            dataType: 'json', // Attendre une réponse JSON
-            // console.log("Submitting payment form:", form.serialize()),
+            data: form.serialize(), // Envoyer les données du formulaire
+            dataType: 'json',
             success: function(response) {
                 $('#paymentModal').modal('hide'); // Fermer la modale
                 Swal.fire({
@@ -335,26 +362,25 @@ $(document).ready(function () {
                 table.ajax.reload(null, false); // Recharger DataTables sans réinitialiser la pagination/recherche
             },
             error: function(xhr, status, error) {
-                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement du paiement.';
-                // Vérifier si la réponse contient des erreurs JSON
-                if (xhr.responseJSON) {
-                    if (xhr.responseJSON.error) { // Erreur générale envoyée par le serveur
-                        errorMessage = xhr.responseJSON.error;
+                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement.';
+
+                // Gérer les erreurs de validation (statut 422)
+                if (xhr.status === 422 && xhr.responseJSON) {
+                    if (xhr.responseJSON.errors && xhr.responseJSON.errors.montant_a_payer) {
+                        $('#modalNewPaymentAmount').addClass('is-invalid');
+                        $('#paymentAmountError').text(xhr.responseJSON.errors.montant_a_payer[0]).show();
+                        errorMessage = 'Veuillez corriger les erreurs indiquées.';
+                    } else if (xhr.responseJSON.details && xhr.responseJSON.details.montant_a_payer) {
+                        $('#modalNewPaymentAmount').addClass('is-invalid');
+                        $('#paymentAmountError').text(xhr.responseJSON.details.montant_a_payer[0]).show();
+                        errorMessage = 'Veuillez corriger les erreurs indiquées.';
                     }
-                    // Gérer les erreurs de validation spécifiques (422)
-                    if (xhr.status === 422 && xhr.responseJSON.details) {
-                         if (xhr.responseJSON.details.montant_a_payer) {
-                             $('#modalNewPaymentAmount').addClass('is-invalid');
-                             $('#paymentAmountError').text(xhr.responseJSON.details.montant_a_payer[0]).show();
-                             errorMessage = 'Veuillez corriger les erreurs dans le formulaire.'; // Message plus général pour Swal
-                         }
-                    }
+                } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
                 } else {
-                    // Loguer l'erreur complète pour le débogage si pas de JSON
                     console.error("Erreur AJAX:", status, error, xhr.responseText);
                 }
 
-                // Afficher une alerte d'erreur générique ou spécifique
                 Swal.fire({
                     icon: 'error',
                     title: 'Erreur!',
@@ -369,14 +395,12 @@ $(document).ready(function () {
     });
 
     // --- Logique pour le bouton Supprimer/Archiver ---
-
-    // Utilisation de la délégation d'événement sur le tbody pour les boutons ajoutés dynamiquement
     $('#productTable tbody').on('click', '.delete-btn', function (e) {
-        e.preventDefault(); // Bonne pratique
+        e.preventDefault();
 
         const button = $(this);
-        const deleteUrl = button.data('url'); // URL de suppression depuis data-url
-        const reference = button.data('reference'); // Référence pour le message de confirmation
+        const deleteUrl = button.data('url');
+        const reference = button.data('reference');
 
         if (!deleteUrl) {
             console.error("URL de suppression non trouvée pour le bouton:", button);
@@ -384,31 +408,28 @@ $(document).ready(function () {
             return;
         }
 
-        // Confirmation avec SweetAlert
         Swal.fire({
             title: 'Êtes-vous sûr?',
             html: `Voulez-vous vraiment supprimer le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33', // Rouge pour la suppression/archivage
-            cancelButtonColor: '#3085d6', // Bleu pour annuler
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
             confirmButtonText: 'Oui, supprimer!',
             cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Si l'utilisateur confirme, envoyer la requête AJAX DELETE
                 $.ajax({
-                    url: deleteUrl, // L'URL contient déjà la référence ou l'identifiant nécessaire
-                    type: 'DELETE', // Utiliser la méthode DELETE
-                    // Le token CSRF est déjà configuré globalement via $.ajaxSetup
-                    dataType: 'json', // Attendre une réponse JSON
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    dataType: 'json',
                     success: function (response) {
                         Swal.fire(
-                            'Supprimer!',
+                            'Supprimé!',
                             response.success || `Le(s) colis avec la référence ${reference} ont été supprimés.`,
                             'success'
                         );
-                        table.ajax.reload(null, false); // Recharger la table sans réinitialiser
+                        table.ajax.reload(null, false);
                     },
                     error: function (xhr, status, error) {
                         let errorMsg = 'Une erreur est survenue lors de la suppression.';

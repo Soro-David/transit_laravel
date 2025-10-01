@@ -305,6 +305,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/get-colis-dump',[ColisController::class, 'get_colis_dump'])->name('get.colis.dump');
         Route::get('/get-devis-colis',[ColisController::class, 'get_devis_colis'])->name('get.devis.colis');
         Route::get('/get-colis-valide',[ColisController::class, 'get_colis_valide'])->name('get.colis.valide');
+        //TOUT COLIS
+        Route::get('/get-tout-colis',[ColisController::class, 'get_tout_colis'])->name('get.tout.colis');
+        Route::get('/colis-tout',[ColisController::class, 'tout_colis'])->name('tout.colis');
+
         Route::get('/devis/{id}/edit', [ColisController::class, 'edit_qrcode'])->name('qrcode.edit');
         Route::post('/colis/valide/payer', [ColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
@@ -344,8 +348,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/contenaire-fermer',[ColisController::class, 'contenaire_fermer'])->name('contenaire.fermer');
         Route::post('/vol-fermer',[ColisController::class, 'vol_fermer'])->name('vol.fermer');
         //route pour ajax produit
+
+        
+        // Route::post('/store-produit-ajax',[ColisController::class, 'storeProduit'])->name('store.produit');
+        // Route::post('/store-service-ajax',[ColisController::class, 'storeService'])->name('store.service');
+        // Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        // Route::get('/autocomplete/service', [ColisController::class, 'autocompleteService'])->name('recherche.auto.service');
+        
+        Route::post('/get-colis-reference', [ColisController::class, 'getReference'])->name('getReference');
+
         Route::post('/store-produit-ajax',[ColisController::class, 'storeProduit'])->name('store.produit');
+        Route::post('/store-service-ajax',[ColisController::class, 'storeService'])->name('store.service');
         Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        Route::get('/autocomplete/service', [ColisController::class, 'autocompleteService'])->name('recherche.auto.service');
+
         
         // Route::get('/autocomplete/produit', [ColisController::class, 'autocompleteProduit'])->name('autocomplete.produit');
 
@@ -378,6 +394,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/generate-reference', [ColisController::class, 'generateReferenceAjax'])
             ->name('generateReference');
 
+
+            //NEW LOGIQUE
+        Route::get('/clients/search', [ClientController::class, 'search'])->name('clients.search');
+
         //Generer Reference colis
         Route::get('/generer-reference/{mode}', [ColisController::class, 'genererReferenceSelonMode']);
 
@@ -394,6 +414,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/payement', [ColisController::class, 'storePayement'])->name('store.payement');
         Route::get('/create/qrcode', [ColisController::class, 'qrcode'])->name('create.qrcode');
         Route::get('/create/complete', [ColisController::class, 'complete'])->name('complete');
+
+
 
     });
     Route::prefix('admin/transport')->name('transport.')->group(function () {
@@ -497,7 +519,27 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/store',[TransportController::class, 'store'])->name('store');
         Route::post('/store', [TransportController::class,'store'])->name('store'); 
 
+
+
     });
+
+    Route::prefix('cargaison')->name('cargaison.')->group(function () {
+        Route::get('historique-contenaire', [ColisController::class, 'historique_contenaire'])->name('historique.contenaire');
+        Route::get('get-contenaires', [ColisController::class, 'get_contenaires'])->name('get.contenaires');
+        Route::get('contenaire/{reference_contenaire}/colis', [ColisController::class, 'liste_colis_par_contenaire'])->name('liste.colis.par.contenaire');
+        Route::get('get-colis-pour-contenaire/{reference_contenaire}', [ColisController::class, 'get_colis_pour_contenaire'])->name('get.colis.pour.contenaire');
+        Route::post('paiement-colis', [ColisController::class, 'enregistrer_paiement'])->name('valide.payer');
+
+        Route::get('historique-vol', [ColisController::class, 'historique_vol'])->name('historique.vol');
+        Route::get('get-vol', [ColisController::class, 'get_vol'])->name('get.vol');
+        Route::get('vol/{reference_vol}/colis', [ColisController::class, 'liste_colis_par_vol'])->name('liste.colis.par.vol');
+        Route::get('get-colis-pour-vol/{reference_vol}', [ColisController::class, 'get_colis_pour_vol'])->name('get.colis.pour.vol');
+    });
+
+  
+
+
+
     Route::prefix('setting')->name('setting.')->group(function(){
         Route::get('/', [SettingController::class,'index'])->name('index');
         Route::get('/agence-info',[SettingController::class, 'agenceIndex'])->name('agence.index');
@@ -709,6 +751,11 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/get-colis-valide-aft-louis-b', [AftlbColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-louis-b', [AftlbColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
+        //TOUT COLIS
+        Route::get('/get-tout-colis-louis-b',[AftlbColisController::class, 'get_tout_colis'])->name('get.tout.colis');
+        Route::get('/colis-tout-louis-b',[AftlbColisController::class, 'tout_colis'])->name('tout.colis');
+
+
         Route::delete('/colis-aftlouisbleriot/{reference}', [AftlbColisController::class, 'destroy_colis_valide'])->name('destroy.colis.valide');
 
         Route::get('/on-ballonlouis-b', [AftlbColisController::class, 'liste_ballon'])->name('liste_ballon');
@@ -791,6 +838,30 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/create/payement-aft-louis-b', [AftlbColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment-aft-louis-b', [AftlbColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft-louis-b', [AftlbColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+
+        Route::get('/clients/search-aft-louis-b', [ClientController::class, 'search'])->name('clients.search');
+        Route::post('/store-produit-ajax-aft-louis-b',[AftlbColisController::class, 'storeProduit'])->name('store.produit');
+        Route::post('/store-service-ajax-aft-louis-b',[AftlbColisController::class, 'storeService'])->name('store.service');
+        Route::get('/autocomplete/produit-aft-louis-b', [AftlbColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        Route::get('/autocomplete/service-aft-louis-b', [AftlbColisController::class, 'autocompleteService'])->name('recherche.auto.service');
+
+
+
+                //Contenaire
+
+        Route::get('historique-contenaire', [AftlbColisController::class, 'historique_contenaire'])->name('historique.contenaire');
+        Route::get('get-contenaires', [AftlbColisController::class, 'get_contenaires'])->name('get.contenaires');
+        Route::get('contenaire/{reference_contenaire}/colis', [AftlbColisController::class, 'liste_colis_par_contenaire'])->name('liste.colis.par.contenaire');
+        Route::get('get-colis-pour-contenaire/{reference_contenaire}', [AftlbColisController::class, 'get_colis_pour_contenaire'])->name('get.colis.pour.contenaire');
+        Route::post('paiement-colis', [AftlbColisController::class, 'enregistrer_paiement'])->name('valide.payer');
+
+        //vol
+
+        Route::get('historique-vol', [AftlbColisController::class, 'historique_vol'])->name('historique.vol');
+        Route::get('get-vol', [AftlbColisController::class, 'get_vol'])->name('get.vol');
+        Route::get('contenaire/{reference_vol}/colis', [AftlbColisController::class, 'liste_colis_par_vol'])->name('liste.colis.par.vol');
+        Route::get('get-colis-pour-vol/{reference_vol}', [AftlbColisController::class, 'get_colis_pour_vol'])->name('get.colis.pour.vol');
+        Route::post('paiement-colis', [AftlbColisController::class, 'enregistrer_paiement'])->name('valide.payer');
     });
 
     // Groupe de routes pour la gestion du scan
@@ -1424,6 +1495,11 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/get-colis-valide-aft_chine', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-aft_chine', [ChineColisController::class, 'enregistrerPaiement'])->name('valide.payer');
 
+
+                //TOUT COLIS
+        Route::get('/get-tout-colis-aft_chine',[ChineColisController::class, 'get_tout_colis'])->name('get.tout.colis');
+        Route::get('/colis-tout-aft_chine',[ChineColisController::class, 'tout_colis'])->name('tout.colis');
+
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft_chine', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft_chine', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
@@ -1509,6 +1585,30 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/create/payement-aft_chine', [ChineColisController::class, 'stepPayment'])->name('create.payement');
         Route::post('/store/payment-aft_chine', [ChineColisController::class, 'storePayment'])->name('store.payement');
         Route::get('/generer/qrcode-aft_chine', [ChineColisController::class, 'generer_qrcode'])->name('generer.qrcode');
+
+        Route::get('/clients/search-aft_chine', [ClientController::class, 'search'])->name('clients.search');
+        Route::post('/store-produit-ajax-aft_chine',[ChineColisController::class, 'storeProduit'])->name('store.produit');
+        Route::post('/store-service-ajax-aft_chine',[ChineColisController::class, 'storeService'])->name('store.service');
+        Route::get('/autocomplete/produit-aft_chine', [ChineColisController::class, 'autocompleteProduit'])->name('recherche.auto');
+        Route::get('/autocomplete/service-aft_chine', [ChineColisController::class, 'autocompleteService'])->name('recherche.auto.service');
+
+
+
+        //Contenaire
+
+        Route::get('historique-contenaire', [ChineColisController::class, 'historique_contenaire'])->name('historique.contenaire');
+        Route::get('get-contenaires', [ChineColisController::class, 'get_contenaires'])->name('get.contenaires');
+        Route::get('contenaire/{reference_contenaire}/colis', [ChineColisController::class, 'liste_colis_par_contenaire'])->name('liste.colis.par.contenaire');
+        Route::get('get-colis-pour-contenaire/{reference_contenaire}', [ChineColisController::class, 'get_colis_pour_contenaire'])->name('get.colis.pour.contenaire');
+        Route::post('paiement-colis', [ChineColisController::class, 'enregistrer_paiement'])->name('valide.payer');
+
+        //vol
+
+        Route::get('historique-vol', [ChineColisController::class, 'historique_vol'])->name('historique.vol');
+        Route::get('get-vol', [ChineColisController::class, 'get_vol'])->name('get.vol');
+        Route::get('contenaire/{reference_vol}/colis', [ChineColisController::class, 'liste_colis_par_vol'])->name('liste.colis.par.vol');
+        Route::get('get-colis-pour-vol/{reference_vol}', [ChineColisController::class, 'get_colis_pour_vol'])->name('get.colis.pour.vol');
+        Route::post('paiement-colis', [ChineColisController::class, 'enregistrer_paiement'])->name('valide.payer');
         
     });
 

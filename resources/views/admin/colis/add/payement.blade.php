@@ -147,6 +147,78 @@
 {{-- Scripts JS --}}
 <script src="https://cdn.cinetpay.com/seamless/main.js"></script>
 <script>
+
+    $(document).ready(function () {
+    const sections = $('.payment-section');
+    const submitButtonSection = $('#submit_button_section');
+    const cinetpayButton = $('#cinetpayButton');
+    const operateurMobileSelect = $('#operateur_mobile');
+    const deliveryPaymentButton = $('#deliveryPaymentButton');
+
+    // Cacher toutes les sections
+    function hideSections() {
+        sections.hide();
+        submitButtonSection.show();
+        cinetpayButton.hide();
+        operateurMobileSelect.prop('required', false);
+    }
+
+    // Changement du mode de paiement
+    $('#mode_payement').on('change', function () {
+        hideSections();
+        const mode = $(this).val();
+
+        if (mode === 'mobile_money') {
+            $('#mobile_money_payment').show();
+            submitButtonSection.hide(); // le bouton sera via CinetPay
+        } else if (mode === 'delivery') {
+            $('#delivery_payment').show();
+            submitButtonSection.hide();
+        } else if (mode) {
+            $(`#${mode}_payment`).show();
+            submitButtonSection.show();
+        }
+    });
+
+    // Validation montant pour espèces
+    $('#montant_reçu').on('input', function() {
+        const prixColis = parseFloat($('#colisPrice').val()) || 0;
+        const montant = parseFloat($(this).val());
+
+        if (montant > prixColis) {
+            $(this).addClass('is-invalid');
+            $('#submit_button_section button[type="submit"]').prop('disabled', true);
+        } else {
+            $(this).removeClass('is-invalid');
+            $('#submit_button_section button[type="submit"]').prop('disabled', false);
+        }
+    });
+
+    // CinetPay pour Mobile Money
+    cinetpayButton.on('click', function() {
+        const operator = operateurMobileSelect.val();
+        if (!operator) { alert("Sélectionnez un opérateur."); return; }
+        // Ici tu peux mettre ton checkout CinetPay
+        checkout();
+    });
+
+    // Paiement à la livraison
+    deliveryPaymentButton.on('click', function() {
+        submitPaymentForm('delivery');
+    });
+
+    // Soumission formulaire
+    $('#paymentForm').on('submit', function(e) {
+        e.preventDefault();
+        const mode = $('#mode_payement').val();
+        if (mode && mode !== 'mobile_money' && mode !== 'delivery') {
+            submitPaymentForm();
+        }
+    });
+
+    hideSections();
+});
+
     $(document).ready(function () {
         const sections = $('.payment-section');
         const submitButtonSection = $('#submit_button_section');

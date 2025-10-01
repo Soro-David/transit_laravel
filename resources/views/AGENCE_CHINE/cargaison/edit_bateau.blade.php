@@ -1,10 +1,12 @@
 @extends('AGENCE_CHINE.layouts.agent')
+
 @section('content-header')
+    {{-- Section content-header --}}
 @endsection
 
 @section('content')
 <div class="container mt-5">
-    <h3>Modifier le Bateau</h3>
+    <h3>Modifier le Véhicule de Navigation</h3>
     
     @if (session('success'))
         <div class="alert alert-success">
@@ -16,63 +18,92 @@
         @csrf
         @method('PUT')
 
-    <div class="row">
-        <div class="form-group mb-3 col-md-6">
-            <label for="reference_bateau">Référence Bateau</label>
-            <input type="text" class="form-control" name="reference_bateau" value="{{ $bateau->reference_bateau }}" required>
-        </div>
+        <div class="card border-0 rounded shadow-sm">
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4 form-group">
+                        <label for="reference_bateau" class="form-label fw-bold">Référence Véhicule</label>
+                        <input type="text" class="form-control" name="reference_bateau" value="{{ $bateau->reference_bateau }}" readonly>
+                    </div>
 
-        <div class="form-group mb-3 col-md-6">
-            <label for="reference_contenaire">Référence Conteneur</label>
-            <input type="text" class="form-control" name="reference_contenaire" value="{{ $bateau->reference_conteneur }}" required>
-        </div>
-    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="reference_conteneur" class="form-label fw-bold">Référence Conteneur/Vol</label>
+                        {{-- CORRECTION : 'reference_contenaire' a été remplacé par 'reference_conteneur' --}}
+                        <input type="text" class="form-control" name="reference_conteneur" value="{{ $bateau->reference_conteneur }}" readonly>
+                    </div>
 
-    <div class="row">
-        <div class="form-group mb-3 col-md-6">
-            <label for="date_depart">Date de Départ</label>
-            <input type="datetime-local" class="form-control" name="date_depart" value="{{ \Carbon\Carbon::parse($bateau->created_at)->format('Y-m-d\TH:i') }}" required>
-        </div>
+                    <div class="col-md-4 form-group">
+                        <label for="compagnie" class="form-label fw-bold">Compagnie</label>
+                        <input type="text" class="form-control" name="compagnie" id="compagnie" value="{{ old('compagnie', $bateau->compagnie) }}" placeholder="Nom de la compagnie">
+                    </div>
 
-        <div class="form-group mb-3 col-md-6">
-            <label for="date_arriver">Date d’Arrivée</label>
-            <input type="datetime-local" class="form-control" name="date_arriver" value="{{ \Carbon\Carbon::parse($bateau->date_arriver)->format('Y-m-d\TH:i') }}" required>
+                    <div class="col-md-6 form-group">
+                        <label for="date_depart" class="form-label fw-bold">Date de Départ</label>
+                        <input type="datetime-local" class="form-control" name="date_depart" value="{{ \Carbon\Carbon::parse($bateau->created_at)->format('Y-m-d\TH:i') }}" required>
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label for="date_arriver" class="form-label fw-bold">Date d’Arrivée</label>
+                        <input type="datetime-local" class="form-control" name="date_arriver" value="{{ \Carbon\Carbon::parse($bateau->date_arriver)->format('Y-m-d\TH:i') }}" required>
+                    </div>
+                    
+                    <!-- Champs Bateau -->
+                    <div class="col-md-6 bateau-fields" style="display: none;">
+                        <label for="numero_bateau" class="form-label fw-bold">Numéro du bateau:</label>
+                        <input type="text" name="numero_bateau" id="numero_bateau" class="form-control" value="{{ old('numero_bateau', $bateau->numero_bateau) }}" placeholder="Ex: B12345">
+                    </div>
+
+                    <div class="col-md-6 bateau-fields" style="display: none;">
+                        <label for="nom_bateau" class="form-label fw-bold">Nom du bateau:</label>
+                        <input type="text" name="nom_bateau" id="nom_bateau" class="form-control" value="{{ old('nom_bateau', $bateau->nom_bateau) }}" placeholder="Ex: Océanic">
+                    </div>
+
+                    <!-- Champs Avion -->
+                    <div class="col-md-6 ballon-fields" style="display: none;">
+                        <label for="numero_ballon" class="form-label fw-bold">Numéro de vol:</label>
+                        <input type="text" name="numero_ballon" id="numero_ballon" class="form-control" value="{{ old('numero_ballon', $bateau->numero_ballon) }}" placeholder="Ex: AF702">
+                    </div>
+
+                    <div class="col-md-6 ballon-fields" style="display: none;">
+                        <label for="nom_ballon" class="form-label fw-bold">Nom de l'avion:</label>
+                        <input type="text" name="nom_ballon" id="nom_ballon" class="form-control" value="{{ old('nom_ballon', $bateau->nom_ballon) }}" placeholder="Ex: Airbus A380">
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    <a href="{{ url()->previous() }}" class="btn btn-secondary">Annuler</a>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="container text-right">
-        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">Annuler</a>
-    </div>
     </form>
 </div>
-</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Le script suppose que l'objet $bateau a une propriété 'type'
+        // qui est soit 'bateau', soit 'ballon' (avion).
+        const type = "{{ $bateau->type ?? '' }}"; 
+
+        const showFields = (selector) => document.querySelectorAll(selector).forEach(field => field.style.display = "block");
+        const hideFields = (selector) => document.querySelectorAll(selector).forEach(field => field.style.display = "none");
+
+        if (type === "bateau") {
+            showFields(".bateau-fields");
+            hideFields(".ballon-fields");
+        } else if (type === "ballon") {
+            hideFields(".bateau-fields");
+            showFields(".ballon-fields");
+        }
+    });
+</script>
 
 <style>
     .btn {
-        width: 15%;
-        height: 40px;
-        font-size: 18px;
-    }
-
-    .dataTable-wrapper {
-        width: 80% !important;
-        margin: 20px auto;
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #f9f9f9;
-    }
-
-    .dt-button {
+        width: auto;
         padding: 10px 20px;
-        margin: 5px;
-        border: 1px solid transparent;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
+        min-width: 150px;
+        font-size: 16px;
     }
 </style>
 @endsection

@@ -1,4 +1,5 @@
 @extends('admin.layouts.admin')
+
 @section('content-header')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -18,1587 +19,915 @@
             </ul>
         </div>
         @endif
-        <div class="progress-bar-container text-center mb-4">
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step active" data-step="0">1</li>
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="1">2</li>
 
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="2">3</li>
-
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="3">4</li>
+        {{-- Barre de progression --}}
+        <div class="progress-bar-container mb-4">
+            <ul class="progress-steps">
+                <li class="step active" data-step="0"><span>Expédition</span></li>
+                <li class="step" data-step="1"><span>Expéditeur</span></li>
+                <li class="step" data-step="2"><span>Destinataire</span></li>
+                <li class="step" data-step="3"><span>Colis</span></li>
+                <li class="step" data-step="4"><span>Récapitulatif</span></li>
+                <li class="step" data-step="5"><span>Paiement</span></li>
             </ul>
         </div>
+
         <!-- Étape 1 : Informations transport -->
-        <fieldset style="display: none;">
+        <fieldset>
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
                 <div class="row">
-                    <!-- Sélecteur de mode -->
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
-                            <select name="mode_transit" id="mode_transit" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
-                                <option value="maritime">Maritime</option>
-                                <option value="aerien">Aérien</option>
-                            </select>
-                        </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
+                        <select name="mode_transit" id="mode_transit" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
+                            <option value="maritime">Maritime</option>
+                            <option value="aerien">Aérien</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="agence_expediteur" class="form-label">Agence d'expédition</label>
+                        <select name="agence_expediteur" id="agence_expediteur" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                            @foreach ($agencesExpedition as $agence)
+                                <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="agence_destinataire" class="form-label">Agence de destination</label>
+                        <select name="agence_destinataire" id="agence_destinataire" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez l'agence --</option>
+                            {{-- Remplir dynamiquement si nécessaire --}}
+                        </select>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="ref_container" style="display: none;">
                         <div class="mb-3">
-                            <label for="categorie_client" class="form-label">Sélectionnez la catégorie de client</label>
-                            <select name="categorie_client" id="categorie_client" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez la catégorie de client --</option>
-                                <option value="particulier">Particulier</option>
-                                <option value="societe">Sociéte</option>
-                            </select>
+                            <label class="form-label" id="ref_label">Référence</label>
+                            <input type="text" name="reference_colis" id="reference_colis_input" class="form-control" value="" readonly>
                         </div>
                     </div>
-
-                    <!-- Maritime -->
-                    <div class="col-md-6" id="ref_maritime" style="display: none;" readonly>
-                        <div class="mb-3">
-                            <label class="form-label">Référence (Maritime)</label>
-                            <input type="hidden" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
-                        </div>
-                    </div>
-
-                    <!-- Aérien -->
-                    <div class="col-md-6" id="ref_aerien" style="display: none;" readonly>
-                        <div class="mb-3">
-                            <label class="form-label">Référence (Aérien)</label>
-                            <input type="hidden" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
+                    
                 </div>
             </div>
         </fieldset>
 
         <!-- Étape 2 : Informations de l'Expéditeur -->
-        {{-- ================== EXPÉDITEUR ================== --}}
-        <fieldset>
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
             <div class="form-section">
-                <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
-
-                {{-- ===== SOCIÉTÉ EXPÉDITEUR ===== --}}
-                <div id="societe_expediteur_section" style="display: none;">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_societe_expediteur" class="form-label">Nom de la société</label>
-                            <input type="text" name="nom_expediteur_societe" id="nom_societe_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_societe_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_expediteur" class="form-control">
-                                        <option value="+33">France (+33)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_expediteur_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-                         <div class="col-md-6 mb-3">
-                            <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur_societe" id="adresse_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="agence_societe_expediteur" class="form-label">Agence d'expédition</label>
-                            <select name="agence_expediteur_societe" id="agence_societe_expediteur" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="categorie_client" class="form-label">Sélectionnez la catégorie de client</label>
+                        <select name="categorie_client" id="categorie_client" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez la catégorie --</option>
+                            <option value="particulier">Particulier</option>
+                            <option value="societe">Société</option>
+                        </select>
                     </div>
-                             {{-- Boutons navigation --}}
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                    <div class="col-md-6 mb-3 position-relative">
+                        <label for="client_select" class="form-label">Rechercher un client existant</label>
+                        <input type="text" name="client_select" id="client_select" class="form-control" placeholder="Rechercher par nom, prénom, téléphone...">
+                        <div id="client_autocomplete_results" class="autocomplete-results"></div>
                     </div>
                 </div>
 
                 {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
-                <div id="particulier_expediteur_section">
+                <div id="particulier_expediteur_section" style="display: none;">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
-                        </div>
-
-                        <!-- Indicatif et téléphone sur la même ligne -->
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_expediteur" class="form-control">
-                                        <option value="+33">France (+33)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_expediteur" class="form-label">Agence d'expédition</label>
-                            <select name="agence_particulier_expediteur" id="agence_particulier_expediteur" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    {{-- Boutons navigation --}}
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
+                        <div class="col-md-6 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur" id="email_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="tel_expediteur" class="form-label">Téléphone</label><input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789"></div>
                     </div>
                 </div>
-
+                {{-- ===== SOCIÉTÉ EXPÉDITEUR ===== --}}
+                <div id="societe_expediteur_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="nom_societe_expediteur" class="form-label">Nom de la société</label><input type="text" name="nom_expediteur_societe" id="nom_societe_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_societe_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="tel_expediteur_societe" class="form-label">Téléphone</label><input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_expediteur_societe" class="form-label">Adresse</label><input type="text" name="adresse_expediteur_societe" id="adresse_expediteur_societe" class="form-control"></div>
+                    </div>
+                </div>
             </div>
         </fieldset>
 
-            {{-- ================== DESTINATAIRE ================== --}}
+        <!-- Étape 3 : Informations du Destinataire -->
         <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du destinataire</h5>
             <div class="form-section">
-                <h5 class="text-center mb-4">Informations du destinataire</h5>
-
+                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
+                <div id="particulier_destinataire_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label for="nom_destinataire" class="form-label">Nom</label><input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="prenom_destinataire" class="form-label">Prénom</label><input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="email_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire" id="email_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_particulier" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_particulier" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <div class="input-group"><select name="country_code_particulier" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire" class="form-control" placeholder="Ex: 0123456789"></div>
+                        </div>
+                    </div>
+                </div>
                 {{-- ===== SOCIÉTÉ DESTINATAIRE ===== --}}
                 <div id="societe_destinataire_section" style="display: none;">
                     <div class="row">
+                        <div class="col-md-6 mb-3"><label for="nom_societe_destinataire" class="form-label">Nom de la société</label><input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_societe_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_societe" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
                         <div class="col-md-6 mb-3">
-                            <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
-                            <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_societe_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
-                        </div>
-
-                         <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_destinataire" class="form-control">
-                                        <option value="+33">France (+33)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+1">USA (+1)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-                      
-                        <div class="col-md-6 mb-3">
-                            <label  class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire" class="form-control" >
-                                    <option value="Pas de livraison">Pas de Livraison</option>
-                                    <option value="Abobo">Abobo</option>
-                                    <option value="Adjamé">Adjamé</option>
-                                    <option value="Attécoubé">Attécoubé</option>
-                                    <option value="Cocody">Cocody</option>
-                                    <option value="Cocody">Palmeraie</option>
-                                    <option value="Koumassi">Koumassi</option>
-                                    <option value="Marcory">Marcory</option>
-                                    <option value="Plateau">Plateau</option>
-                                    <option value="Port-Bouët">Port-Bouët</option>
-                                    <option value="Treichville">Treichville</option>
-                                    <option value="Yopougon">Yopougon</option>
-                                    <option value="Songon">Songon</option>
-                                    <option value="Bingerville">Bingerville</option>
-                                    <option value="Anyama">Anyama</option>
-                                    <option value="Grand-Bassam">Grand-Bassam</option>
-                                    <option value="Dabou">Dabou</option>
-                                    <option value="Alépé">Alépé</option>
-                                    <option value="Azaguié">Azaguié</option>
-                                    <option value="Jacqueville">Jacqueville</option>
-                                    <option value="Agboville">Agboville</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-12 mb-3">
-                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
-                            <select name="agence_destinataire_societe" id="agence_particulier_destinataire_societe" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                            </select>
+                            <label class="form-label">Téléphone</label>
+                            <div class="input-group"><select name="country_code_societe" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789"></div>
                         </div>
                     </div>
-                </div>
-
-                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
-                <div id="particulier_destinataire_section">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_destinataire" class="form-control">
-                                        <option value="+33">France (+33)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                        {{-- <option value="+1">USA (+1)</option> --}}
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire" class="form-control" >
-                                <option value="">-- Sélectionnez une commune --</option>
-                                    <option value="Pas de livraison">Pas de Livraison</option>
-                                    <option value="Abobo">Abobo</option>
-                                    <option value="Adjamé">Adjamé</option>
-                                    <option value="Attécoubé">Attécoubé</option>
-                                    <option value="Cocody">Cocody</option>
-                                    <option value="Cocody">Palmeraie</option>
-                                    <option value="Koumassi">Koumassi</option>
-                                    <option value="Marcory">Marcory</option>
-                                    <option value="Plateau">Plateau</option>
-                                    <option value="Port-Bouët">Port-Bouët</option>
-                                    <option value="Treichville">Treichville</option>
-                                    <option value="Yopougon">Yopougon</option>
-                                    <option value="Songon">Songon</option>
-                                    <option value="Bingerville">Bingerville</option>
-                                    <option value="Anyama">Anyama</option>
-                                    <option value="Grand-Bassam">Grand-Bassam</option>
-                                    <option value="Dabou">Dabou</option>
-                                    <option value="Alépé">Alépé</option>
-                                    <option value="Azaguié">Azaguié</option>
-                                    <option value="Jacqueville">Jacqueville</option>
-                                    <option value="Agboville">Agboville</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
-                            <select name="agence_particulier_destinataire" id="agence_particulier_destinataire_particulier" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                    {{-- Boutons navigation --}}
-                <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                    <button type="button" class="btn btn-primary btn-next">Suivant</button>
                 </div>
             </div>
         </fieldset>
 
         <!-- Étape 4 : Informations du Colis -->
-        <fieldset id="colisTemplate" style="display: none;">
-            <h5 class="text-center mb-4 mt-5">Informations du Colis</h5>
-            <div class="form-section">
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du/des Colis</h5>
 
-
-                <div class="row">
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" id_reference>
+            {{-- Conteneur pour les colis dynamiques --}}
+            <div id="colis-container">
+                {{-- Le premier colis (template) --}}
+                <div class="colis-item form-section mb-4">
+                    <div class="row">
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis" value="1" min="1"></div></div>
+                        <div class="col-md-4 position-relative">
+                            <label class="form-label">Produit(s)</label>
+                            <div class="input-group">
+                                <input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit" required>
+                                <button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
+                            </div>
+                            <div class="autocomplete-results"></div>
                         </div>
+                        <div class="col-md-2"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix"><div class="mt-2">Prix Total: <span class="prix-total">0</span></div></div>
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Type colis</label><select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select></div></div>
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Devise</label><select name="devise[]" class="form-control devise-select"><option value="EUR">EUR</option><option value="FCFA">FCFA</option></select></div></div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Produit(s) ou Service(s)</label>
-                        <div class="input-group">
-                            <input type="text" name="service[]" class="form-control produit-input">
-                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                        </div>
-                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
+                    <div class="row">
+                        <div class="col-md-6 dimension-section" style="display: none;"><label class="form-label">Dimensions (cm)</label><div class="d-flex gap-2"><input type="number" name="longueur[]" class="form-control longueur" placeholder="Longeur"><input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur"><input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur"></div><div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div></div>
+                        <div class="col-md-6 poids-section" style="display: none;"><label class="form-label">Poids (kg)</label><input type="number" name="poids[]" class="form-control poids-colis" placeholder="Poids"></div>
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label">Commentaire</label><textarea name="description_colis[]" class="form-control" rows="3" placeholder="Description du colis"></textarea></div></div>
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Prix</label>
-                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type colis</label>
-                            <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Type de colis --</option>
-                                <option value="standard">Standard</option>
-                                <option value="fragile">Fragile</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-2 col-md-2 col-lg-2">
-                        <div class="mb-3">
-                            <label for="devise" class="form-label">Devise</label>
-                            <select name="devise" id="devise" class="form-control">
-                                <option value="" disabled selected>-- Devise --</option>
-                                <option value="EUR">EUR</option>
-                                <option value="FCFA">FCFA</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 dimension-section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                        </div>
-                        <div class="dimension-result mt-2"  name="dimension_result" style="display: none; font-weight: bold;"></div>
-                    </div>
-                    <div class="col-md-6 poids-section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                    </div>
-                    <div class="col-6 col-md-6 col-lg-6">
-                        <div class="mb-3">
-                            <label for="description_colis" class="form-label">Commentaire</label>
-                            <textarea 
-                            name="description_colis[]" 
-                            id="description_colis" 
-                            class="form-control" 
-                            rows="4"
-                            placeholder="Saisissez la description du colis"></textarea>
-                        </div>
-                    </div>
-                
+                     <div class="text-end mt-2"><button type="button" class="btn btn-danger remove-colis" style="display: none;">Retirer ce colis</button></div>
                 </div>
             </div>
+
             <div class="text-end mt-2">
-                {{-- <a href="#" class="btn btn-link add-colis">Ajouter un autre colis</a> --}}
-                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                <button type="button" class="btn btn-danger remove-colis" style="display: none">Retirer ce colis</button>
-            </div>
-            <div id="colisContainer"></div>
-            <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                <button type="submit" class="btn btn-success" style="display: none;">Valider</button>
+                <button type="button" class="btn btn-success add-colis">Ajouter un autre colis</button>
             </div>
         </fieldset>
-</form>
 
-<div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="produitForm">
-                    <div class="mb-3">
-                        <label for="description_produit" class="form-label">Description</label>
-                        <input type="text" name="description" id="description_produit" class="form-control" id_reference>
+        <!-- Étape 5 : Informations sur le service et le recapitulatif -->
+        <fieldset style="display: none;">
+           <h5 class="text-center mb-4 mt-5">Services Additionnels et Récapitulatif</h5>
+            <div class="form-section">
+                <div class="row g-3">
+                    <!-- Service -->
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label">Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button>
+                        </div>
+                        <div class="autocomplete-results"></div>
                     </div>
-                    <div class="mb-3">
-                        <label for="categorie_produit" class="form-label">Catégorie</label>
-                        <select name="categorie" id="categorie_produit" class="form-control" id_reference>
-                            <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
-                            <option value="Colis">COLIS</option>
-                            <option value="Service">SERVICES</option>
-                            <option value="Remise">REMISES</option>
+
+                    <!-- Prix -->
+                    <div class="col-md-3">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix_service[]" class="form-control prix-service" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span name="prix_service[]" class="prix-total-service">0</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <h5 class="text-center mb-4 mt-5">Récapitulatif de votre envoi</h5>
+            <div class="recapitulatif-section form-section">
+                <div class="row">
+                    <div class="col-md-6"><h6>Expéditeur :</h6><p><strong>Nom :</strong> <span id="recap_nom_expediteur"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_expediteur"></span></p><p><strong>Agence :</strong> <span id="recap_agence_expediteur"></span></p></div>
+                    <div class="col-md-6"><h6>Destinataire :</h6><p><strong>Nom :</strong> <span id="recap_nom_destinataire"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_destinataire"></span></p><p><strong>Agence :</strong> <span id="recap_agence_destinataire"></span></p></div>
+                </div>
+                <hr>
+                <h6>Détails des Colis et Services :</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th id="recap_colis_prix_header">Prix Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recap_colis_details">
+                            <!-- Contenu généré par JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-md-12 text-end">
+                        <h5 class="fw-bold">Total à payer : <span id="recap_total_a_payer">0.00</span> <span id="recap_devise"></span></h5>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Étape 6 : Informations du payement -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du paiement</h5>
+
+            <div class="alert alert-info text-center">
+                <strong>Total à payer : 
+                    <span id="payment_total" style="font-size: 1.5em; font-weight: bold;">0.00</span> 
+                    <span id="payment_devise" style="font-size: 1.5em; font-weight: bold;">EUR</span>
+                </strong>
+            </div>
+
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
+                        <select name="mode_payement" id="mode_payement" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez --</option>
+                            <option value="bank">Virement Bancaire</option>
+                            <option value="mobile_money">Mobile Money</option>
+                            <option value="cheque">Chèque</option>
+                            <option value="cash">Espèces</option>
+                            <option value="livraison">Paiement à la livraison</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="prix_unitaire" class="form-label">Prix Unitaire</label>
-                        <input type="number" name="prix" id="prix_unitaire" class="form-control" min="0" id_reference>
+                </div>
+
+                {{-- Virement Bancaire --}}
+                <div class="payment-section mt-3" id="bank_section" style="display:none;">
+                    <h5>Détails Bancaires</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="bank_nom_banque" class="form-label">Nom de la banque</label>
+                            <input type="text" name="bank_nom_banque" id="bank_nom_banque" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="bank_numero_compte" class="form-label">Numéro de compte</label>
+                            <input type="text" name="bank_numero_compte" id="bank_numero_compte" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="bank_montant" class="form-label">Montant</label>
+                            <input type="number" name="montant_reçu" id="bank_montant" class="form-control" min="0">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="agence" class="form-label">Agence de destination</label>
-                        <select name="agence" id="agence" class="form-control">
-                            <option value="" disabled selected>-- Sélectionnez l'agence de destination --</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option>
-                            <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
-                            <option value="Agence de Chine">Agence de Chine</option>
-                        </select>
+                </div>
+
+                {{-- Mobile Money --}}
+                <div class="payment-section mt-3" id="mobile_money_section" style="display:none;">
+                    <h5>Paiement Mobile Money</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mobile_operateur" class="form-label">Opérateur</label>
+                            <select name="mobile_operateur" id="mobile_operateur" class="form-control">
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="orange_money">Orange Money</option>
+                                <option value="wave">Wave</option>
+                                <option value="mtn_money">MTN Money</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mobile_numero_tel" class="form-label">Numéro de téléphone</label>
+                            <input type="text" name="mobile_numero_tel" id="mobile_numero_tel" class="form-control">
+                        </div>
                     </div>
-                </form>
+                    <button type="button" class="btn btn-primary mt-2" id="cinetpayButton" style="display:none;">
+                        Payer via Mobile Money
+                    </button>
+                </div>
+
+                {{-- Chèque --}}
+                <div class="payment-section mt-3" id="cheque_section" style="display:none;">
+                    <h5>Détails du Chèque</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cheque_montant" class="form-label">Montant du chèque</label>
+                            <input type="number" name="montant_reçu" id="cheque_montant" class="form-control" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Espèces --}}
+                <div class="payment-section mt-3" id="cash_section" style="display:none;">
+                    <h5>Paiement en Espèces</h5>
+                    <div class="col-md-6 mb-3">
+                        <label for="cash_montant_recu" class="form-label">Montant reçu</label>
+                        <input type="number" name="montant_reçu" id="cash_montant_recu" class="form-control" min="0">
+                    </div>
+                </div>
+
+                {{-- Paiement à la livraison --}}
+                <div class="payment-section mt-3" id="delivery_section" style="display:none;">
+                    <h5>Paiement à la Livraison</h5>
+                    <p class="alert alert-warning">
+                        Le paiement sera effectué lors de la livraison du colis.
+                    </p>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary btn-save" data-url="{{ route('colis.store.produit') }}">Créer</button>
+        </fieldset>
+        <!-- Boutons de navigation globaux -->
+        <div class="text-end mt-4 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+            <button type="button" class="btn btn-primary btn-next">Suivant</button>
+            <button type="submit" class="btn btn-success btn-submit" style="display: none;">Valider l'envoi</button>
+        </div>
+    </form>
+
+
+    {{-- MODAL AJOUT SERVICE --}}
+    <div class="modal fade" id="ServiceModal" tabindex="-1" aria-labelledby="ServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="ServiceModalLabel">Ajouter un Service</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body">
+                    <form id="serviceForm">
+                        <div class="mb-3"><label for="description_service" class="form-label">Description</label><input type="text" name="description" id="description_service" class="form-control"></div>
+                        <input type="hidden" name="categorie" value="Service">
+                        <div class="mb-3"><label for="prix_unitaire_service" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire_service" class="form-control" min="0"></div>
+                        <div class="mb-3"><label for="agence_service" class="form-label">Agence de destination</label><select name="agence" id="agence_service" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('colis.store.service') }}">Créer</button></div>
             </div>
         </div>
     </div>
-</div>
+    {{-- MODAL AJOUT PRODUIT --}}
+    <div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body">
+                    <form id="produitForm">
+                        <div class="mb-3"><label for="description_produit" class="form-label">Description</label><input type="text" name="description" id="description_produit" class="form-control"></div>
+                         <input type="hidden" name="categorie" value="Colis">
+                        <div class="mb-3"><label for="prix_unitaire" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire" class="form-control" min="0"></div>
+                        <div class="mb-3"><label for="agence" class="form-label">Agence de destination</label><select name="agence" id="agence" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-produit" data-url="{{ route('colis.store.produit') }}">Créer</button></div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <script>
-
-    // Fonction pour gérer la sélection de devise selon l'agence
-function handleDeviseSelection() {
-    // Récupérer les sélecteurs d'agence (expéditeur)
-    const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
-    const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
-    
-    // Fonction pour mettre à jour la devise en fonction de l'agence sélectionnée
-    function updateDevise(agenceValue) {
-        // Trouver tous les sélecteurs de devise dans le formulaire
-        const deviseSelects = document.querySelectorAll('select[name="devise"]');
-        
-        deviseSelects.forEach(deviseSelect => {
-            if (agenceValue === 'Agence de Chine') {
-                // Forcer la sélection du FCFA et désactiver le champ
-                deviseSelect.value = 'FCFA';
-                deviseSelect.disabled = true;
-                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
-            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
-                // Forcer la sélection de l'EUR et désactiver le champ
-                deviseSelect.value = 'EUR';
-                deviseSelect.disabled = true;
-                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
-            } else {
-                // Réactiver le champ pour les autres agences
-                deviseSelect.disabled = false;
-                deviseSelect.style.backgroundColor = ''; // Retirer le gris
-            }
-        });
-    }
-    
-    // Écouter les changements sur le sélecteur d'agence société
-    if (agenceSocieteSelect) {
-        agenceSocieteSelect.addEventListener('change', function() {
-            updateDevise(this.value);
-        });
-        
-        // Initialiser au chargement si une valeur est déjà sélectionnée
-        if (agenceSocieteSelect.value) {
-            updateDevise(agenceSocieteSelect.value);
-        }
-    }
-    
-    // Écouter les changements sur le sélecteur d'agence particulier
-    if (agenceParticulierSelect) {
-        agenceParticulierSelect.addEventListener('change', function() {
-            updateDevise(this.value);
-        });
-        
-        // Initialiser au chargement si une valeur est déjà sélectionnée
-        if (agenceParticulierSelect.value) {
-            updateDevise(agenceParticulierSelect.value);
-        }
-    }
-}
-
-// Appeler la fonction au chargement du document
-document.addEventListener('DOMContentLoaded', function() {
-    handleDeviseSelection();
-});
-
-// Fonction pour ajouter un nouveau colis avec gestion de la devise
-function addNewColis() {
-    const newColis = $(`
-        <div class="colis-fieldset mb-4">
-            <div class="row">
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                        <input type="number" name="quantite_colis[]" class="form-control quantite-colis" id_reference>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Produit(s) ou Service(s)</label>
-                    <div class="input-group">
-                        <input type="text" name="service[]" class="form-control produit-input">
-                        <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                    </div>
-                    <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Prix</label>
-                    <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                    <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label for="type_colis" class="form-label">Type de colis</label>
-                        <select name="type_colis[]" class="form-control">
-                            <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                            <option value="standard">Standard</option>
-                            <option value="fragile">Fragile</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-2 col-md-2 col-lg-2">
-                    <div class="mb-3">
-                        <label for="devise" class="form-label">Devise</label>
-                        <select name="devise" class="form-control devise-select">
-                            <option value="" disabled selected>-- Devise --</option>
-                            <option value="EUR">EUR</option>
-                            <option value="FCFA">FCFA</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 dimension-section">
-                    <label class="form-label">Dimensions (cm)</label>
-                    <div class="d-flex gap-2">
-                        <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                        <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                        <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                    </div>
-                    <div class="dimension-result mt-2" name="dimension_result" style="display: none; font-weight: bold;"></div>
-                </div>
-                <div class="col-md-6 poids-section" style="display: none;">
-                    <label class="form-label">Poids (kg)</label>
-                    <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                </div>
-                <div class="col-6 col-md-6 col-lg-6">
-                    <div class="mb-3">
-                        <label for="description_colis" class="form-label">Description colis</label>
-                        <textarea 
-                        name="description_colis[]" 
-                        id="description_colis" 
-                        class="form-control" 
-                        rows="4"
-                        placeholder="Saisissez la description du colis"></textarea>
-                    </div>
-                </div>
-                
-            </div>
-            <div class="text-end mt-2">
-                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
-            </div>
-        </div>
-    `);
-
-    $("#colisContainer").append(newColis);
-    
-    // Appliquer la configuration de devise au nouveau colis ajouté
-    const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
-    const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
-    
-    let agenceValue = '';
-    if (agenceSocieteSelect && agenceSocieteSelect.value) {
-        agenceValue = agenceSocieteSelect.value;
-    } else if (agenceParticulierSelect && agenceParticulierSelect.value) {
-        agenceValue = agenceParticulierSelect.value;
-    }
-    
-    if (agenceValue) {
-        const deviseSelect = newColis.find('.devise-select')[0];
-        if (agenceValue === 'Agence de Chine') {
-            deviseSelect.value = 'FCFA';
-            deviseSelect.disabled = true;
-            deviseSelect.style.backgroundColor = '#e9ecef';
-        } else if (agenceValue === 'AFT Agence Louis Bleriot') {
-            deviseSelect.value = 'EUR';
-            deviseSelect.disabled = true;
-            deviseSelect.style.backgroundColor = '#e9ecef';
-        }
-    }
-    
-    initAutocomplete(newColis);
-    toggleFields();
-}
-
-// Modifier l'écouteur d'événement pour utiliser la nouvelle fonction
-$(document).on("click", ".add-colis", function(e) {
-    e.preventDefault();
-    $(this).hide();
-    addNewColis();
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Fonction pour gérer la sélection de devise selon l'agence
-    function handleDeviseSelection() {
-        // Récupérer les sélecteurs d'agence (expéditeur)
-        const agenceSocieteSelect = document.getElementById('agence_societe_expediteur');
-        const agenceParticulierSelect = document.getElementById('agence_particulier_expediteur');
-        const deviseSelect = document.getElementById('devise');
-        
-        // Fonction pour mettre à jour la devise en fonction de l'agence sélectionnée
-        function updateDevise(agenceValue) {
-            if (agenceValue === 'Agence de Chine') {
-                // Forcer la sélection du FCFA et désactiver le champ
-                deviseSelect.value = 'FCFA';
-                deviseSelect.disabled = true;
-                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
-            } else if (agenceValue === 'AFT Agence Louis Bleriot') {
-                // Forcer la sélection de l'EUR et désactiver le champ
-                deviseSelect.value = 'EUR';
-                deviseSelect.disabled = true;
-                deviseSelect.style.backgroundColor = '#e9ecef'; // Griser le champ
-            } else {
-                // Réactiver le champ pour les autres agences
-                deviseSelect.disabled = false;
-                deviseSelect.style.backgroundColor = ''; // Retirer le gris
-            }
-        }
-        
-        // Écouter les changements sur le sélecteur d'agence société
-        if (agenceSocieteSelect) {
-            agenceSocieteSelect.addEventListener('change', function() {
-                updateDevise(this.value);
-            });
-            
-            // Initialiser au chargement si une valeur est déjà sélectionnée
-            if (agenceSocieteSelect.value) {
-                updateDevise(agenceSocieteSelect.value);
-            }
-        }
-        
-        // Écouter les changements sur le sélecteur d'agence particulier
-        if (agenceParticulierSelect) {
-            agenceParticulierSelect.addEventListener('change', function() {
-                updateDevise(this.value);
-            });
-            
-            // Initialiser au chargement si une valeur est déjà sélectionnée
-            if (agenceParticulierSelect.value) {
-                updateDevise(agenceParticulierSelect.value);
-            }
-        }
-    }
-    
-    // Appeler la fonction
-    handleDeviseSelection();
-});
-    
-document.addEventListener('DOMContentLoaded', function() {
-
-    // --- Fonctions utilitaires pour récupérer et mettre à jour les champs ---
-
-    /**
-     * Récupère un élément du DOM de manière sécurisée.
-     * @param {string} id L'ID de l'élément.
-     * @returns {HTMLElement|null} L'élément trouvé ou null.
-     */
-    function getElement(id) {
-        return document.getElementById(id);
-    }
-
-    /**
-     * Met à jour la valeur d'un champ s'il existe.
-     * @param {string} id L'ID du champ.
-     * @param {any} value La valeur à définir.
-     */
-    function updateFieldValue(id, value) {
-        const element = getElement(id);
-        if (element) {
-            element.value = value || ''; // Définit la valeur, ou une chaîne vide si null/undefined
-        }
-    }
-
-    /**
-     * Sélectionne une option dans un <select> s'il existe et si l'option est présente.
-     * @param {string} selector Le sélecteur CSS du <select>.
-     * @param {string} value La valeur de l'option à sélectionner.
-     */
-    function setSelectedOption(selector, value) {
-        const selectElement = document.querySelector(selector);
-        if (selectElement && value) {
-            const optionExists = Array.from(selectElement.options).some(option => option.value === value);
-            if (optionExists) {
-                selectElement.value = value;
-            }
-        }
-    }
-
-    /**
-     * Gère l'affichage des sections Particulier/Société.
-     * @param {HTMLElement} radioParticulier Le bouton radio "Particulier".
-     * @param {HTMLElement} radioSociete Le bouton radio "Société".
-     * @param {HTMLElement} sectionParticulier La section "Particulier".
-     * @param {HTMLElement} sectionSociete La section "Société".
-     */
-    function setupTypeSwitcher(radioParticulier, radioSociete, sectionParticulier, sectionSociete) {
-        if (!radioParticulier || !radioSociete || !sectionParticulier || !sectionSociete) {
-            console.warn('Certains éléments pour le switcher Particulier/Société sont manquants.');
-            return;
-        }
-
-        const toggleSections = () => {
-            if (radioParticulier.checked) {
-                sectionParticulier.style.display = 'block';
-                sectionSociete.style.display = 'none';
-            } else if (radioSociete.checked) {
-                sectionParticulier.style.display = 'none';
-                sectionSociete.style.display = 'block';
-            } else {
-                // Par défaut, masquer les deux ou montrer l'un si aucun n'est coché initialement
-                sectionParticulier.style.display = 'none';
-                sectionSociete.style.display = 'none';
-            }
-        };
-
-        // Initialisation
-        toggleSections();
-
-        // Écouteurs d'événements
-        radioParticulier.addEventListener('change', toggleSections);
-        radioSociete.addEventListener('change', toggleSections);
-    }
-
-
-    // --- Fonctions de récupération et de remplissage pour l'EXPÉDITEUR ---
-
-    const nomExpediteurInput = getElement('nom_expediteur');
-    const prenomExpediteurInput = getElement('prenom_expediteur');
-    const nomSocieteExpediteurInput = getElement('nom_societe_expediteur'); // Assurez-vous d'avoir cet ID
-
-    async function fetchExpediteurData() {
-        let nom = '';
-        let prenom = '';
-        let type = ''; // 'particulier' ou 'societe'
-
-        const radioParticulierExpediteur = getElement('type_expediteur_particulier');
-        const radioSocieteExpediteur = getElement('type_expediteur_societe');
-
-        if (radioParticulierExpediteur && radioParticulierExpediteur.checked) {
-            nom = nomExpediteurInput ? nomExpediteurInput.value.trim() : '';
-            prenom = prenomExpediteurInput ? prenomExpediteurInput.value.trim() : '';
-            type = 'particulier';
-        } else if (radioSocieteExpediteur && radioSocieteExpediteur.checked) {
-            nom = nomSocieteExpediteurInput ? nomSocieteExpediteurInput.value.trim() : ''; // Le nom de la société
-            // Pas de prénom pour une société, mais on peut passer le nom comme paramètre unique
-            type = 'societe';
-        } else {
-            console.log('Aucun type d\'expéditeur sélectionné.');
-            return;
-        }
-
-        if ((type === 'particulier' && (nom.length === 0 || prenom.length === 0)) ||
-            (type === 'societe' && nom.length === 0)) {
-            return; // Ne pas faire d'appel si les champs requis sont vides
-        }
-
-        console.log(`Recherche de l'expéditeur (${type}): ${nom} ${type === 'particulier' ? prenom : ''}`);
-
-        try {
-            const endpoint = type === 'particulier' ? `/api/expediteur?nom=${nom}&prenom=${prenom}` : `/api/expediteur-societe?nom_societe=${nom}`;
-            const response = await fetch(endpoint);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    console.log(`Aucun expéditeur (${type}) trouvé avec les informations fournies.`);
-                } else {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                // Nettoyer les champs si aucun expéditeur n'est trouvé
-                clearExpediteurFields(type);
-                return;
-            }
-            const data = await response.json();
-
-            if (data && (data.nom || data.nom_societe)) { // Vérifie si des données valides sont retournées
-                console.log('Expéditeur trouvé:', data);
-
-                if (type === 'particulier') {
-                    updateFieldValue('email_expediteur', data.email);
-                    setSelectedOption('#particulier_expediteur_section select[name="country_code_expediteur"]', data.country_code);
-                    updateFieldValue('tel_expediteur', data.telephone);
-                    updateFieldValue('adresse_expediteur', data.adresse); // ID du champ d'adresse direct
-                    setSelectedOption('#agence_particulier_expediteur', data.agence);
-                } else { // type === 'societe'
-                    updateFieldValue('email_societe_expediteur', data.email); // ID du champ email pour société
-                    setSelectedOption('#societe_expediteur_section select[name="country_code_societe_expediteur"]', data.country_code); // ID du select indicatif pour société
-                    updateFieldValue('tel_societe_expediteur', data.telephone); // ID du champ tel pour société
-                    updateFieldValue('adresse_societe_expediteur', data.adresse); // ID du champ d'adresse pour société
-                    updateFieldValue('numero_siret_expediteur', data.siret); // Assurez-vous d'avoir cet ID
-                    setSelectedOption('#agence_societe_expediteur', data.agence); // ID du select agence pour société
-                }
-            } else {
-                console.log(`Aucun expéditeur (${type}) trouvé avec les informations fournies.`);
-                clearExpediteurFields(type);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la récupération de l\'expéditeur:', error);
-            clearExpediteurFields(type);
-        }
-    }
-
-    function clearExpediteurFields(type) {
-        if (type === 'particulier') {
-            updateFieldValue('email_expediteur', '');
-            setSelectedOption('#particulier_expediteur_section select[name="country_code_expediteur"]', '');
-            updateFieldValue('tel_expediteur', '');
-            updateFieldValue('adresse_expediteur', '');
-            setSelectedOption('#agence_particulier_expediteur', '');
-        } else { // type === 'societe'
-            updateFieldValue('email_societe_expediteur', '');
-            setSelectedOption('#societe_expediteur_section select[name="country_code_societe_expediteur"]', '');
-            updateFieldValue('tel_societe_expediteur', '');
-            updateFieldValue('adresse_societe_expediteur', '');
-            updateFieldValue('numero_siret_expediteur', '');
-            setSelectedOption('#agence_societe_expediteur', '');
-        }
-    }
-
-    // --- Logique pour les sélecteurs de type (Particulier/Société) ---
-
-    // Expéditeur
-    setupTypeSwitcher(
-        getElement('type_expediteur_particulier'),
-        getElement('type_expediteur_societe'),
-        getElement('particulier_expediteur_section'),
-        getElement('societe_expediteur_section')
-    );
-
-    // Destinataire
-    setupTypeSwitcher(
-        getElement('type_destinataire_particulier'),
-        getElement('type_destinataire_societe'),
-        getElement('particulier_destinataire_section'),
-        getElement('societe_destinataire_section')
-    );
-
-    // Déclenche la recherche lors du changement de type pour pré-remplir si l'utilisateur a déjà tapé
-    const radioExpediteurParticulier = getElement('type_expediteur_particulier');
-    const radioExpediteurSociete = getElement('type_expediteur_societe');
-    if (radioExpediteurParticulier) radioExpediteurParticulier.addEventListener('change', fetchExpediteurData);
-    if (radioExpediteurSociete) radioExpediteurSociete.addEventListener('change', fetchExpediteurData);
-
-    const radioDestinataireParticulier = getElement('type_destinataire_particulier');
-    const radioDestinataireSociete = getElement('type_destinataire_societe');
-    if (radioDestinataireParticulier) radioDestinataireParticulier.addEventListener('change', fetchDestinataireData);
-    if (radioDestinataireSociete) radioDestinataireSociataire.addEventListener('change', fetchDestinataireData);
-
-});
-
-
-
-
-
 document.addEventListener('DOMContentLoaded', function () {
     const modeTransitSelect = document.getElementById('mode_transit');
-    const refMaritime = document.getElementById('ref_maritime');
-    const refAerien = document.getElementById('ref_aerien');
-    const categorieClientSelect = document.getElementById('categorie_client');
+    const agenceExpediteurSelect = document.getElementById('agence_expediteur');
 
-    // Agences destinataires avec IDs différents
-    const agenceSelectParticulier = document.getElementById('agence_particulier_destinataire_particulier');
-    const agenceSelectSociete = document.getElementById('agence_particulier_destinataire_societe');
+    const refContainer = document.getElementById('ref_container');
+    const refLabel = document.getElementById('ref_label');
+    const refInput = document.getElementById('reference_colis_input');
 
-    const societeExpediteurSection = document.getElementById('societe_expediteur_section');
-    const particulierExpediteurSection = document.getElementById('particulier_expediteur_section');
-    const societeDestinataireSection = document.getElementById('societe_destinataire_section');
-    const particulierDestinataireSection = document.getElementById('particulier_destinataire_section');
+    modeTransitSelect.addEventListener('change', fetchReference);
+    agenceExpediteurSelect.addEventListener('change', fetchReference);
 
-    // Options agences selon mode de transit
-    const agenceOptionsTransit = {
+    function fetchReference() {
+        const mode = modeTransitSelect.value;
+        const agence = agenceExpediteurSelect.value;
+
+        if (!mode || !agence) {
+            refContainer.style.display = 'none';
+            return;
+        }
+
+        refInput.value = 'Chargement...';
+        refContainer.style.display = 'block';
+
+        fetch("{{ route('colis.getReference') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                mode_transit: mode,
+                agence_expediteur: agence
+            })
+        })
+        .then(response => response.ok ? response.json() : Promise.reject('Erreur réseau'))
+        .then(data => {
+            if (data.error) {
+                 refInput.value = data.error;
+            } else {
+                refLabel.textContent = `Référence (${mode.charAt(0).toUpperCase() + mode.slice(1)})`;
+                refInput.value = data.reference_colis;
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            refInput.value = 'Impossible de générer la référence.';
+        });
+    }
+});
+
+$(document).ready(function () {
+    const searchInput = $('#client_select');
+    const resultsContainer = $('#client_autocomplete_results');
+
+    searchInput.on('keyup', function () {
+        const query = $(this).val();
+
+        if (query.length < 2) {
+            resultsContainer.hide();
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('colis.clients.search') }}",
+            dataType: 'json',
+            data: { q: query },
+            success: function (data) {
+                resultsContainer.html('');
+                if (data.length > 0) {
+                    data.forEach(function (client) {
+                        const item = $(`
+                            <div class="autocomplete-item">
+                                <strong>${client.first_name} ${client.last_name}</strong><br>
+                                <small class="text-muted">${client.tel}</small>
+                            </div>
+                        `);
+
+                        item.on('click', function () {
+                            searchInput.val(client.first_name + ' ' + client.last_name);
+                            resultsContainer.hide();
+
+                            if (client.category === 'particulier') {
+                                $('#categorie_client').val('particulier').trigger('change');
+                                $('#nom_expediteur').val(client.first_name);
+                                $('#prenom_expediteur').val(client.last_name);
+                                $('#email_expediteur').val(client.email);
+                                $('#tel_expediteur').val(client.tel);
+                            } else if (client.category === 'societe') {
+                                $('#categorie_client').val('societe').trigger('change');
+                                $('#nom_societe_expediteur').val(client.first_name);
+                                $('#email_societe_expediteur').val(client.email);
+                                $('#tel_expediteur_societe').val(client.tel);
+                                $('#adresse_expediteur_societe').val(client.adresse);
+                            }
+                        });
+
+                        resultsContainer.append(item);
+                    });
+                    resultsContainer.show();
+                } else {
+                    resultsContainer.hide();
+                }
+            }
+        });
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.position-relative').length) {
+            resultsContainer.hide();
+        }
+    });
+
+    searchInput.on('input', function() {
+        if ($(this).val() === '') {
+            $('#particulier_expediteur_section input, #societe_expediteur_section input').val('');
+        }
+    });
+
+    let currentStep = 0;
+    const fieldsets = $("fieldset");
+    const steps = $(".step");
+
+    function updateProgressBar() {
+        let percentage = (currentStep / (steps.length - 1)) * 100;
+        $('.progress-steps').css('--progress-width', percentage + '%');
+        steps.each(function(index) {
+            $(this).toggleClass("active", index <= currentStep);
+        });
+    }
+
+    /************************************************************/
+    /*         LOGIQUE DE NAVIGATION AMÉLIORÉE (CORRIGÉE)       */
+    /************************************************************/
+    function showStep(stepIndex) {
+        // Mettre à jour le récapitulatif en arrivant à l'étape 5 (index 4)
+        if (stepIndex === 4) {
+            updateRecapitulatif();
+        }
+        
+        // Mettre à jour les infos de paiement en arrivant à l'étape 6 (index 5)
+        if (stepIndex === 5) {
+            const total = $('#recap_total_a_payer').text();
+            const devise = $('#recap_devise').text();
+            $('#payment_total').text(total);
+            $('#payment_devise').text(devise);
+            const totalValue = parseFloat(total) || 0;
+            $('#montant_recu').attr('max', totalValue).attr('placeholder', `Montant max: ${totalValue}`);
+        }
+        
+        fieldsets.hide().eq(stepIndex).show();
+        currentStep = stepIndex;
+        updateProgressBar();
+
+        $(".btn-prev").toggle(stepIndex > 0);
+        const isLastStep = stepIndex === fieldsets.length - 1;
+        $(".btn-next").toggle(!isLastStep);
+        $(".btn-submit").toggle(isLastStep);
+    }
+
+    $(".btn-next").click(function() {
+        if (currentStep < fieldsets.length - 1) {
+            showStep(currentStep + 1);
+        }
+    });
+
+    $(".btn-prev").click(function() {
+        if (currentStep > 0) {
+            showStep(currentStep - 1);
+        }
+    });
+    
+    steps.click(function() {
+        const stepIndex = $(this).data("step");
+        showStep(stepIndex);
+    });
+
+    // Afficher la première étape au chargement
+    showStep(0);
+
+    const agenceOptionsByMode = {
         maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
         aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
     };
 
-    // Affichage des champs référence selon mode
-    function toggleReferenceFields(mode) {
-        refMaritime.style.display = mode === 'maritime' ? 'block' : 'none';
-        refAerien.style.display = mode === 'aerien' ? 'block' : 'none';
+    function updateDynamicFields() {
+        const mode = $("#mode_transit").val();
+        $(".dimension-section").toggle(mode === "maritime");
+        $(".poids-section").toggle(mode === "aerien");
+
+        const agenceDestSelect = $("#agence_destinataire");
+        agenceDestSelect.html('<option value="" disabled selected>-- Sélectionnez --</option>');
+        if (mode && agenceOptionsByMode[mode]) {
+            const opt = agenceOptionsByMode[mode];
+            agenceDestSelect.append(new Option(opt.label, opt.value, true, true));
+        }
+        updateDeviseBasedOnAgence();
     }
 
-    // Récupération référence via fetch AJAX
-    function fetchReference(mode) {
-        fetch(`/admin/colis/generer-reference/${mode}`)
-            .then(res => res.json())
-            .then(data => {
-                if (mode === 'maritime') {
-                    document.querySelector('input[name="reference_colis_maritime"]').value = data.reference_colis;
-                } else if (mode === 'aerien') {
-                    document.querySelector('input[name="reference_colis_aerien"]').value = data.reference_colis;
-                }
-            })
-            .catch(err => console.error('Erreur génération référence :', err));
+    function updateDeviseBasedOnAgence() {
+        const agence = $("#agence_expediteur").val();
+        let devise = "EUR";
+        let disabled = false;
+
+        if (agence === 'Agence de Chine') {
+            devise = 'FCFA';
+            disabled = true;
+        } else if (agence === 'AFT Agence Louis Bleriot') {
+            devise = 'EUR';
+            disabled = true;
+        }
+        $(".devise-select").val(devise).prop('disabled', disabled).css('background-color', disabled ? '#e9ecef' : '');
     }
 
-    // Met à jour les options agences destinataires selon mode de transit
-    function updateAgenceOptionsByMode(mode) {
-        if (!agenceOptionsTransit[mode]) return;
-
-        // Remise à zéro + ajout option unique dans les deux select
-        [agenceSelectParticulier, agenceSelectSociete].forEach(select => {
-            if (!select) return;
-            select.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
-            const option = document.createElement('option');
-            option.value = agenceOptionsTransit[mode].value;
-            option.textContent = agenceOptionsTransit[mode].label;
-            select.appendChild(option);
-            select.value = option.value; // sélection automatique
-        });
-    }
-
-    // Affiche/masque les sections selon la catégorie client
-    function toggleCategorieClientFields(categorie) {
+    function toggleClientSections() {
+        const categorie = $("#categorie_client").val();
         const isSociete = categorie === 'societe';
-        societeExpediteurSection.style.display = isSociete ? 'block' : 'none';
-        particulierExpediteurSection.style.display = isSociete ? 'none' : 'block';
-        societeDestinataireSection.style.display = isSociete ? 'block' : 'none';
-        particulierDestinataireSection.style.display = isSociete ? 'none' : 'block';
+        
+        $("#societe_expediteur_section, #societe_destinataire_section").toggle(isSociete);
+        $("#societe_expediteur_section").find("input, select").prop('disabled', !isSociete);
+        $("#societe_destinataire_section").find("input, select").prop('disabled', !isSociete);
+        
+        $("#particulier_expediteur_section, #particulier_destinataire_section").toggle(!isSociete);
+        $("#particulier_expediteur_section").find("input, select").prop('disabled', isSociete);
+        $("#particulier_destinataire_section").find("input, select").prop('disabled', isSociete);
     }
-
-    // Écouteur changement mode transit
-    modeTransitSelect.addEventListener('change', function () {
-        const selectedMode = this.value;
-        toggleReferenceFields(selectedMode);
-        fetchReference(selectedMode);
-        updateAgenceOptionsByMode(selectedMode);
-    });
-
-    // Écouteur changement catégorie client
-    categorieClientSelect.addEventListener('change', function () {
-        toggleCategorieClientFields(this.value);
-    });
-
-    // Initialisation au chargement si valeurs déjà sélectionnées
-    if (modeTransitSelect.value) {
-        toggleReferenceFields(modeTransitSelect.value);
-        updateAgenceOptionsByMode(modeTransitSelect.value);
-    }
-    if (categorieClientSelect.value) {
-        toggleCategorieClientFields(categorieClientSelect.value);
-    }
-});
-
-
     
-$(document).ready(function() {
-    // Initialisation de l'autocomplétion sur les champs existants
-    initAutocomplete($(document));
+    $("#mode_transit").on('change', function() {
+        updateDynamicFields();
+        $('.colis-item').each(function() {
+            updateTotalForColis($(this));
+        });
+    });
+    $("#agence_expediteur").on('change', updateDynamicFields);
+    $("#categorie_client").on('change', toggleClientSections);
+    
+    updateDynamicFields();
+    toggleClientSections();
 
-    function initAutocomplete(element) {
-        $(element).find(".produit-input").off("keyup").on("keyup", function() {
-            let query = $(this).val().trim();
-            let input = $(this);
-            let row = input.closest('.row');
-            let resultsContainer = row.find('.autocomplete-results');
-            let prixInput = row.find('input[name="prix[]"]');
-            let quantiteInput = row.find('input[name="quantite_colis[]"]');
-            let prixTotalDisplay = row.find('.prix-total');
+    const colisContainer = $("#colis-container");
 
-            if (query.length >= 2) {
-                $.ajax({
-                    url: "{{ route('colis.recherche.auto') }}",
-                    type: "GET",
-                    dataType: "json",
-                    data: { query: query },
-                    success: function(data) {
-                        resultsContainer.empty().show();
-                        if (data.length > 0) {
-                            $.each(data, function(index, produit) {
-                                let resultItem = $('<div class="autocomplete-item"></div>')
-                                    .text(produit.description)
-                                    .css({
-                                        padding: "5px",
-                                        cursor: "pointer",
-                                        borderBottom: "1px solid #eee"
-                                    })
-                                    .on('click', function() {
-                                        input.val(produit.description);
-                                        resultsContainer.empty().hide();
+    function attachColisEventListeners(colisElement) {
+        initAutocomplete(colisElement.find(".produit-input"), "{{ route('colis.recherche.auto') }}", 'Colis');
+        colisElement.on('input', '.quantite-colis, .prix-colis, .poids-colis', function() {
+            updateTotalForColis($(this).closest('.colis-item'));
+        });
+        colisElement.on("input", ".hauteur, .largeur, .longueur", function () {
+            const parent = $(this).closest(".dimension-section");
+            const h = parent.find(".hauteur").val();
+            const la = parent.find(".largeur").val();
+            const lo = parent.find(".longueur").val();
+            const resultDiv = parent.find(".dimension-result");
+            resultDiv.text(h && la && lo ? `${lo}x${la}x${h} cm` : '').toggle(!!(h && la && lo));
+        });
+    }
+    
+    initAutocomplete($('.service-input'), "{{ route('colis.recherche.auto.service') }}", 'Service');
+    $('.prix-service').on('input', function() {
+        const prix = parseFloat($(this).val()) || 0;
+        $('.prix-total-service').text(prix.toFixed(2));
+    });
 
-                                        // Mise à jour du prix unitaire et du prix total
-                                        let prixUnitaire = parseFloat(produit.prix);
-                                        let quantite = parseInt(quantiteInput.val()) || 1;
-                                        let prixTotal = prixUnitaire * quantite;
+    function updateTotalForColis(colisElement) {
+        const modeTransit = $('#mode_transit').val();
+        const prixUnitaire = parseFloat(colisElement.find(".prix-colis").val()) || 0;
+        let prixTotal = 0;
 
-                                        prixInput.attr("data-prix-unitaire", prixUnitaire); // Stocker le prix unitaire
-                                        prixInput.val(prixTotal);
-                                        prixTotalDisplay.text(prixTotal);
-                                    });
+        if (modeTransit === 'aerien') {
+            const poids = parseFloat(colisElement.find(".poids-colis").val()) || 0;
+            prixTotal = poids * prixUnitaire;
+        } else { // 'maritime' ou par défaut
+            const quantite = parseFloat(colisElement.find(".quantite-colis").val()) || 0;
+            prixTotal = quantite * prixUnitaire;
+        }
 
-                                resultsContainer.append(resultItem);
-                            });
-                        } else {
-                            resultsContainer.hide();
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Erreur AJAX:", error);
-                        resultsContainer.empty().hide();
-                    }
-                });
-            } else {
+        colisElement.find(".prix-total").text(prixTotal.toFixed(2));
+    }
+    
+    $(".add-colis").click(function() {
+        const newColis = colisContainer.find(".colis-item:first").clone();
+        
+        newColis.find("input, textarea, select").val("");
+        newColis.find(".quantite-colis").val("1");
+        newColis.find(".prix-total").text("0");
+        newColis.find(".dimension-result").hide().text('');
+        newColis.find('.autocomplete-results').empty().hide();
+        newColis.find(".remove-colis").show();
+        
+        colisContainer.append(newColis);
+        attachColisEventListeners(newColis);
+        updateDynamicFields(); 
+    });
+
+    colisContainer.on("click", ".remove-colis", function () {
+        $(this).closest(".colis-item").remove();
+    });
+
+    attachColisEventListeners(colisContainer.find(".colis-item:first"));
+    
+    function initAutocomplete(inputElement, url, categorie) {
+        inputElement.on("keyup", function() {
+            const query = $(this).val().trim();
+            const input = $(this);
+            const parentContainer = input.closest('.position-relative');
+            const resultsContainer = parentContainer.find('.autocomplete-results');
+
+            if (query.length < 2) {
                 resultsContainer.empty().hide();
+                return;
             }
+
+            $.ajax({
+                url: url, type: "GET", dataType: "json", data: { query: query, categorie: categorie },
+                success: function(data) {
+                    resultsContainer.empty().show();
+                    if (data.length > 0) {
+                        $.each(data, function(index, item) {
+                            $('<div class="autocomplete-item"></div>')
+                                .text(item.description)
+                                .on('click', function() {
+                                    input.val(item.description);
+                                    const colisItem = input.closest('.colis-item');
+                                    const prixInput = categorie === 'Colis' ? colisItem.find('.prix-colis') : $('.prix-service');
+                                    const prixUnitaire = parseFloat(item.prix);
+                                    prixInput.val(prixUnitaire);
+                                    
+                                    if (categorie === 'Colis') {
+                                        updateTotalForColis(colisItem);
+                                    } else {
+                                         $('.prix-total-service').text(prixUnitaire.toFixed(2));
+                                    }
+                                    resultsContainer.empty().hide();
+                                }).appendTo(resultsContainer);
+                        });
+                    } else {
+                        resultsContainer.hide();
+                    }
+                },
+                error: function() { resultsContainer.empty().hide(); }
+            });
         });
     }
 
-    // Met à jour le prix total lors de la modification de la quantité
-    $(document).on('input', '.quantite-colis', function() {
-        let row = $(this).closest('.row');
-        let prixInput = row.find('input[name="prix[]"]');
-        let prixTotalDisplay = row.find('.prix-total');
-        let quantite = parseInt($(this).val()) || 1;
-        let prixUnitaire = parseFloat(prixInput.attr("data-prix-unitaire")) || 0;
-
-        let prixTotal = prixUnitaire * quantite;
-
-        prixInput.val(prixTotal);
-        prixTotalDisplay.text(prixTotal);
-    });
-
-    // Fermer les suggestions en cliquant en dehors
-    $(document).on('click', function(event) {
-        if (!$(event.target).closest('.input-group, .autocomplete-results').length) {
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.produit-input, .service-input, .autocomplete-results').length) {
             $('.autocomplete-results').hide();
         }
     });
 
-    // Empêcher la soumission du formulaire avec "Enter" si l'autocomplétion est ouverte
-    $(document).on('keydown', '.produit-input', function(event) {
-        if (event.key === "Enter" && $('.autocomplete-results').is(':visible')) {
-            event.preventDefault();
-        }
+    let activeProduitInput = null;
+    $(document).on("click", ".btn-add-produit", function() {
+        activeProduitInput = $(this).siblings(".produit-input");
+        $("#description_produit").val(activeProduitInput.val());
     });
-
-    // Ajouter un nouveau colis et initialiser l'autocomplétion
-    $(document).on("click", ".add-colis", function(e) {
-        e.preventDefault();
-        
-        // MODIFICATION 1 : Cacher le bouton sur lequel on vient de cliquer
-        $(this).hide();
-
-        $("#colisContainer").append(newColis);
-        initAutocomplete(newColis);
-        toggleFields();
-
-    });
-   
-     // Supprimer un colis
-     $(document).on("click", ".remove-colis", function () {
-        $(this).closest(".colis-fieldset").remove();
-
-        // MODIFICATION 2 : Afficher le bouton "Ajouter" sur le nouveau dernier formulaire
-        if ($("#colisContainer .colis-fieldset").length > 0) {
-            // S'il reste des formulaires dynamiques, on cible le dernier
-            $("#colisContainer .colis-fieldset:last").find('.add-colis').show();
-        } else {
-            // Sinon (plus aucun formulaire dynamique), on cible le formulaire original
-            $('#colisTemplate').find('.add-colis').show();
-        }
-    });
-
-    // Fonction pour appliquer les règles d'affichage sur les colis existants
-    function toggleFields() {
-        let mode = $("#mode_transit").val();
-        $(".dimension-section").toggle(mode === "maritime");
-        $(".poids-section").toggle(mode === "aerien");
-    }
-
-    // Appliquer les changements lors de la sélection du mode de transit
-    $("#mode_transit").change(function () {
-        toggleFields();
-    });
-
-    // Afficher les dimensions sous format texte pour chaque colis ajouté
-    $(document).on("input", ".hauteur, .largeur, .longueur", function () {
-        let parent = $(this).closest(".colis-fieldset");
-        let hauteur = parent.find(".hauteur").val();
-        let largeur = parent.find(".largeur").val();
-        let longueur = parent.find(".longueur").val();
-        let resultDiv = parent.find(".dimension-result");
-
-        if (hauteur && largeur && longueur) {
-            resultDiv.text(`${longueur}x${largeur}x${hauteur} cm`).show();
-        } else {
-            resultDiv.hide();
-        }
-    });
-
-    // Initialiser les champs visibles selon le mode de transport sélectionné
-    toggleFields();
-
-
-    $(document).ready(function () {
-    // Configuration du token CSRF pour toutes les requêtes AJAX
-    $.ajaxSetup({
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-        },
-    });
-
-    // Remplissage automatique du champ description lorsque l'utilisateur clique sur "+"
-    $(".btn-add").on("click", function () {
-        let produit = $(this).siblings(".produit-input").val().trim();
-        $("#description_produit").val(produit);
-    });
-
-    // Gérer la création d'un nouveau produit dans le modal
-    $(".btn-save").on("click", function () {
-        let description = $("#description_produit").val().trim();
-        let categorie = $("#categorie_produit").val();
-        let agence = $("#agence").val();
-        let prix = parseFloat($("#prix_unitaire").val().trim()) || 0;
-        let url = $(this).data("url"); // Récupération de l'URL depuis data-url  agence_destination
-
-        console.log("Description:", description);
-        console.log("Catégorie:", categorie);
-        console.log("Prix:", prix);
-        console.log("agence:", agence);
     
+    $(".btn-save-produit").on("click", function () {
+        const form = $("#produitForm");
+        const data = {
+            description: form.find("#description_produit").val().trim(),
+            prix: parseFloat(form.find("#prix_unitaire").val()),
+            agence: form.find("#agence").val(),
+            categorie: 'Colis',
+            _token: '{{ csrf_token() }}'
+        };
 
-        // Vérification des champs
-        if (!description) {
-            alert("Veuillez saisir une description.");
+        if (!data.description || isNaN(data.prix) || data.prix <= 0) {
+            alert("Veuillez remplir tous les champs correctement.");
             return;
         }
 
-        if (!categorie) {
-            alert("Veuillez sélectionner une catégorie.");
-            return;
-        }
+        const btn = $(this);
+        btn.prop("disabled", true).text("Enregistrement...");
 
-        if (isNaN(prix) || prix <= 0) {
-            alert("Veuillez entrer un prix valide.");
-            return;
-        }
-
-        $(".btn-save").prop("disabled", true).text("Enregistrement...");
-
-        // Envoi des données via AJAX
         $.ajax({
-            url: url,
-            type: "POST",
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify({
-                description: description,
-                categorie: categorie,
-                agence: agence,
-                prix: prix,
-            }),
+            url: btn.data("url"), type: "POST", data: data, dataType: 'json',
             success: function (response) {
-                alert(response.message); // Affichage du message de succès
-                $("#produitForm")[0].reset(); // Réinitialisation du formulaire
-                $("#produitModal").modal("hide"); // Fermeture du modal
-                $(".btn-save").prop("disabled", false).text("Créer");
-
-                // Remplir les champs dans la ligne active si un champ est en focus
-                let activeInput = $(".produit-input:focus");
-                if (activeInput.length) {
-                    activeInput.val(description);
-                    let row = activeInput.closest(".row");
-                    let prixInput = row.find('input[name="prix[]"]');
-                    let quantiteInput = row.find('input[name="quantite_colis[]"]');
-                    let prixTotalDisplay = row.find(".prix-total");
-
-                    let quantite = parseInt(quantiteInput.val()) || 1;
-                    let prixTotal = prix * quantite;
-
-                    prixInput.attr("data-prix-unitaire", prix); // Stocker le prix unitaire
-                    prixInput.val(prixTotal);
-                    prixTotalDisplay.text(prixTotal);
+                alert(response.message);
+                if (activeProduitInput) {
+                    const colisItem = activeProduitInput.closest('.colis-item');
+                    activeProduitInput.val(data.description);
+                    colisItem.find('.prix-colis').val(data.prix);
+                    updateTotalForColis(colisItem);
                 }
+                $("#produitModal").modal("hide");
+                form[0].reset();
             },
-            error: function (xhr) {
-                let message = "Erreur lors de l'enregistrement du produit !\n";
-                if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    $.each(xhr.responseJSON.errors, function (key, value) {
-                        message += value + "\n";
-                    });
-                }
-                alert(message);
-                $(".btn-save").prop("disabled", false).text("Créer");
+            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            complete: function() { btn.prop("disabled", false).text("Créer"); }
+        });
+    });
+
+    $(".btn-save-service").on("click", function () {
+        const form = $("#serviceForm");
+        const data = {
+            description: form.find("#description_service").val().trim(),
+            prix: parseFloat(form.find("#prix_unitaire_service").val()),
+            agence: form.find("#agence_service").val(),
+            categorie: 'Service',
+            _token: '{{ csrf_token() }}'
+        };
+
+        if (!data.description || isNaN(data.prix) || data.prix <= 0) {
+            alert("Veuillez remplir tous les champs correctement.");
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop("disabled", true).text("Enregistrement...");
+
+        $.ajax({
+            url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+            success: function (response) {
+                alert(response.message);
+                $('.service-input').val(data.description);
+                $('.prix-service').val(data.prix);
+                $('.prix-total-service').text(parseFloat(data.prix).toFixed(2));
+                $("#ServiceModal").modal("hide");
+                form[0].reset();
             },
+            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            complete: function() { btn.prop("disabled", false).text("Créer"); }
         });
     });
-});
-});
 
-$(document).ready(function () {
-    // Fonction pour afficher les champs en fonction du mode de transport sélectionné
-    function toggleFields() {
-        let mode = $("#mode_transit").val();
-        $(".dimension-section").toggle(mode === "maritime");
-        $(".poids-section").toggle(mode === "aerien");
+    /******************************************************************/
+    /*         FONCTION DE RÉCAPITULATIF (CORRIGÉE)                   */
+    /******************************************************************/
+    function updateRecapitulatif() {
+        const isSociete = $('#categorie_client').val() === 'societe';
+    
+        // Remplir les informations de l'expéditeur et du destinataire
+        const nomExp = isSociete ? $('#nom_societe_expediteur').val() : `${$('#nom_expediteur').val()} ${$('#prenom_expediteur').val()}`;
+        const telExp = isSociete ? $('#tel_expediteur_societe').val() : $('#tel_expediteur').val();
+        $('#recap_nom_expediteur').text(nomExp.trim() || 'N/A');
+        $('#recap_tel_expediteur').text(telExp || 'N/A');
+        $('#recap_agence_expediteur').text($('#agence_expediteur option:selected').text() || 'N/A');
+    
+        const nomDest = isSociete ? $('#nom_societe_destinataire').val() : `${$('#nom_destinataire').val()} ${$('#prenom_destinataire').val()}`;
+        const codePays = isSociete ? $('select[name="country_code_societe"]').val() : $('select[name="country_code_particulier"]').val();
+        const telDestNum = isSociete ? $('input[name="tel_destinataire_societe"]').val() : $('input[name="tel_destinataire"]').val();
+        $('#recap_nom_destinataire').text(nomDest.trim() || 'N/A');
+        $('#recap_tel_destinataire').text(telDestNum ? `${codePays} ${telDestNum}` : 'N/A');
+        $('#recap_agence_destinataire').text($('#agence_destinataire option:selected').text() || 'N/A');
+    
+        // Préparer le tableau récapitulatif
+        const colisDetailsContainer = $('#recap_colis_details');
+        colisDetailsContainer.empty();
+    
+        let totalAPayer = 0;
+        const devise = $('.devise-select:first').val() || 'EUR';
+        $('#recap_colis_prix_header').text(`Prix Total (${devise})`);
+    
+        // Boucle sur chaque colis pour remplir le tableau
+        $('.colis-item').each(function() {
+            const colis = $(this);
+            const nomProduit = colis.find(".produit-input").val().trim();
+            
+            // Ignorer les lignes sans nom de produit
+            if (!nomProduit) return;
+    
+            // Récupérer la quantité pour l'affichage
+            const quantite = parseInt(colis.find(".quantite-colis").val()) || 1;
+    
+            // ==================== MODIFICATION CI-DESSOUS ====================
+            // On récupère directement le prix total du colis déjà calculé dans la variable 'prix' (ici totalLigne)
+            // au lieu de le recalculer.
+            const totalLigne = parseFloat(colis.find(".prix-total").text()) || 0;
+            // ====================== FIN DE LA MODIFICATION =====================
+
+            totalAPayer += totalLigne;
+    
+            // Créer la ligne HTML
+            const rowHtml = `
+                <tr>
+                    <td>${nomProduit}</td>
+                    <td>${quantite}</td>
+                    <td>${totalLigne.toFixed(2)}</td>
+                </tr>
+            `;
+            colisDetailsContainer.append(rowHtml);
+        });
+    
+        // Ajouter le service additionnel
+        const prixService = parseFloat($('.prix-total-service').text()) || 0;
+        const descService = $('.service-input').val().trim();
+        if (prixService > 0 && descService) {
+            totalAPayer += prixService;
+            const serviceRowHtml = `
+                <tr class="table-info">
+                    <td>${descService} <em>(Service)</em></td>
+                    <td>1</td>
+                    <td>${prixService.toFixed(2)}</td>
+                </tr>
+            `;
+            colisDetailsContainer.append(serviceRowHtml);
+        }
+    
+        // Mettre à jour le total général
+        $('#recap_total_a_payer').text(totalAPayer.toFixed(2));
+        $('#recap_devise').text(devise);
     }
 
-    // Appliquer les changements lors de la sélection du mode de transit
-    $("#mode_transit").change(function () {
-        toggleFields();
-    });
-    // Initialiser les champs visibles selon le mode de transport sélectionné
-    toggleFields();
-});
 
-
-$(document).ready(function () {
-    let currentStep = 0;
-    const fieldsets = $("fieldset");
-
-    // Fonction pour afficher une étape spécifique
-    function showStep(step) {
-        fieldsets.hide().eq(step).show();
-        toggleButtons(step);
-    }
-
-    // Fonction pour gérer la visibilité des boutons
-    function toggleButtons(step) {
-        const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
-
-        // Afficher ou masquer les boutons en fonction de l'étape
-        $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
-        $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
-        $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
-    }
-
-    // Gestion des boutons "Suivant" et "Précédent"
-    $(".btn-next").click(function () {
-        if (currentStep < fieldsets.length - 1) {
-            currentStep++;
-            showStep(currentStep);
+    $('#mode_payement').on('change', function() {
+        $('.payment-section').hide();
+        const selectedMethod = $(this).val();
+        if (selectedMethod) {
+            $('#' + selectedMethod + '_section').slideDown();
         }
     });
 
-    $(".btn-prev").click(function () {
-        if (currentStep > 0) {
-            currentStep--;
-            showStep(currentStep);
-        }
+    $('#operateur_mobile').on('change', function() {
+        $('#cinetpayButton').toggle($(this).val() !== '');
     });
 
-
-    // Afficher l'étape initiale
-    showStep(currentStep);
 });
-$(document).on("input", ".hauteur, .largeur, .longueur", function () {
-    const parent = $(this).closest(".dimension_section");
-    const hauteur = parent.find(".hauteur").val().trim();
-    const largeur = parent.find(".largeur").val().trim();
-    const longueur = parent.find(".longueur").val().trim();
-    const dimensionResult = parent.find(".dimension_result");
-
-    if (hauteur && largeur && longueur) {
-        dimensionResult.text(`${hauteur}x${largeur}x${longueur} cm`).show();
-    } else {
-        dimensionResult.hide();
-    }
-});
-
-    $(document).ready(function () {
-        $(document).on('click', '#remove-colis', function () {
-            var colisFieldset = $(this).closest('fieldset');
-            if ($('fieldset').length > 1) {
-                colisFieldset.remove();
-                updateFieldsetButtons();
-            }
-        });
-
-        // Update the buttons visibility for the fieldsets
-        function updateFieldsetButtons() {
-            var allFieldsets = $('fieldset');
-            allFieldsets.each(function (index) {
-                var btnPrev = $(this).find('.btn-prev');
-                var btnValider = $(this).find('button[type="submit"]');
-                if (index === allFieldsets.length - 1) {
-                    btnPrev.show();
-                    btnValider.show();
-                } else {
-                    btnPrev.hide();
-                    btnValider.hide();
-                }
-            });
-    }
-
-
-
-        // Handle transit mode visibility based on selection
-        $('#mode_transit').on('change', function () {
-            const selectedMode = $(this).val();
-            const modeActions = {
-                'maritime': () => { $('#poids_section').hide(); $('#dimension_section').show(); },
-                'aerien': () => { $('#dimension_section').hide(); $('#poids_section').show(); },
-                '': () => { $('#poids_section, #dimension_section').hide(); }
-            };
-            (modeActions[selectedMode] || modeActions[''])();
-        });
-
-        // Initial hiding of sections
-        $('#poids_section, #dimension_section').hide();
-
-        // Multi-step form handling
-        let currentStep = 0;
-        const fieldsets = document.querySelectorAll("fieldset");
-        const steps = document.querySelectorAll(".step");
-
-        function showStep(step) {
-            fieldsets.forEach((fieldset, index) => {
-                fieldset.style.display = index === step ? "block" : "none";
-            });
-            updateProgressBar(step);
-            toggleButtons(step);
-        }
-
-        function updateProgressBar(step) {
-            steps.forEach((stepElement, index) => {
-                stepElement.classList.toggle("active", index <= step);
-            });
-        }
-
-        function toggleButtons(step) {
-            const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
-
-            // Afficher ou masquer les boutons en fonction de l'étape
-            $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
-            $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
-            $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
-        }
-        // Handle next and previous buttons for multi-step form
-        document.querySelectorAll(".btn-next").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.preventDefault();
-                if (currentStep < fieldsets.length - 1) {
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            });
-        });
-
-        document.querySelectorAll(".btn-prev").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.preventDefault();
-                if (currentStep > 0) {
-                    currentStep--;
-                    showStep(currentStep);
-                }
-            });
-        });
-
-        // Click on step number to navigate
-        steps.forEach((stepElement, index) => {
-            stepElement.addEventListener("click", () => {
-                currentStep = index;
-                showStep(currentStep);
-            });
-        });
-
-        // Initial step display
-        showStep(currentStep);
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-    const hauteurInput = document.getElementById("hauteur");
-    const largeurInput = document.getElementById("largeur");
-    const longueurInput = document.getElementById("longueur");
-    const dimensionResult = document.getElementById("dimension_result");
-
-    function updateDimensionDisplay() {
-        const hauteur = hauteurInput.value.trim();
-        const largeur = largeurInput.value.trim();
-        const longueur = longueurInput.value.trim();
-        
-        if (hauteur !== "" && largeur !== "" && longueur !== "") {
-            dimensionResult.textContent = `${hauteur} x ${largeur} x ${longueur} cm`;
-            dimensionResult.style.display = "block";
-        } else {
-            dimensionResult.style.display = "none";
-        }
-    }
-
-    [hauteurInput, largeurInput, longueurInput].forEach(input => {
-        input.addEventListener("input", updateDimensionDisplay);
-    });
-});
-
 </script>
+
 <style>
-
-    .autocomplete-results {
-        position: absolute; /* Important pour le positionnement */
-        top: 100%; /* Affiche les résultats sous l'input */
-        left: 0;
-        right: 0;
-        z-index: 1000; /* Pour être au-dessus des autres éléments */
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 5px;
-        display: none; /* Caché par défaut */
-    }
-
-    .autocomplete-item {
-        padding: 5px 10px;
-        cursor: pointer;
-    }
-
-    .autocomplete-item:hover {
-        background-color: #f0f0f0;
-    }
-
-    body {
-        background-color: #f7f7f7;
-    }
-
-    fieldset + fieldset {
-        border-top: 2px solid #ccc;
-        padding-top: 15px;
-        margin-top: 15px;
-    }
-
     .form-container {
-        max-width: 95%;
-        margin: auto;
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        max-width: 95%; margin: auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
-
     .form-section {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
+        background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 20px;
     }
-
-    .progress-bar {
-        display: flex; /* Utilise flexbox pour aligner les éléments */
-        justify-content: space-between; /* Espace égal entre les étapes */
-        list-style: none; /* Supprime les puces de la liste */
-        background: #fff; /* Couleur de fond */
-        padding: 0; 
-        margin: 50px; /* Supprime les marges */
+    fieldset { border: none; padding: 0; }
+    .progress-bar-container { width: 100%; margin-bottom: 40px; }
+    .progress-steps {
+        --progress-width: 0%; display: flex; justify-content: space-between; list-style: none; padding: 0; margin: 0; position: relative;
     }
-    .progress-bar-container {
-        margin-bottom: 20px;
-        display: flex; /* Use flexbox for centering */
-        justify-content: center; /* Center the progress bar */
-        width: 100%; /* Prend toute la largeur disponible */
+    .progress-steps::before {
+        content: ''; position: absolute; top: 50%; transform: translateY(-50%); height: 4px; width: 100%; background-color: #d8d8d8; z-index: 1;
     }
-
-    /* Permettre le défilement horizontal si nécessaire */
-    .progress-bar-container {
-    overflow-x: auto;
+    .progress-steps::after {
+        content: ''; position: absolute; top: 50%; transform: translateY(-50%); height: 4px; width: var(--progress-width); background-color: #28a745; z-index: 2; transition: width 0.4s ease;
     }
-
-    /* Les listes de progression sont déjà en flex via Bootstrap ;
-    on peut ajouter quelques réglages pour améliorer l’affichage */
-    .progress-bar {
-    flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
-    margin: 0 auto;  /* centrer */
+    .progress-steps .step {
+        display: flex; flex-direction: column; align-items: center; position: relative; z-index: 3; cursor: pointer;
     }
-
-    /* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
-    .progress-bar li.step {
-    flex: 1;              /* prend une part égale de l’espace disponible */
-    min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
-    text-align: center;   /* centrer le contenu */
-    font-size: 1rem;      /* taille de police par défaut */
+    .progress-steps .step::before {
+        content: ''; display: block; width: 30px; height: 30px; border-radius: 50%; background-color: #d8d8d8; border: 3px solid #d8d8d8; transition: background-color 0.4s ease, border-color 0.4s ease; margin-bottom: 5px;
     }
-
-    /* Sur écrans moyens à grands, on peut augmenter la taille de police */
-    @media (min-width: 768px) {
-    .progress-bar li.step {
-        font-size: 1.25rem;
+    .progress-steps .step span { font-size: 14px; color: #6c757d; text-align: center; }
+    .progress-steps .step.active::before { background-color: #fff; border-color: #28a745; }
+    .progress-steps .step.active span { color: #28a745; font-weight: bold; }
+    .autocomplete-results {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; background-color: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; display: none;
     }
-    }
-
-    .progress-bar::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 5px;
-        background: #ddd;
-        z-index: -1;
-        transform: translateY(-50%);
-    }
-
-    .step {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        background: #ddd;
-        color: #333;
-        text-align: center;
-        border-radius: 50%;
-        cursor: pointer;
-        font-weight: bold;
-        position: relative;
-        /* z-index: 1; */
-    }
-
-    .step.active {
-        background: #05a805;
-        color: #fff;
-    }
-
-
-    .step::after {
-        content: ''; /* Create a line after each step */
-        position: absolute; /* Position the line absolutely */
-        top: 50%; /* Center vertically */
-        left: 100%; /* Position to the right of the step */
-        width: 100%; /* Width of the line */
-        height: 4px; /* Height of the line */
-        background-color: #ddd; /* Color of the line */
-        z-index: -1; /* Send the line behind the text */
-    }
-
-    .step:last-child::after {
-        content: none; /* Remove the line after the last step */
-    }
-
-    .step.active {
-        font-weight: bold; /* Bold the active step */
-        color: #ffffff; /* Color of the active step */
-    }
-
+    .autocomplete-item { padding: 8px 12px; cursor: pointer; }
+    .autocomplete-item:hover { background-color: #f0f0f0; }
 </style>
-
 @endsection

@@ -386,8 +386,8 @@ private function generateReferenceParMode(string $mode_transit)
                 'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
                 'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
                 'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? null,
-                'tel' => $expediteurTel, // Utilise le numéro complet
-                'agence' => $data['agence_expedition'] ?? $data['agence_expediteur_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'tel' => $expediteurTel,
+                'agence' => $data['agence_expediteur'] ?? $data['agence_expediteur_societe'] ?? null,
                 'lieu_expedition' => $data['adresse_expediteur'] ?? $data['adresse_expediteur_societe'] ?? 'null',
             ]);
 
@@ -396,13 +396,13 @@ private function generateReferenceParMode(string $mode_transit)
                 'prenom' => $data['prenom_destinataire'] ?? $data['prenom_destinataire_societe'] ?? '',
                 'email' => $data['email_destinataire'] ?? $data['email_destinataire_societe'] ?? null,
                 'tel' => $destinataireTel, // Utilise le numéro complet
-                'agence' => $data['agence_destination'] ?? $data['agence_destinataire_societe'] ?? null, // Gère le cas où l'agence n'est pas définie
+                'agence' => $data['agence_destinataire'] ?? $data['agence_destinataire_societe'] ?? null,
                 'lieu_destination' => $data['adresse_destinataire'] ?? $data['adresse_destinataire_societe'] ?? 'null',
             ]);
 
 
         $payementDataSession = session('step2', []);
-        $montantTotalEstime = collect($data['prix'] ?? [])->sum(); // Calculer le total attendu des prix
+        $montantTotalEstime = collect($data['prix'] ?? [])->sum();
 
         // *** NOUVELLE LOGIQUE POUR MONTANT PAYÉ ***
         $modePaiement = $payementDataSession['mode_payement'] ?? null;

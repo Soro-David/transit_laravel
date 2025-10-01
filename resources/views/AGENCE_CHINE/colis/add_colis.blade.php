@@ -1,1204 +1,588 @@
 @extends('AGENCE_CHINE.layouts.agent')
 
-@section('content-header')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@endsection
-
 @section('content')
-<section class="p-4 mx-auto">
+    {{-- Le CSS reste inchangé, il est bien structuré --}}
+    <style>
+        /* ... Votre CSS existant ... */
+        body {
+            font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+            color: #333;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+        }
 
-    <form action="{{ route('chine_colis.store.colis') }}" method="post" class="form-container">
-        @csrf
+        .invoice-box-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
 
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-        <div class="progress-bar-container text-center mb-4">
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step active" data-step="0">1</li>
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="1">2</li>
+        .invoice-box {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 25px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            background-color: #fff;
+            font-size: 14px;
+            line-height: 1.6;
+        }
 
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="2">3</li>
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* NOUVEAU/MODIFIÉ: Pour mieux aligner le logo et les détails */
+            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .logo img {
+            max-width: 260px; /* NOUVEAU/MODIFIÉ: Logo plus grand */
+            height: auto;
+        }
+        .company-details-header {
+            text-align: right;
+        }
+        .company-details-header h2 {
+            margin: 0 0 5px 0;
+            font-size: 25px;
+            font-weight: bold;
+        }
+        .company-details-header p {
+            margin: 0;
+            font-size: 13px;
+        }
 
-            </ul>
-            <ul class="progress-bar d-flex justify-content-between list-unstyled position-relative">
-                <li class="step" data-step="3">4</li>
-            </ul>
-        </div>
-        <!-- Étape 1 : Informations transport -->
-        <fieldset style="display: none;">
-            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
-            <div class="form-section">
-                <div class="row">
-                    <!-- Sélecteur de mode -->
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
-                            <select name="mode_transit" id="mode_transit" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
-                                <option value="maritime">Maritime</option>
-                                <option value="aerien">Aérien</option>
-                            </select>
-                        </div>
-                    </div>
+        .invoice-title-section {
+            text-align: center;
+            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
+        }
+        .invoice-title-section h1 {
+            font-size: 45px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: #000000505000;
+            letter-spacing: 1px;
+        }
+        .simulated-barcode {
+            height: 35px;
+            background: linear-gradient(to right,
+                #333 0%, #333 2px, transparent 2px, transparent 4px,
+                #333 4px, #333 5px, transparent 5px, transparent 7px,
+                #333 7px, #333 10px, transparent 10px, transparent 11px,
+                #333 11px, #333 12px, transparent 12px, transparent 14px
+            );
+            background-repeat: repeat-x;
+            background-size: 14px 100%;
+            max-width: 220px;
+            margin: 10px auto 0;
+        }
+        .simulated-barcode-small {
+            height: 25px;
+            background: linear-gradient(to right,
+                #333 0%, #333 1.5px, transparent 1.5px, transparent 3px,
+                #333 3px, #333 4px, transparent 4px, transparent 5.5px,
+                #333 5.5px, #333 7.5px, transparent 7.5px, transparent 8.5px,
+                #333 8.5px, #333 9.5px, transparent 9.5px, transparent 11px
+            );
+            background-repeat: repeat-x;
+            background-size: 11px 100%;
+            max-width: 180px;
+            margin: 10px 0 0 auto;
+        }
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="categorie_client" class="form-label">Sélectionnez la catégorie de client</label>
-                            <select name="categorie_client" id="categorie_client" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez la catégorie de client --</option>
-                                <option value="particulier">Particulier</option>
-                                <option value="societe">Sociéte</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <!-- Maritime -->
-                    <div class="col-md-6" id="ref_maritime" style="display: none;">
-                        <div class="mb-3">
-                            <label class="form-label">Référence (Maritime)</label>
-                            <input type="text" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
-                        </div>
-                    </div>
+        .client-invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
+        }
+        .client-details {
+            max-width: 55%;
+        }
+        .client-details h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .client-details p {
+            margin: 3px 0;
+            font-size: 14px;
+        }
+        .invoice-meta {
+             max-width: 40%;
+        }
+        .invoice-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invoice-meta td {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+        .invoice-meta td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            width: 45%;
+        }
+        .invoice-meta td:last-child {
+            text-align: right;
+            border: 1px solid #eee;
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
 
-                    <!-- Aérien -->
-                    <div class="col-md-6" id="ref_aerien" style="display: none;">
-                        <div class="mb-3">
-                            <label class="form-label">Référence (Aérien)</label>
-                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
-                        </div>
-                    </div>
+        .references-section {
+            margin-bottom: 15px; /* NOUVEAU/MODIFIÉ: Réduit pour section souvent vide */
+            border: 1px solid #eee;
+            padding-top: 5px; /* NOUVEAU/MODIFIÉ */
+            padding-bottom: 5px; /* NOUVEAU/MODIFIÉ */
+        }
+        .references-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .references-section th, .references-section td {
+            border: 1px solid #eee;
+            padding: 6px 8px; /* NOUVEAU/MODIFIÉ */
+            font-size: 12px; /* NOUVEAU/MODIFIÉ */
+            text-align: center;
+        }
+        .references-section th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        .references-section td {
+            height: 20px; /* NOUVEAU/MODIFIÉ */
+        }
 
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        .items-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .items-table .col-qty, .items-table .col-price, .items-table .col-montant {
+            text-align: right;
+        }
+        .items-table .col-produit { width: 55%; }
+        .items-table .col-qty { width: 10%; }
+        .items-table .col-price { width: 15%; }
+        .items-table .col-montant { width: 20%; }
+
+        .item-description {
+            font-size: 12px;
+            color: #666;
+            padding-left: 10px;
+            margin-top: 4px;
+        }
+        .item-main-service {
+            font-weight: bold;
+        }
+
+
+        .totals-summary {
+            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
+        }
+        .totals-summary table {
+            width: 45%;
+            margin-left: auto;
+            border-collapse: collapse;
+        }
+        .totals-summary td {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+        .totals-summary td:first-child {
+            text-align: right;
+            font-weight: bold;
+            width: 60%;
+        }
+        .totals-summary td:last-child {
+            text-align: right;
+            font-weight: bold;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            min-width: 130px;
+        }
+        .grand-total-header {
+            background-color: #e0e0e0 !important;
+            font-size: 15px !important;
+        }
+
+        .payment-notes-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
+            margin-bottom: 15px; /* NOUVEAU/MODIFIÉ */
+            align-items: flex-start;
+        }
+        .payment-terms table {
+            width: auto;
+            border-collapse: collapse;
+        }
+        .payment-terms td {
+            padding: 6px 10px;
+            font-size: 14px;
+            border: 1px solid #eee;
+        }
+        .payment-terms td:first-child {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .payment-terms td:last-child {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .notes-section {
+            flex-grow: 1;
+            margin-left: 25px;
+        }
+        .notes-section textarea {
+            width: 100%;
+            min-height: 60px; /* NOUVEAU/MODIFIÉ: Hauteur min réduite un peu */
+            border: 1px solid #eee;
+            padding: 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .notes-section p {
+            margin: 0 0 5px 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+
+        .final-totals {
+            margin-top: 15px;
+            padding-top: 15px;
+            margin-bottom: 15px;
+        }
+        .final-totals table {
+            width: 45%;
+            margin-left: auto;
+            border-collapse: collapse;
+        }
+        .final-totals td {
+            padding: 10px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .final-totals td:first-child {
+            text-align: right;
+        }
+        .final-totals td:last-child {
+            text-align: right;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            min-width: 130px;
+        }
+        .final-totals .reste-a-payer td:last-child {
+             background-color: #d0d0d0;
+        }
+
+
+
+        .conditions {
+            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
+            padding-top: 15px; /* NOUVEAU/MODIFIÉ */
+            border-top: 1px solid #eee;
+            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
+        }
+        .conditions h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .conditions p {
+            font-size: 12px; /* NOUVEAU/MODIFIÉ: Légère réduction si besoin de place */
+            line-height: 1.4; /* NOUVEAU/MODIFIÉ */
+            color: #555;
+            text-align: justify;
+        }
+
+        .footer-section {
+            margin-top: 25px; /* NOUVEAU/MODIFIÉ */
+            padding-top: 15px;
+            border-top: 2px solid #333;
+            font-size: 11px;
+            color: #555;
+        }
+        .footer-generation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+        .footer-company-details {
+            text-align: center;
+            line-height: 1.4;
+            font-size: 12px;
+        }
+        .footer-company-details p {
+            margin: 2px 0;
+        }
+        .footer-company-details strong {
+            color: #333;
+        }
+
+
+        .text-bold { font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            .items-table th, .items-table td {
+                font-size: 10pt !important;
+                padding: 6px !important;
+            }
+            body, html {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background-color: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                font-size: 10.5pt; /* NOUVEAU/MODIFIÉ: Légère réduction pour tout faire tenir */
+            }
+            body > footer,              /* Si le footer est un enfant direct de body */
+            .main-footer,             /* Classe commune pour les footers (ex: AdminLTE) */
+            #site-footer,             /* ID commun */
+            #footer,                  /* Autre ID commun */
+            [role="contentinfo"] {    /* Rôle ARIA souvent utilisé pour les footers */
+                display: none !important;
+            }
+            .invoice-box-container {
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            .invoice-box {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 12mm !important; /* NOUVEAU/MODIFIÉ: Marges A4 un peu réduites si besoin */
+                box-shadow: none !important;
+                border: none !important; /* Si vous voulez un cadre visible à l'impression, changez pour ex: border: 1px solid #ccc !important; */
+                page-break-inside: avoid;
+                box-sizing: border-box !important;
+            }
+
+            .no-print, .no-print * {
+                display: none !important;
+            }
+
+            .header-section { align-items: center !important; } /* Assurer l'alignement à l'impression */
+            .logo img { max-width: 240px !important; } /* Taille du logo pour impression, un peu moins pour être sûr */
+
+
+            .references-section {
+                padding-top: 2mm !important;
+                padding-bottom: 2mm !important;
+                margin-bottom: 3mm !important; /* NOUVEAU/MODIFIÉ */
+                margin-top: 2mm !important; /* NOUVEAU/MODIFIÉ */
+            }
+            .references-section th, .references-section td {
+                padding: 3mm 4mm !important;
+                font-size: 8pt !important; /* NOUVEAU/MODIFIÉ */
+                height: auto !important;
+            }
+
+
+            .header-section, .invoice-title-section, .client-invoice-details,
+            .items-table, .totals-summary,
+            .payment-notes-section, .final-totals, .conditions {
+                margin-bottom: 5mm !important; /* NOUVEAU/MODIFIÉ: Espacements verticaux réduits */
+                margin-top: 3mm !important; /* NOUVEAU/MODIFIÉ */
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            .simulated-barcode-small {
+                margin-top: 4mm !important; /* NOUVEAU/MODIFIÉ */
+                margin-bottom: 4mm !important; /* NOUVEAU/MODIFIÉ */
+            }
+            .footer-section {
+                margin-top: 6mm !important; /* NOUVEAU/MODIFIÉ */
+                padding-top: 5mm !important; /* NOUVEAU/MODIFIÉ */
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+                page-break-before: auto;
+                background-color: #fff !important;
+            }
+             /* Tailles de police spécifiques pour impression */
+             .company-details-header h2 {
+                    margin: 0 0 5px 0;
+                    font-size: 25px;
+                    font-weight: bold;
+                }
+            .invoice-title-section h1 {
+                    font-size: 45px;
+                    font-weight: bold;
+                    margin: 0 0 8px 0;
+                    color: #000; /* Corrigé ici */
+                    letter-spacing: 1px;
+                }
+         /* NOUVEAU/MODIFIÉ */
+            .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
+            .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
+            .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */
+            .footer-company-details { font-size: 8.5pt !important; } /* NOUVEAU/MODIFIÉ */
+            .items-table th, .items-table td { font-size: 10pt !important; padding: 6px !important; } /* NOUVEAU/MODIFIÉ */
+            .totals-summary td, .final-totals td { font-size: 10pt !important; padding: 5px 8px !important;}
+            .grand-total-header { font-size: 11pt !important; }
+            .payment-terms td { font-size: 10pt !important; }
+            .notes-section p { font-size: 10pt !important; }
+            .notes-section textarea { font-size: 9pt !important; min-height: 40px !important; }
+        }
+    </style>
+
+    <div class="invoice-box-container">
+        <div class="invoice-box">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="logo">
+                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Company Logo">
+                </div>
+                <div class="company-details-header">
+                    <h2>AFT IMPORT EXPORT</h2>
+                    <p>7 AVENUE LOUIS BLERIOT LA COURNEUVE</p>
+                    <p>93120 France</p>
+                    <p>Tel. +33171894351</p>
                 </div>
             </div>
-        </fieldset>
 
-        <!-- Étape 2 : Informations de l'Expéditeur -->
-        {{-- ================== EXPÉDITEUR ================== --}}
-        <fieldset>
-            <div class="form-section">
-                <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
+            <!-- Titre de la facture -->
+            <div class="invoice-title-section">
+                <h1>FACTURE</h1>
+                <div class="simulated-barcode"></div>
+            </div>
 
-                {{-- ===== SOCIÉTÉ EXPÉDITEUR ===== --}}
-                <div id="societe_expediteur_section" style="display: none;">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_societe_expediteur" class="form-label">Nom de la société</label>
-                            <input type="text" name="nom_expediteur_societe" id="nom_societe_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_societe_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_expediteur" class="form-control">
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+33">France (+33)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_expediteur_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-
-                         <div class="col-md-6 mb-3">
-                            <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur_societe" id="adresse_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="agence_societe_expediteur" class="form-label">Agence d'expédition</label>
-                            <select name="agence_expediteur_societe" id="agence_societe_expediteur" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                             {{-- Boutons navigation --}}
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
+            <!-- Infos client et facture -->
+            <div class="client-invoice-details">
+                <div class="client-details">
+                    <h3>De: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
+                    <p>Tel: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <br>
+                    <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
+                    <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
+                    <p>Adresse: {{ $adresse_destinataire ?? 'N/A' }}</p>
                 </div>
-
-                {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
-                <div id="particulier_expediteur_section">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_expediteur" class="form-label">Nom</label>
-                            <input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom_expediteur" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_expediteur" class="form-label">Email</label>
-                            <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_expediteur" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_expediteur" class="form-control">
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+33">France (+33)</option>
-                                        <option value="+86">Chine (+86)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_expediteur" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-                       
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_expediteur" class="form-label">Adresse</label>
-                            <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control">
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_expediteur" class="form-label">Agence d'expedition</label>
-                            <select name="agence_expedition" id="agence_particulier_expediteur" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                                @foreach ($agencesExpedition as $agence)
-                                    <option value="{{ $agence->nom_agence }}">{{ $agence->nom_agence }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                            {{-- Boutons navigation --}}
-                    <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                        <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                    </div>
+                <div class="invoice-meta">
+                    <table>
+                        <tr><td>Facture n°</td><td>{{ $numero_facture ?? 'N/A' }}</td></tr>
+                        <tr><td>Date</td><td>{{ $date_facture->format('d-m-Y') ?? 'N/A' }}</td></tr>
+                        <tr><td>Référence Colis</td><td>{{ $reference_colis ?? 'N/A' }}</td></tr>
+                    </table>
                 </div>
             </div>
-        </fieldset>
 
-            {{-- ================== DESTINATAIRE ================== --}}
-        <fieldset style="display: none;">
-            <div class="form-section">
-                <h5 class="text-center mb-4">Informations du destinataire</h5>
+            <!-- Section de références (Optionnelle) -->
+            <div class="references-section">
+                <!-- ... contenu inchangé ... -->
+            </div>
 
-                {{-- ===== SOCIÉTÉ DESTINATAIRE ===== --}}
-                <div id="societe_destinataire_section" style="display: none;">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_societe_destinataire" class="form-label">Nom de la société</label>
-                            <input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_societe_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control">
-                        </div>
+            <!-- Tableau des articles -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="col-produit">Produit / Service</th>
+                        <th class="col-qty">Qté</th>
+                        <th class="col-price">P.U. ({{ $devise ?? '' }})</th>
+                        <th class="col-montant">Montant ({{ $devise ?? '' }})</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{-- Produits --}}
+                    @forelse ($produitsGroupes as $produit)
+                    <tr>
+                        <td>{{ $produit['produit'] ?? 'Produit non défini' }}</td>
+                        <td class="col-qty">{{ number_format($produit['nombre_colis'], 0, ',', ' ') }}</td>
+                        <td class="col-price">{{ number_format($produit['prix_unitaire_moyen'], 2, ',', ' ') }}</td>
+                        <td class="col-montant">{{ number_format($produit['montant_total_ligne'], 0, ',', ' ') }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center">Aucun produit trouvé.</td>
+                    </tr>
+                    @endforelse
 
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_destinataire" class="form-control">
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+33">France (+33)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_destinataire_societe" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire_societe" id="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
+                    {{-- Service éventuel --}}
+                    @if ($service_info)
+                    <tr>
+                        <td>{{ $service_info['service'] }}</td>
+                        <td class="col-qty">1</td>
+                        <td class="col-price">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
+                        <td class="col-montant">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
+                    </tr>
+                    @endif
+                </tbody>
+            </table>
+
+            <div class="simulated-barcode-small"></div>
+
+            <!-- Résumé des totaux -->
+            <div class="totals-summary">
+                <table>
+                    <tr><td>Sous-total Produits</td><td>{{ number_format($sous_total_produits, 2, ',', ' ') }} {{ $devise ?? '' }}</td></tr>
+                    @if ($service_info)
+                    <tr><td>Service</td><td>{{ number_format($service_info['montant_service'], 2, ',', ' ') }} {{ $devise ?? '' }}</td></tr>
+                    @endif
+                    <tr><td>Montant total ({{ $devise ?? '' }})</td><td class="grand-total-header">{{ number_format($prix_total_invoice, 2, ',', ' ') }}</td></tr>
+                </table>
+            </div>
+            
+                        <!-- Conditions de vente -->
+            <div class="conditions">
+                <h4 class="text-center">Conditions de vente</h4>
+                <p> Les colis et marchandises transportés par AFRIQUE FRET TRANSIT IMPORT EXPORT, de la France vers la Côte d’Ivoire et de la Côte d’Ivoire vers la France, doivent faire l’objet du règlement intégral des frais de transport, des droits de douane et des taxes avant toute livraison. Les colis non soldés seront conservés dans nos entrepôts en attendant la régularisation de la situation. Passé un délai de 5 jours, des frais de magasinage ainsi qu’une pénalité de 10 % du montant total seront appliqués. Au-delà de 30 jours, les colis et marchandises non réclamés seront vendus afin de couvrir les frais engagés.
                     
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_societe" id="adresse_destinataire_societe" class="form-control" required>
-                                    <option value="Pas de livraison">Pas de Livraison</option>
-                                    <option value="Abobo">Abobo</option>
-                                    <option value="Adjamé">Adjamé</option>
-                                    <option value="Attécoubé">Attécoubé</option>
-                                    <option value="Cocody">Cocody</option>
-                                    <option value="Cocody">Palmeraie</option>
-                                    <option value="Koumassi">Koumassi</option>
-                                    <option value="Marcory">Marcory</option>
-                                    <option value="Plateau">Plateau</option>
-                                    <option value="Port-Bouët">Port-Bouët</option>
-                                    <option value="Treichville">Treichville</option>
-                                    <option value="Yopougon">Yopougon</option>
-                                    <option value="Songon">Songon</option>
-                                    <option value="Bingerville">Bingerville</option>
-                                    <option value="Anyama">Anyama</option>
-                                    <option value="Grand-Bassam">Grand-Bassam</option>
-                                    <option value="Dabou">Dabou</option>
-                                    <option value="Alépé">Alépé</option>
-                                    <option value="Azaguié">Azaguié</option>
-                                    <option value="Jacqueville">Jacqueville</option>
-                                    <option value="Agboville">Agboville</option>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
-                            <select name="agence_destinataire_societe" id="agence_particulier_destinataire_societe" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                </p>
+            </div>
 
-                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
-                <div id="particulier_destinataire_section">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="nom_destinataire" class="form-label">Nom</label>
-                            <input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="prenom_destinataire" class="form-label">Prénom</label>
-                            <input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email_destinataire" class="form-label">Email</label>
-                            <input type="email" name="email_destinataire" id="email_destinataire" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label for="country_code_destinataire" class="form-label">Indicatif pays</label>
-                                    <select name="country_code_destinataire" class="form-control">
-                                        <option value="+86">Chine (+86)</option>
-                                        <option value="+225">Côte d'Ivoire (+225)</option>
-                                        <option value="+33">France (+33)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="tel_destinataire" class="form-label">Téléphone</label>
-                                    <input type="text" name="tel_destinataire" id="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="adresse_destinataire" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire" id="adresse_destinataire" class="form-control" required>
-                                    <option value="Pas de livraison">Pas de Livraison</option>
-                                    <option value="Abobo">Abobo</option>
-                                    <option value="Adjamé">Adjamé</option>
-                                    <option value="Attécoubé">Attécoubé</option>
-                                    <option value="Cocody">Cocody</option>
-                                    <option value="Cocody">Palmeraie</option>
-                                    <option value="Koumassi">Koumassi</option>
-                                    <option value="Marcory">Marcory</option>
-                                    <option value="Plateau">Plateau</option>
-                                    <option value="Port-Bouët">Port-Bouët</option>
-                                    <option value="Treichville">Treichville</option>
-                                    <option value="Yopougon">Yopougon</option>
-                                    <option value="Songon">Songon</option>
-                                    <option value="Bingerville">Bingerville</option>
-                                    <option value="Anyama">Anyama</option>
-                                    <option value="Grand-Bassam">Grand-Bassam</option>
-                                    <option value="Dabou">Dabou</option>
-                                    <option value="Alépé">Alépé</option>
-                                    <option value="Azaguié">Azaguié</option>
-                                    <option value="Jacqueville">Jacqueville</option>
-                                    <option value="Agboville">Agboville</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="agence_particulier_destinataire" class="form-label">Agence de destination</label>
-                            <select name="agence_destination" id="agence_particulier_destinataire_particulier" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez l'agence --</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                    {{-- Boutons navigation --}}
-                <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                    <button type="button" class="btn btn-primary btn-next">Suivant</button>
-                </div>
-            </div>
-        </fieldset>
-
-        <!-- Étape 4 : Informations du Colis -->
-        <fieldset id="colisTemplate" style="display: none;">
-            <h5 class="text-center mb-4 mt-5">Informations du Colis</h5>
-            <div class="form-section">
-
-
-                <div class="row">
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Produit(s) ou Service(s)</label>
-                        <div class="input-group">
-                            <input type="text" name="service[]" class="form-control produit-input">
-                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                        </div>
-                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Prix</label>
-                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
-                            <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                                <option value="standard">Standard</option>
-                                <option value="fragile">Fragile</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 dimension-section" id="dimension_section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                        </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
-                    </div>
-                    <div class="col-md-6 poids-section" id="poids_section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                    </div>
-                    <div class="col-6 col-md-6 col-lg-6">
-                        <div class="mb-3">
-                            <label for="description_colis" class="form-label">Description colis</label>
-                            <textarea 
-                            name="description_colis[]" 
-                            id="description_colis" 
-                            class="form-control" 
-                            rows="4"
-                            placeholder="Saisissez la description du colis"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-end mt-2">
-                {{-- <a href="#" class="btn btn-link add-colis">Ajouter un autre colis</a> --}}
-                <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                <button type="button" class="btn btn-danger remove-colis" style="display: none">Retirer ce colis</button>
-            </div>
-            <div id="colisContainer"></div>
-            <div class="text-end mt-4 d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
-                <button type="submit" class="btn btn-success" style="display: none;">Valider</button>
-            </div>
-        </fieldset>
-</form>
-
-<div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="produitForm">
-                    <div class="mb-3">
-                        <label for="description_produit" class="form-label">Description</label>
-                        <input type="text" name="description" id="description_produit" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="categorie_produit" class="form-label">Catégorie</label>
-                        <select name="categorie" id="categorie_produit" class="form-control" required>
-                            <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
-                            <option value="Colis">COLIS</option>
-                            <option value="Service">SERVICES</option>
-                            <option value="Remise">REMISES</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="prix_unitaire" class="form-label">Prix Unitaire</label>
-                        <input type="number" name="prix" id="prix_unitaire" class="form-control" min="0" required>
-                    </div>
-                    <input type="hidden" name="agence" id="agence" value="Agence de Chine">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary btn-save" data-url="{{ route('chine_colis.store.produit') }}">Créer</button>
-            </div>
+            <!-- Footer Section -->
+             <div class="footer-section">
+                 <div class="footer-generation">
+                     <div>Généré le {{ now()->format('d-m-Y') }}<br>par {{ Auth::user()->first_name ?? 'Agent' }} {{ Auth::user()->last_name ?? '' }}</div>
+                     <div>Page 1/1</div>
+                 </div>
+                 <div class="footer-company-details">
+                     <p><strong>AFT IMPORT EXPORT</strong> 7 AVENUE LOUIS BLERIOT LA COURNEUVE 93120 France | Tel. +33978809389 | contacts.aft@gmail.com</p>
+                     <p>IBAN FR03 1744 8000 01PO MQNE AER2 W45 | BIC: SFPEFRP2</p>
+                     <p>N°TVA:FR96881916365 N°ORI FR88191636500011 SIRET:881916365 RCS Bobigny, EXO TVA, article 262 DU CGI</p>
+                 </div>
+             </div>
         </div>
     </div>
-</div>
-</section>
 
-<script>
-
-    
-document.addEventListener('DOMContentLoaded', function () {
-    const modeTransitSelect = document.getElementById('mode_transit');
-    const refMaritime = document.getElementById('ref_maritime');
-    const refAerien = document.getElementById('ref_aerien');
-    const categorieClientSelect = document.getElementById('categorie_client');
-
-    // Agences destinataires avec IDs différents
-    const agenceSelectParticulier = document.getElementById('agence_particulier_destinataire_particulier');
-    const agenceSelectSociete = document.getElementById('agence_particulier_destinataire_societe');
-
-    const societeExpediteurSection = document.getElementById('societe_expediteur_section');
-    const particulierExpediteurSection = document.getElementById('particulier_expediteur_section');
-    const societeDestinataireSection = document.getElementById('societe_destinataire_section');
-    const particulierDestinataireSection = document.getElementById('particulier_destinataire_section');
-
-    // Options agences selon mode de transit
-    const agenceOptionsTransit = {
-        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
-        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
-    };
-
-    // Affichage des champs référence selon mode
-    function toggleReferenceFields(mode) {
-        refMaritime.style.display = mode === 'maritime' ? 'block' : 'none';
-        refAerien.style.display = mode === 'aerien' ? 'block' : 'none';
-    }
-
-    // Récupération référence via fetch AJAX
-    function fetchReference(mode) {
-        fetch(`/AGENCE_CHINE/colis/generer-reference/${mode}`)
-            .then(res => res.json())
-            .then(data => {
-                if (mode === 'maritime') {
-                    document.querySelector('input[name="reference_colis_maritime"]').value = data.reference_colis;
-                } else if (mode === 'aerien') {
-                    document.querySelector('input[name="reference_colis_aerien"]').value = data.reference_colis;
-                }
-            })
-            .catch(err => console.error('Erreur génération référence :', err));
-    }
-
-    // Met à jour les options agences destinataires selon mode de transit
-    function updateAgenceOptionsByMode(mode) {
-        if (!agenceOptionsTransit[mode]) return;
-
-        // Remise à zéro + ajout option unique dans les deux select
-        [agenceSelectParticulier, agenceSelectSociete].forEach(select => {
-            if (!select) return;
-            select.innerHTML = '<option value="" disabled selected>-- Sélectionnez l\'agence --</option>';
-            const option = document.createElement('option');
-            option.value = agenceOptionsTransit[mode].value;
-            option.textContent = agenceOptionsTransit[mode].label;
-            select.appendChild(option);
-            select.value = option.value; // sélection automatique
-        });
-    }
-
-    // Affiche/masque les sections selon la catégorie client
-    function toggleCategorieClientFields(categorie) {
-        const isSociete = categorie === 'societe';
-        societeExpediteurSection.style.display = isSociete ? 'block' : 'none';
-        particulierExpediteurSection.style.display = isSociete ? 'none' : 'block';
-        societeDestinataireSection.style.display = isSociete ? 'block' : 'none';
-        particulierDestinataireSection.style.display = isSociete ? 'none' : 'block';
-    }
-
-    // Écouteur changement mode transit
-    modeTransitSelect.addEventListener('change', function () {
-        const selectedMode = this.value;
-        toggleReferenceFields(selectedMode);
-        fetchReference(selectedMode);
-        updateAgenceOptionsByMode(selectedMode);
-    });
-
-    // Écouteur changement catégorie client
-    categorieClientSelect.addEventListener('change', function () {
-        toggleCategorieClientFields(this.value);
-    });
-
-    // Initialisation au chargement si valeurs déjà sélectionnées
-    if (modeTransitSelect.value) {
-        toggleReferenceFields(modeTransitSelect.value);
-        updateAgenceOptionsByMode(modeTransitSelect.value);
-    }
-    if (categorieClientSelect.value) {
-        toggleCategorieClientFields(categorieClientSelect.value);
-    }
-});
-
-$(document).ready(function() {
-    // Initialisation de l'autocomplétion sur les champs existants
-    initAutocomplete($(document));
-
-    function initAutocomplete(element) {
-        $(element).find(".produit-input").off("keyup").on("keyup", function() {
-            let query = $(this).val().trim();
-            let input = $(this);
-            let row = input.closest('.row');
-            let resultsContainer = row.find('.autocomplete-results');
-            let prixInput = row.find('input[name="prix[]"]');
-            let quantiteInput = row.find('input[name="quantite_colis[]"]');
-            let prixTotalDisplay = row.find('.prix-total');
-
-            if (query.length >= 2) {
-                $.ajax({
-                    url: "{{ route('chine_colis.recherche.auto') }}",
-                    type: "GET",
-                    dataType: "json",
-                    data: { query: query },
-                    success: function(data) {
-                        resultsContainer.empty().show();
-                        if (data.length > 0) {
-                            $.each(data, function(index, produit) {
-                                let resultItem = $('<div class="autocomplete-item"></div>')
-                                    .text(produit.description)
-                                    .css({
-                                        padding: "5px",
-                                        cursor: "pointer",
-                                        borderBottom: "1px solid #eee"
-                                    })
-                                    .on('click', function() {
-                                        input.val(produit.description);
-                                        resultsContainer.empty().hide();
-
-                                        // Mise à jour du prix unitaire et du prix total
-                                        let prixUnitaire = parseFloat(produit.prix);
-                                        let quantite = parseInt(quantiteInput.val()) || 1;
-                                        let prixTotal = prixUnitaire * quantite;
-
-                                        prixInput.attr("data-prix-unitaire", prixUnitaire); // Stocker le prix unitaire
-                                        prixInput.val(prixTotal);
-                                        prixTotalDisplay.text(prixTotal);
-                                    });
-
-                                resultsContainer.append(resultItem);
-                            });
-                        } else {
-                            resultsContainer.hide();
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Erreur AJAX:", error);
-                        resultsContainer.empty().hide();
-                    }
-                });
-            } else {
-                resultsContainer.empty().hide();
-            }
-        });
-    }
-
-    // Met à jour le prix total lors de la modification de la quantité
-    $(document).on('input', '.quantite-colis', function() {
-        let row = $(this).closest('.row');
-        let prixInput = row.find('input[name="prix[]"]');
-        let prixTotalDisplay = row.find('.prix-total');
-        let quantite = parseInt($(this).val()) || 1;
-        let prixUnitaire = parseFloat(prixInput.attr("data-prix-unitaire")) || 0;
-
-        let prixTotal = prixUnitaire * quantite;
-
-        prixInput.val(prixTotal);
-        prixTotalDisplay.text(prixTotal);
-    });
-
-    // Fermer les suggestions en cliquant en dehors
-    $(document).on('click', function(event) {
-        if (!$(event.target).closest('.input-group, .autocomplete-results').length) {
-            $('.autocomplete-results').hide();
-        }
-    });
-
-    // Empêcher la soumission du formulaire avec "Enter" si l'autocomplétion est ouverte
-    $(document).on('keydown', '.produit-input', function(event) {
-        if (event.key === "Enter" && $('.autocomplete-results').is(':visible')) {
-            event.preventDefault();
-        }
-    });
-
-    // Ajouter un nouveau colis et initialiser l'autocomplétion
-    $(document).on("click", ".add-colis", function(e) {
-        e.preventDefault();
-        
-        // MODIFICATION 1 : Cacher le bouton sur lequel on vient de cliquer
-        $(this).hide();
-        
-        const newColis = $(`
-            <div class="colis-fieldset mb-4">
-                <div class="row">
-                    <div class="col-md-2">
-                        <div class="mb-3">
-                            <label for="quantite_colis" class="form-label">Quantité de colis</label>
-                            <input type="number" name="quantite_colis[]" class="form-control quantite-colis" required>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Produit(s) ou Service(s)</label>
-                        <div class="input-group">
-                            <input type="text" name="service[]" class="form-control produit-input">
-                            <button type="button" class="btn btn-success btn-add" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                        </div>
-                        <div class="autocomplete-results" style="position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; width: 100%; display: none;"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Prix</label>
-                        <input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                        <div class="mt-2">Prix Total: <span class="prix-total">0</span></div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="type_colis" class="form-label">Type de colis</label>
-                            <select name="type_colis[]" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez le type de colis --</option>
-                                <option value="standard">Standard</option>
-                                <option value="fragile">Fragile</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 dimension-section">
-                        <label class="form-label">Dimensions (cm)</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" name="longueur[]" class="form-control longueur" placeholder="Longueur">
-                            <input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur">
-                            <input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur">
-                        </div>
-                        <div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div>
-                    </div>
-                    <div class="col-md-6 poids-section" style="display: none;">
-                        <label class="form-label">Poids (kg)</label>
-                        <input type="number" name="poids[]" class="form-control" placeholder="Poids">
-                    </div>
-                    <div class="col-6 col-md-6 col-lg-6">
-                        <div class="mb-3">
-                            <label for="description_colis" class="form-label">Description colis</label>
-                            <textarea 
-                            name="description_colis[]" 
-                            id="description_colis" 
-                            class="form-control" 
-                            rows="4"
-                            placeholder="Saisissez la description du colis"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-end mt-2">
-                    <button type="button" class="btn btn-seccess add-colis" style="color: rgb(187, 90, 10)">Ajouter un autre colis</button>
-                    <button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button>
-                </div>
-            </div>
-        `);
-
-        $("#colisContainer").append(newColis);
-        initAutocomplete(newColis);
-        toggleFields();
-
-    });
-   
-     // Supprimer un colis
-     $(document).on("click", ".remove-colis", function () {
-        $(this).closest(".colis-fieldset").remove();
-
-        // MODIFICATION 2 : Afficher le bouton "Ajouter" sur le nouveau dernier formulaire
-        if ($("#colisContainer .colis-fieldset").length > 0) {
-            // S'il reste des formulaires dynamiques, on cible le dernier
-            $("#colisContainer .colis-fieldset:last").find('.add-colis').show();
-        } else {
-            // Sinon (plus aucun formulaire dynamique), on cible le formulaire original
-            $('#colisTemplate').find('.add-colis').show();
-        }
-    });
-
-    // Fonction pour appliquer les règles d'affichage sur les colis existants
-    function toggleFields() {
-        let mode = $("#mode_transit").val();
-        $(".dimension-section").toggle(mode === "maritime");
-        $(".poids-section").toggle(mode === "aerien");
-    }
-
-    // Appliquer les changements lors de la sélection du mode de transit
-    $("#mode_transit").change(function () {
-        toggleFields();
-    });
-
-    // Afficher les dimensions sous format texte pour chaque colis ajouté
-    $(document).on("input", ".hauteur, .largeur, .longueur", function () {
-        let parent = $(this).closest(".colis-fieldset");
-        let hauteur = parent.find(".hauteur").val();
-        let largeur = parent.find(".largeur").val();
-        let longueur = parent.find(".longueur").val();
-        let resultDiv = parent.find(".dimension-result");
-
-        if (hauteur && largeur && longueur) {
-            resultDiv.text(`${longueur}x${largeur}x${hauteur} cm`).show();
-        } else {
-            resultDiv.hide();
-        }
-    });
-
-    // Initialiser les champs visibles selon le mode de transport sélectionné
-    toggleFields();
-
-
-    $(document).ready(function () {
-    // Configuration du token CSRF pour toutes les requêtes AJAX
-    $.ajaxSetup({
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-        },
-    });
-
-    // Remplissage automatique du champ description lorsque l'utilisateur clique sur "+"
-    $(".btn-add").on("click", function () {
-        let produit = $(this).siblings(".produit-input").val().trim();
-        $("#description_produit").val(produit);
-    });
-
-    // Gérer la création d'un nouveau produit dans le modal
-    $(".btn-save").on("click", function () {
-        let description = $("#description_produit").val().trim();
-        let categorie = $("#categorie_produit").val();
-        let agence = $("#agence").val();
-        let prix = parseFloat($("#prix_unitaire").val().trim()) || 0;
-        let url = $(this).data("url"); // Récupération de l'URL depuis data-url
-
-        console.log("Description:", description);
-        console.log("Catégorie:", categorie);
-        console.log("Prix:", prix);
-
-        // Vérification des champs
-        if (!description) {
-            alert("Veuillez saisir une description.");
-            return;
-        }
-
-        if (!categorie) {
-            alert("Veuillez sélectionner une catégorie.");
-            return;
-        }
-
-        if (isNaN(prix) || prix <= 0) {
-            alert("Veuillez entrer un prix valide.");
-            return;
-        }
-
-        $(".btn-save").prop("disabled", true).text("Enregistrement...");
-
-        // Envoi des données via AJAX
-        $.ajax({
-            url: url,
-            type: "POST",
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify({
-                description: description,
-                categorie: categorie,
-                prix: prix,
-                agence: agence,
-
-            }),
-            success: function (response) {
-                alert(response.message); // Affichage du message de succès
-                $("#produitForm")[0].reset(); // Réinitialisation du formulaire
-                $("#produitModal").modal("hide"); // Fermeture du modal
-                $(".btn-save").prop("disabled", false).text("Créer");
-
-                // Remplir les champs dans la ligne active si un champ est en focus
-                let activeInput = $(".produit-input:focus");
-                if (activeInput.length) {
-                    activeInput.val(description);
-                    let row = activeInput.closest(".row");
-                    let prixInput = row.find('input[name="prix[]"]');
-                    let quantiteInput = row.find('input[name="quantite_colis[]"]');
-                    let prixTotalDisplay = row.find(".prix-total");
-
-                    let quantite = parseInt(quantiteInput.val()) || 1;
-                    let prixTotal = prix * quantite;
-
-                    prixInput.attr("data-prix-unitaire", prix); // Stocker le prix unitaire
-                    prixInput.val(prixTotal);
-                    prixTotalDisplay.text(prixTotal);
-                }
-            },
-            error: function (xhr) {
-                let message = "Erreur lors de l'enregistrement du produit !\n";
-                if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    $.each(xhr.responseJSON.errors, function (key, value) {
-                        message += value + "\n";
-                    });
-                }
-                alert(message);
-                $(".btn-save").prop("disabled", false).text("Créer");
-            },
-        });
-    });
-});
-});
-
-$(document).ready(function () {
-    // Fonction pour afficher les champs en fonction du mode de transport sélectionné
-    function toggleFields() {
-        let mode = $("#mode_transit").val();
-        $(".dimension-section").toggle(mode === "maritime");
-        $(".poids-section").toggle(mode === "aerien");
-    }
-
-    // Appliquer les changements lors de la sélection du mode de transit
-    $("#mode_transit").change(function () {
-        toggleFields();
-    });
-    // Initialiser les champs visibles selon le mode de transport sélectionné
-    toggleFields();
-});
-
-
-$(document).ready(function () {
-    let currentStep = 0;
-    const fieldsets = $("fieldset");
-
-    // Fonction pour afficher une étape spécifique
-    function showStep(step) {
-        fieldsets.hide().eq(step).show(); // Afficher uniquement l'étape actuelle
-        toggleButtons(step); // Gérer la visibilité des boutons
-    }
-
-    // Fonction pour gérer la visibilité des boutons
-    function toggleButtons(step) {
-        const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
-
-        // Afficher ou masquer les boutons en fonction de l'étape
-        $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
-        $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
-        $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
-    }
-
-    // Gestion des boutons "Suivant" et "Précédent"
-    $(".btn-next").click(function () {
-        if (currentStep < fieldsets.length - 1) {
-            currentStep++;
-            showStep(currentStep);
-        }
-    });
-
-    $(".btn-prev").click(function () {
-        if (currentStep > 0) {
-            currentStep--;
-            showStep(currentStep);
-        }
-    });
-
-
-    // Afficher l'étape initiale
-    showStep(currentStep);
-});
-$(document).on("input", ".hauteur, .largeur, .longueur", function () {
-    const parent = $(this).closest(".dimension_section");
-    const hauteur = parent.find(".hauteur").val().trim();
-    const largeur = parent.find(".largeur").val().trim();
-    const longueur = parent.find(".longueur").val().trim();
-    const dimensionResult = parent.find(".dimension_result");
-
-    if (hauteur && largeur && longueur) {
-        dimensionResult.text(`${hauteur}x${largeur}x${longueur} cm`).show();
-    } else {
-        dimensionResult.hide();
-    }
-});
-
-    $(document).ready(function () {
-        $(document).on('click', '#remove-colis', function () {
-            var colisFieldset = $(this).closest('fieldset');
-            if ($('fieldset').length > 1) {
-                colisFieldset.remove();
-                updateFieldsetButtons();
-            }
-        });
-
-        // Update the buttons visibility for the fieldsets
-        function updateFieldsetButtons() {
-            var allFieldsets = $('fieldset');
-            allFieldsets.each(function (index) {
-                var btnPrev = $(this).find('.btn-prev');
-                var btnValider = $(this).find('button[type="submit"]');
-                if (index === allFieldsets.length - 1) {
-                    btnPrev.show();
-                    btnValider.show();
-                } else {
-                    btnPrev.hide();
-                    btnValider.hide();
-                }
-            });
-    }
-
-
-
-        // Handle transit mode visibility based on selection
-        $('#mode_transit').on('change', function () {
-            const selectedMode = $(this).val();
-            const modeActions = {
-                'maritime': () => { $('#poids_section').hide(); $('#dimension_section').show(); },
-                'aerien': () => { $('#dimension_section').hide(); $('#poids_section').show(); },
-                '': () => { $('#poids_section, #dimension_section').hide(); }
-            };
-            (modeActions[selectedMode] || modeActions[''])();
-        });
-
-        // Initial hiding of sections
-        $('#poids_section, #dimension_section').hide();
-
-        // Multi-step form handling
-        let currentStep = 0;
-        const fieldsets = document.querySelectorAll("fieldset");
-        const steps = document.querySelectorAll(".step");
-
-        function showStep(step) {
-            fieldsets.forEach((fieldset, index) => {
-                fieldset.style.display = index === step ? "block" : "none";
-            });
-            updateProgressBar(step);
-            toggleButtons(step);
-        }
-
-        function updateProgressBar(step) {
-            steps.forEach((stepElement, index) => {
-                stepElement.classList.toggle("active", index <= step);
-            });
-        }
-
-        function toggleButtons(step) {
-        const isLastStep = step === fieldsets.length - 1; // Vérifie si c'est la dernière étape
-
-        // Afficher ou masquer les boutons en fonction de l'étape
-        $(".btn-prev").toggle(step > 0); // Afficher "Précédent" sauf à l'étape 0
-        $(".btn-next").toggle(!isLastStep); // Afficher "Suivant" sauf à la dernière étape
-        $("button[type='submit']").toggle(isLastStep); // Afficher "Valider" uniquement à la dernière étape
-    }
-        // Handle next and previous buttons for multi-step form
-        document.querySelectorAll(".btn-next").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.preventDefault();
-                if (currentStep < fieldsets.length - 1) {
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            });
-        });
-
-        document.querySelectorAll(".btn-prev").forEach(button => {
-            button.addEventListener("click", (e) => {
-                e.preventDefault();
-                if (currentStep > 0) {
-                    currentStep--;
-                    showStep(currentStep);
-                }
-            });
-        });
-
-        // Click on step number to navigate
-        steps.forEach((stepElement, index) => {
-            stepElement.addEventListener("click", () => {
-                currentStep = index;
-                showStep(currentStep);
-            });
-        });
-
-        // Initial step display
-        showStep(currentStep);
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-    const hauteurInput = document.getElementById("hauteur");
-    const largeurInput = document.getElementById("largeur");
-    const longueurInput = document.getElementById("longueur");
-    const dimensionResult = document.getElementById("dimension_result");
-
-    function updateDimensionDisplay() {
-        const hauteur = hauteurInput.value.trim();
-        const largeur = largeurInput.value.trim();
-        const longueur = longueurInput.value.trim();
-        
-        if (hauteur !== "" && largeur !== "" && longueur !== "") {
-            dimensionResult.textContent = `${hauteur} x ${largeur} x ${longueur} cm`;
-            dimensionResult.style.display = "block";
-        } else {
-            dimensionResult.style.display = "none";
-        }
-    }
-
-    [hauteurInput, largeurInput, longueurInput].forEach(input => {
-        input.addEventListener("input", updateDimensionDisplay);
-    });
-});
-
-</script>
-<style>
-
-        .autocomplete-results {
-            position: absolute; /* Important pour le positionnement */
-            top: 100%; /* Affiche les résultats sous l'input */
-            left: 0;
-            right: 0;
-            z-index: 1000; /* Pour être au-dessus des autres éléments */
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 5px;
-            display: none; /* Caché par défaut */
-        }
-
-        .autocomplete-item {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .autocomplete-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        body {
-            background-color: #f7f7f7;
-        }
-
-        fieldset + fieldset {
-            border-top: 2px solid #ccc;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .form-container {
-            max-width: 95%;
-            margin: auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-section {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
-            display: flex; /* Utilise flexbox pour aligner les éléments */
-            justify-content: space-between; /* Espace égal entre les étapes */
-            list-style: none; /* Supprime les puces de la liste */
-            background: #fff; /* Couleur de fond */
-            padding: 0; 
-            margin: 50px; /* Supprime les marges */
-        }
-        .progress-bar-container {
-            margin-bottom: 20px;
-            display: flex; /* Use flexbox for centering */
-            justify-content: center; /* Center the progress bar */
-            width: 100%; /* Prend toute la largeur disponible */
-        }
-
-        /* Permettre le défilement horizontal si nécessaire */
-        .progress-bar-container {
-        overflow-x: auto;
-        }
-
-        /* Les listes de progression sont déjà en flex via Bootstrap ;
-        on peut ajouter quelques réglages pour améliorer l’affichage */
-        .progress-bar {
-        flex-wrap: wrap; /* si les écrans sont trop petits, les éléments peuvent se répartir sur plusieurs lignes */
-        margin: 0 auto;  /* centrer */
-        }
-
-        /* Pour les éléments de la liste, on s’assure qu’ils s’adaptent */
-        .progress-bar li.step {
-        flex: 1;              /* prend une part égale de l’espace disponible */
-        min-width: 40px;      /* largeur minimale pour conserver la lisibilité */
-        text-align: center;   /* centrer le contenu */
-        font-size: 1rem;      /* taille de police par défaut */
-        }
-
-        /* Sur écrans moyens à grands, on peut augmenter la taille de police */
-        @media (min-width: 768px) {
-        .progress-bar li.step {
-            font-size: 1.25rem;
-        }
-        }
-
-        .progress-bar::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: #ddd;
-            z-index: -1;
-            transform: translateY(-50%);
-        }
-
-        .step {
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            background: #ddd;
-            color: #333;
-            text-align: center;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            position: relative;
-            /* z-index: 1; */
-        }
-
-        .step.active {
-            background: #05a805;
-            color: #fff;
-        }
-
-
-        .step::after {
-            content: ''; /* Create a line after each step */
-            position: absolute; /* Position the line absolutely */
-            top: 50%; /* Center vertically */
-            left: 100%; /* Position to the right of the step */
-            width: 100%; /* Width of the line */
-            height: 4px; /* Height of the line */
-            background-color: #ddd; /* Color of the line */
-            z-index: -1; /* Send the line behind the text */
-        }
-
-        .step:last-child::after {
-            content: none; /* Remove the line after the last step */
-        }
-
-        .step.active {
-            font-weight: bold; /* Bold the active step */
-            color: #ffffff; /* Color of the active step */
-        }
-
-</style>
-
+    <!-- Bouton d'impression -->
+    <div class="no-print" style="text-align: center; margin: 20px;">
+        <a href="javascript:history.back()" class="btn btn-secondary" style="padding: 10px 20px; font-size: 16px; margin-right: 10px; background-color: #6c757d; color:white; text-decoration: none; border-radius: 4px;">Retour</a>
+        <button onclick="window.print();" style="padding: 10px 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            🖨️ Imprimer la facture
+        </button>
+    </div>
 @endsection

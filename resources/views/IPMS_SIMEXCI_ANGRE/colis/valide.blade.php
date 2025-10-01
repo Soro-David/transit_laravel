@@ -1,4 +1,3 @@
-
 @extends('IPMS_SIMEXCI_ANGRE.layouts.agent')
 @section('content-header')
 {{-- CSRF Token pour les requêtes AJAX --}}
@@ -52,7 +51,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="paymentForm">
-                    @csrf 
+                    @csrf
                     <div class="modal-body">
                         <input type="hidden" id="modalReferenceColis" name="reference_colis">
                         <input type="hidden" id="modalColisIds" name="colis_ids"> {{-- Pour passer les IDs (chaîne JSON) --}}
@@ -75,7 +74,7 @@
                         <div class="mb-3">
                             <label for="modalNewPaymentAmount" class="form-label">Montant du Nouveau Paiement <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmount" name="montant_a_payer" required placeholder="0.00">
-                             {{-- Pour afficher les erreurs de validation du backend --}}
+                             {{-- Pour afficher les erreurs de validation (client et backend) --}}
                             <div class="invalid-feedback" id="paymentAmountError"></div>
                         </div>
 
@@ -97,34 +96,25 @@
     /* Styles généraux pour la table et les boutons */
     #productTable {
         width: 100% !important;
-        /* white-space: nowrap;  Optionnel: Décommenter si le non-retour à la ligne est préféré */
     }
 
     #productTable th,
     #productTable td {
-        vertical-align: middle; /* Alignement vertical au centre */
-        /* padding: 8px 10px; */ /* Ajuster le padding si nécessaire */
+        vertical-align: middle;
     }
 
-    /* Centrer le texte dans des colonnes spécifiques si nécessaire */
     #productTable .text-center {
         text-align: center;
     }
 
-    /* Conteneur pour les boutons d'action pour utiliser Flexbox */
     .action-buttons-container {
         display: flex;
-        justify-content: center; /* Centre les boutons horizontalement */
-        align-items: center;    /* Centre les boutons verticalement */
-        gap: 5px;              /* Espace entre les boutons */
-        flex-wrap: nowrap;     /* Empêche le retour à la ligne des boutons */
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: nowrap;
     }
 
-    /* Ajustements pour DataTables (optionnel) */
-    .dataTables_wrapper {
-         /* width: 100%; */
-         /* margin: 0 auto; */
-    }
     .dt-buttons {
         margin-bottom: 15px;
     }
@@ -132,7 +122,7 @@
     /* Styles responsives */
     @media (max-width: 768px) {
         #productTable {
-             white-space: normal; /* Permettre le retour à la ligne sur petits écrans */
+             white-space: normal;
         }
         .dt-buttons {
             text-align: center;
@@ -143,24 +133,24 @@
             width: 80%;
         }
         .action-buttons-container {
-            flex-wrap: wrap; /* Permettre aux boutons de passer à la ligne si nécessaire */
+            flex-wrap: wrap;
             justify-content: center;
         }
     }
 
     /* Style pour le message d'erreur de validation dans la modale */
      .is-invalid {
-        border-color: #dc3545; /* Couleur de bordure Bootstrap pour l'erreur */
+        border-color: #dc3545;
     }
     .invalid-feedback {
-        display: none; /* Caché par défaut */
+        display: none;
         width: 100%;
         margin-top: .25rem;
         font-size: .875em;
-        color: #dc3545; /* Couleur du texte d'erreur Bootstrap */
+        color: #dc3545;
     }
-    .is-invalid ~ .invalid-feedback {
-        display: block; /* Affiché quand le champ est invalide */
+    .form-control.is-invalid ~ .invalid-feedback {
+        display: block;
     }
 
 </style>
@@ -180,245 +170,221 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         responsive: true,
-        language: { url: "{{ asset('js/fr-FR.json') }}" }, // Assurez-vous que ce fichier existe
-        ajax: '{{ route("ipms_angre_colis.get.colis.valide") }}', // Route vers la méthode du contrôleur
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("ipms_angre_colis.get.colis.valide") }}', // Route spécifique à cette agence
         columns: [
-            // La colonne 'statut_paiement' est générée côté serveur avec HTML
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
-            // La colonne 'nombre_de_colis' est calculée côté serveur
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
             {
-                data: null, name: 'expediteur_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'expediteur_nom',
                 render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); },
-                searchable: true, orderable: true // Permettre recherche/tri sur le nom complet
+                searchable: true, orderable: true
             },
-            { data: 'expediteur_tel', name: 'expediteurs.tel' }, // Utiliser le nom de table correct pour le tri/recherche serveur si possible
+            { data: 'expediteur_tel', name: 'expediteurs.tel' },
             {
-                data: null, name: 'destinataire_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'destinataire_nom',
                 render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); },
-                 searchable: true, orderable: true // Permettre recherche/tri
+                 searchable: true, orderable: true
             },
-            { data: 'destinataire_tel', name: 'destinataires.tel' }, // Utiliser le nom de table correct
-            { data: 'destinataire_agence', name: 'destinataires.agence' }, // Utiliser le nom de table correct
-            { data: 'etat', name: 'colis.etat' }, // Utiliser le nom de table correct
-            { data: 'created_at', name: 'colis.created_at' }, // Utiliser le nom de table correct
-             // La colonne 'action' est générée côté serveur avec HTML
+            { data: 'destinataire_tel', name: 'destinataires.tel' },
+            { data: 'destinataire_agence', name: 'destinataires.agence' },
+            { data: 'etat', name: 'colis.etat' },
+            { data: 'created_at', name: 'colis.created_at' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
         ],
-        // Configuration des boutons d'exportation (si utilisés)
-        dom: 'Bfrtip', // Afficher les boutons, le filtre, la table, les informations et la pagination
+        dom: 'Bfrtip',
         buttons: [
-                // Bouton Excel
                 {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
                     title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
                 },
-
-                // Bouton Imprimer
                 {
                     extend: 'print',
                     text: 'Imprimer',
                     title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
                     customize: function (win) {
                         var logoUrl = "{{ url('images/LOGOAFT.png') }}";
                         var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        
-                        // Ajouter le logo
                         $(win.document.body).prepend(logo);
-                        
-                        // Centrer le titre
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                            
+                        $(win.document.body).find('h1').css('text-align', 'center').css('margin-top', '10px');
                         $(win.document.body).find('table').css('margin-top', '30px');
-                        
-                        // Cacher les colonnes non souhaitées
-                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
-                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
                     }
                 }
         ],
-         order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
+         order: [[ 1, 'desc' ]]
     });
 
     // --- Logique pour la Modale de Paiement ---
 
-    // 1. Ouvrir la modale et pré-remplir les champs quand on clique sur le bouton Payer (.pay-btn)
+    // 1. Ouvrir la modale et pré-remplir les champs
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
-        e.preventDefault(); // Empêcher le comportement par défaut du bouton
+        e.preventDefault();
 
         var button = $(this);
         var reference = button.data('reference');
-        var total = parseFloat(button.data('total')).toFixed(2);
-        var paid = parseFloat(button.data('paid')).toFixed(2);
+        var total = parseFloat(button.data('total')); // Montant numérique
+        var paid = parseFloat(button.data('paid'));   // Montant numérique
         var colisIds = JSON.stringify(button.data('colis-ids'));
 
-        console.log("Opening payment modal for reference:", reference);
-        console.log("Total:", total, "Paid:", paid, "Colis IDs:", colisIds);
+        // Stocker les montants bruts sur le formulaire pour la validation
+        $('#paymentForm').data({
+            'total': total,
+            'paid': paid
+        });
 
-        // Fonction pour formater les nombres en devise (exemple EUR, ajuster si besoin XOF, etc.)
         function formatCurrency(value) {
-            // Vérifier si la valeur est un nombre valide
             const num = Number(value);
-            if (isNaN(num)) {
-                return 'N/A'; // Ou une autre valeur par défaut
-            }
-            return num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }); // Ajuster 'EUR'
+            if (isNaN(num)) return 'N/A';
+            return num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }); // Ajuster la devise
         }
 
-        // Remplir les champs de la modale
         $('#modalDisplayReference').val(reference);
         $('#modalTotalAmount').val(formatCurrency(total));
         $('#modalAmountAlreadyPaid').val(formatCurrency(paid));
-        $('#modalReferenceColis').val(reference);    // Champ caché pour la soumission
-        $('#modalColisIds').val(colisIds);           // Champ caché pour la soumission (JSON string)
+        $('#modalReferenceColis').val(reference);
+        $('#modalColisIds').val(colisIds);
 
-        // Réinitialiser le champ du nouveau montant et les erreurs
+        // Réinitialiser le champ, les erreurs, et désactiver le bouton de soumission
         $('#modalNewPaymentAmount').val('').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide(); // Cacher le message d'erreur
+        $('#paymentAmountError').text('').hide();
+        $('#submitPaymentBtn').prop('disabled', true); // Désactivé par défaut
 
-        // Afficher la modale (Bootstrap 5)
         $('#paymentModal').modal('show');
     });
 
-    // 2. Soumettre le formulaire de paiement via AJAX
+    // 2. LOGIQUE DE VALIDATION EN TEMPS RÉEL
+    $('#modalNewPaymentAmount').on('input', function() {
+        const inputField = $(this);
+        const form = $('#paymentForm');
+        const submitButton = $('#submitPaymentBtn');
+        const errorContainer = $('#paymentAmountError');
+
+        const totalDue = parseFloat(form.data('total'));
+        const alreadyPaid = parseFloat(form.data('paid'));
+        const newPayment = parseFloat(inputField.val());
+
+        if (isNaN(totalDue) || isNaN(alreadyPaid)) return;
+
+        const remainingBalance = parseFloat((totalDue - alreadyPaid).toFixed(2));
+
+        if (isNaN(newPayment) || newPayment <= 0) {
+            inputField.removeClass('is-invalid');
+            errorContainer.text('').hide();
+            submitButton.prop('disabled', true);
+            return;
+        }
+
+        if (newPayment > remainingBalance) {
+            const remainingFormatted = remainingBalance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            inputField.addClass('is-invalid');
+            errorContainer.text(`Le paiement ne peut pas dépasser le solde de ${remainingFormatted}.`).show();
+            submitButton.prop('disabled', true);
+        } else {
+            inputField.removeClass('is-invalid');
+            errorContainer.text('').hide();
+            submitButton.prop('disabled', false); // Activer le bouton
+        }
+    });
+
+    // 3. Soumettre le formulaire de paiement via AJAX
     $('#paymentForm').on('submit', function(e) {
-        e.preventDefault(); // Empêcher la soumission standard du formulaire
+        e.preventDefault();
 
         var form = $(this);
         var submitButton = $('#submitPaymentBtn');
         var originalButtonText = submitButton.html();
-        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'); // Indicateur de chargement
+        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...');
 
-        // Vider les erreurs précédentes
         $('#modalNewPaymentAmount').removeClass('is-invalid');
         $('#paymentAmountError').text('').hide();
 
         $.ajax({
-            url: '{{ route("ipms_angre_colis.valide.payer") }}', // Utiliser la route nommée pour l'enregistrement du paiement
+            url: '{{ route("ipms_angre_colis.valide.payer") }}', // Route spécifique à cette agence
             type: 'POST',
-            data: form.serialize(), // Envoyer les données du formulaire (inclut CSRF, reference_colis, colis_ids, montant_a_payer)
-            dataType: 'json', // Attendre une réponse JSON
-            // console.log("Submitting payment form:", form.serialize()),
+            data: form.serialize(),
+            dataType: 'json',
             success: function(response) {
-                $('#paymentModal').modal('hide'); // Fermer la modale
+                $('#paymentModal').modal('hide');
                 Swal.fire({
                     icon: 'success',
                     title: 'Succès!',
                     text: response.success || 'Paiement enregistré avec succès.',
-                    timer: 2500, // Fermer automatiquement après 2.5 secondes
+                    timer: 2500,
                     showConfirmButton: false
                 });
-                table.ajax.reload(null, false); // Recharger DataTables sans réinitialiser la pagination/recherche
+                table.ajax.reload(null, false);
             },
-            error: function(xhr, status, error) {
-                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement du paiement.';
-                // Vérifier si la réponse contient des erreurs JSON
+            error: function(xhr) {
+                var errorMessage = 'Une erreur est survenue.';
                 if (xhr.responseJSON) {
-                    if (xhr.responseJSON.error) { // Erreur générale envoyée par le serveur
+                    if (xhr.responseJSON.error) {
                         errorMessage = xhr.responseJSON.error;
                     }
-                    // Gérer les erreurs de validation spécifiques (422)
-                    if (xhr.status === 422 && xhr.responseJSON.details) {
-                         if (xhr.responseJSON.details.montant_a_payer) {
-                             $('#modalNewPaymentAmount').addClass('is-invalid');
-                             $('#paymentAmountError').text(xhr.responseJSON.details.montant_a_payer[0]).show();
-                             errorMessage = 'Veuillez corriger les erreurs dans le formulaire.'; // Message plus général pour Swal
-                         }
+                    if (xhr.status === 422 && xhr.responseJSON.details && xhr.responseJSON.details.montant_a_payer) {
+                         $('#modalNewPaymentAmount').addClass('is-invalid');
+                         $('#paymentAmountError').text(xhr.responseJSON.details.montant_a_payer[0]).show();
+                         errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
                     }
                 } else {
-                    // Loguer l'erreur complète pour le débogage si pas de JSON
-                    console.error("Erreur AJAX:", status, error, xhr.responseText);
+                    console.error("Erreur AJAX:", xhr.responseText);
                 }
-
-                // Afficher une alerte d'erreur générique ou spécifique
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur!',
-                    text: errorMessage
-                });
+                Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMessage });
             },
             complete: function () {
-                // Réactiver le bouton et restaurer son texte initial, que la requête réussisse ou échoue
                  submitButton.prop('disabled', false).html(originalButtonText);
             }
         });
     });
 
     // --- Logique pour le bouton Supprimer/Archiver ---
-
-    // Utilisation de la délégation d'événement sur le tbody pour les boutons ajoutés dynamiquement
     $('#productTable tbody').on('click', '.delete-btn', function (e) {
-        e.preventDefault(); // Bonne pratique
+        e.preventDefault();
 
         const button = $(this);
-        const deleteUrl = button.data('url'); // URL de suppression depuis data-url
-        const reference = button.data('reference'); // Référence pour le message de confirmation
+        const deleteUrl = button.data('url');
+        const reference = button.data('reference');
 
         if (!deleteUrl) {
-            console.error("URL de suppression non trouvée pour le bouton:", button);
             Swal.fire('Erreur', 'Impossible de trouver l\'action de suppression.', 'error');
             return;
         }
 
-        // Confirmation avec SweetAlert
         Swal.fire({
             title: 'Êtes-vous sûr?',
-            html: `Voulez-vous vraiment supprimer le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
+            html: `Voulez-vous vraiment supprimer le(s) colis avec la référence <strong>${reference}</strong> ?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33', // Rouge pour la suppression/archivage
-            cancelButtonColor: '#3085d6', // Bleu pour annuler
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
             confirmButtonText: 'Oui, Supprimer!',
             cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Si l'utilisateur confirme, envoyer la requête AJAX DELETE
                 $.ajax({
-                    url: deleteUrl, // L'URL contient déjà la référence ou l'identifiant nécessaire
-                    type: 'DELETE', // Utiliser la méthode DELETE
-                    // Le token CSRF est déjà configuré globalement via $.ajaxSetup
-                    dataType: 'json', // Attendre une réponse JSON
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    dataType: 'json',
                     success: function (response) {
-                        Swal.fire(
-                            'Supprimer!',
-                            response.success || `Le(s) colis avec la référence ${reference} ont été supprimés.`,
-                            'success'
-                        );
-                        table.ajax.reload(null, false); // Recharger la table sans réinitialiser
+                        Swal.fire('Supprimé!', response.success || `Le(s) colis ont été supprimés.`, 'success');
+                        table.ajax.reload(null, false);
                     },
-                    error: function (xhr, status, error) {
-                        let errorMsg = 'Une erreur est survenue lors de la suppression.';
+                    error: function (xhr) {
+                        let errorMsg = 'Une erreur est survenue.';
                         if(xhr.responseJSON && xhr.responseJSON.error) {
                             errorMsg = xhr.responseJSON.error;
-                        } else {
-                             console.error("Erreur AJAX Delete:", status, error, xhr.responseText);
                         }
-                        Swal.fire(
-                            'Erreur!',
-                            errorMsg,
-                            'error'
-                        );
+                        Swal.fire('Erreur!', errorMsg, 'error');
                     }
                 });
             }
         });
     });
 
-
 }); // Fin $(document).ready
 </script>
 
-@endsection
+@endsection         

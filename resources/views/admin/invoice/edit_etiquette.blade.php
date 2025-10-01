@@ -266,7 +266,19 @@
                             </td>
                             <td class="count-cell">
                                 <span class="counter-text">{{ $loop->iteration }} / {{ $colis_collection->count() }}</span>
-                                <span class="destination-text">{{ $colisItem->destination_agence ?? optional($dest)->agence }}</span>
+                                <span class="destination-text">
+                                    @php
+                                        $agence = $colisItem->destination_agence ?? optional($dest)->agence;
+                                    @endphp
+
+                                    @if($agence === 'IPMS-SIMEX-CI')
+                                        DS Translog Carrefour Angré
+                                    @elseif($agence === 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                                        DS Translog Angré 8ème Tranche
+                                    @else
+                                        {{ $agence }}
+                                    @endif
+                                </span>
                             </td>
                         </tr>
                     </table>

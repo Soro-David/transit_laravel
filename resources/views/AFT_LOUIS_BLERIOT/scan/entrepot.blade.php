@@ -1,73 +1,110 @@
 @extends('AFT_LOUIS_BLERIOT.layouts.agent')
-@section('content-header')
 
-{{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
+@section('content-header')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
 <section class="py-3">
-        <form action="" method="POST" class="mt-4">
-            @csrf
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                            <h4 class="text-left mt-4">Colis en entrepot</h4><br>
-                            <div id="products-container">
-                                <div class="text-right">
-                                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
-                                        Scanner pour la mise en entrepot
-                                    </button>
-                                </div><br>
-                                <div class="table-responsive">
-                                    <table id="productTable" class="table table-bordered table-striped display">
-                                        <thead>
-                                            <tr>
-                                                <th>Reference</th>
-                                                <th>Nombre de colis</th>
-                                                <th>Expéditeur</th>
-                                                <th>Téléphone</th>
-                                                {{-- <th>Agence Expéditeur</th> --}}
-                                                <th>Destinataire</th>
-                                                <th>Téléphone</th>
-                                                <th>Agence Destination</th>
-                                                <th>Date</th>
-                                                <th>Action</th>
-
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
+                <h4 class="text-left mt-4">Colis en entrepôt</h4><br>
+                
+                <div class="text-right mb-3">
+                    <button type="button" style="color: #fff;" class="btn gradient-orange-blue" data-bs-toggle="modal" data-bs-target="#scanner_entrepot">
+                        Scanner pour la mise en entrepôt
+                    </button>
                 </div>
-        </form>
-
-    <!-- Modal for editing -->
-    <div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
-        <div class="modal-dialog" style="max-width: 600px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Scanner les colis pour le chargement</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="reader" ></div>
-                    <p id="result">Résultat : Aucun</p>
-                    <div class="d-flex justify-content-center">
-                        <button id="restartScan" class="btn btn-primary mt-3" style="display: none;">Relancer le scan</button>
-                    </div>
+                
+                <div class="table-responsive">
+                    <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ST Paiement</th>
+                                <th>Référence</th>
+                                <th>Nbr Colis</th>
+                                <th>Expéditeur</th>
+                                <th>Téléphone (Exp)</th>
+                                <th>Agence Exp.</th>
+                                <th>Destinataire</th>
+                                <th>Téléphone (Dest)</th>
+                                <th>Agence Dest.</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
+</section>
 
-    <!-- JavaScript for DataTable and Export -->
-        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- MODAL DU SCANNER QR CODE -->
+<div class="modal fade" id="scanner_entrepot" tabindex="-1" aria-labelledby="scannerEntrepotLabel" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 600px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scanner les colis pour le chargement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader"></div>
+                <p id="result" class="mt-2">Résultat : Aucun</p>
+                <div class="d-flex justify-content-center">
+                    <button id="restartScan" class="btn btn-primary mt-3" style="display: none;">Relancer le scan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE PAIEMENT -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Enregistrer un Paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="paymentForm">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="modalReferenceColis" name="reference_colis">
+                    <input type="hidden" id="modalColisIds" name="colis_ids">
+                    <div class="mb-3">
+                        <label for="modalDisplayReference" class="form-label">Référence Colis</label>
+                        <input type="text" class="form-control" id="modalDisplayReference" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalTotalAmount" class="form-label">Montant Total Dû</label>
+                        <input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalAmountAlreadyPaid" class="form-label">Montant Déjà Payé</label>
+                        <input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalNewPaymentAmount" class="form-label">Montant du Paiement <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" id="modalNewPaymentAmount" name="montant_a_payer" required placeholder="0.00">
+                        <div class="invalid-feedback" id="paymentAmountError"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Dépendances JS --}}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const html5QrCode = new Html5Qrcode("reader");
@@ -186,203 +223,216 @@ document.addEventListener("DOMContentLoaded", function () {
     restartButton.addEventListener("click", startScanner);
 });
 
-    $(document).ready(function () {
-        // Initialisation de la table DataTable
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                    url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
-                },
-            ajax: '{{ route("aftlb_scan.get.colis.entrepot") }}', // Récupération des données via AJAX
-            columns: [
-            { data: 'reference_colis' },
-            { data: 'nombre_de_colis' },
+
+$(document).ready(function () {
+    // Configuration globale AJAX pour inclure le token CSRF
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
+
+    // ===================================================================
+    // INITIALISATION DE DATATABLES
+    // ===================================================================
+    var table = $("#productTable").DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("aftlb_scan.get.colis.entrepot") }}',
+        columns: [
+            // Les colonnes ici doivent correspondre EXACTEMENT aux <th> du HTML
+            { data: 'statut_paiement', name: 'statut_paiement', className: 'text-center' },
+            { data: 'reference_colis', name: 'reference_colis' },
+            { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
             {
-                data: null,
-                render: function (data, type, row) {
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
+                data: null, name: 'expediteur_nom',
+                render: (data, type, row) => `${row.expediteur_nom || ''} ${row.expediteur_prenom || ''}`.trim()
             },
-            { data: 'expediteur_tel' },
-            { data: 'expediteur_agence' },
+            { data: 'expediteur_tel', name: 'expediteur_tel' },
+            { data: 'expediteur_agence', name: 'expediteur_agence' },
             {
-                data: null,
-                render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                }
+                data: null, name: 'destinataire_nom',
+                render: (data, type, row) => `${row.destinataire_nom || ''} ${row.destinataire_prenom || ''}`.trim()
             },
-            { 
-                data: 'destinataire_agence',
-                name: 'destinataire_agence.nom_agence',
-                render: function(data, type, row) {
-                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                        return 'DS Translog Angré 8ème Tranche';
-                    } else if (data === 'IPMS-SIMEX-CI') {
-                        return 'DS Translog Carrefour Angré';
-                    }
+            { data: 'destinataire_tel', name: 'destinataire_tel' },
+            {
+                data: 'destinataire_agence', name: 'destinataire_agence',
+                render: function(data) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') return 'DS Translog Angré 8ème Tranche';
+                    if (data === 'IPMS-SIMEX-CI') return 'DS Translog Carrefour Angré';
                     return data;
                 }
             },
-            { data: 'destinataire_tel' },
-            {
-                data: 'created_at',
-                render: function (data) {
-                    if (!data) {
-                        return ''; // Retourne une chaîne vide si la date est null
-                    }
-                    var date = new Date(data);
-                    if (isNaN(date.getTime())) {
-                        return ''; // Vérifie si la date est invalide
-                    }
-                    var day = ('0' + date.getDate()).slice(-2);
-                    var month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    var year = date.getFullYear();
-                    return day + '/' + month + '/' + year;
-                }
+            { data: 'created_at', name: 'created_at' },
+            { 
+                data: 'action', name: 'action',
+                orderable: false, searchable: false, className: 'text-center'
             }
-
         ],
-            dom: 'Bfrtip', // Placement des boutons
+        dom: 'Bfrtip',
         buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
-
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        
-                        // Ajouter le logo
-                        $(win.document.body).prepend(logo);
-                        
-                        // Centrer le titre
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                            
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                        
-                        // Cacher les colonnes non souhaitées
-                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
-                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
-                    }
-                }
+            { extend: 'excelHtml5', text: 'Exporter en Excel', title: 'Liste des Colis en Entrepôt', exportOptions: { columns: [1,2,3,4,5,6,7,8,9] } },
+            { extend: 'print', text: 'Imprimer', title: 'Liste des Colis en Entrepôt', exportOptions: { columns: [1,2,3,4,5,6,7,8,9] } }
         ],
-        });
-
+        order: [[ 9, 'desc' ]] // Trier par la colonne date (10ème, index 9)
     });
 
+    // Rafraîchissement automatique de la table toutes les 5 secondes
+    // Utile pour un dashboard, mais peut être remplacé par des WebSockets pour plus d'efficacité.
+    setInterval(() => table.ajax.reload(null, false), 5000);
+
+    // ===================================================================
+    // GESTION DE LA MODALE DE PAIEMENT
+    // ===================================================================
+    $('#productTable tbody').on('click', '.pay-btn', function () {
+        const button = $(this);
+        const remainingDue = parseFloat(button.data('total')) - parseFloat(button.data('paid'));
+
+        // Formateur de devise
+        const formatCurrency = (value) => Number(value).toLocaleString('fr-CI', { style: 'currency', currency: 'XOF' });
+
+        $('#paymentForm').data('remaining-due', remainingDue.toFixed(2));
+        $('#modalDisplayReference').val(button.data('reference'));
+        $('#modalTotalAmount').val(formatCurrency(button.data('total')));
+        $('#modalAmountAlreadyPaid').val(formatCurrency(button.data('paid')));
+        $('#modalReferenceColis').val(button.data('reference'));
+        $('#modalColisIds').val(JSON.stringify(button.data('colis-ids')));
+        
+        // Réinitialiser le champ et les erreurs
+        $('#modalNewPaymentAmount').val('').removeClass('is-invalid');
+        $('#paymentAmountError').text('').hide();
+        
+        $('#paymentModal').modal('show');
+    });
+
+    $('#paymentForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const newPaymentAmount = parseFloat($('#modalNewPaymentAmount').val());
+        const remainingDue = parseFloat($('#paymentForm').data('remaining-due'));
+
+        // Validation front-end
+        if (isNaN(newPaymentAmount) || newPaymentAmount <= 0) {
+            $('#modalNewPaymentAmount').addClass('is-invalid').focus();
+            $('#paymentAmountError').text('Veuillez saisir un montant valide et positif.').show();
+            return;
+        }
+        if (newPaymentAmount > remainingDue + 0.01) { // Tolérance
+            $('#modalNewPaymentAmount').addClass('is-invalid').focus();
+            $('#paymentAmountError').text('Le montant ne peut pas dépasser le solde restant.').show();
+            return;
+        }
+
+        const submitButton = $('#submitPaymentBtn');
+        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
+
+        $.ajax({
+            url: '{{ route("aftlb_colis.valide.payer") }}',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: (response) => {
+                $('#paymentModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'Succès!', text: response.success, timer: 2500, showConfirmButton: false });
+                table.ajax.reload(null, false);
+            },
+            error: (xhr) => {
+                let errorMsg = 'Une erreur est survenue.';
+                if (xhr.status === 422 && xhr.responseJSON.errors) {
+                    $('#modalNewPaymentAmount').addClass('is-invalid');
+                    $('#paymentAmountError').text(xhr.responseJSON.errors.montant_a_payer[0]).show();
+                } else if (xhr.responseJSON?.error) {
+                    errorMsg = xhr.responseJSON.error;
+                }
+                Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMsg });
+            },
+            complete: () => submitButton.prop('disabled', false).html('Enregistrer Paiement')
+        });
+    });
+
+    // ===================================================================
+    // GESTION DE L'ARCHIVAGE (SUPPRESSION)
+    // ===================================================================
+    $('#productTable tbody').on('click', '.delete-btn', function () {
+        const button = $(this);
+        const deleteUrl = button.data('url');
+        const reference = button.data('reference');
+
+        Swal.fire({
+            title: 'Êtes-vous sûr?',
+            html: `Voulez-vous vraiment archiver le(s) colis avec la référence <strong>${reference}</strong> ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, archiver!',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: (response) => {
+                        Swal.fire('Archivé!', response.success, 'success');
+                        table.ajax.reload(null, false);
+                    },
+                    error: (xhr) => {
+                        let errorMsg = xhr.responseJSON?.error || 'Erreur lors de l\'archivage.';
+                        Swal.fire('Erreur!', errorMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
+});
 </script>
-    
-    {{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
-    
-</section>
 
 <style>
-    
-     #reader {
-      width: 100%;
-      height: 400px;
-      border: 1px solid #c2bdbd; 
+    /* Styles pour le scanner QR Code */
+    #reader {
+        width: 100%;
+        height: 400px;
+        border: 1px solid #c2bdbd; 
     }
 
+    /* Correction pour l'alignement des boutons d'action dans DataTables */
+    .action-buttons {
+        display: flex;
+        justify-content: center; /* Centre les boutons dans la cellule */
+        align-items: center;
+        gap: 5px;
+        flex-wrap: nowrap;
+    }
+    .action-buttons .btn {
+        width: auto !important; /* Annule la largeur de 100% pour ces boutons */
+        flex-shrink: 0;
+    }
 
+    /* Styles généraux responsives */
     .btn {
-        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 280px; /* Largeur maximale sur les grands écrans */
+        width: 100%;
+        max-width: 280px;
         font-size: 16px;
         height: 40px;
-
     }
-
-    .dataTable-wrapper {
-        width: 100%; /* Prend toute la largeur disponible */
-        max-width: 1000px; /* Largeur maximale pour les grands écrans */
-        margin: 0 auto; /* Centrer le tableau */
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #f9f9f9;
-    }
-
-    #camera, #snapshot {
-        max-width: 100%; /* Rendre la caméra et l'image capturée responsive */
-        height: auto;
-        margin: 10px auto;
-    }
-
     .modal-dialog {
-        max-width: 90%; /* Rendre les modals adaptatifs */
+        max-width: 90%;
         margin: auto;
     }
-
     .dt-button {
-        padding: 10px 10px;
+        padding: 10px;
         font-size: 14px;
     }
 
     @media (max-width: 768px) {
         h4 {
-            font-size: 18px; /* Réduction de la taille des titres */
+            font-size: 18px;
         }
-
         .btn {
             font-size: 14px;
             padding: 10px;
         }
-
-        .table-responsive {
-            overflow-x: auto; /* Assurer un défilement horizontal sur les petits écrans */
-        }
     }
-    #camera {
-            width: 100%;
-            max-height: 300px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .image-preview {
-            margin-top: 15px;
-            width: 100%;
-            max-height: 300px;
-            border: 2px dashed #ffa500;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f9f9f9;
-            position: relative;
-        }
-
-        .image-preview canvas {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        .image-placeholder {
-            color: #ccc;
-            font-size: 18px;
-            position: absolute;
-            text-align: center;
-        }
-
 </style>
 @endsection

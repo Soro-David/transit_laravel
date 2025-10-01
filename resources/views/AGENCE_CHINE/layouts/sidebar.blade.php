@@ -63,18 +63,24 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('chine_colis.tout.colis') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Historique des colis') }}</p>
+                            </a>
+                        </li>
+                        {{-- <li class="nav-item">
                             <a href="{{route('chine_colis.dump')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Voir les colis arrivé') }}</p>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
                 {{-- gestion ces cargaison --}}
                 <li class="nav-item has-treeview">
                     <a href="#" class="nav-link {{ activeSegment('products') }}">
                         <i class="fas fa-shipping-fast"></i>
-                        <p>{{ __('Gestion des cargaisons') }}</p>
+                        <p>{{ __('Gestion des Conteneur') }}</p>
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
@@ -85,27 +91,52 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('chine_colis.historique.contenaire') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Historique') }}</p>
+                            </a>
+                        </li>
+                    
+                    </ul>
+                </li>
+
+                {{-- gestion ces Vol --}}
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-shipping-fast"></i>
+                        <p>{{ __('Gestion des Vol') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
                             <a href="{{ route('chine_colis.liste.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Vol') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('chine_colis.cargaison.ferme') }}" class="nav-link">
+                            <a href="{{ route('chine_colis.historique.vol') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Bateaux & Avions') }}</p>
+                                <p>{{ __('Historique') }}</p>
                             </a>
                         </li>
+                        
                     </ul>
                 </li>
-
+                    {{-- Gestion des Ballon --}}
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('chine_colis.cargaison.ferme') }}" class="nav-link">
+                        <i class="fas fa-ship"></i>
+                        <p>{{ __('Bateau et Avion') }}</p>
+                    </a>
+                </li>
                    {{-- Gestion des Ballon --}}
-               <li class="nav-item has-treeview">
+            {{-- <li class="nav-item has-treeview">
                 <a href="{{ route('chine_colis.liste_ballon') }}" class="nav-link">
                     <i class="fas fa-ship"></i>
                     <p>{{ __('Ballon Arrivés') }}</p>
                 </a>
-            </li>
+            </li> --}}
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">
