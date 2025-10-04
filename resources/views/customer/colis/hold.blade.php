@@ -5,76 +5,94 @@
 @endsection
 
 @section('content')
-<section class="py-3">
-    <form action="" method="POST" class="mt-4" id="colisForm">
-        @csrf
-        @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-        @endif
-        <div class="row">
-            <div class="col-md-12">
-                <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                    <h4 class="text-left mt-4">Liste des colis en attente</h4><br>
+<section class="py-4">
+    <div class="container">
+
+        <form action="" method="POST" class="mt-4" id="colisForm">
+            @csrf
+
+            @if (session('success'))
+                <div class="alert alert-success shadow-sm rounded">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger shadow-sm rounded">{{ session('error') }}</div>
+            @endif
+
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header d-flex align-items-center justify-content-between" style="background: linear-gradient(90deg,#0ea05a,#0b7cff); color:#fff;">
+                    <div class="d-flex align-items-center">
+                        <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:12px;">
+                            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 4h12M4 8h8M6 12h4" stroke="#fff" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h5 class="mb-0">Liste des devis</h5>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('customer_colis.devis.create') }}" class="btn btn-light btn-sm fw-bold">+ Nouveau devis</a>
+                        <button type="button" class="btn btn-outline-light btn-sm" onclick="$('#productTable').DataTable().ajax.reload()">Rafraîchir</button>
+                    </div>
+                </div>
+
+                <div class="card-body">
                     <div id="products-container">
                         <div class="table-responsive">
-                            <table id="productTable" class="display table table-striped table-bordered" style="width:100%">
-                                <thead>
+                            <table id="productTable" class="display table table-striped table-bordered table-hover" style="width:100%">
+                                <thead class="table-light">
                                     <tr>
-                                        <th>Référence Colis</th>
-                                        <th>Nombre de colis</th>
+                                        <th>Référence</th>
+                                        <th>Nombre d'items</th>
                                         <th>Agence Expédition</th>
-                                        <th>Destinataire</th>
-                                        <th>Téléphone Dest.</th>
+                                        <th>Expéditeur</th>
+                                        <th>Tel Expéditeur</th>
                                         <th>Agence Destination</th>
+                                        <th>État</th>
                                         <th>Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+
+    </div>
 </section>
 
 <style>
+    /* Visuel amélioré, n'altère pas les classes JS existantes */
+    .card-header h5 { color: #fff; font-weight:700; margin:0; }
+    #productTable th { font-weight:700; color:#374151; }
+    #productTable tbody tr:hover { background: #f6fffa !important; }
     .btn-delete-group {
         background-color: #f44336;
         color: white;
         border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 6px 10px;
+        border-radius: 6px;
         text-decoration: none;
         cursor: pointer;
     }
-
-    .btn-delete-group:hover {
-        background-color: #d32f2f;
+    .btn-delete-group:hover { background-color: #d32f2f; }
+    /* Responsive small tweaks */
+    @media (max-width:768px) {
+        .card-header { flex-direction:column; gap:8px; align-items:flex-start; }
     }
 </style>
 
 <script>
 $(document).ready(function() {
-    // Configuration de CSRF token pour toutes les requêtes AJAX
+    // CSRF pour AJAX
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    // Template d'URL pour la suppression
-    var deleteUrlTemplate = "{{ route('customer_colis.delete', ['reference_colis' => 'PLACEHOLDER_REF']) }}";
+    // Template d'URL pour la suppression (on génère l'URL via route nommée avec PLACEHOLDER)
+    var deleteUrlTemplate = "{{ route('customer_colis.devis.delete', ['reference' => 'PLACEHOLDER']) }}";
 
     var table = $("#productTable").DataTable({
         responsive: true,
@@ -84,70 +102,68 @@ $(document).ready(function() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: '{{ route("customer_colis.get.colis") }}',
+            url: '{{ route("customer_colis.get.devis") }}',
             type: 'GET',
             error: function(xhr, error, thrown) {
-                console.log('Erreur AJAX:', error, thrown);
-                console.log('Réponse:', xhr.responseText);
-                
-                // Afficher un message d'erreur à l'utilisateur
+                console.error('Erreur AJAX:', error, thrown);
+                console.error('Réponse:', xhr.responseText);
                 alert('Erreur lors du chargement des données. Veuillez réessayer.');
             }
         },
         columns: [
-            { data: 'reference_colis', name: 'reference_colis' },
-            { data: 'nombre_colis', name: 'nombre_colis' },
-            { data: 'expediteur_agence', name: 'expediteur_agence' },
-            { data: 'destinataire_nom_complet', name: 'destinataire_nom_complet' },
-            { data: 'destinataire_tel', name: 'destinataire_tel' },
-            { data: 'destinataire_agence', name: 'destinataire_agence' },
-            {
-                data: 'last_updated_at',
-                name: 'last_updated_at',
-               
-            },
-
+            { data: 'reference', name: 'reference' },
+            { data: 'nombre_items', name: 'nombre_items' },
+            { data: 'agence_expedition', name: 'agence_expedition' },
+            { data: 'expediteur_nom_complet', name: 'expediteur_nom_complet' },
+            { data: 'tel_expediteur', name: 'tel_expediteur' },
+            { data: 'agence_destination', name: 'agence_destination' },
+            { data: 'etat', name: 'etat' },
+            { data: 'last_updated_at', name: 'last_updated_at' },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
         initComplete: function() {
-            console.log('DataTable initialisé');
-        },
-        error: function (xhr, error, thrown) {
-            console.log('Erreur DataTable:', error, thrown);
-            alert('Erreur lors du chargement du tableau. Veuillez réessayer.');
+            console.log('DataTable initialisé (devis)');
         }
     });
 
-    // Gestionnaire d'événement pour la suppression
+    // Handler pour suppression (délégation event sur table)
     $('#productTable').on('click', '.btn-delete-group', function(e) {
         e.preventDefault();
-        var referenceColis = $(this).data('reference');
-
-        if(confirm('Êtes-vous sûr de vouloir supprimer tous les colis avec la référence : ' + referenceColis + ' ?')) {
-            var finalDeleteUrl = deleteUrlTemplate.replace('PLACEHOLDER_REF', referenceColis);
-
-            $.ajax({
-                url: finalDeleteUrl,
-                type: 'DELETE',
-                success: function(response) {
-                    if(response.success) {
-                        alert(response.success);
-                        table.ajax.reload();
-                    } else {
-                        alert(response.error || 'Une erreur est survenue lors de la suppression.');
-                    }
-                },
-                error: function(xhr) {
-                    var errorMessage = 'Erreur lors de la suppression du groupe de colis.';
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        errorMessage = xhr.responseJSON.error;
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    alert(errorMessage);
-                }
-            });
+        var reference = $(this).data('reference');
+        if (!reference) {
+            alert('Référence introuvable.');
+            return;
         }
+
+        if (!confirm('Êtes-vous sûr de vouloir supprimer le devis : ' + reference + ' ?')) {
+            return;
+        }
+
+        // Construire l'URL finale
+        var finalUrl = deleteUrlTemplate.replace('PLACEHOLDER', reference);
+
+        $.ajax({
+            url: finalUrl,
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success && typeof response.success === 'string') {
+                    alert(response.success);
+                } else if (response.success === true) {
+                    alert('Devis supprimé avec succès.');
+                } else {
+                    // si message d'erreur fourni
+                    var msg = response.message || response.error || 'Suppression échouée.';
+                    alert(msg);
+                }
+                table.ajax.reload(null, false);
+            },
+            error: function(xhr) {
+                console.error('Erreur delete:', xhr);
+                var err = 'Erreur lors de la suppression du devis.';
+                if (xhr.responseJSON && xhr.responseJSON.message) err = xhr.responseJSON.message;
+                alert(err);
+            }
+        });
     });
 });
 </script>

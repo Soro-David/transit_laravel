@@ -35,6 +35,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('chine_colis.devis.confirme') }}" class="nav-link">
+                                <i class="far fa-check-circle nav-icon"></i>
+                                <p>{{ __('Devis Confirmés Chine') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{route('chine_colis.devis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi des dévis') }}</p>
@@ -54,6 +60,12 @@
                             <a href="{{ route('chine_colis.create.colis') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Ajouter un colis') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('chine_colis.ajoutDevis') }}" class="nav-link">
+                                <i class="far nav-icon"></i> {{-- Adaptez l'icône --}}
+                                <p>{{ __('Ajout de Devis') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

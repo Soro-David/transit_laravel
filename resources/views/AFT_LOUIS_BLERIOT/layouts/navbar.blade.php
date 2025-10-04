@@ -110,21 +110,26 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Fonction pour récupérer les notifications par agence
     async function fetchNotifications(agence = 'AFT Agence Louis Bleriot') {
         try {
             const response = await fetch(`/aftlb_notification/get-notifications?agence=${agence}`);
             const data = await response.json();
 
             if (data.success) {
-                // Mettre à jour le compteur de notifications
-                document.getElementById('notification-count').textContent = data.count;
-                document.getElementById('notification-header').textContent = `${data.count} Notifications`;
+                // On vérifie l'existence de chaque élément avant de le manipuler
+                const notificationCount = document.getElementById('notification-count');
+                if (notificationCount) {
+                    notificationCount.textContent = data.count;
+                }
 
-                // Mettre à jour la liste des notifications
+                const notificationHeader = document.getElementById('notification-header');
+                if (notificationHeader) {
+                    notificationHeader.textContent = `${data.count} Notifications`;
+                }
+
                 const notificationItems = document.getElementById('notification-items');
-                notificationItems.innerHTML = ''; // Vider les anciennes notifications
-
+                if (notificationItems) {
+                    notificationItems.innerHTML = ''; // Vider les anciennes notifications
                 data.notifications.forEach(notification => {
                     const item = document.createElement('a');
                     item.href = '#';

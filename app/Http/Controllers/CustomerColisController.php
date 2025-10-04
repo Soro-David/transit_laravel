@@ -29,7 +29,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail; // Importez la façade Mail
 use App\Mail\DevisCreatedMail; // Importez votre Mailable
 use App\Mail\ColisValidatedMail;
-
+use App\Models\Devis; 
+use App\Models\DevisItem;
 
 class CustomerColisController extends Controller
 {
@@ -776,66 +777,68 @@ public function store_colis(Request $request)
 
 
     // colis valider
-    public function get_colis_valide(Request $request)
-    {
-        if (!$request->ajax()) {
-            return response()->json(['message' => 'Requête non valide'], 400);
-        }
+    // public function get_colis_valide(Request $request)
+    // {
+    //     if (!$request->ajax()) {
+    //         return response()->json(['message' => 'Requête non valide'], 400);
+    //     }
     
-        $email = Auth::user()->email;
+    //     $email = Auth::user()->email;
     
-        // Désactiver temporairement le mode ONLY_FULL_GROUP_BY
-        DB::statement('SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode, "ONLY_FULL_GROUP_BY", ""))');
+    //     // Désactiver temporairement le mode ONLY_FULL_GROUP_BY
+    //     DB::statement('SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode, "ONLY_FULL_GROUP_BY", ""))');
     
-        $query = Colis::query()
-            ->select(
-                'colis.reference_colis',
-                DB::raw('COUNT(colis.id) as nombre_colis_par_reference'),
-                DB::raw('SUM(colis.prix_transit_colis) as total_prix_devis'),
-                DB::raw('MAX(colis.updated_at) as last_updated_at'),
-                DB::raw('MIN(colis.id) as representative_colis_id'),
-                'expediteurs.agence as expediteur_agence',
-                'destinataires.nom as destinataire_nom',
-                'destinataires.prenom as destinataire_prenom',
-                'destinataires.agence as destinataire_agence',
-                'destinataires.tel as destinataire_contact',
-                'colis.etat',
-                'colis.status'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->leftJoin('paiements', 'colis.id', '=', 'paiements.colis_id')
-            ->where('expediteurs.email', $email)
-            ->where('colis.etat', 'validé')
-            // Exclure les colis complètement payés
-            ->where(function($query) {
-                $query->where('colis.status', '!=', 'payé')
-                      ->orWhereNull('colis.status');
-            })
-            ->where(function($query) {
-                $query->where('paiements.statut_paiement', '!=', 'payé')
-                      ->orWhereNull('paiements.statut_paiement');
-            })
-            ->groupBy('colis.reference_colis');
+    //     $query = Devis::query()
+    //         ->select(
+    //             'colis.reference_colis',
+    //             DB::raw('COUNT(colis.id) as nombre_colis_par_reference'),
+    //             DB::raw('SUM(colis.prix_transit_colis) as total_prix_devis'),
+    //             DB::raw('MAX(colis.updated_at) as last_updated_at'),
+    //             DB::raw('MIN(colis.id) as representative_colis_id'),
+    //             'expediteurs.agence as expediteur_agence',
+    //             'destinataires.nom as destinataire_nom',
+    //             'destinataires.prenom as destinataire_prenom',
+    //             'destinataires.agence as destinataire_agence',
+    //             'destinataires.tel as destinataire_contact',
+    //             'colis.etat',
+    //             'colis.status'
+    //         )
+    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+    //         ->leftJoin('paiements', 'colis.id', '=', 'paiements.colis_id')
+    //         ->where('expediteurs.email', $email)
+    //         ->where('colis.etat', 'validé')
+    //         // Exclure les colis complètement payés
+    //         ->where(function($query) {
+    //             $query->where('colis.status', '!=', 'payé')
+    //                   ->orWhereNull('colis.status');
+    //         })
+    //         ->where(function($query) {
+    //             $query->where('paiements.statut_paiement', '!=', 'payé')
+    //                   ->orWhereNull('paiements.statut_paiement');
+    //         })
+    //         ->groupBy('colis.reference_colis');
     
-        return DataTables::of($query)
-            ->addColumn('etat_display', function ($row) {
-                return 'validé';
-            })
-            ->addColumn('action', function ($row) {
-                $editUrl = route('customer_colis.payement.edit', ['id' => $row->representative_colis_id]);
+    //     return DataTables::of($query)
+    //         ->addColumn('etat_display', function ($row) {
+    //             return 'validé';
+    //         })
+    //         ->addColumn('action', function ($row) {
+    //             $editUrl = route('customer_colis.payement.edit', ['id' => $row->representative_colis_id]);
                 
-                // Bouton toujours vert comme demandé
-                return '
-                    <div class="btn-group">
-                        <a href="' . $editUrl . '" class="btn btn-sm btn-success" title="Payer le devis">
-                            <i class="fas fa-hand-holding-usd"></i>
-                        </a>
-                    </div>';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
-    }
+    //             // Bouton toujours vert comme demandé
+    //             return '
+    //                 <div class="btn-group">
+    //                     <a href="' . $editUrl . '" class="btn btn-sm btn-success" title="Payer le devis">
+    //                         <i class="fas fa-hand-holding-usd"></i>
+    //                     </a>
+    //                 </div>';
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+
+
     public function get_colis_suivi(Request $request)
     {
         if (!$request->ajax()) {

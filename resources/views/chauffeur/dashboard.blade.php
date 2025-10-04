@@ -79,7 +79,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h1 class="m-0">Tableau de Bord</h1>
-            <p class="text-muted">Bienvenue, {{ auth()->user()->prenom }} ! Voici un résumé de votre activité.</p>
+            <p class="text-muted">Bienvenue, {{ auth()->user()->first_name }} ! Voici un résumé de votre activité.</p>
         </div>
     </div>
 @endsection
