@@ -12,6 +12,7 @@ class Colis extends Model
     protected $fillable = [
         'reference_colis',
         'reference_contenaire',
+        'reference_vol',
         'quantite_colis',
         'description_colis',
         'valeur_colis',

@@ -68,12 +68,7 @@
                                 <p>{{ __('Historique des colis') }}</p>
                             </a>
                         </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{route('chine_colis.dump')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Voir les colis arrivé') }}</p>
-                            </a>
-                        </li> --}}
+
                     </ul>
                 </li>
                 {{-- gestion ces cargaison --}}
@@ -129,14 +124,7 @@
                         <i class="fas fa-ship"></i>
                         <p>{{ __('Bateau et Avion') }}</p>
                     </a>
-                </li>
-                   {{-- Gestion des Ballon --}}
-            {{-- <li class="nav-item has-treeview">
-                <a href="{{ route('chine_colis.liste_ballon') }}" class="nav-link">
-                    <i class="fas fa-ship"></i>
-                    <p>{{ __('Ballon Arrivés') }}</p>
-                </a>
-            </li> --}}
+
                 {{-- Scan --}}
                 <li class="nav-item has-treeview">
                     <a href="" class="nav-link {{ activeSegment('products') }}">
@@ -157,12 +145,7 @@
                                 <p>{{ __('Chargement') }}</p>
                             </a>
                         </li>
-                        {{-- <li class="nav-item">
-                            <a href="{{route('agent_colis.liste.contenaire')}}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Contenaire') }}</p>
-                            </a>
-                        </li> --}}
+
                         <li class="nav-item">
                             <a href="{{route('chine_scan.dechargement')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -201,9 +184,15 @@
                 </li>
                 {{-- endRDV --}}
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('chine_client.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                    <a href="{{ route('chine_message.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>{{ __('Clients') }}</p>
+                    </a>
+                </li>
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('chine_prospects.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>{{ __('Prospect') }}</p>
                     </a>
                 </li>
                 {{-- progammz de transport --}}

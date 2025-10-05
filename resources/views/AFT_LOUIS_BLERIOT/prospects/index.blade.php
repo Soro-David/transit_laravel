@@ -1,24 +1,16 @@
-@extends('admin.layouts.admin')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 
 @section('content')
 <section class="content">
-    <h1>Liste des Prospects</h1>
+    <h1 class="mb-4">📋 Liste des Prospects</h1>
 
-    <!-- Bouton pour ouvrir le modal -->
     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createProspectModal">
         ➕ Ajouter un nouveau prospect
     </button>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
-            <table id="prospectsTable" class="table table-bordered table-striped">
+            <table id="prospectsTable" class="table table-bordered table-striped align-middle w-100">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -26,125 +18,53 @@
                         <th>Email</th>
                         <th>Téléphone</th>
                         <th>Type</th>
-                        <th>Actions</th>
+                        <th>Date de création</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($allProspects as $prospect)
-                        <tr>
-                            <td>{{ $prospect->id }}</td>
-                            <td>{{ $prospect->full_name }}</td>
-                            <td>{{ $prospect->email }}</td>
-                            <td>{{ $prospect->tel }}</td>
-                            <td>{{ $prospect->type == 'expediteur_non_user' ? 'Expéditeur non utilisateur' : 'Prospect' }}</td>
-                            <td>
-                            <!-- Voir -->
-                            <a href="{{ route('prospects.show', $prospect->id) }}" 
-                            class="btn btn-info btn-sm" 
-                            title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </a>
-
-                            <!-- Modifier -->
-                            <a href="{{ route('prospects.edit', $prospect->id) }}" 
-                            class="btn btn-warning btn-sm" 
-                            title="Modifier">
-                                <i class="fas fa-edit"></i>
-                            </a>
-
-                            <!-- Supprimer -->
-                            @if($prospect->type == 'prospect_table')
-                                <form action="{{ route('prospects.destroy', $prospect->id) }}" 
-                                    method="POST" 
-                                    style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="btn btn-danger btn-sm" 
-                                            title="Supprimer"
-                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce prospect ?')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            @endif
-                        </td>
-
-                        </tr>
-                    @endforeach
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 </section>
 
-<!-- Modal -->
+<!-- Modal Ajout Prospect -->
 <div class="modal fade" id="createProspectModal" tabindex="-1" aria-labelledby="createProspectModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg"> {{-- modal large --}}
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="createProspectModalLabel">➕ Créer un nouveau Prospect</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body">
-        <form action="{{ route('prospects.store') }}" method="POST">
+        <form action="{{ route('aft_prospects.store') }}" method="POST">
           @csrf
-
           <div class="row mb-3">
               <div class="col-md-6">
                   <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('nom') is-invalid @enderror" 
-                         id="nom" name="nom" value="{{ old('nom') }}" required>
-                  @error('nom')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
+                  <input type="text" class="form-control" id="nom" name="nom" required>
               </div>
-
               <div class="col-md-6">
                   <label for="prenom" class="form-label">Prénom</label>
-                  <input type="text" class="form-control @error('prenom') is-invalid @enderror" 
-                         id="prenom" name="prenom" value="{{ old('prenom') }}">
-                  @error('prenom')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
+                  <input type="text" class="form-control" id="prenom" name="prenom">
               </div>
           </div>
-
           <div class="mb-3">
               <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-              <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                     id="email" name="email" value="{{ old('email') }}" required>
-              @error('email')
-                  <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
+              <input type="email" class="form-control" id="email" name="email" required>
           </div>
-
           <div class="row mb-3">
               <div class="col-md-6">
                   <label for="tel" class="form-label">Téléphone</label>
-                  <input type="text" class="form-control @error('tel') is-invalid @enderror" 
-                         id="tel" name="tel" value="{{ old('tel') }}">
-                  @error('tel')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
+                  <input type="text" class="form-control" id="tel" name="tel">
               </div>
-
               <div class="col-md-6">
                   <label for="adresse" class="form-label">Adresse</label>
-                  <input type="text" class="form-control @error('adresse') is-invalid @enderror" 
-                         id="adresse" name="adresse" value="{{ old('adresse') }}">
-                  @error('adresse')
-                      <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
+                  <input type="text" class="form-control" id="adresse" name="adresse">
               </div>
           </div>
-
           <div class="d-flex justify-content-end">
-              <button type="submit" class="btn btn-success me-2">
-                  <i class="fas fa-save"></i> Enregistrer
-              </button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                  <i class="fas fa-times"></i> Annuler
-              </button>
+              <button type="submit" class="btn btn-success me-2"><i class="fas fa-save"></i> Enregistrer</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Annuler</button>
           </div>
         </form>
       </div>
@@ -153,22 +73,65 @@
 </div>
 @endsection
 
+{{-- DataTables Core --}}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-1.13.6/datatables.min.js"></script>
 
-@section('scripts')
+{{-- DataTables Buttons & Export --}}
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
 <script>
-    $(document).ready(function() {
-        $('#prospectsTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr_fr.json"
+$(document).ready(function() {
+    $('#prospectsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('aft_prospects.data') }}",
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'full_name', name: 'full_name' },
+            { data: 'email', name: 'email' },
+            { data: 'numero', name: 'numero' },
+            { data: 'type', name: 'type' },
+            { data: 'created_at', name: 'created_at' }
+        ],
+        language: {
+            url: "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr_fr.json",
+            search: "🔍 Rechercher :",
+            paginate: { previous: "Précédent", next: "Suivant" },
+            zeroRecords: "Aucun prospect trouvé",
+            processing: "Chargement..."
+        },
+        pageLength: 10,
+        order: [[1, "desc"]],
+        responsive: true,
+        autoWidth: false,
+
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'print',
+                text: '🖨️ Imprimer',
+                exportOptions: { columns: ':visible' }
             },
-            "pageLength": 10,
-            "lengthMenu": [5, 10, 25, 50, 100],
-            "ordering": true,
-            "order": [[0, "desc"]],
-            "searching": true,
-            "paging": true
-        });
+            // {
+            //     extend: 'pdfHtml5',
+            //     text: '📄 PDF',
+            //     orientation: 'landscape',
+            //     pageSize: 'A4',
+            //     exportOptions: { columns: ':visible' }
+            // },
+            // {
+            //     extend: 'excelHtml5',
+            //     text: '📊 Excel',
+            //     exportOptions: { columns: ':visible' }
+            // }
+        ]
     });
+});
 </script>
-@endsection

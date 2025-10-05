@@ -206,6 +206,12 @@
             
             <h5 class="text-center mb-4 mt-5">Récapitulatif de votre envoi</h5>
             <div class="recapitulatif-section form-section">
+                {{-- NOUVELLE SECTION POUR LE TRANSIT --}}
+                <h6>Informations sur l'envoi :</h6>
+                <p><strong>Mode de Transit :</strong> <span id="recap_mode_transit"></span></p>
+                <p><strong>Référence du Colis :</strong> <span id="recap_reference_colis"></span></p>
+                <hr>
+                
                 <div class="row">
                     <div class="col-md-6"><h6>Expéditeur :</h6><p><strong>Nom :</strong> <span id="recap_nom_expediteur"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_expediteur"></span></p><p><strong>Agence :</strong> <span id="recap_agence_expediteur"></span></p></div>
                     <div class="col-md-6"><h6>Destinataire :</h6><p><strong>Nom :</strong> <span id="recap_nom_destinataire"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_destinataire"></span></p><p><strong>Agence :</strong> <span id="recap_agence_destinataire"></span></p></div>
@@ -249,11 +255,11 @@
                         <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
                         <select name="mode_payement" id="mode_payement" class="form-control">
                             <option value="" disabled selected>-- Sélectionnez --</option>
-                            <option value="bank_section">Virement Bancaire</option>
-                            <option value="mobile_money_section">Mobile Money</option>
-                            <option value="cheque_section">Chèque</option>
-                            <option value="cash_section">Espèces</option>
-                            <option value="delivery_section">Paiement à la livraison</option>
+                            <option value="bank">Virement Bancaire</option>
+                            <option value="mobile_money">Mobile Money</option>
+                            <option value="cheque">Chèque</option>
+                            <option value="cash">Espèces</option>
+                            <option value="delivery">Paiement à la livraison</option>
                         </select>
                     </div>
                 </div>
@@ -335,7 +341,7 @@
                         <div class="mb-3"><label for="description_produit" class="form-label">Description</label><input type="text" name="description" id="description_produit" class="form-control"></div>
                          <input type="hidden" name="categorie" value="Colis">
                         <div class="mb-3"><label for="prix_unitaire" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire" class="form-control" min="0"></div>
-                        <div class="mb-3"><label for="agence" class="form-label">Agence de destination</label><select name="agence" id="agence" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                        <div class="mb-3"><label for="agence" class="form-label">Agence de destination</label><select name="agence" id="agence" class="form-control"><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
                     </form>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-produit" data-url="{{ route('aftlb_colis.store.produit') }}">Créer</button></div>
@@ -346,7 +352,6 @@
 
 <script>
 $(document).ready(function () {
-    // ... (le reste de votre code jQuery pour la recherche client, etc., reste inchangé) ...
     const searchInput = $('#client_select');
     const resultsContainer = $('#client_autocomplete_results');
 
@@ -363,7 +368,7 @@ $(document).ready(function () {
             dataType: 'json',
             data: { q: query },
             success: function (data) {
-                resultsContainer.html('');
+                resultsContainer.empty(); // Vider les anciens résultats
                 if (data.length > 0) {
                     data.forEach(function (client) {
                         const item = $(`
@@ -396,7 +401,9 @@ $(document).ready(function () {
                     });
                     resultsContainer.show();
                 } else {
-                    resultsContainer.hide();
+                    // **MODIFICATION : Affiche un message si aucun client n'est trouvé**
+                    resultsContainer.html('<div class="autocomplete-item text-danger">Ce client n\'existe pas.</div>');
+                    resultsContainer.show();
                 }
             }
         });
@@ -437,13 +444,11 @@ $(document).ready(function () {
     }
 
     $(".btn-next").click(function() {
-        // Le récapitulatif est mis à jour avant de passer à l'étape suivante
-        if (currentStep >= 3) { // Mettre à jour depuis l'étape colis
+        if (currentStep >= 3) {
             updateRecapitulatif();
         }
 
         if (currentStep < fieldsets.length - 1) {
-            // Si on va vers l'étape de paiement (index 5)
             if (currentStep + 1 === 5) {
                 const total = $('#recap_total_a_payer').text();
                 const devise = $('#recap_devise').text();
@@ -460,12 +465,12 @@ $(document).ready(function () {
 
     steps.click(function() {
         const stepIndex = $(this).data("step");
-        // Si on navigue vers l'étape 4 (Récap) ou 5 (Paiement), on recalcule tout.
         if (stepIndex >= 4) {
              updateRecapitulatif();
         }
         showStep(stepIndex);
     });
+
     $(".btn-prev").click(function() {
         if (currentStep > 0) {
             showStep(currentStep - 1);
@@ -539,10 +544,6 @@ $(document).ready(function () {
 
     const colisContainer = $("#colis-container");
 
-    /******************************************************************/
-    /*         SECTION DE CALCUL DES TOTAUX - AMÉLIORÉE               */
-    /******************************************************************/
-
     function calculateColisTotal(colisElement) {
         const modeTransit = $('#mode_transit').val();
         const prixUnitaire = parseFloat(colisElement.find(".prix-colis").attr("data-prix-unitaire")) || parseFloat(colisElement.find(".prix-colis").val()) || 0;
@@ -577,10 +578,6 @@ $(document).ready(function () {
             resultDiv.text(h && la && lo ? `${lo}x${la}x${h} cm` : '').toggle(!!(h && la && lo));
         });
     }
-    
-    /******************************************************************/
-    /*                 FIN DE LA SECTION DE CALCUL                    */
-    /******************************************************************/
     
     initAutocomplete($('.service-input'), "{{ route('aftlb_colis.recherche.auto.service') }}", 'Service');
     $('.prix-service').on('input', function() {
@@ -749,6 +746,18 @@ $(document).ready(function () {
     function updateRecapitulatif() {
         const isSociete = $('#categorie_client').val() === 'societe';
         
+        // **MODIFICATION : Ajout du mode de transit et de la référence**
+        const modeTransit = $('#mode_transit option:selected').text();
+        $('#recap_mode_transit').text(modeTransit || 'N/A');
+
+        let referenceColis = '';
+        if ($('#mode_transit').val() === 'maritime') {
+            referenceColis = $('input[name="reference_colis_maritime"]').val();
+        } else if ($('#mode_transit').val() === 'aerien') {
+            referenceColis = $('input[name="reference_colis_aerien"]').val();
+        }
+        $('#recap_reference_colis').text(referenceColis || 'N/A');
+        
         // --- Infos Expéditeur / Destinataire ---
         const nomExp = isSociete ? $('#nom_societe_expediteur').val() : `${$('#nom_expediteur').val()} ${$('#prenom_expediteur').val()}`;
         const telExp = isSociete ? $('#tel_expediteur_societe').val() : $('#tel_expediteur').val();
@@ -765,7 +774,7 @@ $(document).ready(function () {
 
         // --- Logique pour le détail des colis ---
         const detailsColisContainer = $('#recap_details_colis');
-        detailsColisContainer.empty(); // Vider le contenu précédent
+        detailsColisContainer.empty(); 
 
         let totalColis = 0;
         const devise = $('.devise-select:first').val() || 'EUR';
@@ -800,9 +809,8 @@ $(document).ready(function () {
         $('#recap_total_services').text(totalServices.toFixed(2));
         $('#recap_total_a_payer').text(totalAPayer.toFixed(2));
         $('#recap_devise').text(devise);
-        $('.recap_devise_class').text(devise); // Mettre à jour la devise pour les sous-totaux
+        $('.recap_devise_class').text(devise);
     }
-    // FIN DE LA FONCTION MISE À JOUR
 
     $('#mode_payement').on('change', function() {
         $('.payment-section').hide();

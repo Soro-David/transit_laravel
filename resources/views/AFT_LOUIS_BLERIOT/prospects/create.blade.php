@@ -1,4 +1,4 @@
-@extends('admin.layouts.admin')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 
 @section('content')
 <div class="container py-4">

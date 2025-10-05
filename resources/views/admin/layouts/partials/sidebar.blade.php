@@ -263,7 +263,7 @@
                 </li>
                 {{-- endRDV --}}
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('client.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                    <a href="{{ route('message.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>{{ __('Clients') }}</p>
                     </a>

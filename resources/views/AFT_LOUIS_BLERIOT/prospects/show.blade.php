@@ -1,4 +1,4 @@
-@extends('admin.layouts.adminprint')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 
 @section('content')
 

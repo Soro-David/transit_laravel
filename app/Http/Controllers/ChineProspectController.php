@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 use Carbon\Carbon;
 
-class ProspectController extends Controller
+class ChineProspectController extends Controller
 {
     public function index()
     {
-        return view('admin.prospects.index');
+        return view('AGENCE_CHINE.prospects.index');
     }
 
     public function getProspects(Request $request)
@@ -31,7 +31,7 @@ class ProspectController extends Controller
             User::pluck('email')->toArray()
         );
 
-        // Récupération prospects
+        // Récupération prospects 
         $prospects = Prospect::whereNotIn('email', $excludedEmails)
             ->get(['nom', 'prenom', 'email', 'tel', 'created_at'])
             ->map(function ($item) {
@@ -61,11 +61,11 @@ class ProspectController extends Controller
         $merged = $prospects->concat($contacts);
 
         $unique = $merged
-            ->sortByDesc('created_at') // Assure le tri décroissant sur la collection complète
+            ->sortByDesc('created_at')
             ->unique('email')
             ->values()
             ->map(function ($item, $index) {
-                $item->id = $index + 1; // Ajoute un ID pour DataTables
+                $item->id = $index + 1;
                 return $item;
             });
 
@@ -109,7 +109,7 @@ class ProspectController extends Controller
         Prospect::create($validated);
 
         return redirect()
-            ->route('prospects.index')
+            ->route('chine_prospects.index')
             ->with('success', '✅ Prospect créé avec succès.');
     }
 
@@ -130,7 +130,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return view('admin.prospects.show', compact('prospect'));
+        return view('AGENCE_CHINE.prospects.show', compact('prospect'));
     }
 
 
@@ -149,7 +149,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return view('admin.prospects.edit', compact('prospect'));
+        return view('AGENCE_CHINE.prospects.edit', compact('prospect'));
     }
 
 
@@ -167,7 +167,7 @@ class ProspectController extends Controller
                     'required',
                     'email',
                     'max:255',
-                    Rule::unique('expediteurs', 'email')->ignore($originalId), // Ignore l'ID actuel
+                    Rule::unique('expediteurs', 'email')->ignore($originalId),
                     Rule::unique('users', 'email'),
                 ],
                 'tel' => 'nullable|string|max:20',
@@ -183,7 +183,7 @@ class ProspectController extends Controller
                     'required',
                     'email',
                     'max:255',
-                    Rule::unique('prospects', 'email')->ignore($originalId), // Ignore l'ID actuel
+                    Rule::unique('prospects', 'email')->ignore($originalId),
                     Rule::unique('users', 'email'),
                     Rule::unique('expediteurs', 'email'),
                 ],
@@ -195,7 +195,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return redirect()->route('prospects.index')->with('success', 'Prospect mis à jour avec succès.');
+        return redirect()->route('aft_prospects.index')->with('success', 'Prospect mis à jour avec succès.');
     }
 
 

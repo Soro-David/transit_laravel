@@ -209,6 +209,11 @@
             <h5 class="text-center mb-4 mt-5">Récapitulatif de votre envoi</h5>
             <div class="recapitulatif-section form-section">
                 <div class="row">
+                    <div class="col-md-6"><p><strong>Référence :</strong> <span id="recap_reference"></span></p></div>
+                    <div class="col-md-6"><p><strong>Mode de Transit :</strong> <span id="recap_mode_transit"></span></p></div>
+                </div>
+                <hr>
+                <div class="row">
                     <div class="col-md-6"><h6>Expéditeur :</h6><p><strong>Nom :</strong> <span id="recap_nom_expediteur"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_expediteur"></span></p><p><strong>Agence :</strong> <span id="recap_agence_expediteur"></span></p></div>
                     <div class="col-md-6"><h6>Destinataire :</h6><p><strong>Nom :</strong> <span id="recap_nom_destinataire"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_destinataire"></span></p><p><strong>Agence :</strong> <span id="recap_agence_destinataire"></span></p></div>
                 </div>
@@ -258,7 +263,7 @@
                             <option value="mobile_money">Mobile Money</option>
                             <option value="cheque">Chèque</option>
                             <option value="cash">Espèces</option>
-                            <option value="livraison">Paiement à la livraison</option>
+                            <option value="delivery">Paiement à la livraison</option>
                         </select>
                     </div>
                 </div>
@@ -380,6 +385,11 @@
 </section>
 
 <script>
+// =================================================================
+// MODIFICATION : Déclaration d'une variable globale pour le message
+// =================================================================
+let specialContainerMessage = null;
+
 document.addEventListener('DOMContentLoaded', function () {
     const modeTransitSelect = document.getElementById('mode_transit');
     const agenceExpediteurSelect = document.getElementById('agence_expediteur');
@@ -395,6 +405,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const mode = modeTransitSelect.value;
         const agence = agenceExpediteurSelect.value;
 
+        // On réinitialise le message à chaque nouvelle sélection pour éviter de garder un ancien message
+        specialContainerMessage = null;
+
+        console.log(specialContainerMessage);
         if (!mode || !agence) {
             refContainer.style.display = 'none';
             return;
@@ -421,6 +435,13 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 refLabel.textContent = `Référence (${mode.charAt(0).toUpperCase() + mode.slice(1)})`;
                 refInput.value = data.reference_colis;
+                
+                // =================================================================
+                // MODIFICATION : On capture le message s'il existe dans la réponse
+                // =================================================================
+                if (data.message) {
+                    specialContainerMessage = data.message;
+                }
             }
         })
         .catch(error => {
@@ -433,6 +454,39 @@ document.addEventListener('DOMContentLoaded', function () {
 $(document).ready(function () {
     const searchInput = $('#client_select');
     const resultsContainer = $('#client_autocomplete_results');
+    const mainForm = $('.form-container'); 
+
+    // =================================================================
+    // MODIFICATION : POPUP CONDITIONNELLE AVANT LA SOUMISSION DU FORMULAIRE
+    // =================================================================
+    mainForm.on('submit', function(e) {
+        // On empêche la soumission automatique pour la contrôler
+        e.preventDefault(); 
+        
+        // On vérifie si notre message spécial a été défini lors de la génération de la référence
+        if (specialContainerMessage) {
+             // Si oui, on affiche une alerte de confirmation
+            Swal.fire({
+                title: 'Attention !',
+                text: specialContainerMessage + ". Voulez-vous continuer ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Oui, valider !',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                // Si l'utilisateur clique sur "Oui", on soumet le formulaire
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        } else {
+            // S'il n'y a pas de message, on soumet le formulaire directement sans alerte.
+            this.submit();
+        }
+    });
+
 
     searchInput.on('keyup', function () {
         const query = $(this).val();
@@ -480,7 +534,7 @@ $(document).ready(function () {
                     });
                     resultsContainer.show();
                 } else {
-                    resultsContainer.hide();
+                    resultsContainer.html('<div class="autocomplete-item text-danger">Ce nom n\'existe pas.</div>').show();
                 }
             }
         });
@@ -510,23 +564,18 @@ $(document).ready(function () {
         });
     }
 
-    /************************************************************/
-    /*         LOGIQUE DE NAVIGATION AMÉLIORÉE (CORRIGÉE)       */
-    /************************************************************/
     function showStep(stepIndex) {
-        // Mettre à jour le récapitulatif en arrivant à l'étape 5 (index 4)
-        if (stepIndex === 4) {
+        if (stepIndex === 4 || stepIndex === 5) {
             updateRecapitulatif();
         }
         
-        // Mettre à jour les infos de paiement en arrivant à l'étape 6 (index 5)
         if (stepIndex === 5) {
             const total = $('#recap_total_a_payer').text();
             const devise = $('#recap_devise').text();
             $('#payment_total').text(total);
             $('#payment_devise').text(devise);
             const totalValue = parseFloat(total) || 0;
-            $('#montant_recu').attr('max', totalValue).attr('placeholder', `Montant max: ${totalValue}`);
+            $('input[name="montant_reçu"]').attr('max', totalValue).attr('placeholder', `Montant max: ${totalValue}`);
         }
         
         fieldsets.hide().eq(stepIndex).show();
@@ -556,7 +605,6 @@ $(document).ready(function () {
         showStep(stepIndex);
     });
 
-    // Afficher la première étape au chargement
     showStep(0);
 
     const agenceOptionsByMode = {
@@ -714,7 +762,7 @@ $(document).ready(function () {
                                 }).appendTo(resultsContainer);
                         });
                     } else {
-                        resultsContainer.hide();
+                        resultsContainer.html('<div class="autocomplete-item text-danger">Ce produit n\'existe pas.</div>').show();
                     }
                 },
                 error: function() { resultsContainer.empty().hide(); }
@@ -745,7 +793,11 @@ $(document).ready(function () {
         };
 
         if (!data.description || isNaN(data.prix) || data.prix <= 0) {
-            alert("Veuillez remplir tous les champs correctement.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Champs Incomplets',
+                text: 'Veuillez remplir tous les champs correctement.'
+            });
             return;
         }
 
@@ -755,7 +807,11 @@ $(document).ready(function () {
         $.ajax({
             url: btn.data("url"), type: "POST", data: data, dataType: 'json',
             success: function (response) {
-                alert(response.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès!',
+                    text: response.message
+                });
                 if (activeProduitInput) {
                     const colisItem = activeProduitInput.closest('.colis-item');
                     activeProduitInput.val(data.description);
@@ -765,7 +821,13 @@ $(document).ready(function () {
                 $("#produitModal").modal("hide");
                 form[0].reset();
             },
-            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            error: function (xhr) { 
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: xhr.responseJSON?.message || "Une erreur est survenue lors de la création du produit."
+                });
+            },
             complete: function() { btn.prop("disabled", false).text("Créer"); }
         });
     });
@@ -781,7 +843,11 @@ $(document).ready(function () {
         };
 
         if (!data.description || isNaN(data.prix) || data.prix <= 0) {
-            alert("Veuillez remplir tous les champs correctement.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Champs Incomplets',
+                text: 'Veuillez remplir tous les champs correctement.'
+            });
             return;
         }
 
@@ -791,25 +857,34 @@ $(document).ready(function () {
         $.ajax({
             url: btn.data("url"), type: "POST", data: data, dataType: 'json',
             success: function (response) {
-                alert(response.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès!',
+                    text: response.message
+                });
                 $('.service-input').val(data.description);
                 $('.prix-service').val(data.prix);
                 $('.prix-total-service').text(parseFloat(data.prix).toFixed(2));
                 $("#ServiceModal").modal("hide");
                 form[0].reset();
             },
-            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: xhr.responseJSON?.message || "Une erreur est survenue lors de la création du service."
+                });
+            },
             complete: function() { btn.prop("disabled", false).text("Créer"); }
         });
     });
 
-    /******************************************************************/
-    /*         FONCTION DE RÉCAPITULATIF (CORRIGÉE)                   */
-    /******************************************************************/
     function updateRecapitulatif() {
+        $('#recap_reference').text($('#reference_colis_input').val() || 'N/A');
+        $('#recap_mode_transit').text($('#mode_transit option:selected').text() || 'N/A');
+
         const isSociete = $('#categorie_client').val() === 'societe';
     
-        // Remplir les informations de l'expéditeur et du destinataire
         const nomExp = isSociete ? $('#nom_societe_expediteur').val() : `${$('#nom_expediteur').val()} ${$('#prenom_expediteur').val()}`;
         const telExp = isSociete ? $('#tel_expediteur_societe').val() : $('#tel_expediteur').val();
         $('#recap_nom_expediteur').text(nomExp.trim() || 'N/A');
@@ -823,7 +898,6 @@ $(document).ready(function () {
         $('#recap_tel_destinataire').text(telDestNum ? `${codePays} ${telDestNum}` : 'N/A');
         $('#recap_agence_destinataire').text($('#agence_destinataire option:selected').text() || 'N/A');
     
-        // Préparer le tableau récapitulatif
         const colisDetailsContainer = $('#recap_colis_details');
         colisDetailsContainer.empty();
     
@@ -831,26 +905,16 @@ $(document).ready(function () {
         const devise = $('.devise-select:first').val() || 'EUR';
         $('#recap_colis_prix_header').text(`Prix Total (${devise})`);
     
-        // Boucle sur chaque colis pour remplir le tableau
         $('.colis-item').each(function() {
             const colis = $(this);
             const nomProduit = colis.find(".produit-input").val().trim();
             
-            // Ignorer les lignes sans nom de produit
             if (!nomProduit) return;
     
-            // Récupérer la quantité pour l'affichage
             const quantite = parseInt(colis.find(".quantite-colis").val()) || 1;
-    
-            // ==================== MODIFICATION CI-DESSOUS ====================
-            // On récupère directement le prix total du colis déjà calculé dans la variable 'prix' (ici totalLigne)
-            // au lieu de le recalculer.
             const totalLigne = parseFloat(colis.find(".prix-total").text()) || 0;
-            // ====================== FIN DE LA MODIFICATION =====================
-
             totalAPayer += totalLigne;
     
-            // Créer la ligne HTML
             const rowHtml = `
                 <tr>
                     <td>${nomProduit}</td>
@@ -861,7 +925,6 @@ $(document).ready(function () {
             colisDetailsContainer.append(rowHtml);
         });
     
-        // Ajouter le service additionnel
         const prixService = parseFloat($('.prix-total-service').text()) || 0;
         const descService = $('.service-input').val().trim();
         if (prixService > 0 && descService) {
@@ -876,7 +939,6 @@ $(document).ready(function () {
             colisDetailsContainer.append(serviceRowHtml);
         }
     
-        // Mettre à jour le total général
         $('#recap_total_a_payer').text(totalAPayer.toFixed(2));
         $('#recap_devise').text(devise);
     }

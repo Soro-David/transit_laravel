@@ -455,6 +455,36 @@ public function getTotalPrixTransit()
 }
 
 
+    public function toggleBlockStatus(User $user)
+    {
+        // Empêcher un admin de se bloquer lui-même
+        if (auth()->check() && auth()->user()->id === $user->id) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Action non autorisée : vous ne pouvez pas vous bloquer vous-même.'
+            ], 403);
+        }
+
+        try {
+            $user->is_active = !$user->is_active;
+            $user->save();
+
+            $status = $user->is_active ? 'débloqué' : 'bloqué';
+            $message = "Le client a été {$status} avec succès.";
+            
+            return response()->json([
+                'success' => true, 
+                'message' => $message, 
+                'is_active' => $user->is_active
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur lors du changement de statut pour l'utilisateur #{$user->id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Une erreur serveur s'est produite."
+            ], 500);
+        }
+    }
     //Ipms_angre
 
 

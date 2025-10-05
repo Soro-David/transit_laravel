@@ -231,9 +231,15 @@
                 </li>
                 {{-- endRDV --}}
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('aft_client.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                    <a href="{{ route('aftlb_message.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>Clients</p>
+                    </a>
+                </li>
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('aft_prospects.index') }}" class="nav-link {{ activeSegment('customers') }}">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>{{ __('Prospect') }}</p>
                     </a>
                 </li>
                 {{-- progammz de transport --}}

@@ -1,5 +1,4 @@
 @extends('admin.layouts.admin')
-
 @section('content')
 @php
     // =================================================================
@@ -55,14 +54,24 @@
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         <input type="text" id="client_select" class="form-control" placeholder="Rechercher par nom, prénom, téléphone...">
                                     </div>
-                                    <div id="client_autocomplete_results" class="autocomplete-results"></div>
+                                    {{-- Le conteneur de résultats est positionné ici --}}
+                                    <div class="autocomplete-results"></div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-3"><label>Nom</label><input type="text" name="nom_expediteur" value="{{ $info_partagees->expediteur->nom ?? '' }}" class="form-control" required></div>
                                 <div class="col-md-3"><label>Prénom</label><input type="text" name="prenom_expediteur" value="{{ $info_partagees->expediteur->prenom ?? '' }}" class="form-control" required></div>
                                 <div class="col-md-3"><label>Contact</label><input type="text" name="tel_expediteur" value="{{ $info_partagees->expediteur->tel ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Agence d'expédition</label><input type="text" name="agence_expediteur" value="{{ $info_partagees->agence ?? '' }}" class="form-control" required></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Agence d'expédition</label>
+                                    <div class="input-group">
+                                        <select name="agence_expediteur" class="form-select" required>
+                                            <option value="AFT Agence Louis Bleriot" selected>AFT Agence Louis Bleriot</option>
+                                            <option value="Agence de Chine">Agence de Chine</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-3"><label>Reference</label><input type="text" name="" value="{{ $reference ?? '' }}" class="form-control" disabled></div>
                             </div>
                         </div>
@@ -283,7 +292,7 @@
         });
 
         // ===============================================
-        // LOGIQUE D'AUTOCOMPLÉTION
+        // LOGIQUE D'AUTOCOMPLÉTION GÉNÉRIQUE
         // ===============================================
         function initAutocomplete(element, url, categorie, onSelectCallback) {
             element.on('keyup', function() {
@@ -311,6 +320,7 @@
             });
         }
         
+        // Autocomplétion pour les produits
         const productAutocompleteCallback = (el, item) => {
             el.val(item.description);
             let groupContainer = el.closest('.form-section');
@@ -463,15 +473,12 @@
         };
 
         function initializeServiceAutocomplete() {
-            // Cible l'input à l'intérieur du conteneur pour éviter les conflits
             initAutocomplete($('#service-container .service-autocomplete'), "{{ route('colis.recherche.auto.service') }}", 'Service', serviceAutocompleteCallback);
         }
         
-        // Initialise pour le service existant au chargement
-        initializeServiceAutocomplete();
+        initializeServiceAutocomplete(); // Initialise pour le service existant au chargement
 
         $('#add-service').on('click', function() {
-            // On crée le HTML pour la nouvelle section de service
             const serviceHtml = `
                 <div class="form-section" id="service-section" style="display: none;">
                     <div class="row align-items-end">
@@ -493,17 +500,10 @@
                     </div>
                 </div>`;
             
-            // On ajoute le HTML au conteneur et on l'affiche avec un effet
             $('#service-container').html(serviceHtml);
             $('#service-section').fadeIn(300);
-            
-            // On initialise l'autocomplétion pour les nouveaux champs
             initializeServiceAutocomplete();
-            
-            // On cache le bouton "Ajouter un service"
             $(this).parent().hide();
-            
-            // On recalcule les totaux
             calculateTotals();
         });
 
@@ -516,15 +516,72 @@
         });
 
         // ===============================================
-        // AUTOCOMPLETION CLIENT
+        // AUTOCOMPLETION CLIENT (EXPÉDITEUR)
         // ===============================================
-        const clientAutocompleteCallback = (el, item) => {
-            $('input[name="nom_expediteur"]').val(item.nom || '');
-            $('input[name="prenom_expediteur"]').val(item.prenom || '');
-            $('input[name="tel_expediteur"]').val(item.tel || '');
-        };
-        initAutocomplete($('#client_select'), "{{ route('colis.recherche.auto.service') }}", 'Client', clientAutocompleteCallback);
+        $('#client_select').on('keyup', function() {
+            const query = $(this).val();
+            const searchInput = $(this);
+            const resultsContainer = searchInput.closest('.position-relative').find('.autocomplete-results');
 
+            if (query.length < 2) {
+                resultsContainer.hide();
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('colis.clients.search') }}", // URL pour la recherche de clients
+                dataType: 'json',
+                data: { q: query },
+                success: function(data) {
+                    resultsContainer.html(''); // On vide les anciens résultats
+                    if (data && data.length > 0) {
+                        data.forEach(function(client) {
+                            // On construit le nom complet pour l'affichage
+                            const clientFullName = `${client.first_name || ''} ${client.last_name || ''}`.trim();
+                            const clientTel = client.tel || 'N/A';
+
+                            // On crée un élément cliquable pour chaque client trouvé
+                            const item = $(`
+                                <div class="autocomplete-item">
+                                    <strong>${clientFullName}</strong><br>
+                                    <small class="text-muted"><i class="fas fa-phone-alt"></i> ${clientTel}</small>
+                                </div>
+                            `);
+
+                            // On attache l'événement 'click'
+                            item.on('click', function() {
+                                // Quand on clique sur un client :
+                                
+                                // 1. On met le nom complet dans le champ de recherche (feedback visuel)
+                                searchInput.val(clientFullName);
+                                
+                                // 2. On remplit TOUS les champs de l'expéditeur avec les informations du client.
+                                //    Il est supposé que l'objet 'client' contient: last_name, first_name, tel, agence
+                                $('input[name="nom_expediteur"]').val(client.last_name || '');
+                                $('input[name="prenom_expediteur"]').val(client.first_name || '');
+                                $('input[name="tel_expediteur"]').val(client.tel || '');
+                                $('input[name="agence_expediteur"]').val(client.agence || ''); // On remplit aussi l'agence
+                                
+                                // 3. On masque la liste des résultats
+                                resultsContainer.hide();
+                            });
+
+                            resultsContainer.append(item);
+                        });
+                        resultsContainer.show(); // On affiche le conteneur des résultats
+                    } else {
+                        // Message si aucun client n'est trouvé
+                        resultsContainer.html('<div class="autocomplete-item text-muted">Aucun client trouvé.</div>').show();
+                    }
+                },
+                error: function() {
+                    // Message en cas d'erreur de la requête AJAX
+                    resultsContainer.html('<div class="autocomplete-item text-danger">Erreur lors de la recherche.</div>').show();
+                }
+            });
+        });
+
+        // Cache les résultats d'autocomplétion si l'utilisateur clique en dehors de la zone de recherche
         $(document).on('click', function (e) {
             if (!$(e.target).closest('.position-relative').length) {
                 $('.autocomplete-results').hide();
@@ -535,8 +592,10 @@
         // VALIDATION FINALE
         // ===============================================
         $('#validate-all-btn').on('click', function() {
+            // Nettoie les anciens champs de suppression avant d'ajouter les nouveaux
             $('input[name="deleted_ids[]"]').remove();
             
+            // Ajoute les IDs des colis à supprimer dans le formulaire
             $.each([...new Set(idsToDelete)], function(i, id) {
                 $('#update-all-form').append(`<input type="hidden" name="deleted_ids[]" value="${id}">`);
             });
@@ -575,6 +634,7 @@
     h5 { color: #4a6a8a; }
     hr { margin-top: 0; }
     .form-label { font-weight: 500; color: #495057; }
+    /* Styles pour le conteneur d'autocomplétion */
     .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; background-color: #fff; border: 1px solid #ced4da; border-radius: 0 0 5px 5px; max-height: 250px; overflow-y: auto; box-shadow: 0 5px 10px rgba(0,0,0,0.1); display: none; }
     .autocomplete-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
     .autocomplete-item:last-child { border-bottom: none; }

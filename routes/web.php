@@ -74,12 +74,65 @@ use Infobip\Api\Model\SmsTextualMessage;
 use Illuminate\Support\Facades\Mail; 
 use App\Http\Controllers\InfoAUtoController;
 use App\Http\Controllers\ProspectController;
+use App\Http\Controllers\ChineProspectController;
+use App\Http\Controllers\AftProspectController;
 use App\Http\Controllers\ColisTrackingController;
+use App\Http\Controllers\MessagingController;
+use App\Http\Controllers\AftlbMessagingController;
+use App\Http\Controllers\chineMessagingController;
+use App\Http\Controllers\apmsangreMessagingController;
+use App\Http\Controllers\apmsMessagingController;
 
 
-use App\Http\Controllers\OrangeSmsController;
+
+use App\Http\Controllers\OrangeSmsController; 
+use Vonage\Client;
+use Vonage\Client\Credentials\Basic;
+use Vonage\SMS\Message\SMS;;
 
 Route::get('/test-sms', [OrangeSmsController::class, 'sendTestSms']);
+
+
+
+Route::get('/test-sms-vonage', function () {
+    $key    = env('VONAGE_KEY');
+    $secret = env('VONAGE_SECRET');
+    $from   = env('VONAGE_FROM');
+
+    if (!$key || !$secret || !$from) {
+        return "Erreur : Vérifie VONAGE_KEY, VONAGE_SECRET et VONAGE_FROM dans .env";
+    }
+
+    $basic  = new Basic($key, $secret);
+    $client = new Client($basic);
+
+    $response = $client->sms()->send(
+        new SMS('+2250769502967', $from, 'Bonjour depuis Laravel avec Vonage !')
+    );
+
+    $message = $response->current();
+    return "SMS envoyé avec succès. Status: " . $message->getStatus();
+});
+
+// Route::get('/test-sms', function () {
+//     try {
+//         $sid = env('TWILIO_SID');
+//         $token = env('TWILIO_AUTH_TOKEN');
+//         $twilio = new Client($sid, $token);
+
+//         $message = $twilio->messages->create(
+//             '+2250160003513', // numéro du destinataire avec code pays
+//             [
+//                 'from' => env('TWILIO_PHONE_NUMBER'),
+//                 'body' => 'Bonjour depuis Laravel ! 🚀'
+//             ]
+//         );
+
+//         return "SMS envoyé avec succès. SID : " . $message->sid;
+//     } catch (\Exception $e) {
+//         return "Erreur : " . $e->getMessage();
+//     }
+// });
 
 
 Route::get('/test-mail', function () {
@@ -253,18 +306,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/qrcode/data',[QrcodeController::class, 'generate'])->name('qrcode.generate'); //DataTable route
 
 
-    // Route::prefix('client')->name('client.')->group(function () {
-    //     Route::get('/', [AdminController::class, 'clients'])->name('index');
-    //     Route::put('/deactivate/{nom}/{prenom}/{tel}/{email}', [AdminController::class, 'deactivateAccount'])->name('deactivate');
-
-    //     Route::post('/send-message/{tel}', [AdminController::class, 'sendMessageToClient'])->name('sendMessage');
-
-    //     Route::post('/send-global-message', [AdminController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
-    //     Route::get('/edit/{id}', [AdminController::class, 'edit'])->name('edit');
-    //     Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
-
-    // });
-
     Route::prefix('client')->name('client.')->group(function () {
         Route::get('/', [AdminController::class, 'clients'])->name('index');
         // Route::put('/deactivate/{id}', [AdminController::class, 'deactivateAccount'])->name('deactivate');
@@ -274,13 +315,19 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/send-global-message', [AdminController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
         Route::get('/edit/{id}', [AdminController::class, 'edit'])->name('edit');
         Route::put('/update/{id}', [AdminController::class, 'update'])->name('update');
+        Route::post('/users/{user}/toggle-block', [AdminController::class, 'toggleBlockStatus'])->name('toggleBlock');
     });
+
+
+
+
 
     Route::prefix('prospects')->name('prospects.')->group(function(){
-        Route::resource('/', ProspectController::class)->parameters(['' => 'prospect']); // Assurez-vous que le paramètre est 'prospect' pour le resource
+        Route::resource('/', ProspectController::class)->parameters(['' => 'prospect']);
+        Route::get('/prospects/data', [ProspectController::class, 'getProspects'])->name('data');
     });
 
-    
+
 
     Route::prefix('invoice')->name('invoice.')->group(function(){
         Route::get('/', [AdminInvoiceController::class, 'index'])->name('index'); 
@@ -461,6 +508,15 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::delete('/agent/{id}', [GestionAgentController::class, 'destroy'])->name('agent.destroy');
 
     });
+
+
+    Route::prefix('admin/messaging')->name('message.')->group(function () {
+        Route::get('/', [MessagingController::class, 'index'])->name('index');
+        Route::get('/clients-data', [MessagingController::class, 'getClients'])->name('clients.data');
+        Route::post('/send-filtered', [MessagingController::class, 'sendFilteredMessage'])->name('sendByFilter');
+        Route::post('/send-individual', [MessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
+    });
+    
    
     // transport
     Route::prefix('transport')->name('transport.')->group(function(){
@@ -728,9 +784,22 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::post('/send-global-message', [AftController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
         Route::get('/edit/{id}', [AftController::class, 'edit'])->name('edit');
         Route::put('/update/{id}', [AftController::class, 'update'])->name('update');
+        Route::post('/users/{user}/toggle-block', [AftController::class, 'toggleBlockStatus'])->name('toggleBlock');
+
     });
     
+        Route::prefix('aft/prospects')->name('aft_prospects.')->group(function(){
+            Route::resource('/', AftProspectController::class)->parameters(['' => 'prospect']);
+            Route::get('/prospects/data', [AftProspectController::class, 'getProspects'])->name('data');
+        });
 
+
+    Route::prefix('aftlb/messaging')->name('aftlb_message.')->group(function () {
+        Route::get('/', [AftlbMessagingController::class, 'index'])->name('index');
+        Route::get('/clients-data', [AftlbMessagingController::class, 'getClients'])->name('clients.data');
+        Route::post('/send-filtered', [AftlbMessagingController::class, 'sendFilteredMessage'])->name('sendByFilter');
+        Route::post('/send-individual', [AftlbMessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
+    });
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('aftlb_colis')->name('aftlb_colis.')->group(function(){
         Route::get('/', [AftlbColisController::class, 'index'])->name('index'); 
@@ -1026,6 +1095,13 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::put('/update/{id}', [AdminController::class, 'update_ipms'])->name('update');
     });
     // Groupe de routes pour les opérations sur les colis
+
+    Route::prefix('ipms/messaging')->name('ipms_message.')->group(function () {
+        Route::get('/', [apmsMessagingController::class, 'index'])->name('index');
+        Route::get('/clients-data', [apmsMessagingController::class, 'getClients'])->name('clients.data');
+        Route::post('/send-filtered', [apmsMessagingController::class, 'sendFilteredMessage'])->name('sendByFilter');
+        Route::post('/send-individual', [apmsMessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
+    });
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
         
         // --- ROUTES SPÉCIFIQUES D'ABORD ---
@@ -1241,6 +1317,18 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::put('/update/{id}', [HomeController::class, 'update_ipms_angre'])->name('update');
     });
 
+
+    Route::prefix('ipms_angre/messaging')->name('ipms_angre_message.')->group(function () {
+        Route::get('/', [apmsangreMessagingController::class, 'index'])->name('index');
+        Route::get('/clients-data', [apmsangreMessagingController::class, 'getClients'])->name('clients.data');
+        Route::post('/send-filtered', [apmsangreMessagingController::class, 'sendFilteredMessage'])->name('sendByFilter');
+        Route::post('/send-individual', [apmsangreMessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
+    });
+
+    Route::prefix('ipms_angre/prospects')->name('ipms_angre_prospects.')->group(function(){
+        Route::resource('/', ProspectController::class)->parameters(['' => 'prospect']);
+        Route::get('/prospects/data', [ProspectController::class, 'getProspects'])->name('data');
+    });
     // Groupe de routes pour les opérations sur les colis
     Route::prefix('ipms_angre_colis')->name('ipms_angre_colis.')->group(function(){
         Route::get('/', [ApmsAngreColisController::class, 'index'])->name('index'); 
@@ -1476,7 +1564,20 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
             Route::post('/send-global-message', [ChineController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
             Route::get('/edit/{id}', [AftControlChineControllerler::class, 'edit'])->name('edit');
             Route::put('/update/{id}', [ChineController::class, 'update'])->name('update');
+             Route::post('/users/{user}/toggle-block', [ChineController::class, 'toggleBlockStatus'])->name('toggleBlock');
         });
+
+    Route::prefix('chine/messaging')->name('chine_message.')->group(function () {
+        Route::get('/', [chineMessagingController::class, 'index'])->name('index');
+        Route::get('/clients-data', [chineMessagingController::class, 'getClients'])->name('clients.data');
+        Route::post('/send-filtered', [chineMessagingController::class, 'sendFilteredMessage'])->name('sendByFilter');
+        Route::post('/send-individual', [chineMessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
+    });
+
+    Route::prefix('chine/prospects')->name('chine_prospects.')->group(function(){
+        Route::resource('/', ChineProspectController::class)->parameters(['' => 'prospect']);
+        Route::get('/prospects/data', [ChineProspectController::class, 'getProspects'])->name('data');
+    });
     Route::prefix('chine_colis')->name('chine_colis.')->group(function(){
         Route::get('/', [ChineColisController::class, 'index'])->name('index'); 
         Route::get('/on-hold-aft_chine', [ChineColisController::class, 'hold'])->name('hold'); 

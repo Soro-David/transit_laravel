@@ -70,84 +70,6 @@ public function index()
      }
 
   
-    
-
-    
-
-    
-    //  public function clients(Request $request)
-    //  {
-    //      $agenceName = 'AFT Agence Louis Bleriot';
-     
-    //      $clients = DB::table('expediteurs')
-    //          ->select(
-    //              'nom',
-    //              'prenom',
-    //              'tel',
-    //              'email',
-    //              DB::raw("'expediteur' as type"),
-    //              'created_at'
-    //          )
-    //          ->where('agence', $agenceName) // Filtrer les expéditeurs par agence
-    //          ->unionAll(
-    //              DB::table('destinataires')
-    //                  ->select(
-    //                      'nom',
-    //                      'prenom',
-    //                      'tel',
-    //                      'email',
-    //                      DB::raw("'destinataire' as type"),
-    //                      'created_at'
-    //                  )
-    //                  ->where('agence', $agenceName) // Filtrer les destinataires par agence
-    //          )
-    //          ->get();
-     
-    //      $groupedClients = $clients->groupBy(function ($client) {
-    //          return $client->nom . '|' . $client->prenom . '|' . $client->tel . '|' . $client->email;
-    //      });
-     
-    //      $uniqueClients = $groupedClients->map(function ($group) {
-    //          $client = $group->first();
-     
-    //          $types = $group->pluck('type')->unique()->toArray();
-     
-    //          if (count($types) === 2) {
-    //              $client->type_client = 'expediteur et destinataire';
-    //          } else {
-    //              $client->type_client = $types[0];
-    //          }
-     
-    //          return $client;
-    //      })->values();
-     
-    //      return view('AFT_LOUIS_BLERIOT.client.index', compact('uniqueClients'));
-    //  }
-
-
-    // public function edit($nom, $prenom, $tel, $email)
-    // {
-        
-    //     $expediteur = Expediteur::where('nom', $nom)
-    //                         ->where('prenom', $prenom)
-    //                         ->where('tel', $tel)
-    //                         ->where('email', $email)
-    //                         ->first();
-
-    //     $destinataire = Destinataire::where('nom', $nom)
-    //                             ->where('prenom', $prenom)
-    //                             ->where('tel', $tel)
-    //                             ->where('email', $email)
-    //                             ->first();
-
-    //     $client = $expediteur ?? $destinataire; // Prend le premier trouvé
-
-    //     if (!$client) {
-    //         abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
-    //     }
-
-    //     return view('AFT_LOUIS_BLERIOT.client.edit', compact('client')); // Créer une vue "edit.blade.php"
-    // }
 
 public function destroy($nom, $prenom, $tel, $email)
 {
@@ -194,44 +116,6 @@ public function destroy($nom, $prenom, $tel, $email)
         return view('AFT_LOUIS_BLERIOT.client.show', compact('client', 'type_client'));
     }
 
-//     public function update(Request $request, $nom, $prenom, $tel, $email)
-// {
-//      // Valider les données de la requête
-//      $validatedData = $request->validate([
-//         'nom' => 'required|string|max:255',
-//         'prenom' => 'required|string|max:255',
-//         'tel' => 'required|string|max:20',
-//         'email' => 'required|email|max:255',
-//     ]);
-//         // Rechercher le client dans la base de données (expéditeurs ou destinataires)
-//     // (Exemple simplifié - à adapter à votre logique de recherche)
-
-//     $expediteur = Expediteur::where('nom', $nom)
-//     ->where('prenom', $prenom)
-//     ->where('tel', $tel)
-//     ->where('email', $email)
-//     ->first();
-
-//     $destinataire = Destinataire::where('nom', $nom)
-//     ->where('prenom', $prenom)
-//     ->where('tel', $tel)
-//     ->where('email', $email)
-//     ->first();
-
-//     $client = $expediteur ?? $destinataire; // Prend le premier trouvé
-
-//     if (!$client) {
-//     abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
-//     }
-//        // Mettre à jour les informations du client
-//     $client->nom = $validatedData['nom'];
-//     $client->prenom = $validatedData['prenom'];
-//     $client->tel = $validatedData['tel'];
-//     $client->email = $validatedData['email'];
-//     $client->save();
-//      // Rediriger vers la liste des clients avec un message de succès
-//      return redirect()->route('aft_client.index')->with('success', 'Client mis à jour avec succès.');
-// }
 
 public function clients(Request $request)
 {
@@ -417,6 +301,38 @@ public function clients(Request $request)
             return back()->with('success', $message);
         } else {
             return back()->with('error', "Aucun message n'a pu être envoyé. Échec pour {$failedSends} clients.");
+        }
+    }
+
+
+        public function toggleBlockStatus(User $user)
+    {
+        // Empêcher un admin de se bloquer lui-même
+        if (auth()->check() && auth()->user()->id === $user->id) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Action non autorisée : vous ne pouvez pas vous bloquer vous-même.'
+            ], 403);
+        }
+
+        try {
+            $user->is_active = !$user->is_active;
+            $user->save();
+
+            $status = $user->is_active ? 'débloqué' : 'bloqué';
+            $message = "Le client a été {$status} avec succès.";
+            
+            return response()->json([
+                'success' => true, 
+                'message' => $message, 
+                'is_active' => $user->is_active
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur lors du changement de statut pour l'utilisateur #{$user->id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Une erreur serveur s'est produite."
+            ], 500);
         }
     }
 }

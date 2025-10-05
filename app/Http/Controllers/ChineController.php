@@ -72,84 +72,6 @@ public function index()
      }
 
   
-    
-
-    
-
-    
-    //  public function clients(Request $request)
-    //  {
-    //      $agenceName = 'Agence Chine';
-     
-    //      $clients = DB::table('expediteurs')
-    //          ->select(
-    //              'nom',
-    //              'prenom',
-    //              'tel',
-    //              'email',
-    //              DB::raw("'expediteur' as type"),
-    //              'created_at'
-    //          )
-    //          ->where('agence', $agenceName) // Filtrer les expéditeurs par agence
-    //          ->unionAll(
-    //              DB::table('destinataires')
-    //                  ->select(
-    //                      'nom',
-    //                      'prenom',
-    //                      'tel',
-    //                      'email',
-    //                      DB::raw("'destinataire' as type"),
-    //                      'created_at'
-    //                  )
-    //                  ->where('agence', $agenceName) // Filtrer les destinataires par agence
-    //          )
-    //          ->get();
-     
-    //      $groupedClients = $clients->groupBy(function ($client) {
-    //          return $client->nom . '|' . $client->prenom . '|' . $client->tel . '|' . $client->email;
-    //      });
-     
-    //      $uniqueClients = $groupedClients->map(function ($group) {
-    //          $client = $group->first();
-     
-    //          $types = $group->pluck('type')->unique()->toArray();
-     
-    //          if (count($types) === 2) {
-    //              $client->type_client = 'expediteur et destinataire';
-    //          } else {
-    //              $client->type_client = $types[0];
-    //          }
-     
-    //          return $client;
-    //      })->values();
-     
-    //      return view('AGENCE_CHINE.client.index', compact('uniqueClients'));
-    //  }
-
-
-// public function edit($nom, $prenom, $tel, $email)
-// {
-    
-//     $expediteur = Expediteur::where('nom', $nom)
-//                          ->where('prenom', $prenom)
-//                          ->where('tel', $tel)
-//                          ->where('email', $email)
-//                          ->first();
-
-//     $destinataire = Destinataire::where('nom', $nom)
-//                              ->where('prenom', $prenom)
-//                              ->where('tel', $tel)
-//                              ->where('email', $email)
-//                              ->first();
-
-//     $client = $expediteur ?? $destinataire; // Prend le premier trouvé
-
-//     if (!$client) {
-//         abort(404, 'Client non trouvé.'); // Gérer le cas où le client n'existe pas
-//     }
-
-//     return view('AGENCE_CHINE.client.edit', compact('client')); // Créer une vue "edit.blade.php"
-// }
 
     public function destroy($nom, $prenom, $tel, $email)
     {
@@ -382,6 +304,37 @@ public function index()
             return back()->with('success', $message);
         } else {
             return back()->with('error', "Aucun message n'a pu être envoyé. Échec pour {$failedSends} clients.");
+        }
+    }
+
+    public function toggleBlockStatus(User $user)
+    {
+        // Empêcher un admin de se bloquer lui-même
+        if (auth()->check() && auth()->user()->id === $user->id) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Action non autorisée : vous ne pouvez pas vous bloquer vous-même.'
+            ], 403);
+        }
+
+        try {
+            $user->is_active = !$user->is_active;
+            $user->save();
+
+            $status = $user->is_active ? 'débloqué' : 'bloqué';
+            $message = "Le client a été {$status} avec succès.";
+            
+            return response()->json([
+                'success' => true, 
+                'message' => $message, 
+                'is_active' => $user->is_active
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur lors du changement de statut pour l'utilisateur #{$user->id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Une erreur serveur s'est produite."
+            ], 500);
         }
     }
 }

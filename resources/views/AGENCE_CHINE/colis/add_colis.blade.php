@@ -1,588 +1,860 @@
 @extends('AGENCE_CHINE.layouts.agent')
 
+@section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
+
 @section('content')
-    {{-- Le CSS reste inchangé, il est bien structuré --}}
-    <style>
-        /* ... Votre CSS existant ... */
-        body {
-            font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
-            color: #333;
-            background-color: #fff;
-            margin: 0;
-            padding: 0;
-        }
+<section class="p-4 mx-auto">
 
-        .invoice-box-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
+    <form action="{{ route('chine_colis.store.colis') }}" method="post" class="form-container">
+        @csrf
 
-        .invoice-box {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 25px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-            background-color: #fff;
-            font-size: 14px;
-            line-height: 1.6;
-        }
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* NOUVEAU/MODIFIÉ: Pour mieux aligner le logo et les détails */
-            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .logo img {
-            max-width: 260px; /* NOUVEAU/MODIFIÉ: Logo plus grand */
-            height: auto;
-        }
-        .company-details-header {
-            text-align: right;
-        }
-        .company-details-header h2 {
-            margin: 0 0 5px 0;
-            font-size: 25px;
-            font-weight: bold;
-        }
-        .company-details-header p {
-            margin: 0;
-            font-size: 13px;
-        }
+        {{-- Barre de progression --}}
+        <div class="progress-bar-container mb-4">
+            <ul class="progress-steps">
+                <li class="step active" data-step="0"><span>Expédition</span></li>
+                <li class="step" data-step="1"><span>Expéditeur</span></li>
+                <li class="step" data-step="2"><span>Destinataire</span></li>
+                <li class="step" data-step="3"><span>Colis</span></li>
+                <li class="step" data-step="4"><span>Récapitulatif</span></li>
+                <li class="step" data-step="5"><span>Paiement</span></li>
+            </ul>
+        </div>
 
-        .invoice-title-section {
-            text-align: center;
-            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
-        }
-        .invoice-title-section h1 {
-            font-size: 45px;
-            font-weight: bold;
-            margin: 0 0 8px 0;
-            color: #000000505000;
-            letter-spacing: 1px;
-        }
-        .simulated-barcode {
-            height: 35px;
-            background: linear-gradient(to right,
-                #333 0%, #333 2px, transparent 2px, transparent 4px,
-                #333 4px, #333 5px, transparent 5px, transparent 7px,
-                #333 7px, #333 10px, transparent 10px, transparent 11px,
-                #333 11px, #333 12px, transparent 12px, transparent 14px
-            );
-            background-repeat: repeat-x;
-            background-size: 14px 100%;
-            max-width: 220px;
-            margin: 10px auto 0;
-        }
-        .simulated-barcode-small {
-            height: 25px;
-            background: linear-gradient(to right,
-                #333 0%, #333 1.5px, transparent 1.5px, transparent 3px,
-                #333 3px, #333 4px, transparent 4px, transparent 5.5px,
-                #333 5.5px, #333 7.5px, transparent 7.5px, transparent 8.5px,
-                #333 8.5px, #333 9.5px, transparent 9.5px, transparent 11px
-            );
-            background-repeat: repeat-x;
-            background-size: 11px 100%;
-            max-width: 180px;
-            margin: 10px 0 0 auto;
-        }
+        <!-- Étape 1 : Informations transport -->
+        <fieldset>
+            <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="mode_transit" class="form-label">Sélectionnez le mode de transit</label>
+                        <select name="mode_transit" id="mode_transit" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez le mode de transit --</option>
+                            <option value="maritime">Maritime</option>
+                            <option value="aerien">Aérien</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="agence_expediteur" class="form-label">Agence d'expédition</label>
+                        <input type="text" name="agence_expediteur" id="agence_expediteur" class="form-control" value="{{ $agencesExpedition->first()->nom_agence ?? '' }}" readonly>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="agence_destinataire" class="form-label">Agence de destination</label>
+                        <select name="agence_destinataire" id="agence_destinataire" class="form-control">
+                        </select>
+                    </div>
 
-
-        .client-invoice-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
-        }
-        .client-details {
-            max-width: 55%;
-        }
-        .client-details h3 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .client-details p {
-            margin: 3px 0;
-            font-size: 14px;
-        }
-        .invoice-meta {
-             max-width: 40%;
-        }
-        .invoice-meta table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .invoice-meta td {
-            padding: 6px 10px;
-            font-size: 14px;
-        }
-        .invoice-meta td:first-child {
-            text-align: left;
-            font-weight: bold;
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            width: 45%;
-        }
-        .invoice-meta td:last-child {
-            text-align: right;
-            border: 1px solid #eee;
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-
-        .references-section {
-            margin-bottom: 15px; /* NOUVEAU/MODIFIÉ: Réduit pour section souvent vide */
-            border: 1px solid #eee;
-            padding-top: 5px; /* NOUVEAU/MODIFIÉ */
-            padding-bottom: 5px; /* NOUVEAU/MODIFIÉ */
-        }
-        .references-section table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .references-section th, .references-section td {
-            border: 1px solid #eee;
-            padding: 6px 8px; /* NOUVEAU/MODIFIÉ */
-            font-size: 12px; /* NOUVEAU/MODIFIÉ */
-            text-align: center;
-        }
-        .references-section th {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-        .references-section td {
-            height: 20px; /* NOUVEAU/MODIFIÉ */
-        }
-
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        .items-table th, .items-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-            font-size: 14px;
-        }
-        .items-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-        .items-table .col-qty, .items-table .col-price, .items-table .col-montant {
-            text-align: right;
-        }
-        .items-table .col-produit { width: 55%; }
-        .items-table .col-qty { width: 10%; }
-        .items-table .col-price { width: 15%; }
-        .items-table .col-montant { width: 20%; }
-
-        .item-description {
-            font-size: 12px;
-            color: #666;
-            padding-left: 10px;
-            margin-top: 4px;
-        }
-        .item-main-service {
-            font-weight: bold;
-        }
-
-
-        .totals-summary {
-            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
-            padding-top: 15px;
-            border-top: 2px solid #eee;
-            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
-        }
-        .totals-summary table {
-            width: 45%;
-            margin-left: auto;
-            border-collapse: collapse;
-        }
-        .totals-summary td {
-            padding: 8px 10px;
-            font-size: 14px;
-        }
-        .totals-summary td:first-child {
-            text-align: right;
-            font-weight: bold;
-            width: 60%;
-        }
-        .totals-summary td:last-child {
-            text-align: right;
-            font-weight: bold;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            min-width: 130px;
-        }
-        .grand-total-header {
-            background-color: #e0e0e0 !important;
-            font-size: 15px !important;
-        }
-
-        .payment-notes-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
-            margin-bottom: 15px; /* NOUVEAU/MODIFIÉ */
-            align-items: flex-start;
-        }
-        .payment-terms table {
-            width: auto;
-            border-collapse: collapse;
-        }
-        .payment-terms td {
-            padding: 6px 10px;
-            font-size: 14px;
-            border: 1px solid #eee;
-        }
-        .payment-terms td:first-child {
-            font-weight: bold;
-            background-color: #f9f9f9;
-        }
-        .payment-terms td:last-child {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-        .notes-section {
-            flex-grow: 1;
-            margin-left: 25px;
-        }
-        .notes-section textarea {
-            width: 100%;
-            min-height: 60px; /* NOUVEAU/MODIFIÉ: Hauteur min réduite un peu */
-            border: 1px solid #eee;
-            padding: 8px;
-            font-size: 13px;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-        .notes-section p {
-            margin: 0 0 5px 0;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-
-        .final-totals {
-            margin-top: 15px;
-            padding-top: 15px;
-            margin-bottom: 15px;
-        }
-        .final-totals table {
-            width: 45%;
-            margin-left: auto;
-            border-collapse: collapse;
-        }
-        .final-totals td {
-            padding: 10px;
-            font-size: 15px;
-            font-weight: bold;
-        }
-        .final-totals td:first-child {
-            text-align: right;
-        }
-        .final-totals td:last-child {
-            text-align: right;
-            background-color: #e0e0e0;
-            border: 1px solid #ccc;
-            min-width: 130px;
-        }
-        .final-totals .reste-a-payer td:last-child {
-             background-color: #d0d0d0;
-        }
-
-
-
-        .conditions {
-            margin-top: 20px; /* NOUVEAU/MODIFIÉ */
-            padding-top: 15px; /* NOUVEAU/MODIFIÉ */
-            border-top: 1px solid #eee;
-            margin-bottom: 20px; /* NOUVEAU/MODIFIÉ */
-        }
-        .conditions h4 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .conditions p {
-            font-size: 12px; /* NOUVEAU/MODIFIÉ: Légère réduction si besoin de place */
-            line-height: 1.4; /* NOUVEAU/MODIFIÉ */
-            color: #555;
-            text-align: justify;
-        }
-
-        .footer-section {
-            margin-top: 25px; /* NOUVEAU/MODIFIÉ */
-            padding-top: 15px;
-            border-top: 2px solid #333;
-            font-size: 11px;
-            color: #555;
-        }
-        .footer-generation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 12px;
-        }
-        .footer-company-details {
-            text-align: center;
-            line-height: 1.4;
-            font-size: 12px;
-        }
-        .footer-company-details p {
-            margin: 2px 0;
-        }
-        .footer-company-details strong {
-            color: #333;
-        }
-
-
-        .text-bold { font-weight: bold; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-
-
-        @media print {
-            @page {
-                size: A4;
-                margin: 0;
-            }
-            .items-table th, .items-table td {
-                font-size: 10pt !important;
-                padding: 6px !important;
-            }
-            body, html {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                background-color: #fff !important;
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-                font-size: 10.5pt; /* NOUVEAU/MODIFIÉ: Légère réduction pour tout faire tenir */
-            }
-            body > footer,              /* Si le footer est un enfant direct de body */
-            .main-footer,             /* Classe commune pour les footers (ex: AdminLTE) */
-            #site-footer,             /* ID commun */
-            #footer,                  /* Autre ID commun */
-            [role="contentinfo"] {    /* Rôle ARIA souvent utilisé pour les footers */
-                display: none !important;
-            }
-            .invoice-box-container {
-                margin: 0 !important;
-                padding: 0 !important;
-                display: block !important;
-            }
-            .invoice-box {
-                max-width: 100% !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 12mm !important; /* NOUVEAU/MODIFIÉ: Marges A4 un peu réduites si besoin */
-                box-shadow: none !important;
-                border: none !important; /* Si vous voulez un cadre visible à l'impression, changez pour ex: border: 1px solid #ccc !important; */
-                page-break-inside: avoid;
-                box-sizing: border-box !important;
-            }
-
-            .no-print, .no-print * {
-                display: none !important;
-            }
-
-            .header-section { align-items: center !important; } /* Assurer l'alignement à l'impression */
-            .logo img { max-width: 240px !important; } /* Taille du logo pour impression, un peu moins pour être sûr */
-
-
-            .references-section {
-                padding-top: 2mm !important;
-                padding-bottom: 2mm !important;
-                margin-bottom: 3mm !important; /* NOUVEAU/MODIFIÉ */
-                margin-top: 2mm !important; /* NOUVEAU/MODIFIÉ */
-            }
-            .references-section th, .references-section td {
-                padding: 3mm 4mm !important;
-                font-size: 8pt !important; /* NOUVEAU/MODIFIÉ */
-                height: auto !important;
-            }
-
-
-            .header-section, .invoice-title-section, .client-invoice-details,
-            .items-table, .totals-summary,
-            .payment-notes-section, .final-totals, .conditions {
-                margin-bottom: 5mm !important; /* NOUVEAU/MODIFIÉ: Espacements verticaux réduits */
-                margin-top: 3mm !important; /* NOUVEAU/MODIFIÉ */
-                padding-top: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            .simulated-barcode-small {
-                margin-top: 4mm !important; /* NOUVEAU/MODIFIÉ */
-                margin-bottom: 4mm !important; /* NOUVEAU/MODIFIÉ */
-            }
-            .footer-section {
-                margin-top: 6mm !important; /* NOUVEAU/MODIFIÉ */
-                padding-top: 5mm !important; /* NOUVEAU/MODIFIÉ */
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-                page-break-before: auto;
-                background-color: #fff !important;
-            }
-             /* Tailles de police spécifiques pour impression */
-             .company-details-header h2 {
-                    margin: 0 0 5px 0;
-                    font-size: 25px;
-                    font-weight: bold;
-                }
-            .invoice-title-section h1 {
-                    font-size: 45px;
-                    font-weight: bold;
-                    margin: 0 0 8px 0;
-                    color: #000; /* Corrigé ici */
-                    letter-spacing: 1px;
-                }
-         /* NOUVEAU/MODIFIÉ */
-            .client-details h3 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .conditions h4 { font-size: 11.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .conditions p { font-size: 9pt !important; line-height: 1.3 !important; } /* NOUVEAU/MODIFIÉ */
-            .footer-company-details { font-size: 8.5pt !important; } /* NOUVEAU/MODIFIÉ */
-            .items-table th, .items-table td { font-size: 10pt !important; padding: 6px !important; } /* NOUVEAU/MODIFIÉ */
-            .totals-summary td, .final-totals td { font-size: 10pt !important; padding: 5px 8px !important;}
-            .grand-total-header { font-size: 11pt !important; }
-            .payment-terms td { font-size: 10pt !important; }
-            .notes-section p { font-size: 10pt !important; }
-            .notes-section textarea { font-size: 9pt !important; min-height: 40px !important; }
-        }
-    </style>
-
-    <div class="invoice-box-container">
-        <div class="invoice-box">
-            <!-- Header -->
-            <div class="header-section">
-                <div class="logo">
-                    <img src="{{ asset('images/LOGOAFT.png') }}" alt="Company Logo">
+                    <div class="col-md-6" id="ref_maritime" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Référence (Maritime)</label>
+                            <input type="text" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="ref_aerien" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Référence (Aérien)</label>
+                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                        </div>
+                    </div>
                 </div>
-                <div class="company-details-header">
-                    <h2>AFT IMPORT EXPORT</h2>
-                    <p>7 AVENUE LOUIS BLERIOT LA COURNEUVE</p>
-                    <p>93120 France</p>
-                    <p>Tel. +33171894351</p>
+            </div>
+        </fieldset>
+
+        <!-- Étape 2 : Informations de l'Expéditeur -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations d'expédition</h5>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="categorie_client" class="form-label">Sélectionnez la catégorie de client</label>
+                        <select name="categorie_client" id="categorie_client" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez la catégorie --</option>
+                            <option value="particulier">Particulier</option>
+                            <option value="societe">Société</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3 position-relative">
+                        <label for="client_select" class="form-label">Rechercher un client existant</label>
+                        <input type="text" name="client_select" id="client_select" class="form-control" placeholder="Rechercher par nom, prénom, téléphone...">
+                        <div id="client_autocomplete_results" class="autocomplete-results"></div>
+                    </div>
+                </div>
+
+                {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
+                <div id="particulier_expediteur_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur" id="email_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="tel_expediteur" class="form-label">Téléphone</label><input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789"></div>
+                    </div>
+                </div>
+                {{-- ===== SOCIÉTÉ EXPÉDITEUR ===== --}}
+                <div id="societe_expediteur_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="nom_societe_expediteur" class="form-label">Nom de la société</label><input type="text" name="nom_expediteur_societe" id="nom_societe_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_societe_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur_societe" id="email_societe_expediteur" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="tel_expediteur_societe" class="form-label">Téléphone</label><input type="text" name="tel_expediteur_societe" id="tel_expediteur_societe" class="form-control" placeholder="Ex: 0123456789"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_expediteur_societe" class="form-label">Adresse</label><input type="text" name="adresse_expediteur_societe" id="adresse_expediteur_societe" class="form-control"></div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Étape 3 : Informations du Destinataire -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du destinataire</h5>
+            <div class="form-section">
+                {{-- ===== PARTICULIER DESTINATAIRE ===== --}}
+                <div id="particulier_destinataire_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label for="nom_destinataire" class="form-label">Nom</label><input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="prenom_destinataire" class="form-label">Prénom</label><input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="email_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire" id="email_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_particulier" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_particulier" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <div class="input-group"><select name="country_code_particulier" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire" class="form-control" placeholder="Ex: 0123456789"></div>
+                        </div>
+                    </div>
+                </div>
+                {{-- ===== SOCIÉTÉ DESTINATAIRE ===== --}}
+                <div id="societe_destinataire_section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="nom_societe_destinataire" class="form-label">Nom de la société</label><input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="email_societe_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_societe" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <div class="input-group"><select name="country_code_societe" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Étape 4 : Informations du Colis -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du/des Colis</h5>
+
+            {{-- Conteneur pour les colis dynamiques --}}
+            <div id="colis-container">
+                {{-- Le premier colis (template) --}}
+                <div class="colis-item form-section mb-4">
+                    <div class="row">
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis" value="1" min="1"></div></div>
+                        <div class="col-md-4 position-relative">
+                            <label class="form-label">Produit(s)</label>
+                            <div class="input-group">
+                                <input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit" required>
+                                <button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
+                            </div>
+                            <div class="autocomplete-results"></div>
+                        </div>
+                        <div class="col-md-2"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix"><div class="mt-2">Prix Total: <span class="prix-total">0</span></div></div>
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Type colis</label><select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select></div></div>
+                        <div class="col-md-2"><div class="mb-3"><label class="form-label">Devise</label><select name="devise[]" class="form-control devise-select"><option value="EUR">EUR</option><option value="FCFA">FCFA</option></select></div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 dimension-section" style="display: none;"><label class="form-label">Dimensions (cm)</label><div class="d-flex gap-2"><input type="number" name="longueur[]" class="form-control longueur" placeholder="Longeur"><input type="number" name="largeur[]" class="form-control largeur" placeholder="Largeur"><input type="number" name="hauteur[]" class="form-control hauteur" placeholder="Hauteur"></div><div class="dimension-result mt-2" style="display: none; font-weight: bold;"></div></div>
+                        <div class="col-md-6 poids-section" style="display: none;"><label class="form-label">Poids (kg)</label><input type="number" name="poids[]" class="form-control poids-colis" placeholder="Poids"></div>
+                        <div class="col-md-6"><div class="mb-3"><label class="form-label">Commentaire</label><textarea name="description_colis[]" class="form-control" rows="3" placeholder="Description du colis"></textarea></div></div>
+                    </div>
+                     <div class="text-end mt-2"><button type="button" class="btn btn-danger remove-colis" style="display: none;">Retirer ce colis</button></div>
                 </div>
             </div>
 
-            <!-- Titre de la facture -->
-            <div class="invoice-title-section">
-                <h1>FACTURE</h1>
-                <div class="simulated-barcode"></div>
+            <div class="text-end mt-2">
+                <button type="button" class="btn btn-success add-colis">Ajouter un autre colis</button>
             </div>
+        </fieldset>
 
-            <!-- Infos client et facture -->
-            <div class="client-invoice-details">
-                <div class="client-details">
-                    <h3>De: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
-                    <p>Tel: {{ $tel_expediteur ?? 'N/A' }}</p>
-                    <br>
-                    <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
-                    <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
-                    <p>Adresse: {{ $adresse_destinataire ?? 'N/A' }}</p>
+        <!-- Étape 5 : Informations sur le service et le recapitulatif -->
+        <fieldset style="display: none;">
+           <h5 class="text-center mb-4 mt-5">Services Additionnels et Récapitulatif</h5>
+            <div class="form-section">
+                <div class="row g-3">
+                    <!-- Service -->
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label">Service(s)</label>
+                        <div class="input-group">
+                            <input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button>
+                        </div>
+                        <div class="autocomplete-results"></div>
+                    </div>
+
+                    <!-- Prix -->
+                    <div class="col-md-3">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="prix_service[]" class="form-control prix-service" placeholder="Prix">
+                        <div class="mt-2">Prix Total: <span class="prix-total-service">0</span></div>
+                    </div>
                 </div>
-                <div class="invoice-meta">
-                    <table>
-                        <tr><td>Facture n°</td><td>{{ $numero_facture ?? 'N/A' }}</td></tr>
-                        <tr><td>Date</td><td>{{ $date_facture->format('d-m-Y') ?? 'N/A' }}</td></tr>
-                        <tr><td>Référence Colis</td><td>{{ $reference_colis ?? 'N/A' }}</td></tr>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Section de références (Optionnelle) -->
-            <div class="references-section">
-                <!-- ... contenu inchangé ... -->
-            </div>
-
-            <!-- Tableau des articles -->
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th class="col-produit">Produit / Service</th>
-                        <th class="col-qty">Qté</th>
-                        <th class="col-price">P.U. ({{ $devise ?? '' }})</th>
-                        <th class="col-montant">Montant ({{ $devise ?? '' }})</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{-- Produits --}}
-                    @forelse ($produitsGroupes as $produit)
-                    <tr>
-                        <td>{{ $produit['produit'] ?? 'Produit non défini' }}</td>
-                        <td class="col-qty">{{ number_format($produit['nombre_colis'], 0, ',', ' ') }}</td>
-                        <td class="col-price">{{ number_format($produit['prix_unitaire_moyen'], 2, ',', ' ') }}</td>
-                        <td class="col-montant">{{ number_format($produit['montant_total_ligne'], 0, ',', ' ') }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="text-center">Aucun produit trouvé.</td>
-                    </tr>
-                    @endforelse
-
-                    {{-- Service éventuel --}}
-                    @if ($service_info)
-                    <tr>
-                        <td>{{ $service_info['service'] }}</td>
-                        <td class="col-qty">1</td>
-                        <td class="col-price">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
-                        <td class="col-montant">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
-                    </tr>
-                    @endif
-                </tbody>
-            </table>
-
-            <div class="simulated-barcode-small"></div>
-
-            <!-- Résumé des totaux -->
-            <div class="totals-summary">
-                <table>
-                    <tr><td>Sous-total Produits</td><td>{{ number_format($sous_total_produits, 2, ',', ' ') }} {{ $devise ?? '' }}</td></tr>
-                    @if ($service_info)
-                    <tr><td>Service</td><td>{{ number_format($service_info['montant_service'], 2, ',', ' ') }} {{ $devise ?? '' }}</td></tr>
-                    @endif
-                    <tr><td>Montant total ({{ $devise ?? '' }})</td><td class="grand-total-header">{{ number_format($prix_total_invoice, 2, ',', ' ') }}</td></tr>
-                </table>
             </div>
             
-                        <!-- Conditions de vente -->
-            <div class="conditions">
-                <h4 class="text-center">Conditions de vente</h4>
-                <p> Les colis et marchandises transportés par AFRIQUE FRET TRANSIT IMPORT EXPORT, de la France vers la Côte d’Ivoire et de la Côte d’Ivoire vers la France, doivent faire l’objet du règlement intégral des frais de transport, des droits de douane et des taxes avant toute livraison. Les colis non soldés seront conservés dans nos entrepôts en attendant la régularisation de la situation. Passé un délai de 5 jours, des frais de magasinage ainsi qu’une pénalité de 10 % du montant total seront appliqués. Au-delà de 30 jours, les colis et marchandises non réclamés seront vendus afin de couvrir les frais engagés.
-                    
-                </p>
+            <h5 class="text-center mb-4 mt-5">Récapitulatif de votre envoi</h5>
+            <div class="recapitulatif-section form-section">
+                    {{-- MODIFICATION : Ajout de la section pour les détails du transport --}}
+                <h6>Détails du Transport :</h6>
+                <div class="row">
+                    <div class="col-md-6"><p><strong>Mode de Transit :</strong> <span id="recap_mode_transit"></span></p></div>
+                    <div class="col-md-6"><p><strong>Référence du Colis :</strong> <span id="recap_reference_colis"></span></p></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6"><h6>Expéditeur :</h6><p><strong>Nom :</strong> <span id="recap_nom_expediteur"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_expediteur"></span></p><p><strong>Agence :</strong> <span id="recap_agence_expediteur"></span></p></div>
+                    <div class="col-md-6"><h6>Destinataire :</h6><p><strong>Nom :</strong> <span id="recap_nom_destinataire"></span></p><p><strong>Téléphone :</strong> <span id="recap_tel_destinataire"></span></p><p><strong>Agence :</strong> <span id="recap_agence_destinataire"></span></p></div>
+                </div>
+                <hr>
+                
+            
+
+                <h6>Détails des Colis :</h6>
+                <p><strong>Nombre total de colis :</strong> <span id="recap_nombre_total_colis">0</span></p>
+                <div id="recap_details_colis" class="mb-3">
+                    <!-- Les détails de chaque colis seront injectés ici par JavaScript -->
+                </div>
+                <hr>
+
+                <h6 class="fw-bold">Résumé Financier :</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Total Colis :</strong> <span id="recap_total_colis_somme">0.00</span> <span class="recap_devise_class"></span></p>
+                        <p><strong>Total Services :</strong> <span id="recap_total_services">0.00</span> <span class="recap_devise_class"></span></p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p class="fw-bold fs-5"><strong>Total à Payer :</strong> <span id="recap_total_a_payer">0.00</span> <span id="recap_devise"></span></p>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Étape 6 : Informations du payement -->
+        <fieldset style="display: none;">
+            <h5 class="text-center mb-4 mt-5">Informations du paiement</h5>
+
+            <div class="alert alert-info text-center">
+                <strong>Total à payer : 
+                    <span id="payment_total" style="font-size: 1.5em; font-weight: bold;">0.00</span> 
+                    <span id="payment_devise" style="font-size: 1.5em; font-weight: bold;">EUR</span>
+                </strong>
             </div>
 
-            <!-- Footer Section -->
-             <div class="footer-section">
-                 <div class="footer-generation">
-                     <div>Généré le {{ now()->format('d-m-Y') }}<br>par {{ Auth::user()->first_name ?? 'Agent' }} {{ Auth::user()->last_name ?? '' }}</div>
-                     <div>Page 1/1</div>
-                 </div>
-                 <div class="footer-company-details">
-                     <p><strong>AFT IMPORT EXPORT</strong> 7 AVENUE LOUIS BLERIOT LA COURNEUVE 93120 France | Tel. +33978809389 | contacts.aft@gmail.com</p>
-                     <p>IBAN FR03 1744 8000 01PO MQNE AER2 W45 | BIC: SFPEFRP2</p>
-                     <p>N°TVA:FR96881916365 N°ORI FR88191636500011 SIRET:881916365 RCS Bobigny, EXO TVA, article 262 DU CGI</p>
-                 </div>
-             </div>
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
+                        <select name="mode_payement" id="mode_payement" class="form-control">
+                            <option value="" disabled selected>-- Sélectionnez --</option>
+                            <option value="bank">Virement Bancaire</option>
+                            <option value="mobile_money">Mobile Money</option>
+                            <option value="cheque">Chèque</option>
+                            <option value="cash">Espèces</option>
+                            <option value="delivery">Paiement à la livraison</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Virement Bancaire --}}
+                <div class="payment-section mt-3" id="bank_section" style="display:none;">
+                    <h5>Détails Bancaires</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label for="bank_nom_banque" class="form-label">Nom de la banque</label><input type="text" name="bank_nom_banque" id="bank_nom_banque" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="bank_numero_compte" class="form-label">Numéro de compte</label><input type="text" name="bank_numero_compte" id="bank_numero_compte" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="bank_montant" class="form-label">Montant</label><input type="text" name="montant_reçu" id="bank_montant" class="form-control"></div>
+                    </div>
+                </div>
+
+                {{-- Mobile Money --}}
+                <div class="payment-section mt-3" id="mobile_money_section" style="display:none;">
+                    <h5>Paiement Mobile Money</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="operateur_mobile" class="form-label">Opérateur</label><select name="mobile_operateur" id="operateur_mobile" class="form-control"><option value="">-- Sélectionnez --</option><option value="orange_money">Orange Money</option><option value="wave">Wave</option><option value="mtn_money">MTN Money</option></select></div>
+                        <div class="col-md-6 mb-3"><label for="mobile_numero_tel" class="form-label">Numéro de téléphone</label><input type="text" name="mobile_numero_tel" id="mobile_numero_tel" class="form-control"></div>
+                    </div>
+                    <button type="button" class="btn btn-primary mt-2" id="cinetpayButton" style="display:none;">Payer via Mobile Money</button>
+                </div>
+
+                {{-- Chèque --}}
+                <div class="payment-section mt-3" id="cheque_section" style="display:none;">
+                    <h5>Détails du Chèque</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label for="cheque_montant" class="form-label">Montant du chèque</label><input type="text" name="montant_reçu" id="cheque_montant" class="form-control"></div>
+                    </div>
+                </div>
+
+                {{-- Espèces --}}
+                <div class="payment-section mt-3" id="cash_section" style="display:none;">
+                    <h5>Paiement en Espèces</h5>
+                    <div class="mb-3"><label for="montant_recu" class="form-label">Montant reçu</label><input type="number" name="montant_reçu" id="montant_recu" class="form-control" min="0"></div>
+                </div>
+
+                {{-- Paiement à la livraison --}}
+                <div class="payment-section mt-3" id="delivery_section" style="display:none;">
+                    <h5>Paiement à la Livraison</h5>
+                    <p class="alert alert-warning">Le paiement sera effectué lors de la livraison du colis.</p>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Boutons de navigation globaux -->
+        <div class="text-end mt-4 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary btn-prev" style="display: none;">Précédent</button>
+            <button type="button" class="btn btn-primary btn-next">Suivant</button>
+            <button type="submit" class="btn btn-success btn-submit" style="display: none;">Valider l'envoi</button>
+        </div>
+    </form>
+
+
+    {{-- MODAL AJOUT SERVICE --}}
+    <div class="modal fade" id="ServiceModal" tabindex="-1" aria-labelledby="ServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="ServiceModalLabel">Ajouter un Service</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body">
+                    <form id="serviceForm">
+                        <div class="mb-3"><label for="description_service" class="form-label">Description</label><input type="text" name="description" id="description_service" class="form-control"></div>
+                        <input type="hidden" name="categorie" value="Service">
+                        <div class="mb-3"><label for="prix_unitaire_service" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire_service" class="form-control" min="0"></div>
+                        <div class="mb-3"><label for="agence_service" class="form-label">Agence de destination</label><select name="agence" id="agence_service" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('chine_colis.store.service') }}">Créer</button></div>
+            </div>
         </div>
     </div>
-
-    <!-- Bouton d'impression -->
-    <div class="no-print" style="text-align: center; margin: 20px;">
-        <a href="javascript:history.back()" class="btn btn-secondary" style="padding: 10px 20px; font-size: 16px; margin-right: 10px; background-color: #6c757d; color:white; text-decoration: none; border-radius: 4px;">Retour</a>
-        <button onclick="window.print();" style="padding: 10px 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-            🖨️ Imprimer la facture
-        </button>
+    {{-- MODAL AJOUT PRODUIT --}}
+    <div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="produitModalLabel">Ajouter un Produit</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body">
+                    <form id="produitForm">
+                        <div class="mb-3"><label for="description_produit" class="form-label">Description</label><input type="text" name="description" id="description_produit" class="form-control"></div>
+                         <input type="hidden" name="categorie" value="Colis">
+                        <div class="mb-3"><label for="prix_unitaire" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire" class="form-control" min="0"></div>
+                        <div class="mb-3"><label for="agence" class="form-label">Agence de destination</label><select name="agence" id="agence" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-produit" data-url="{{ route('chine_colis.store.produit') }}">Créer</button></div>
+            </div>
+        </div>
     </div>
+</section>
+
+<script>
+$(document).ready(function () {
+    const searchInput = $('#client_select');
+    const resultsContainer = $('#client_autocomplete_results');
+
+    searchInput.on('keyup', function () {
+        const query = $(this).val();
+
+        if (query.length < 2) {
+            resultsContainer.hide();
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('chine_colis.clients.search') }}",
+            dataType: 'json',
+            data: { q: query },
+            // MODIFICATION : Ajout du message si le client n'existe pas
+            success: function (data) {
+                resultsContainer.html(''); // Vider les résultats précédents
+                if (data.length > 0) {
+                    data.forEach(function (client) {
+                        const item = $(`
+                            <div class="autocomplete-item">
+                                <strong>${client.first_name} ${client.last_name}</strong><br>
+                                <small class="text-muted">${client.tel}</small>
+                            </div>
+                        `);
+
+                        item.on('click', function () {
+                            searchInput.val(client.first_name + ' ' + client.last_name);
+                            resultsContainer.hide();
+
+                            if (client.category === 'particulier') {
+                                $('#categorie_client').val('particulier').trigger('change');
+                                $('#nom_expediteur').val(client.first_name);
+                                $('#prenom_expediteur').val(client.last_name);
+                                $('#email_expediteur').val(client.email);
+                                $('#tel_expediteur').val(client.tel);
+                            } else if (client.category === 'societe') {
+                                $('#categorie_client').val('societe').trigger('change');
+                                $('#nom_societe_expediteur').val(client.first_name);
+                                $('#email_societe_expediteur').val(client.email);
+                                $('#tel_expediteur_societe').val(client.tel);
+                                $('#adresse_expediteur_societe').val(client.adresse);
+                            }
+                        });
+
+                        resultsContainer.append(item);
+                    });
+                    resultsContainer.show();
+                } else {
+                    // Si aucun client n'est trouvé, afficher le message
+                    resultsContainer.html('<div class="autocomplete-item text-danger">Ce nom n\'existe pas.</div>');
+                    resultsContainer.show();
+                }
+            }
+        });
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.position-relative').length) {
+            resultsContainer.hide();
+        }
+    });
+
+    searchInput.on('input', function() {
+        if ($(this).val() === '') {
+            $('#particulier_expediteur_section input, #societe_expediteur_section input').val('');
+        }
+    });
+
+    let currentStep = 0;
+    const fieldsets = $("fieldset");
+    const steps = $(".step");
+
+    function updateProgressBar() {
+        let percentage = (currentStep / (steps.length - 1)) * 100;
+        $('.progress-steps').css('--progress-width', percentage + '%');
+        steps.each(function(index) {
+            $(this).toggleClass("active", index <= currentStep);
+        });
+    }
+
+    function showStep(stepIndex) {
+        fieldsets.hide().eq(stepIndex).show();
+        currentStep = stepIndex;
+        updateProgressBar();
+        $(".btn-prev").toggle(stepIndex > 0);
+        const isLastStep = stepIndex === fieldsets.length - 1;
+        $(".btn-next").toggle(!isLastStep);
+        $(".btn-submit").toggle(isLastStep);
+    }
+
+    $(".btn-next").click(function() {
+        if (currentStep >= 3) {
+            updateRecapitulatif();
+        }
+
+        if (currentStep < fieldsets.length - 1) {
+            if (currentStep + 1 === 5) { // Si on va vers l'étape de paiement
+                const total = $('#recap_total_a_payer').text();
+                const devise = $('#recap_devise').text();
+                
+                $('#payment_total').text(total);
+                $('#payment_devise').text(devise);
+
+                const totalValue = parseFloat(total) || 0;
+                $('#montant_recu').attr('max', totalValue).attr('placeholder', `Montant reçu (max: ${totalValue} ${devise})`);
+            }
+            showStep(currentStep + 1);
+        }
+    });
+
+    steps.click(function() {
+        const stepIndex = $(this).data("step");
+        if (stepIndex >= 4) {
+             updateRecapitulatif();
+        }
+        showStep(stepIndex);
+    });
+
+    $(".btn-prev").click(function() {
+        if (currentStep > 0) {
+            showStep(currentStep - 1);
+        }
+    });
+    
+    showStep(0);
+
+    const agenceOptionsByMode = {
+        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
+        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
+    };
+
+    function updateDynamicFields() {
+        const mode = $("#mode_transit").val();
+        $("#ref_maritime, .dimension-section").toggle(mode === "maritime");
+        $("#ref_aerien, .poids-section").toggle(mode === "aerien");
+        
+        $(".quantite-section").toggle(mode !== "aerien");
+
+        const agenceDestSelect = $("#agence_destinataire");
+        agenceDestSelect.html('<option value="" disabled selected>-- Sélectionnez --</option>');
+        if (mode && agenceOptionsByMode[mode]) {
+            const opt = agenceOptionsByMode[mode];
+            agenceDestSelect.append(new Option(opt.label, opt.value, true, true));
+        }
+        updateDeviseBasedOnAgence();
+    }
+
+    function updateDeviseBasedOnAgence() {
+        const agence = $("#agence_expediteur").val();
+        let devise = "EUR";
+        let disabled = false;
+
+        if (agence === 'Agence de Chine') {
+            devise = 'FCFA';
+            disabled = true;
+        } else if (agence === 'AFT Agence Louis Bleriot') {
+            devise = 'EUR';
+            disabled = true;
+        }
+        $(".devise-select").val(devise).prop('disabled', disabled).css('background-color', disabled ? '#e9ecef' : '');
+    }
+    
+    function toggleClientSections() {
+        const categorie = $("#categorie_client").val();
+        const isSociete = categorie === 'societe';
+        
+        $("#societe_expediteur_section, #societe_destinataire_section").toggle(isSociete);
+        $("#societe_expediteur_section").find("input, select").prop('disabled', !isSociete);
+        $("#societe_destinataire_section").find("input, select").prop('disabled', !isSociete);
+
+        $("#particulier_expediteur_section, #particulier_destinataire_section").toggle(!isSociete);
+        $("#particulier_expediteur_section").find("input, select").prop('disabled', isSociete);
+        $("#particulier_destinataire_section").find("input, select").prop('disabled', isSociete);
+    }
+    
+    $("#mode_transit, #agence_expediteur").on('change', function() {
+        updateDynamicFields();
+        if ($(this).is('#mode_transit')) {
+            $('.colis-item').each(function() {
+                updateTotalForColis($(this));
+            });
+        }
+    });
+
+    $("#categorie_client").on('change', toggleClientSections);
+    
+    updateDynamicFields();
+    toggleClientSections();
+
+    const colisContainer = $("#colis-container");
+
+    function calculateColisTotal(colisElement) {
+        const modeTransit = $('#mode_transit').val();
+        const prixUnitaire = parseFloat(colisElement.find(".prix-colis").attr("data-prix-unitaire")) || parseFloat(colisElement.find(".prix-colis").val()) || 0;
+
+        if (modeTransit === 'aerien') {
+            const poids = parseFloat(colisElement.find(".poids-colis").val()) || 0;
+            return prixUnitaire * poids;
+        } else {
+            const quantite = parseFloat(colisElement.find(".quantite-colis").val()) || 0;
+            return quantite * prixUnitaire;
+        }
+    }
+
+    function updateTotalForColis(colisElement) {
+        const prixTotal = calculateColisTotal(colisElement);
+        colisElement.find(".prix-total").text(prixTotal.toFixed(2));
+    }
+    
+    function attachColisEventListeners(colisElement) {
+        initAutocomplete(colisElement.find(".produit-input"), "{{ route('chine_colis.recherche.auto') }}", 'Colis');
+        
+        colisElement.on('input', '.quantite-colis, .prix-colis, .poids-colis', function() {
+            updateTotalForColis($(this).closest('.colis-item'));
+        });
+
+        colisElement.on("input", ".hauteur, .largeur, .longueur", function () {
+            const parent = $(this).closest(".dimension-section");
+            const h = parent.find(".hauteur").val();
+            const la = parent.find(".largeur").val();
+            const lo = parent.find(".longueur").val();
+            const resultDiv = parent.find(".dimension-result");
+            resultDiv.text(h && la && lo ? `${lo}x${la}x${h} cm` : '').toggle(!!(h && la && lo));
+        });
+    }
+    
+    initAutocomplete($('.service-input'), "{{ route('chine_colis.recherche.auto.service') }}", 'Service');
+    $('.prix-service').on('input', function() {
+        const prix = parseFloat($(this).val()) || 0;
+        $('.prix-total-service').text(prix.toFixed(2));
+    });
+
+    $(".add-colis").click(function() {
+        const newColis = colisContainer.find(".colis-item:first").clone();
+        
+        newColis.find("input, textarea, select").val("");
+        newColis.find(".quantite-colis").val("1");
+        newColis.find(".prix-total").text("0");
+        newColis.find(".dimension-result").hide().text('');
+        newColis.find('.autocomplete-results').empty().hide();
+        newColis.find(".remove-colis").show();
+        
+        colisContainer.append(newColis);
+        
+        attachColisEventListeners(newColis);
+        updateDynamicFields(); 
+    });
+
+
+    colisContainer.on("click", ".remove-colis", function () {
+        $(this).closest(".colis-item").remove();
+    });
+
+    attachColisEventListeners(colisContainer.find(".colis-item:first"));
+    
+    function initAutocomplete(inputElement, url, categorie) {
+        inputElement.on("keyup", function() {
+            const query = $(this).val().trim();
+            const input = $(this);
+            const parentContainer = input.closest('.position-relative');
+            const resultsContainer = parentContainer.find('.autocomplete-results');
+
+            if (query.length < 2) {
+                resultsContainer.empty().hide();
+                return;
+            }
+
+            $.ajax({
+                url: url, type: "GET", dataType: "json", data: { query: query, categorie: categorie },
+                success: function(data) {
+                    resultsContainer.empty().show();
+                    if (data.length > 0) {
+                        $.each(data, function(index, item) {
+                            $('<div class="autocomplete-item"></div>')
+                                .text(item.description)
+                                .on('click', function() {
+                                    input.val(item.description);
+                                    const colisItem = input.closest('.colis-item');
+                                    const prixInput = categorie === 'Colis' ? colisItem.find('.prix-colis') : $('.prix-service');
+                                    const prixUnitaire = parseFloat(item.prix);
+                                    prixInput.val(prixUnitaire).attr('data-prix-unitaire', prixUnitaire);
+                                    if (categorie === 'Colis') {
+                                        updateTotalForColis(colisItem);
+                                    } else {
+                                         $('.prix-total-service').text(prixUnitaire.toFixed(2));
+                                    }
+                                    resultsContainer.empty().hide();
+                                }).appendTo(resultsContainer);
+                        });
+                    } else { resultsContainer.hide(); }
+                },
+                error: function() { resultsContainer.empty().hide(); }
+            });
+        });
+    }
+
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.produit-input, .service-input, .autocomplete-results').length) {
+            $('.autocomplete-results').hide();
+        }
+    });
+
+    let activeProduitInput = null;
+    $(document).on("click", ".btn-add-produit", function() {
+        activeProduitInput = $(this).siblings(".produit-input");
+        $("#description_produit").val(activeProduitInput.val());
+    });
+    
+    $(".btn-save-produit").on("click", function () {
+        const form = $("#produitForm");
+        const data = {
+            description: form.find("#description_produit").val().trim(),
+            prix: parseFloat(form.find("#prix_unitaire").val()),
+            agence: form.find("#agence").val(),
+            categorie: 'Colis', _token: '{{ csrf_token() }}'
+        };
+        if (!data.description || isNaN(data.prix) || data.prix <= 0) {
+            alert("Veuillez remplir tous les champs correctement."); return;
+        }
+        const btn = $(this);
+        btn.prop("disabled", true).text("Enregistrement...");
+        $.ajax({
+            url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+            success: function (response) {
+                alert(response.message);
+                if (activeProduitInput) {
+                    const colisItem = activeProduitInput.closest('.colis-item');
+                    activeProduitInput.val(data.description);
+                    colisItem.find('.prix-colis').val(data.prix).attr('data-prix-unitaire', data.prix);
+                    updateTotalForColis(colisItem);
+                }
+                $("#produitModal").modal("hide"); form[0].reset();
+            },
+            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            complete: function() { btn.prop("disabled", false).text("Créer"); }
+        });
+    });
+
+    $(".btn-save-service").on("click", function () {
+        const form = $("#serviceForm");
+        const data = {
+            description: form.find("#description_service").val().trim(),
+            prix: parseFloat(form.find("#prix_unitaire_service").val()),
+            agence: form.find("#agence_service").val(),
+            categorie: 'Service', _token: '{{ csrf_token() }}'
+        };
+        if (!data.description || isNaN(data.prix) || data.prix <= 0) {
+            alert("Veuillez remplir tous les champs correctement."); return;
+        }
+        const btn = $(this);
+        btn.prop("disabled", true).text("Enregistrement...");
+        $.ajax({
+            url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+            success: function (response) {
+                alert(response.message);
+                $('.service-input').val(data.description); $('.prix-service').val(data.prix);
+                $('.prix-total-service').text(parseFloat(data.prix).toFixed(2));
+                $("#ServiceModal").modal("hide"); form[0].reset();
+            },
+            error: function (xhr) { alert("Erreur: " + (xhr.responseJSON?.message || "Erreur serveur")); },
+            complete: function() { btn.prop("disabled", false).text("Créer"); }
+        });
+    });
+
+    /**
+     * MODIFICATION : SCRIPT CORRIGÉ ET AMÉLIORÉ
+     * Ajout de la mise à jour des informations de transport dans le récapitulatif.
+     */
+    function updateRecapitulatif() {
+        // --- Informations Transport ---
+        const modeTransit = $('#mode_transit').val();
+        let referenceColis = 'N/A';
+        if (modeTransit === 'maritime') {
+            referenceColis = $('input[name="reference_colis_maritime"]').val();
+        } else if (modeTransit === 'aerien') {
+            referenceColis = $('input[name="reference_colis_aerien"]').val();
+        }
+        $('#recap_mode_transit').text(modeTransit ? modeTransit.charAt(0).toUpperCase() + modeTransit.slice(1) : 'N/A');
+        $('#recap_reference_colis').text(referenceColis || 'N/A');
+
+        // --- Informations Expéditeur & Destinataire ---
+        const isSociete = $('#categorie_client').val() === 'societe';
+        const nomExp = isSociete ? $('#nom_societe_expediteur').val() : `${$('#nom_expediteur').val()} ${$('#prenom_expediteur').val()}`;
+        const telExp = isSociete ? $('#tel_expediteur_societe').val() : $('#tel_expediteur').val();
+        $('#recap_nom_expediteur').text(nomExp.trim() || 'N/A');
+        $('#recap_tel_expediteur').text(telExp || 'N/A');
+        $('#recap_agence_expediteur').text($('#agence_expediteur').val() || 'N/A');
+        const nomDest = isSociete ? $('#nom_societe_destinataire').val() : `${$('#nom_destinataire').val()} ${$('#prenom_destinataire').val()}`;
+        const codePays = isSociete ? $('select[name="country_code_societe"]').val() : $('select[name="country_code_particulier"]').val();
+        const telDestNum = isSociete ? $('input[name="tel_destinataire_societe"]').val() : $('input[name="tel_destinataire"]').val();
+        $('#recap_nom_destinataire').text(nomDest.trim() || 'N/A');
+        $('#recap_tel_destinataire').text(telDestNum ? `${codePays} ${telDestNum}` : 'N/A');
+        $('#recap_agence_destinataire').text($('#agence_destinataire option:selected').text() || 'N/A');
+
+        // --- Détails et Calculs Financiers ---
+        let totalColisSomme = 0;
+        let nombreTotalColis = 0;
+        const devise = $('.devise-select:first').val() || 'EUR';
+        const detailsColisContainer = $('#recap_details_colis');
+        
+        detailsColisContainer.html(''); // Vider les détails précédents
+
+        // Boucle sur chaque colis pour le détail et le calcul
+        $('.colis-item').each(function(index) {
+            const colisElement = $(this);
+            const quantite = parseInt(colisElement.find('.quantite-colis').val()) || 0;
+            const produit = colisElement.find('.produit-input').val().trim() || 'Non spécifié';
+            const prixTotalDuColis = calculateColisTotal(colisElement);
+
+            nombreTotalColis += quantite;
+            totalColisSomme += prixTotalDuColis;
+
+            // Crée et ajoute la ligne de détail dans le récapitulatif
+            const recapLine = `
+                <div class="row border-bottom py-1">
+                    <div class="col-sm-7">Colis ${index + 1}: ${produit}</div>
+                    <div class="col-sm-2 text-center">Qté: ${quantite}</div>
+                    <div class="col-sm-3 text-end fw-bold">${prixTotalDuColis.toFixed(2)} ${devise}</div>
+                </div>
+            `;
+            detailsColisContainer.append(recapLine);
+        });
+
+        const totalServices = parseFloat($('.prix-service').val()) || 0;
+        const totalAPayer = totalColisSomme + totalServices;
+
+        // Mise à jour de tous les champs du récapitulatif
+        $('#recap_nombre_total_colis').text(nombreTotalColis);
+        $('#recap_total_colis_somme').text(totalColisSomme.toFixed(2));
+        $('#recap_total_services').text(totalServices.toFixed(2));
+        $('#recap_total_a_payer').text(totalAPayer.toFixed(2));
+        $('#recap_devise').text(devise);
+        $('.recap_devise_class').text(devise);
+    }
+
+    /**
+     * SCRIPT CORRIGÉ POUR LE PROBLÈME "NOT FOCUSABLE"
+     * Gère la visibilité et l'état (activé/désactivé) des champs de paiement.
+     */
+    $('#mode_payement').on('change', function() {
+        const selectedMethod = $(this).val();
+        
+        // D'abord, on désactive tous les champs de toutes les sections de paiement
+        $('.payment-section').find('input, select, textarea').prop('disabled', true);
+        
+        // On cache toutes les sections
+        $('.payment-section').hide();
+        
+        if (selectedMethod) {
+            const selectedSection = $('#' + selectedMethod);
+            
+            // On affiche la section choisie
+            selectedSection.slideDown();
+            
+            // ET ON ACTIVE SEULEMENT les champs de cette section visible
+            selectedSection.find('input, select, textarea').prop('disabled', false);
+        }
+    });
+
+    $('#operateur_mobile').on('change', function() {
+        $('#cinetpayButton').toggle($(this).val() !== '');
+    });
+
+});
+</script>
+
+<style>
+    .form-container {
+        max-width: 95%; margin: auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .form-section {
+        background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 20px;
+    }
+    fieldset { border: none; padding: 0; }
+    .progress-bar-container { width: 100%; margin-bottom: 40px; }
+    .progress-steps {
+        --progress-width: 0%; display: flex; justify-content: space-between; list-style: none; padding: 0; margin: 0; position: relative;
+    }
+    .progress-steps::before {
+        content: ''; position: absolute; top: 50%; transform: translateY(-50%); height: 4px; width: 100%; background-color: #d8d8d8; z-index: 1;
+    }
+    .progress-steps::after {
+        content: ''; position: absolute; top: 50%; transform: translateY(-50%); height: 4px; width: var(--progress-width); background-color: #28a745; z-index: 2; transition: width 0.4s ease;
+    }
+    .progress-steps .step {
+        display: flex; flex-direction: column; align-items: center; position: relative; z-index: 3; cursor: pointer;
+    }
+    .progress-steps .step::before {
+        content: ''; display: block; width: 30px; height: 30px; border-radius: 50%; background-color: #d8d8d8; border: 3px solid #d8d8d8; transition: background-color 0.4s ease, border-color 0.4s ease; margin-bottom: 5px;
+    }
+    .progress-steps .step span { font-size: 14px; color: #6c757d; text-align: center; }
+    .progress-steps .step.active::before { background-color: #fff; border-color: #28a745; }
+    .progress-steps .step.active span { color: #28a745; font-weight: bold; }
+    .autocomplete-results {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; background-color: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; display: none;
+    }
+    .autocomplete-item { padding: 8px 12px; cursor: pointer; }
+    .autocomplete-item:hover { background-color: #f0f0f0; }
+</style>
 @endsection

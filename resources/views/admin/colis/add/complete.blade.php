@@ -2,6 +2,19 @@
 
 @section('content')
 <section class="p-4 mx-auto">
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- Le message spécial (avertissement) s'affichera ici --}}
+    @if(isset($specialMessage) && !empty($specialMessage))
+        <div class="alert alert-warning fw-bold">
+            {{ $specialMessage }}
+        </div>
+    @endif
+
     <div class="form-container text-center">
         {{-- Affichage résumé (basé sur $first et totaux) --}}
         <div class="row d-flex justify-content-around mb-4">

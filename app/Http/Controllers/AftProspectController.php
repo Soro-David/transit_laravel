@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 use Carbon\Carbon;
 
-class ProspectController extends Controller
+class AftProspectController extends Controller
 {
     public function index()
     {
-        return view('admin.prospects.index');
+        return view('AFT_LOUIS_BLERIOT.prospects.index');
     }
 
     public function getProspects(Request $request)
@@ -109,7 +109,7 @@ class ProspectController extends Controller
         Prospect::create($validated);
 
         return redirect()
-            ->route('prospects.index')
+            ->route('aft_prospects.index')
             ->with('success', '✅ Prospect créé avec succès.');
     }
 
@@ -130,7 +130,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return view('admin.prospects.show', compact('prospect'));
+        return view('AFT_LOUIS_BLERIOT.prospects.show', compact('prospect'));
     }
 
 
@@ -149,7 +149,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return view('admin.prospects.edit', compact('prospect'));
+        return view('AFT_LOUIS_BLERIOT.prospects.edit', compact('prospect'));
     }
 
 
@@ -195,7 +195,7 @@ class ProspectController extends Controller
             abort(404);
         }
 
-        return redirect()->route('prospects.index')->with('success', 'Prospect mis à jour avec succès.');
+        return redirect()->route('aft_prospects.index')->with('success', 'Prospect mis à jour avec succès.');
     }
 
 
@@ -210,7 +210,7 @@ class ProspectController extends Controller
         } elseif ($type === 'pro') {
             $prospect = Prospect::findOrFail($originalId);
             $prospect->delete();
-            return redirect()->route('prospects.index')->with('success', 'Prospect supprimé avec succès.');
+            return redirect()->route('aft_prospects.index')->with('success', 'Prospect supprimé avec succès.');
         } else {
             abort(404);
         }
