@@ -625,4 +625,91 @@ class ProgrammeLBController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
+public function ajoutDevis()
+{
+    return view('AFT_LOUIS_BLERIOT.transport.ajoutdevis');
+}
+
+public function add_devis(Request $request)
+{
+    $id = auth()->user()->getIdUSer();
+    $user = User::findOrfail($id);
+
+    // Ces données ne sont plus nécessaires dans la vue mais gardons-les au cas où
+    $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->distinct()->pluck('pays_agence');
+    $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+    $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+
+    $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+    $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+
+    return view('AFT_LOUIS_BLERIOT.transport.ajoutdevis', compact(
+        'agencesExpedition', 'agencesDestination', 'paysUniques',
+        'client_expediteurs', 'client_destinataires','user'
+    ));
+}
+
+public function store_devis(Request $request)
+{
+    \Log::info('Données reçues:', $request->all());
+
+    try {
+        $devis = DB::transaction(function () use ($request) {
+
+            // 1. On récupère les initiales à partir des données validées du formulaire
+            $initialNom = mb_substr($request->nom_expediteur, 0, 1);
+            $initialPrenom = mb_substr($request->prenom_expediteur, 0, 1);
+            $initiales = strtoupper($initialNom . $initialPrenom);
+
+            // 2. On génère un code unique avec le format NA000000NC (sans -RE)
+            do {
+                $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $reference = 'NA' . $randomNumber . $initiales; // Suppression du "-RE"
+            } while (Devis::where('reference', $reference)->exists());
+
+            // Création du devis avec les données fixes
+            $newDevis = Devis::create([
+                'reference' => $reference,
+                'mode_transit' => $request->mode_transit,
+                'pays_expedition' => 'France', // Fixe
+                'agence_expedition' => 'AFT Agence Louis Bleriot', // Fixe
+                'agence_destination' => $request->agence_destination_societe,
+                'nom_expediteur' => $request->nom_expediteur,
+                'prenom_expediteur' => $request->prenom_expediteur,
+                'email_expediteur' => $request->email_expediteur,
+                'tel_expediteur' => $request->tel_expediteur,
+                'adresse_expediteur' => $request->adresse_expediteur,
+                'devise' => 'EUR', // Devise fixée à EUR
+                'user_id' => auth()->id(),
+                'etat' => 'confirmé', // État à confirmé
+            ]);
+
+            // 2b. On boucle sur les colis envoyés par le formulaire pour les créer
+            foreach ($request->service as $key => $service) {
+                $newDevis->items()->create([
+                    'quantite_colis' => $request->quantite_colis[$key],
+                    'service' => $service,
+                    'valeur_colis' => $request->valeur_colis[$key] ?? null,
+                    'type_colis' => $request->type_colis[$key],
+                    'description_colis' => $request->description_colis[$key] ?? null,
+                    'poids' => $request->poids[$key] ?? null,
+                    'longueur' => $request->longueur[$key] ?? null,
+                    'largeur' => $request->largeur[$key] ?? null,
+                    'hauteur' => $request->hauteur[$key] ?? null,
+                ]);
+            }
+
+            return $newDevis;
+        });
+
+        // REDIRECTION CORRIGÉE : rediriger vers la même page (ajoutDevis)
+        return redirect()->route('aftlb_transport.ajoutDevis')->with('success_popup', 'Devis créé avec succès !');
+
+    } catch (\Exception $e) {
+        Log::error('Erreur lors de la création du devis: ' . $e->getMessage());
+        return back()->with('error', 'Une erreur est survenue lors de la soumission de votre devis. Veuillez réessayer.')->withInput();
+    }
+}
 }
