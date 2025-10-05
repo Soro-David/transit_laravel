@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
 use App\Http\Requests\userRequest;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Devis; // Assurez-vous d'importer le modèle Devis
+use App\Models\DevisItem; // Assurez-vous d'importer le modèle DevisItem si vous en avez besoin pour des détails
 // use SimpleSoftwareIO\QrCode\Facades\QrCode; 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
@@ -1219,77 +1222,77 @@ private function generateReferenceParMode(string $mode_transit)
     }
 
 
+    public function update_hold(Request $request, InfobipSmsService $infobipSmsService, $id)
+    {
+        // 1. Valider la requête : on s'assure que le montant est bien présent et valide.
+        $validatedData = $request->validate([
+            'montant' => 'required|numeric|min:0',
+        ]);
+    
+        // 2. Trouver le devis ou échouer avec une erreur 404
+        $devis = Devis::with('items')->findOrFail($id);
+    
+        // 3. Mettre à jour le devis avec le montant final et le nouvel état
+        $devis->update([
+            'montant' => $validatedData['montant'],
+            'etat' => 'Validé', // ou 'non payé' selon votre workflow
+            'status' => 'non payé', // Ajout du status pour cohérence
+        ]);
+    
+        // 4. Préparer et envoyer les notifications (Email & SMS)
+    
+        // Pour l'email, nous pouvons réutiliser la logique en créant un objet paiement "factice"
+        $paiementFactice = new Paiement();
+        $paiementFactice->montant = $devis->montant;
+        $paiementFactice->montant_paye = 0;
+        $paiementFactice->statut_paiement = 'En attente';
+        $paiementFactice->methode_paiement = 'Non défini';
+        $paiementFactice->date_validation = now();
+        // Associer l'expéditeur (si votre Mailable en a besoin)
+        $expediteurInfo = (object)[
+            'email' => $devis->email_expediteur,
+            'nom' => $devis->nom_expediteur,
+            'tel' => $devis->tel_expediteur
+        ];
+        $paiementFactice->expediteur = $expediteurInfo;
+    
+       // ===================================================================
+    // MODIFICATION PRINCIPALE : ENVOI DE L'EMAIL À L'AGENT (user_id)
+    // ===================================================================
+    try {
+        // On vérifie que l'agent a bien été trouvé et qu'il a un email valide
+        if ($agent && !empty($agent->email) && filter_var($agent->email, FILTER_VALIDATE_EMAIL)) {
+            
+            // On envoie l'email à l'adresse email de l'agent
+            Mail::to($agent->email)->send(new ColisValidatedMail($paiementFactice, $devis->items));
+            Log::info("Email de validation du devis envoyé avec succès à l'agent: " . $agent->email . " (Réf Devis: " . $devis->reference . ")");
 
-    public function update_hold(Request $request, InfobipSmsService $infobipSmsService)
-{
-    $validatedData = $request->validate([
-        'groupes' => 'required|array',
-        'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
-        'groupes.*.colis_ids' => 'required|array',
-        'groupes.*.colis_ids.*' => 'exists:colis,id',
-    ]);
-
-    $groupes = $validatedData['groupes'];
-    $allColisIds = [];
-    $prixTotalGeneral = 0;
-
-    foreach ($groupes as $groupeData) {
-        $colisIds = $groupeData['colis_ids'];
-        $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
-        $nombreDeColisDansGroupe = count($colisIds);
-        
-        // On ajoute le prix de ce groupe au total général
-        $prixTotalGeneral += $prixTotalGroupe;
-        
-        if ($nombreDeColisDansGroupe > 0) {
-            $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
-            $allColisIds = array_merge($allColisIds, $colisIds); // Fusionner les IDs pour la collection finale
-
-            foreach ($colisIds as $colisId) {
-                $colis = Colis::find($colisId);
-                if ($colis) {
-                    $colis->update([
-                        'prix_transit_colis' => $prixUnitaire,
-                        'status' => 'non payé',
-                        'etat' => 'Validé',
-                    ]);
-                }
-            }
+        } else {
+            Log::warning("Envoi d'email annulé : Agent non trouvé ou email invalide pour le devis Réf: " . $devis->reference, [
+                'user_id' => $devis->user_id,
+                'agent_email' => $agent->email ?? 'non défini'
+            ]);
         }
-    }
-    
-    // Pour l'email et le SMS, on utilise les informations du premier colis de la première liste
-    $premierColis = Colis::find($allColisIds[0]);
-    $colisCollection = Colis::whereIn('id', $allColisIds)->get();
-
-    // Création de l'objet paiement factice pour l'email
-    $paiementFactice = new Paiement();
-    $paiementFactice->montant = $prixTotalGeneral; // Utiliser le prix total général
-    $paiementFactice->montant_paye = 0;
-    $paiementFactice->statut_paiement = 'En attente';
-    $paiementFactice->methode_paiement = 'Non défini';
-    $paiementFactice->date_validation = now();
-    $paiementFactice->setRelation('expediteur', $premierColis->expediteur);
-
-    // Envoi de l'email
-    try {
-        Mail::to($premierColis->expediteur->email)->send(new ColisValidatedMail($paiementFactice, $colisCollection));
-        Log::info("Email de validation du devis envoyé à " . $premierColis->expediteur->email);
     } catch (\Exception $e) {
-        Log::error("Erreur lors de l'envoi de l'email de validation du devis: " . $e->getMessage());
+        Log::error("Erreur critique lors de l'envoi de l'email de validation du devis à l'agent.", [
+            'reference_devis' => $devis->reference,
+            'agent_email' => $agent->email ?? 'non défini',
+            'exception' => $e
+        ]);
     }
-
-    // Envoi du SMS
-    $message = "Bonjour " . $premierColis->expediteur->nom . ", le devis pour votre colis (Réf: " . $premierColis->reference_colis . ") est disponible. Montant Total: " . $prixTotalGeneral . " EUR/FCFA. Veuillez consulter vos emails.";
+        // Envoi du SMS
+        $message = "Bonjour " . $devis->nom_expediteur . ", votre devis (Réf: " . $devis->reference . ") a été validé. Montant Total: " . $devis->montant . " " . $devis->devise . ". Veuillez consulter vos emails pour les détails.";
+        
+        try {
+            $infobipSmsService->sendSms($devis->tel_expediteur, $message);
+            Log::info("SMS de validation du devis envoyé à " . $devis->tel_expediteur);
+        } catch (\Exception $e) {
+            Log::error('Erreur envoi SMS: ' . $e->getMessage());
+        }
     
-    try {
-        $infobipSmsService->sendSms($premierColis->expediteur->tel, $message);
-    } catch (\Exception $e) {
-        Log::error('Erreur envoi SMS: ' . $e->getMessage());
+        // 5. Rediriger vers la liste des devis en attente avec un message de succès
+        return redirect()->route('aftlb_colis.hold')->with('success', 'Devis validé et notifié au client avec succès !');
     }
-
-    return redirect()->route('aftlb_colis.hold')->with('success', 'Devis validé et envoyé au client avec succès !');
-}
     public function editBon_livraison($id)
     {
         // dd($id);
@@ -2156,10 +2159,7 @@ private function generateReferenceParMode(string $mode_transit)
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
-    }
+  
 
     public function hold()
     {
@@ -2286,59 +2286,189 @@ private function generateReferenceParMode(string $mode_transit)
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',
-                'colis.reference_colis as reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->where('etat', 'En attente')
-            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
-            ->get()
-            ->groupBy('reference_colis');
-            $colisWithCount = $colis->map(function ($group, $reference) {
-                return [
-                    'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
-                    'expediteur_nom' => $group->first()->expediteur_nom,
-                    'expediteur_prenom' => $group->first()->expediteur_prenom,
-                    'expediteur_tel' => $group->first()->expediteur_tel,
-                    'expediteur_agence' => $group->first()->expediteur_agence,
-                    'destinataire_nom' => $group->first()->destinataire_nom,
-                    'destinataire_prenom' => $group->first()->destinataire_prenom,
-                    'destinataire_tel' => $group->first()->destinataire_tel,
-                    'destinataire_agence' => $group->first()->destinataire_agence,
-                    'etat' => $group->first()->etat === 'Devis' ? 'Dévis validé' : 'En attente',
-                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-                    'colis' => $group->values(), // Force un tableau indexé
-                ];
-            })->values();
-            return DataTables::of($colisWithCount)
+        // --- CORRECTION DE LA REQUÊTE ---
+        $devis = Devis::with('items')
+            // 1. On sélectionne DIRECTEMENT les états que vous voulez voir.
+            ->whereIn('etat', ['En attente', 'Validé'])
+            // 2. On ajoute le filtre sur la devise.
+            ->where('devise', 'EUR')
+            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+            ->get();
+
+        // --- CORRECTION DE LA TRANSFORMATION DES DONNÉES ---
+        $devisFormatted = $devis->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'reference_colis' => $item->reference,
+                'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                'expediteur_nom' => $item->nom_expediteur,
+                'expediteur_prenom' => $item->prenom_expediteur,
+                'expediteur_tel' => $item->tel_expediteur,
+                'destinataire_agence' => $item->agence_destination,
+                // 3. On passe directement l'état de la base de données, sans transformation.
+                'etat' => $item->etat,
+                'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+            ];
+        });
+
+        // Le reste de la fonction est inchangé et correct.
+        return DataTables::of($devisFormatted)
             ->addColumn('action', function ($row) {
-                $editUrl = route('aftlb_colis.hold.edit', ['id' => $row['colis']->first()->id]);
+                $showUrl = route('aftlb_colis.devis.show', ['id' => $row['id']]);
+                $reference = htmlspecialchars($row['reference_colis'], ENT_QUOTES, 'UTF-8');
                 return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
-                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-            }
+                    <div class="d-flex justify-content-center">
+                        <a href="' . $showUrl . '" class="btn-action btn-info me-1" title="Voir les détails">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button class="btn-action btn-danger" onclick="confirmDelete(' . $row['id'] . ', \'' . $reference . '\')" title="Annuler le devis">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                ';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
 }
- 
+public function destroy_devis($id)
+{
+    try {
+        // Trouver le devis
+        $devis = Devis::findOrFail($id);
+        
+        // Vérifier que le devis est bien en attente
+        if ($devis->etat !== 'En attente') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Seuls les devis en attente peuvent être supprimés.'
+            ], 422);
+        }
+        
+        // Supprimer les items associés au devis
+        $devis->items()->delete();
+        
+        // Supprimer le devis
+        $devis->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Devis supprimé avec succès.'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Erreur suppression devis: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression du devis: ' . $e->getMessage()
+        ], 500);
+    }
+}
+public function devisConfirme()
+{
+    // Retourne la vue située dans /views/AFT_LOUIS_BLERIOT/colis/devisconfirme.blade.php
+    return view('AFT_LOUIS_BLERIOT.colis.devisconfirme');
+}
+public function get_devis_confirmes(Request $request)
+{
+    if ($request->ajax()) {
+        $devis = Devis::with('items')
+            // MODIFICATION CLÉ : On filtre par l'état 'confirmé'
+            ->where('etat', 'confirmé') 
+            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+            ->get();
+
+        $devisFormatted = $devis->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'reference_colis' => $item->reference,
+                'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                'expediteur_nom' => $item->nom_expediteur,
+                'expediteur_prenom' => $item->prenom_expediteur,
+                'expediteur_tel' => $item->tel_expediteur,
+                'expediteur_agence' => $item->agence_expedition,
+                'destinataire_nom' => '', // Garder la structure cohérente
+                'destinataire_prenom' => '',
+                'destinataire_tel' => '',
+                'destinataire_agence' => $item->agence_destination,
+                'etat' => ucfirst($item->etat), // Met la première lettre en majuscule, ex: "Confirmé"
+                'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+                'details' => $item // Inutile pour la vue, mais ne pose pas de problème
+            ];
+        });
+
+        return DataTables::of($devisFormatted)->make(true);
+    }
+}
+public function get_devis_details($id)
+{
+    try {
+        \Log::info("Tentative de récupération du devis ID: " . $id);
+        
+        $devis = Devis::with('items')
+            ->where('id', $id)
+            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+            ->firstOrFail();
+
+        \Log::info("Devis trouvé: " . $devis->reference);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $devis->id,
+                'reference' => $devis->reference,
+                'mode_transit' => $devis->mode_transit,
+                'pays_expedition' => $devis->pays_expedition,
+                'agence_expedition' => $devis->agence_expedition,
+                'agence_destination' => $devis->agence_destination,
+                'nom_expediteur' => $devis->nom_expediteur,
+                'prenom_expediteur' => $devis->prenom_expediteur,
+                'email_expediteur' => $devis->email_expediteur,
+                'tel_expediteur' => $devis->tel_expediteur,
+                'adresse_expediteur' => $devis->adresse_expediteur,
+                'devise' => $devis->devise,
+                'montant' => $devis->montant,
+                'etat' => $devis->etat,
+                'mode_de_retrait' => $devis->mode_de_retrait,
+                'created_at' => $devis->created_at,
+                'items' => $devis->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'quantite_colis' => $item->quantite_colis,
+                        'service' => $item->service,
+                        'valeur_colis' => $item->valeur_colis,
+                        'type_colis' => $item->type_colis,
+                        'description_colis' => $item->description_colis,
+                        'poids' => $item->poids,
+                        'longueur' => $item->longueur,
+                        'largeur' => $item->largeur,
+                        'hauteur' => $item->hauteur,
+                    ];
+                })
+            ]
+        ]);
+    } catch (\Exception $e) {
+        \Log::error("Erreur lors de la récupération du devis: " . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Devis non trouvé: ' . $e->getMessage()
+        ], 404);
+    }
+}
+/**
+     * NOUVELLE MÉTHODE : Affiche les détails d'un devis spécifique.
+     */
+    public function show($id)
+    {
+        // 1. Récupérer le devis avec ses items depuis la base de données
+        // findOrFail() renverra une erreur 404 si le devis n'est pas trouvé
+        $devis = Devis::with('items')->findOrFail($id);
+
+        // 2. Retourner la nouvelle vue en lui passant les données du devis
+        return view('AFT_LOUIS_BLERIOT.colis.show', compact('devis'));
+    }
+
     public function get_colis_dump(Request $request)
     {
         if ($request->ajax()) {
@@ -4086,4 +4216,91 @@ public function liste_vol(Request $request)
     $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
     return view('AFT_LOUIS_BLERIOT.cargaison.liste_vol',compact('referenceVol'));
 }
+public function ajoutDevis()
+    {
+        // Vous pouvez passer des données nécessaires à la vue ici,
+        // par exemple, une liste de clients ou de produits.
+
+        return view('AFT_LOUIS_BLERIOT.colis.ajoutdevis');
+    }
+    public function add_devis(Request $request)
+    {
+        $id = auth()->user()->getIdUSer();
+        $user = User::findOrfail($id);
+    
+        // Ces données ne sont plus nécessaires dans la vue mais gardons-les au cas où
+        $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->distinct()->pluck('pays_agence');
+        $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+        $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+        $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+    
+        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+    
+        return view('AFT_LOUIS_BLERIOT.colis.ajoutdevis', compact(
+            'agencesExpedition', 'agencesDestination', 'paysUniques',
+            'client_expediteurs', 'client_destinataires','user'
+        ));
+    }
+    
+    public function store_devis(Request $request)
+    {
+        \Log::info('Données reçues:', $request->all());
+    
+        try {
+            $devis = DB::transaction(function () use ($request) {
+    
+                // 1. On récupère les initiales à partir des données validées du formulaire
+                $initialNom = mb_substr($request->nom_expediteur, 0, 1);
+                $initialPrenom = mb_substr($request->prenom_expediteur, 0, 1);
+                $initiales = strtoupper($initialNom . $initialPrenom);
+    
+                // 2. On génère un code unique avec le format NA000000NC (sans -RE)
+                do {
+                    $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                    $reference = 'NA' . $randomNumber . $initiales; // Suppression du "-RE"
+                } while (Devis::where('reference', $reference)->exists());
+    
+                // Création du devis avec les données fixes
+                $newDevis = Devis::create([
+                    'reference' => $reference,
+                    'mode_transit' => $request->mode_transit,
+                    'pays_expedition' => 'France', // Fixe
+                    'agence_expedition' => 'AFT Agence Louis Bleriot', // Fixe
+                    'agence_destination' => $request->agence_destination_societe,
+                    'nom_expediteur' => $request->nom_expediteur,
+                    'prenom_expediteur' => $request->prenom_expediteur,
+                    'email_expediteur' => $request->email_expediteur,
+                    'tel_expediteur' => $request->tel_expediteur,
+                    'adresse_expediteur' => $request->adresse_expediteur,
+                    'devise' => 'EUR', // Devise fixée à EUR
+                    'user_id' => auth()->id(),
+                    'etat' => 'confirmé', // État à confirmé
+                ]);
+    
+                // 2b. On boucle sur les colis envoyés par le formulaire pour les créer
+                foreach ($request->service as $key => $service) {
+                    $newDevis->items()->create([
+                        'quantite_colis' => $request->quantite_colis[$key],
+                        'service' => $service,
+                        'valeur_colis' => $request->valeur_colis[$key] ?? null,
+                        'type_colis' => $request->type_colis[$key],
+                        'description_colis' => $request->description_colis[$key] ?? null,
+                        'poids' => $request->poids[$key] ?? null,
+                        'longueur' => $request->longueur[$key] ?? null,
+                        'largeur' => $request->largeur[$key] ?? null,
+                        'hauteur' => $request->hauteur[$key] ?? null,
+                    ]);
+                }
+    
+                return $newDevis;
+            });
+    
+            return redirect()->route('aftlb_colis.hold')->with('success_popup', 'Devis créé avec succès !');
+    
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la création du devis: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la soumission de votre devis. Veuillez réessayer.')->withInput();
+        }
+    }
 }

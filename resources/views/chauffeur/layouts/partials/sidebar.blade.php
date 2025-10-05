@@ -20,11 +20,46 @@
                         <p>Tableau de bord</p>
                     </a>
                  </li>
+                 <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link {{ activeSegment('products') }}">
+                        <i class="fas fa-car"></i>
+                        <p>{{ __('Livraison') }}</p>
+                        <i class="right fas fa-angle-left"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{route('chauffeur.enlevement')}}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Enlevement') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{route('chauffeur.depot')}}"  class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Dépôt') }}</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <!-- La classe "has-treeview" a été enlevée -->
+                {{-- <li class="nav-item">
+                    <a href="{{ route('chauffeur.enlevement') }}" class="nav-link {{ activeSegment('programme') }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>Enlevement ou dépôt</p>
+                        <!-- La ligne de l'icône flèche a été supprimée -->
+                    </a>
+                </li> --}}
                 <li class="nav-item">
                     <a href="{{ route('chauffeur.programme.index') }}" class="nav-link {{ activeSegment('programme') }}">
                         <i class="fas fa-calendar-alt"></i>
                         <p>Programme De livraison</p>
+                        <!-- La ligne de l'icône flèche a été supprimée -->
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('chauffeur.enlevement.historique') }}" class="nav-link {{ activeSegment('programme') }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>Historique de programme</p>
                         <!-- La ligne de l'icône flèche a été supprimée -->
                     </a>
                 </li>

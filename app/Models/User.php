@@ -34,7 +34,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password', 'remember_token',
-        'is_active' => 'boolean',
+       'remember_token',
     ];
 
     /**
@@ -44,6 +44,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean', // <-- LA LIGNE A ÉTÉ DÉPLACÉE ICI
     ];
 
     public function cart()

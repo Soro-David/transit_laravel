@@ -1,4 +1,4 @@
-// History.blade.php
+
 @extends('customer.layouts.index')
 
 @section('content-header')
@@ -18,15 +18,25 @@
 @endif
 
 <section class="py-3">
-    <form action="" method="POST" class="mt-4">
-        @csrf
+    <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
                 <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                    <h4 class="text-left mt-4">Historique des devis validés</h4><br>
+                    <h4 class="text-left mt-4">Historique des devis validés</h4>
+                    <p class="text-muted">Liste de tous vos devis validés</p>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Rechercher par référence...">
+                        </div>
+                        <button class="btn btn-primary" onclick="refreshData()">
+                            <i class="fas fa-sync-alt"></i> Actualiser
+                        </button>
+                    </div>
+
                     <div id="products-container">
                         <div class="table-responsive">
-                            <table id="productTable" class="display table table-striped table-bordered" style="width:100%">
+                            <table class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
                                         <th>Référence Devis</th>
@@ -35,13 +45,59 @@
                                         <th>Destinataire</th>
                                         <th>Contact Dest.</th>
                                         <th>Agence Destination</th>
-                                        <th>Prix Total Devis</th> 
+                                        <th>Prix Total</th> 
                                         <th>Statut</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
+                                        <th>Date Modification</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="devisTableBody">
+                                    {{-- Vérification renforcée --}}
+                                    @if(!empty($devis) && $devis instanceof \Illuminate\Support\Collection && $devis->count() > 0)
+                                        @foreach($devis as $item)
+                                            <tr>
+                                                <td><strong>{{ $item->reference_colis ?? 'N/A' }}</strong></td>
+                                                <td class="text-center">{{ $item->nombre_colis_par_reference ?? '0' }}</td>
+                                                <td>{{ $item->expediteur->agence ?? 'N/A' }}</td>
+                                                <td>
+                                                    {{ ($item->destinataire->nom ?? '') . ' ' . ($item->destinataire->prenom ?? '') }}
+                                                </td>
+                                                <td>{{ $item->destinataire->tel ?? 'N/A' }}</td>
+                                                <td>{{ $item->destinataire->agence ?? 'N/A' }}</td>
+                                                <td class="text-right">{{ number_format($item->total_prix_devis ?? 0, 2) }} €</td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-success">Validé</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $item->updated_at ? $item->updated_at->format('d/m/Y H:i') : 'N/A' }}
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-info btn-sm view-devis" 
+                                                                data-id="{{ $item->id }}" 
+                                                                data-reference="{{ $item->reference_colis }}"
+                                                                title="Voir les détails">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <a href="#" 
+                                                           class="btn btn-warning btn-sm" 
+                                                           title="Télécharger le devis">
+                                                            <i class="fas fa-download"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="10" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                                    Aucun devis validé trouvé
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
@@ -49,106 +105,112 @@
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 </section>
 
+<!-- Modal pour voir les détails du devis -->
+<div class="modal fade" id="viewDevisModal" tabindex="-1" role="dialog" aria-labelledby="viewDevisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDevisModalLabel">Détails du Devis</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="devisDetails">
+                <!-- Les détails seront chargés ici -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    $(document).ready(function() {
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+$(document).ready(function() {
+    // Recherche en temps réel
+    $('#searchInput').on('keyup', function() {
+        var value = $(this).val().toLowerCase();
+        $('#devisTableBody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
-    
-        var table = $("#productTable").DataTable({
-            responsive: true,
-            language: {
-                url: "{{ asset('js/fr-FR.json') }}",
-                emptyTable: "Aucun devis validé trouvé",
-                zeroRecords: "Aucun résultat correspondant trouvé"
-            },
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route("customer_colis.get.colis.valide") }}',
-                type: 'GET',
-                error: function(xhr, error, thrown) {
-                    console.log('Erreur AJAX:', error, thrown);
-                    console.log('Réponse:', xhr.responseText);
-                    
-                    // Afficher un message d'erreur convivial
-                    alert('Erreur lors du chargement des données. Veuillez actualiser la page.');
-                }
-            },
-            columns: [
-                { data: 'reference_colis', name: 'reference_colis' },
-                { data: 'nombre_colis_par_reference', name: 'nombre_colis_par_reference' },
-                { data: 'expediteur_agence', name: 'expediteurs.agence' },
-                {
-                    data: null,
-                    name: 'destinataire_nom_complet',
-                    render: function(data, type, row) {
-                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
-                    }
-                },
-                { data: 'destinataire_contact', name: 'destinataires.tel' },
-                { data: 'destinataire_agence', name: 'destinataires.agence' },
-                { 
-                    data: 'total_prix_devis', 
-                    name: 'total_prix_devis', 
-                    render: function(data, type, row) { 
-                        return parseFloat(data).toFixed(2) + ' €'; 
-                    } 
-                },
-                { data: 'etat_display', name: 'etat_display' },
-                {
-                    data: 'last_updated_at',
-                    name: 'last_updated_at',
-                    
-                },
-                { 
-                    data: 'action', 
-                    name: 'action', 
-                    orderable: false, 
-                    searchable: false 
-                }
-            ],
-            initComplete: function() {
-                console.log('DataTable initialisé');
-            },
-            error: function (xhr, error, thrown) {
-                console.log('Erreur DataTable:', error, thrown);
-                // Afficher un message d'erreur dans le tableau
-                $("#productTable").find('tbody').html(
-                    '<tr class="odd">' +
-                    '<td valign="top" colspan="10" class="dataTables_empty">' +
-                    'Erreur lors du chargement des données. Veuillez actualiser la page.' +
-                    '</td>' +
-                    '</tr>'
-                );
-            }
-        });
-        
-        // Rafraîchir automatiquement les données toutes les 30 secondes
-        setInterval(function() {
-            table.ajax.reload(null, false);
-        }, 30000);
     });
-    </script>
+
+    // Gestion du clic sur le bouton "Voir les détails"
+    $(document).on('click', '.view-devis', function() {
+        var devisId = $(this).data('id');
+        var reference = $(this).data('reference');
+        viewDevisDetails(devisId, reference);
+    });
+});
+
+// Fonction pour voir les détails du devis
+function viewDevisDetails(devisId, reference) {
+    $.ajax({
+        url: '#',
+        type: 'GET',
+        data: {
+            devis_id: devisId
+        },
+        beforeSend: function() {
+            $('#devisDetails').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Chargement...</span>
+                    </div>
+                    <p>Chargement des détails...</p>
+                </div>
+            `);
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#devisDetails').html(response.html);
+            } else {
+                $('#devisDetails').html(`
+                    <div class="alert alert-danger">
+                        Erreur lors du chargement des détails
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            $('#devisDetails').html(`
+                <div class="alert alert-danger">
+                    Erreur lors du chargement des détails
+                </div>
+            `);
+        }
+    });
+    $('#viewDevisModal').modal('show');
+}
+
+// Fonction pour actualiser les données
+function refreshData() {
+    window.location.reload();
+}
+
+// Actualisation automatique toutes les 30 secondes
+setInterval(function() {
+    refreshData();
+}, 30000);
+</script>
+
 <style>
     body {
         background-color: #f7f7f7;
     }
-    .form-container {
-        max-width: 95%;
-        margin: auto;
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    .badge-success {
+        background-color: #28a745;
     }
-    #productTable_wrapper .row:first-child > div {
-        margin-bottom: 10px;
+    .btn-group .btn {
+        margin-right: 5px;
+    }
+    .table th {
+        background-color: #343a40;
+        color: white;
+        border-color: #454d55;
     }
 </style>
 @endsection

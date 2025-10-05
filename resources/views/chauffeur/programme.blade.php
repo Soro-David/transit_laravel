@@ -95,48 +95,48 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Référence Colis</th>
+                                <th>quantité</th>
                                 <th>Nature du Colis</th>
                                 <th>Action à faire</th>
                                 <th>Expéditeur</th>
-                                <th>Destinataire</th>
-                                <th>Lieu</th>
+                                <th></th>
                                 <th>État RDV</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($data as $row)
-                                <tr id="programme-row-{{ $row['id'] }}">
-                                    <td>{{ $row['date_programme_formatted'] }}</td>
-                                    <td><strong>{{ $row['reference_colis'] }}</strong></td>
-                                    <td>{{ $row['nature_colis'] }}</td>
+                            @forelse($programmes as $row)
+                                <tr id="programme-row-{{ $row->id }}">
+                                    <td>{{ $row->date_programme }}</td>
+                                    <td><strong>{{ $row->reference_colis }}</strong></td>
+                                    <td>{{ $row->nature_du_colis }}</td>
                                     <td>
-                                        @if($row['actions_a_faire'] == 'livraison')
-                                            <span class="badge badge-success">Livraison</span>
+                                        @if($row->actions_a_faire == 'depot')
+                                            <span class="badge badge-success">Dépôt</span>
                                         @else
                                             <span class="badge badge-info">Récupération</span>
                                         @endif
                                     </td>
-                                    <td>{{ $row['nom_expediteur'] }}</td>
-                                    <td>{{ $row['nom_destinataire'] }}</td>
-                                    <td>{{ $row['lieu_destinataire'] }}</td>
+                                    <td>{{ $row->nom_expediteur }}</td>
+                                    <td>{{ $row->nom_destinataire }}</td>
+                                    <td>{{ $row->lieu_destinataire }}</td>
                                     <td>
                                         <select class="form-control form-control-sm etat-rdv-select" 
                                                 data-programme-id="{{ $row['id'] }}" 
-                                                {{ $row['etat_rdv'] == 'effectué' ? 'disabled' : '' }} 
-                                                title="{{ $row['etat_rdv'] == 'effectué' ? 'RDV terminé' : '' }}">
-                                            <option value="en cours" {{ $row['etat_rdv'] == 'en cours' ? 'selected' : '' }}>En cours</option>
-                                            <option value="effectué" {{ $row['etat_rdv'] == 'effectué' ? 'selected' : '' }}>Effectué</option>
-                                            <option value="à replanifié" {{ $row['etat_rdv'] == 'à replanifié' ? 'selected' : '' }}>À replanifié</option>
+                                                {{ $row->etat_rdv == 'effectué' ? 'disabled' : '' }} 
+                                                title="{{ $row->etat_rdv == 'effectué' ? 'RDV terminé' : '' }}">
+                                            <option value="en cours" {{ $row->etat_rdv == 'en cours' ? 'selected' : '' }}>En cours</option>
+                                            <option value="effectué" {{ $row->etat_rdv == 'effectué' ? 'selected' : '' }}>Effectué</option>
+                                            <option value="à replanifié" {{ $row->etat_rdv == 'à replanifié' ? 'selected' : '' }}>À replanifié</option>
                                         </select>
                                     </td>
                                     <td class="text-center">
                                         <button type="button" 
-                                                class="btn {{ $row['etat_rdv'] == 'effectué' ? 'btn-secondary' : ($row['reste_a_payer'] ? 'btn-warning' : 'btn-primary') }} btn-sm btn-valider-rdv" 
-                                                data-programme-id="{{ $row['id'] }}" 
-                                                data-reference-colis="{{ $row['reference_colis'] }}"
-                                                {{ $row['etat_rdv'] == 'effectué' ? 'disabled' : '' }}>
-                                            @if($row['reste_a_payer'])
+                                                class="btn {{ $row->etat_rdv == 'effectué' ? 'btn-secondary' : ($row['reste_a_payer'] ? 'btn-warning' : 'btn-primary') }} btn-sm btn-valider-rdv" 
+                                                data-programme-id="{{ $row->id }}" 
+                                                data-reference-colis="{{ $row->reference_colis }}"
+                                                {{ $row->etat_rdv == 'effectué' ? 'disabled' : '' }}>
+                                            @if($row->reste_a_payer)
                                                 <i class="fas fa-euro-sign"></i> Encaisser
                                             @else
                                                 <i class="fas fa-check"></i> Valider

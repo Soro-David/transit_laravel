@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use App\Models\Devis;
+use App\Models\DevisItem;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -3587,8 +3589,39 @@ public function liste_colis_par_bateau($reference_conteneur)
         ));
     }
 
+public function devisConfirme()
+{
+    // Retourne la vue située dans /views/AGENCE_CHINE/colis/devisconfirme.blade.php
+    return view('AGENCE_CHINE.colis.devisconfirme');
+}
+public function get_devis_confirmes(Request $request)
+{
+    if ($request->ajax()) {
+        $devis = Devis::with('items')
+            // MODIFICATION CLÉ : On filtre par l'état 'confirmé'
+            ->where('etat', 'confirmé')
+            // MODIFICATION CLÉ : On filtre sur l'agence de la Chine
+            ->where('agence_expedition', 'AGENCE CHINE') // <-- VÉRIFIEZ CE NOM, il doit correspondre exactement à ce qui est en base de données
+            ->get();
 
+        $devisFormatted = $devis->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'reference_colis' => $item->reference,
+                'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                'expediteur_nom' => $item->nom_expediteur,
+                'expediteur_prenom' => $item->prenom_expediteur,
+                'expediteur_tel' => $item->tel_expediteur,
+                'expediteur_agence' => $item->agence_expedition,
+                'destinataire_agence' => $item->agence_destination,
+                'etat' => ucfirst($item->etat),
+                'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+            ];
+        });
 
+        return DataTables::of($devisFormatted)->make(true);
+    }
+}
 
 public function devis_hold(Request $request)
 {
@@ -3607,5 +3640,92 @@ public function liste_vol(Request $request)
 {
     $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
     return view('AGENCE_CHINE.cargaison.liste_vol',compact('referenceVol'));
+}
+public function ajoutDevis()
+    {
+        // Le chemin de la vue doit correspondre à votre structure de fichiers :
+        // resources/views/AGENCE_CHINE/colis/ajoutdevis.blade.php
+        return view('AGENCE_CHINE.colis.ajoutdevis');
+    }
+
+    public function add_devis(Request $request)
+{
+    $id = auth()->user()->getIdUSer();
+    $user = User::findOrfail($id);
+
+    // Ces données ne sont plus nécessaires dans la vue mais gardons-les au cas où
+    $paysUniques = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->distinct()->pluck('pays_agence');
+    $agences = Agence::select('nom_agence', 'pays_agence', 'id')->get();
+    $agencesExpedition = Agence::where('pays_agence', '!=', 'Côte d\'Ivoire')->get();
+    $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
+
+    $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
+    $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
+
+    return view('AGENCE_CHINE.colis.ajoutdevis', compact(
+        'agencesExpedition', 'agencesDestination', 'paysUniques',
+        'client_expediteurs', 'client_destinataires','user'
+    ));
+}
+
+public function store_devis(Request $request)
+{
+    \Log::info('Données reçues:', $request->all());
+
+    try {
+        $devis = DB::transaction(function () use ($request) {
+
+            // 1. On récupère les initiales à partir des données validées du formulaire
+            $initialNom = mb_substr($request->nom_expediteur, 0, 1);
+            $initialPrenom = mb_substr($request->prenom_expediteur, 0, 1);
+            $initiales = strtoupper($initialNom . $initialPrenom);
+
+            // 2. On génère un code unique avec le format NA000000NC-RE
+            do {
+                $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $reference = 'NA' . $randomNumber . $initiales . '-RE';
+            } while (Devis::where('reference', $reference)->exists());
+
+            // Création du devis avec les données fixes pour la Chine
+            $newDevis = Devis::create([
+                'reference' => $reference,
+                'mode_transit' => $request->mode_transit,
+                'pays_expedition' => 'Chine', // Fixe pour Chine
+                'agence_expedition' => 'Agence de Chine', // Fixe pour Chine
+                'agence_destination' => $request->agence_destination_societe,
+                'nom_expediteur' => $request->nom_expediteur,
+                'prenom_expediteur' => $request->prenom_expediteur,
+                'email_expediteur' => $request->email_expediteur,
+                'tel_expediteur' => $request->tel_expediteur,
+                'adresse_expediteur' => $request->adresse_expediteur,
+                'devise' => 'FCFA', // Devise fixée à FCFA pour Chine
+                'user_id' => auth()->id(),
+                'etat' => 'confirmé', // État à confirmé
+            ]);
+
+            // 2b. On boucle sur les colis envoyés par le formulaire pour les créer
+            foreach ($request->service as $key => $service) {
+                $newDevis->items()->create([
+                    'quantite_colis' => $request->quantite_colis[$key],
+                    'service' => $service,
+                    'valeur_colis' => $request->valeur_colis[$key] ?? null,
+                    'type_colis' => $request->type_colis[$key],
+                    'description_colis' => $request->description_colis[$key] ?? null,
+                    'poids' => $request->poids[$key] ?? null,
+                    'longueur' => $request->longueur[$key] ?? null,
+                    'largeur' => $request->largeur[$key] ?? null,
+                    'hauteur' => $request->hauteur[$key] ?? null,
+                ]);
+            }
+
+            return $newDevis;
+        });
+
+        return redirect()->route('chine_colis.hold')->with('success_popup', 'Devis créé avec succès !');
+
+    } catch (\Exception $e) {
+        Log::error('Erreur lors de la création du devis: ' . $e->getMessage());
+        return back()->with('error', 'Une erreur est survenue lors de la soumission de votre devis. Veuillez réessayer.')->withInput();
+    }
 }
 }

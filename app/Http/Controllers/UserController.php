@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Colis;
 use App\Models\Expediteur;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Devis;
+use App\Models\DevisItems;
 class UserController extends Controller
 {
     public function __construct()
@@ -23,7 +24,9 @@ class UserController extends Controller
         $expediteurIds = Expediteur::where('user_id', $user->id)->pluck('id');
 
         // Les compteurs globaux en haut de la page ne changent pas
-        $devisEnAttenteCount = Colis::whereIn('expediteur_id', $expediteurIds)->where('etat', 'En attente')->distinct('reference_colis')->count();
+        $devisEnAttenteCount = Devis::where('user_id', $user->id)
+                                ->where('etat', 'En attente')
+                                ->count();
         $colisEnCoursCount = Colis::whereIn('expediteur_id', $expediteurIds)->whereIn('etat', ['Validé', 'En entrepot', 'Chargé', 'En transit', 'Dechargé'])->distinct('reference_colis')->count();
         $colisLivresCount = Colis::whereIn('expediteur_id', $expediteurIds)->where('etat', 'Livré')->distinct('reference_colis')->count();
 

@@ -35,6 +35,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('aftlb_colis.devis.confirme') }}" class="nav-link">
+                                <i class="far fa-check-circle nav-icon"></i> <!-- Changement d'icône pour l'exemple -->
+                                <p>{{ __('Devis Confirmés') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{route('aftlb_colis.devis.hold')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi des dévis') }}</p>
@@ -56,6 +62,12 @@
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
                         </li> 
+                        <li class="nav-item">
+                            <a href="{{ route('aftlb_colis.ajoutDevis') }}" class="nav-link">
+                                <i class="far nav-icon"></i> {{-- Adaptez l'icône si besoin --}}
+                                <p>{{ __('Ajout de Devis') }}</p>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a href="{{route('aftlb_colis.colis.valide')}}" class="nav-link">
                                 <i class="far nav-icon"></i>

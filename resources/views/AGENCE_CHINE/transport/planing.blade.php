@@ -53,8 +53,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="chauffeur_id" class="form-label">Chauffeur:</label>
-                                <select name="chauffeur_id" id="chauffeur_id" class="form-control" required>
+                                <label for="user_id" class="form-label">Chauffeur:</label>
+                                <select name="user_id" id="user_id" class="form-control" required>
                                     <option value="">-- Sélectionner un Chauffeur --</option>
                                 </select>
                             </div>
@@ -169,8 +169,8 @@
                                 <input type="date" name="date_programme" id="edit_date_programme" class="form-control" data-modified="false">
                             </div>
                             <div class="mb-3">
-                                <label for="edit_chauffeur_id" class="form-label">Chauffeur:</label>
-                                <select name="chauffeur_id" id="edit_chauffeur_id" class="form-control" data-modified="false">
+                                <label for="edit_user_id" class="form-label">Chauffeur:</label>
+                                <select name="user_id" id="edit_user_id" class="form-control" data-modified="false">
                                     <option value="">-- Sélectionner un Chauffeur --</option>
                                 </select>
                             </div>
@@ -253,50 +253,53 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-            $(document).ready(function() {
-                let programmesData = { programmes: [], colisValides: [] };
-                let currentPage = 1;
-                let itemsPerPage = 10;
-          // MODIFICATION 2: Cacher le bouton "Retirer" au chargement
-          $('#remove-programme-entry').hide();
-                function generateTable(programmes) {
-                    const tableBody = $('#programmes-table');
-                    tableBody.empty();
-        
-                    if (programmes.length === 0) {
-                        tableBody.append('<tr><td colspan="12" class="text-center">Aucun programme trouvé.</td></tr>');
-                        return;
-                    }
-        
-                    programmes.forEach(programme => {
-                        let rowClass = '';
-                        if (programme.etat_rdv === 'effectué') {
-                            rowClass = 'table-success'; // Classe Bootstrap pour le vert
-                        } else if (programme.etat_rdv === 'à replanifié') {
-                            rowClass = 'table-warning'; // Classe Bootstrap pour le jaune
-                        }
-                        tableBody.append(`
-                            <tr class="${rowClass}">
-                                <td>${programme.date_programme}</td>
-                                <td>${programme.chauffeur ? programme.chauffeur.nom : 'N/A'}</td>
-                                <td>${programme.reference_colis || 'N/A'}</td>
-                                 <td>${programme.nature_du_colis || 'N/A'}</td>
-                                <td>${programme.actions_a_faire || 'N/A'}</td>
-                                <td>${programme.nom_expediteur || 'N/A'}</td>
-                                <td>${programme.Adresse_expedition || 'N/A'}</td>
-                                <td>${programme.tel_expediteur || 'N/A'}</td>
-                                <td>${programme.nom_destinataire || 'N/A'}</td>
-                                <td>${programme.tel_destinataire || 'N/A'}</td>
-                                <td>${programme.Adresse_destination || 'N/A'}</td>
-                                <td>${programme.etat_rdv || 'N/A'}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}">Modifier</button>
-                                    <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}">Supprimer</button>
-                                </td>
-                            </tr>
-                        `);
-                    });
+        $(document).ready(function() {
+        let programmesData = { programmes: [], colisValides: [] };
+        let currentPage = 1;
+        let itemsPerPage = 10;
+
+        $('#remove-programme-entry').hide();
+
+        function generateTable(programmes) {
+            const tableBody = $('#programmes-table');
+            tableBody.empty();
+
+            if (programmes.length === 0) {
+                tableBody.append('<tr><td colspan="13" class="text-center">Aucun programme trouvé.</td></tr>');
+                return;
+            }
+
+            programmes.forEach(programme => {
+                let rowClass = '';
+                if (programme.etat_rdv === 'effectué') {
+                    rowClass = 'table-success';
+                } else if (programme.etat_rdv === 'à replanifié') {
+                    rowClass = 'table-warning';
                 }
+                
+                tableBody.append(`
+                    <tr class="${rowClass}">
+                        <td>${programme.date_programme}</td>
+                        <td>${programme.user ? programme.user.first_name + ' ' + programme.user.last_name : 'N/A'}</td>
+                        <td>${programme.reference_colis || 'N/A'}</td>
+                        <td>${programme.nature_du_colis || 'N/A'}</td>
+                        <td>${programme.actions_a_faire || 'N/A'}</td>
+                        <td>${programme.nom_expediteur || 'N/A'}</td>
+                        <td>${programme.Adresse_expedition || 'N/A'}</td>
+                        <td>${programme.tel_expediteur || 'N/A'}</td>
+                        <td>${programme.nom_destinataire || 'N/A'}</td>
+                        <td>${programme.tel_destinataire || 'N/A'}</td>
+                        <td>${programme.Adresse_destination || 'N/A'}</td>
+                        <td>${programme.etat_rdv || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}">Modifier</button>
+                            <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}">Supprimer</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
         
         function generatePagination(totalItems) {
             const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -322,8 +325,13 @@
         function updateTable() {
             const searchTerm = $('#search').val().toLowerCase();
             const filteredProgrammes = programmesData.programmes.filter(programme =>
-                Object.values(programme).some(value => value && value.toString().toLowerCase().includes(searchTerm)) ||
-                (programme.chauffeur && programme.chauffeur.nom.toLowerCase().includes(searchTerm))
+                Object.values(programme).some(value => 
+                    value && value.toString().toLowerCase().includes(searchTerm)
+                ) ||
+                (programme.user && 
+                 (programme.user.first_name.toLowerCase().includes(searchTerm) ||
+                  programme.user.last_name.toLowerCase().includes(searchTerm))
+                )
             );
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
@@ -337,22 +345,21 @@
                 programmesData.programmes = response.data.programmes;
                 programmesData.colisValides = response.data.colisValides;
 
+                // Mettre à jour les selects des chauffeurs (users)
                 var chauffeurs = response.data.chauffeurs;
-                var selectChauffeur = $('#chauffeur_id, #edit_chauffeur_id');
-                selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                var selectChauffeurAdd = $('#user_id');
+                var selectChauffeurEdit = $('#edit_user_id');
+                
+                selectChauffeurAdd.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                selectChauffeurEdit.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                
                 chauffeurs.forEach(chauffeur => {
-                    selectChauffeur.append(`<option value="${chauffeur.id}">${chauffeur.nom}</option>`);
+                    selectChauffeurAdd.append(`<option value="${chauffeur.id}">${chauffeur.first_name} ${chauffeur.last_name}</option>`);
+                    selectChauffeurEdit.append(`<option value="${chauffeur.id}">${chauffeur.first_name} ${chauffeur.last_name}</option>`);
                 });
 
                 var colisList = $('#colis-list');
                 colisList.empty();
-                // Filtrer les colisValides pour exclure ceux qui sont déjà dans un programme sauf si on est dans le modal d'édition
-                let colisValides = response.data.colisValides;
-                if ($('#editProgrammeModal').is(':visible')) {
-                    colisValides = response.data.colisValides;
-                } else {
-                    colisValides = response.data.colisValides.filter(colis => !programmesData.programmes.some(programme => programme.reference_colis === colis.reference_colis));
-                }
                 response.data.colisValides.forEach(colis => {
                     colisList.append(`<option value="${colis.reference_colis}">${colis.reference_colis}</option>`);
                 });
@@ -360,14 +367,16 @@
                 updateTable();
             })
             .catch(function(error) {
-                console.error('Erreur de requete:', error);
+                console.error('Erreur de requête:', error);
             });
 
+        // Recherche
         $('#search').on('input', function() {
             currentPage = 1;
             updateTable();
         });
 
+        // Pagination
         $('.page-size-btn').on('click', function(e) {
             e.preventDefault();
             itemsPerPage = parseInt($(this).data('size'));
@@ -375,89 +384,82 @@
             $('#pageSizeDisplay').text(itemsPerPage);
             updateTable();
         });
-
         $('#add-programme-entry').on('click', function() {
-                    const index = $('.programme-entry').length;
-                    let newEntry = `
-                         <div class="programme-entry card mb-3">
-    <div class="card-body">
-        <!-- Ligne pour Action et Référence -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
-                    <select name="actions_a_faire[]" class="form-control required-field" required>
-                        <option value="">-- Sélectionner une action --</option>
-                        <option value="depot">Dépôt</option>
-                        <option value="recuperation">Récupération</option>
-                        <option value="livraison">Livraison</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="reference_colis_0" class="form-label">Référence Colis :</label>
-                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                           data-index="0" id="reference_colis_0">
-                </div>
-            </div>
-        </div>
-        <!-- Ligne pour Nature du Colis -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="mb-3">
-                    <label for="nature_du_colis_0" class="form-label">Nature du Colis :</label>
-                    <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_0">
-                </div>
-            </div>
-        </div>
-        
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
-                                        <div class="mb-3">
-                                            <label for="nom_expediteur_${index}" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_expediteur[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="Adresse_expedition_${index}" class="form-label">Adresse d'enlèvement :</label>
-                                            <input type="text" name="Adresse_expedition[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="tel_expediteur_${index}" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_expediteur[]" class="form-control" >
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <h6 class="border-bottom pb-2">Informations Destinataire</h6>
-                                        <div class="mb-3">
-                                            <label for="nom_destinataire_${index}" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_destinataire[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="tel_destinataire_${index}" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_destinataire[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
-                                            <input type="text" name="Adresse_destination[]" class="form-control" >
-                                        </div>
-                                    </div>
+            const index = $('.programme-entry').length;
+            let newEntry = `
+                <div class="programme-entry card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
+                                    <select name="actions_a_faire[]" class="form-control required-field" required>
+                                        <option value="">-- Sélectionner une action --</option>
+                                        <option value="depot">Dépôt</option>
+                                        <option value="recuperation">Récupération</option>
+                                        <option value="livraison">Livraison</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
+                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
+                                           data-index="${index}" id="reference_colis_${index}">
                                 </div>
                             </div>
                         </div>
-                    `;
-                    $('#programme-entries-container').append(newEntry);
-                    // MODIFICATION 2: Afficher le bouton "Retirer" après l'ajout d'une ligne
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="nature_du_colis_${index}" class="form-label">Nature du Colis :</label>
+                                    <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_${index}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
+                                <div class="mb-3">
+                                    <label for="nom_expediteur_${index}" class="form-label">Nom :</label>
+                                    <input type="text" name="nom_expediteur[]" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="Adresse_expedition_${index}" class="form-label">Adresse d'enlèvement :</label>
+                                    <input type="text" name="Adresse_expedition[]" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tel_expediteur_${index}" class="form-label">Téléphone :</label>
+                                    <input type="text" name="tel_expediteur[]" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2">Informations Destinataire</h6>
+                                <div class="mb-3">
+                                    <label for="nom_destinataire_${index}" class="form-label">Nom :</label>
+                                    <input type="text" name="nom_destinataire[]" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tel_destinataire_${index}" class="form-label">Téléphone :</label>
+                                    <input type="text" name="tel_destinataire[]" class="form-control">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
+                                    <input type="text" name="Adresse_destination[]" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#programme-entries-container').append(newEntry);
             $('#remove-programme-entry').show();
-                });
+        });
                  // Gestion de la suppression des entrées de programme
-                $('#remove-programme-entry').on('click', function() {
+                 $('#remove-programme-entry').on('click', function() {
             const entries = $('.programme-entry');
             if (entries.length > 1) {
                 entries.last().remove();
-                // MODIFICATION 2: Si on revient à une seule ligne, on cache à nouveau le bouton
                 if ($('.programme-entry').length === 1) {
                     $('#remove-programme-entry').hide();
                 }
@@ -471,13 +473,12 @@
             }
         });
         $(document).on('input', '.reference_colis', function() {
-    const entry = $(this).closest('.programme-entry');
-    const selectedReference = $(this).val();
-    const index = $(this).data('index');
-    const action = entry.find('select[name="actions_a_faire[]"]').val();
+            const entry = $(this).closest('.programme-entry');
+            const selectedReference = $(this).val();
+            const index = $(this).data('index');
+            const action = entry.find('select[name="actions_a_faire[]"]').val();
 
-    // Toujours faire la recherche AJAX si la référence est assez longue
-    if (selectedReference.length >= 3) {
+            if (selectedReference.length >= 3 && action !== 'recuperation') {
         axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
             .then(response => {
                 const colis = response.data;
@@ -537,34 +538,43 @@
             editForm.attr('action', `/AGENCE_CHINE/programmechine/update/${programmeId}`);
             // Modifier l'URL pour la requête GET AVEC le préfixe /admin
             axios.get(`/AGENCE_CHINE/programmechine/edit/${programmeId}`)
-                .then(response => {
+            .then(response => {
                     const programme = response.data.programme;
                     const chauffeurs = response.data.chauffeurs;
 
                     $('#edit_programme_id').val(programme.id);
-                            $('#edit_date_programme').val(programme.date_programme);
-                            $('#edit_nature_du_colis').val(programme.nature_du_colis);
-                            // Remplir le select des chauffeurs
-                            $('#edit_chauffeur_id').empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-                            chauffeurs.forEach(chauffeur => {
-                                $('#edit_chauffeur_id').append(`<option value="${chauffeur.id}" ${programme.chauffeur_id == chauffeur.id ? 'selected' : ''}>${chauffeur.nom}</option>`);
-                            });
-        
-                            $('#edit_reference_colis').val(programme.reference_colis);
-                            $('#edit_actions_a_faire').val(programme.actions_a_faire);
-                            $('#edit_etat_rdv').val(programme.etat_rdv); // Remplir le champ état RDV
-                            editModal.modal('show');
-        
-                            // Ajouter des écouteurs d'événements pour détecter les changements
-                            $('#editProgrammeModal input, #editProgrammeModal select').off('change').on('change', function() {
-                                $(this).attr('data-modified', 'true');
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Erreur lors de la récupération des données du programme:', error);
-                        });
-                });
+                    $('#edit_date_programme').val(programme.date_programme);
+                    $('#edit_nature_du_colis').val(programme.nature_du_colis);
+                    
+                    // Remplir le select des chauffeurs (users)
+                    $('#edit_user_id').empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+                    chauffeurs.forEach(chauffeur => {
+                        $('#edit_user_id').append(`<option value="${chauffeur.id}" ${programme.user_id == chauffeur.id ? 'selected' : ''}>${chauffeur.first_name} ${chauffeur.last_name}</option>`);
+                    });
 
+                    $('#edit_reference_colis').val(programme.reference_colis);
+                    $('#edit_actions_a_faire').val(programme.actions_a_faire);
+                    $('#edit_etat_rdv').val(programme.etat_rdv);
+
+                    editModal.modal('show');
+
+                    // Réinitialiser les indicateurs de modification
+                    $('#editProgrammeModal input, #editProgrammeModal select').attr('data-modified', 'false');
+                    
+                    // Ajouter les écouteurs d'événements pour détecter les changements
+                    $('#editProgrammeModal input, #editProgrammeModal select').off('change').on('change', function() {
+                        $(this).attr('data-modified', 'true');
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des données du programme:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Impossible de charger les données du programme',
+                    });
+                });
+        });
      // Gestion de la soumission du formulaire de modification
 $('#editProgrammeForm').off('submit').on('submit', function(event) {
     event.preventDefault();

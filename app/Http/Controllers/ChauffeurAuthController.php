@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Chauffeur;
+use App\Models\User; // Ajouter l'import User
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,29 +32,30 @@ class ChauffeurAuthController extends Controller
     
     public function dashboard()
     {
-        $chauffeur = Chauffeur::where('email', Auth::user()->email)->first();
-        if (!$chauffeur) {
+        $user = Auth::user();
+        
+        if (!$user || $user->role !== 'chauffeur') {
             return view('chauffeur.programme', ['data' => []])->with('error', 'Profil chauffeur non trouvé.');
         }
         
-        // Debug: Vérifions l'ID du chauffeur
-        // dd($chauffeur->id);
+        // Debug: Vérifions l'ID du user
+        // dd($user->id);
         
-        // 1. Missions aujourd'hui
-        $missionsAujourdhui = Programme::where('chauffeur_id', $chauffeur->id)
+        // 1. Missions aujourd'hui - UTILISER user_id AU LIEU DE chauffeur_id
+        $missionsAujourdhui = Programme::where('user_id', $user->id)
             ->whereDate('date_programme', Carbon::today())
             ->count();
 
-        // 2. Missions effectuées
-        $missionsEffectuees = Programme::where('chauffeur_id', $chauffeur->id)
+        // 2. Missions effectuées - UTILISER user_id AU LIEU DE chauffeur_id
+        $missionsEffectuees = Programme::where('user_id', $user->id)
             ->where('etat_rdv', 'effectué')
             ->count();
         
         // 3. Total encaissé
         $totalEncaisse = 0;
         
-        // Récupérer les références des colis effectués
-        $referencesColisEffectues = Programme::where('chauffeur_id', $chauffeur->id)
+        // Récupérer les références des colis effectués - UTILISER user_id AU LIEU DE chauffeur_id
+        $referencesColisEffectues = Programme::where('user_id', $user->id)
             ->where('etat_rdv', 'effectué')
             ->pluck('reference_colis');
         
@@ -75,8 +76,8 @@ class ChauffeurAuthController extends Controller
             }
         }
         
-        // 4. Répartition des statuts de RDV
-        $statutsRdv = Programme::where('chauffeur_id', $chauffeur->id)
+        // 4. Répartition des statuts de RDV - UTILISER user_id AU LIEU DE chauffeur_id
+        $statutsRdv = Programme::where('user_id', $user->id)
             ->select('etat_rdv', DB::raw('count(*) as total'))
             ->groupBy('etat_rdv')
             ->pluck('total', 'etat_rdv');
@@ -88,8 +89,8 @@ class ChauffeurAuthController extends Controller
             'data' => $statutsRdv->values(),
         ];
 
-        // 5. Activité des 7 derniers jours
-        $activiteHebdomadaire = Programme::where('chauffeur_id', $chauffeur->id)
+        // 5. Activité des 7 derniers jours - UTILISER user_id AU LIEU DE chauffeur_id
+        $activiteHebdomadaire = Programme::where('user_id', $user->id)
             ->whereBetween('date_programme', [
                 Carbon::now()->subDays(6)->startOfDay(), 
                 Carbon::now()->endOfDay()

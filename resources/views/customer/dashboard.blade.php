@@ -83,7 +83,7 @@
                 <!-- EN-TÊTE -->
                 <div class="dashboard-header">
                     <h1>Mon Tableau de Bord</h1>
-                    <a href="{{ route('customer_colis.create.colis') }}" class="btn-devis">
+                    <a href="{{ route('customer_colis.devis.create') }}" class="btn-devis">
                         <i class="fas fa-plus-circle"></i> Demander un devis
                     </a>
                 </div>
