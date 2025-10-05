@@ -1,4 +1,4 @@
-@extends('AGENCE_CHINE.layouts.agent')
+@extends('AFT_LOUIS_BLERIOT.layouts.agent')
 @section('content-header')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- Ajout du CSS pour les animations -->
@@ -34,19 +34,19 @@
                 },
                 willClose: () => {
                     // Redirection quand le popup se ferme
-                    window.location.href = "{{ route('chine_colis.hold') }}";
+                    window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
                 }
             });
 
             // Redirection de secours après 4 secondes
             setTimeout(() => {
-                window.location.href = "{{ route('chine_colis.hold') }}";
+                window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
             }, 4000);
         });
     </script>
     @endif
 
-    <form action="{{ route('chine_colis.store.devis') }}" method="post" class="form-container" novalidate>
+    <form action="{{ route('aftlb_transport.store.devis') }}" method="post" class="form-container" novalidate>
         @csrf
 
         {{-- Messages --}}
@@ -116,8 +116,8 @@
                     </div>
 
                     {{-- Champs cachés pour les données fixes --}}
-                    <input type="hidden" name="pays_expedition" value="Chine">
-                    <input type="hidden" name="agence_expedition" value="Agence de Chine">
+                    <input type="hidden" name="pays_expedition" value="France">
+                    <input type="hidden" name="agence_expedition" value="AFT Agence Louis Bleriot">
 
                     <div class="col-12 text-end mt-3">
                         <button type="button" class="btn btn-primary btn-next">Suivant →</button>
@@ -182,8 +182,8 @@
                             </div>
 
                             <div class="col-md-2">
-                                <label class="form-label">Valeur colis (FCFA)</label>
-                                <input type="number" name="valeur_colis[]" class="form-control prix-colis" placeholder="Valeur en FCFA" disabled>
+                                <label class="form-label">Valeur colis (EUR)</label>
+                                <input type="number" name="valeur_colis[]" class="form-control prix-colis" placeholder="Valeur en EUR" disabled>
                             </div>
 
                             <div class="col-md-2">
@@ -234,7 +234,7 @@
             </div>
         </fieldset>
 
-        <input type="hidden" name="devise" id="devise_hidden" value="FCFA">
+        <input type="hidden" name="devise" id="devise_hidden" value="EUR">
 
     </form>
 </section>
@@ -291,13 +291,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const modeSelect = document.getElementById('mode_transit');
     const agenceDestSelect = document.querySelector('select[name="agence_destination_societe"]');
     
-    // ---------- Devise fixée à FCFA ----------
-    function setDeviseToFCFA() {
+    // ---------- Devise fixée à EUR ----------
+    function setDeviseToEUR() {
         if (deviseHidden) {
-            deviseHidden.value = 'FCFA';
+            deviseHidden.value = 'EUR';
         }
     }
-    setDeviseToFCFA();
+    setDeviseToEUR();
 
     if (!modeSelect || !agenceDestSelect) return;
 

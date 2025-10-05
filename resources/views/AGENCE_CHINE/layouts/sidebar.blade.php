@@ -62,12 +62,7 @@
                                 <p>{{ __('Ajouter un colis') }}</p>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ route('chine_colis.ajoutDevis') }}" class="nav-link">
-                                <i class="far nav-icon"></i> {{-- Adaptez l'icône --}}
-                                <p>{{ __('Ajout de Devis') }}</p>
-                            </a>
-                        </li>
+                       
                         <li class="nav-item">
                             <a href="{{route('chine_colis.colis.valide')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
@@ -219,6 +214,12 @@
         <a href="{{ route('chine_transport.chauffeurs.show') }}" class="nav-link">
             <i class="far nav-icon"></i>
             <p>{{ __('Chauffeurs') }}</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('chine_programme.ajoutDevis') }}" class="nav-link">
+            <i class="far nav-icon"></i> {{-- Adaptez l'icône --}}
+            <p>{{ __('Creation de Devis à programmer') }}</p>
         </a>
     </li>
     <li class="nav-item">

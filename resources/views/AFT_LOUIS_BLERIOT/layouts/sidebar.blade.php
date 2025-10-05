@@ -63,12 +63,6 @@
                             </a>
                         </li> 
                         <li class="nav-item">
-                            <a href="{{ route('aftlb_colis.ajoutDevis') }}" class="nav-link">
-                                <i class="far nav-icon"></i> {{-- Adaptez l'icône si besoin --}}
-                                <p>{{ __('Ajout de Devis') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{{route('aftlb_colis.colis.valide')}}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Voir les colis validés') }}</p>
@@ -266,6 +260,12 @@
                             <a href="{{ route('aftlb_transport.show.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Chauffeurs') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('aftlb_transport.ajoutDevis') }}" class="nav-link">
+                                <i class="far nav-icon"></i> {{-- Adaptez l'icône si besoin --}}
+                                <p>{{ __('Creation de Devis à programmer') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

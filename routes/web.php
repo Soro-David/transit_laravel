@@ -853,9 +853,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 
         Route::get('/imprimer-aft-louis-b/facture/{id}', [AftlbColisController::class, 'editFacture'])->name('edit.facture');
         Route::get('/imprimer-aft-louis-b/etiquette/{id}', [AftlbColisController::class, 'editEtiquette'])->name('edit.etiquette');
-        Route::get('/ajout-devis', [AftlbColisController::class, 'ajoutDevis'])->name('ajoutDevis');
-        Route::get('/ajout-devis', [AftlbColisController::class, 'add_devis'])->name('ajoutDevis');
-        Route::post('/store-devis', [AftlbColisController::class, 'store_devis'])->name('store.devis');
+       
         // Route::get('/on-hold/{id}/edit', [ColisController::class, 'edit_hold'])->name('hold.edit');
 
 
@@ -989,6 +987,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
 ->name('programme.referenceInfo')
 ->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
         // Route AJAX pour DataTables
+        Route::get('/ajout-devis', [ProgrammeLBController::class, 'ajoutDevis'])->name('ajoutDevis');
+        Route::get('/ajout-devis-form', [ProgrammeLBController::class, 'add_devis'])->name('ajoutDevis.form');
+        Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
     ->name('aftlb_transport.programme.checkItems');
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
@@ -1643,9 +1644,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
          // Routes pour autocompletion et store produit
          Route::post('/store-produit-ajax-chine',[ChineColisController::class, 'storeProduit'])->name('store.produit');
          Route::get('/autocomplete/produit-chine', [ChineColisController::class, 'autocompleteProduit'])->name('recherche.auto');
-         Route::get('/ajout-devis', [ChineColisController::class, 'ajoutDevis'])->name('ajoutDevis');
-         Route::get('/ajout-devis', [ChineColisController::class, 'add_devis'])->name('ajoutDevis');
-         Route::post('/store-devis', [ChineColisController::class, 'store_devis'])->name('store.devis');
+       
 
         // Routes d'édition et mise à jour
         Route::get('/on-hold/{id}/edit-aft_chine', [ChineColisController::class, 'edit_hold'])->name('hold.edit');
@@ -1791,6 +1790,10 @@ Route::prefix('chine_transport')->name('chine_transport.')->group(function () {
 });
  Route::prefix('programmechine')->name('chine_programme.')->group(function () {
         Route::get('/transport', [ProgrammeChineController::class, 'index'])->name('planing.index');
+          // AJOUTEZ ces nouvelles routes ici :
+    Route::get('/ajout-devis', [ProgrammeChineController::class, 'ajoutDevis'])->name('ajoutDevis');
+    Route::get('/ajout-devis-form', [ProgrammeChineController::class, 'add_devis'])->name('ajoutDevis.form');
+    Route::post('/store-devis', [ProgrammeChineController::class, 'store_devis'])->name('store.devis');
         Route::post('/chauffeur/store', [ProgrammeChineController::class, 'storeChauffeur'])->name('chauffeur.store');
        // Route::post('/store', [::class, 'storeProgramme'])->name('store');
         Route::post('/store', [ProgrammeChineController::class, 'store'])->name('store');
