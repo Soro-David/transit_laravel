@@ -14,20 +14,29 @@ class Programme extends Model
     protected $fillable = [
         'quantite',
         'date_programme',
-        'user_id', // Changé de chauffeur_id à user_id
+        'user_id',
+        'agent_id',
         'reference_colis',
         'reference_generee',
+        'type_reference',
         'nature_du_colis',
+        'mode_transit',
+        'agence_expedition',
+        'agence_destination',
         'actions_a_faire',
         'nom_expediteur',
+        'prenom_expediteur',
+        'email_expediteur',
         'nom_destinataire',
         'lieu_destinataire',
         'tel_expediteur',
         'tel_destinataire',
         'lieu_expedition',
         'lieu_destination',
+        'montant',
+        'devise',
         'etat_rdv',
-        'qr_code',
+        'qr_code'
     ];
 
     // Relation avec User au lieu de Chauffeur
@@ -57,4 +66,11 @@ class Programme extends Model
     {
         return $this->hasMany(DevisItems::class, 'programme_id');
     }
+     // Relation avec l'agent qui a créé le programme
+     public function agent()
+     {
+         return $this->belongsTo(User::class, 'agent_id');
+     }
+ 
+
 }

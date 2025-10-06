@@ -94,69 +94,104 @@
     </div>
 </div>
 
-<!-- Modal pour Dépôt -->
+<!-- Modal pour Dépôt Multiple -->
 <div class="modal fade" id="depotModal" tabindex="-1" role="dialog" aria-labelledby="depotModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="depotModalLabel">Programmer un Dépôt</h5>
+                <h5 class="modal-title" id="depotModalLabel">Programmer des Dépôts</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="depotForm" method="POST">
+            <form id="depotForm" action="{{ route('aftlb_transport.programme.createMultipleDepot') }}" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="quantite">Quantité *</label>
-                                <input type="number" class="form-control" id="quantite" name="quantite" required min="1">
-                            </div>
+                    <!-- Section pour programmes multiples -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Programmes de dépôt</h6>
+                            <button type="button" class="btn btn-sm btn-success" id="add-depot-programme-btn">
+                                <i class="fas fa-plus"></i> Ajouter un autre dépôt
+                            </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="date_programme_depot">Date du Programme *</label>
-                                <input type="date" class="form-control" id="date_programme_depot" name="date_programme" required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="user_id_depot">Chauffeur *</label>
-                                <select class="form-control" id="user_id_depot" name="user_id" required>
-                                    <option value="">-- Sélectionner un Chauffeur --</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="nature_du_colis_depot">Nature de l'objet a deposé *</label>
-                                <input type="text" class="form-control" id="nature_du_colis_depot" name="nature_du_colis" required>
+                        <div class="card-body" id="depot-programmes-container">
+                            <!-- Premier programme (toujours présent) -->
+                            <div class="depot-programme-item border rounded p-3 mb-3" data-depot-programme-index="0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-primary mb-0">Dépôt #1</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-depot-programme-btn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="quantite_depot_0">Quantité *</label>
+                                            <input type="number" class="form-control" id="quantite_depot_0" name="programmes[0][quantite]" required min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nature_du_colis_depot_0">Nature de l'objet à déposer *</label>
+                                            <input type="text" class="form-control" id="nature_du_colis_depot_0" name="programmes[0][nature_du_colis]" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nom_expediteur_depot_0">Nom du Concerné *</label>
+                                            <input type="text" class="form-control" id="nom_expediteur_depot_0" name="programmes[0][nom_expediteur]" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="tel_expediteur_depot_0">Numéro de Téléphone *</label>
+                                            <input type="text" class="form-control" id="tel_expediteur_depot_0" name="programmes[0][tel_expediteur]" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="lieu_expedition_depot_0">Adresse de Dépôt *</label>
+                                            <textarea class="form-control" id="lieu_expedition_depot_0" name="programmes[0][lieu_expedition]" rows="2" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="nom_expediteur_depot">Nom du Concerné *</label>
-                        <input type="text" class="form-control" id="nom_expediteur_depot" name="nom_expediteur" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="lieu_expedition_depot">Adresse de Dépôt *</label>
-                        <textarea class="form-control" id="lieu_expedition_depot" name="lieu_expedition" rows="2" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="tel_expediteur_depot">Numéro de Téléphone *</label>
-                        <input type="text" class="form-control" id="tel_expediteur_depot" name="tel_expediteur" required>
+                    <!-- Informations communes à tous les programmes -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Informations communes</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="user_id_depot">Chauffeur *</label>
+                                        <select class="form-control" id="user_id_depot" name="user_id" required>
+                                            <option value="">-- Sélectionner un Chauffeur --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="date_programme_depot">Date du Programme *</label>
+                                        <input type="date" class="form-control" id="date_programme_depot" name="date_programme" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="submit" class="btn btn-success">Enregistrer le Dépôt</button>
+                    <button type="submit" class="btn btn-success">Enregistrer les Dépôts</button>
                 </div>
             </form>
         </div>
@@ -469,12 +504,16 @@ $(document).ready(function() {
                     </button>
                 </div>
                 
-                <!-- Badge indicateur du mode transit -->
+                <!-- Section MODE TRANSIT modifiable -->
                 <div class="mb-3">
-                    <span class="badge ${modeTransit === 'maritime' ? 'badge-info' : 'badge-warning'} mode-transit-badge">
-                        <i class="fas ${modeTransit === 'maritime' ? 'fa-ship' : 'fa-plane'}"></i>
-                        Mode transit: ${modeTransit === 'maritime' ? 'Maritime' : 'Aérien'}
-                    </span>
+                    <div class="form-group">
+                        <label class="small"><strong>Mode de transit:</strong></label>
+                        <select class="form-control form-control-sm editable-field mode-transit-select" 
+                                data-field="mode_transit" data-original="${modeTransit}" readonly>
+                            <option value="aerien" ${modeTransit === 'aerien' ? 'selected' : ''}>Aérien</option>
+                            <option value="maritime" ${modeTransit === 'maritime' ? 'selected' : ''}>Maritime</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="row">
@@ -486,8 +525,11 @@ $(document).ready(function() {
                         </div>
                         <div class="form-group mb-2">
                             <label class="small"><strong>Type de colis:</strong></label>
-                            <input type="text" class="form-control form-control-sm editable-field" value="${item.type_colis || 'Colis divers'}" 
-                                   data-field="type_colis" data-original="${item.type_colis || 'Colis divers'}" readonly>
+                            <select class="form-control form-control-sm editable-field type-colis-select" 
+                                    data-field="type_colis" data-original="${item.type_colis || 'standard'}" readonly>
+                                <option value="standard" ${(item.type_colis || 'standard') === 'standard' ? 'selected' : ''}>Standard</option>
+                                <option value="fragile" ${(item.type_colis || 'standard') === 'fragile' ? 'selected' : ''}>Fragile</option>
+                            </select>
                         </div>
                         <div class="form-group mb-2">
                             <label class="small"><strong>Valeur (FCFA):</strong></label>
@@ -556,9 +598,9 @@ $(document).ready(function() {
         `;
     });
     
-    // Ajouter un bouton pour ajouter un nouvel item
-    html += `
-        <div class="text-center mt-3" id="add-item-section-${programmeIndex}" style="display: none;">
+  // CORRECTION : Toujours afficher le bouton d'ajout
+  html += `
+        <div class="text-center mt-3" id="add-item-section-${programmeIndex}">
             <button type="button" class="btn btn-sm btn-primary add-new-item-btn" data-programme-index="${programmeIndex}">
                 <i class="fas fa-plus"></i> Ajouter un nouvel article
             </button>
@@ -567,24 +609,137 @@ $(document).ready(function() {
     
     container.html(html);
 }
-function toggleEditMode(programmeIndex, forceOn = false) {
+function generateItemFields(item, index, modeTransit, dimensionsClass, poidsClass) {
+    return `
+        <div class="mb-3">
+            <div class="form-group">
+                <label class="small"><strong>Mode de transit:</strong></label>
+                <select class="form-control form-control-sm editable-field mode-transit-select" 
+                        data-field="mode_transit" data-original="${modeTransit}" readonly>
+                    <option value="aerien" ${modeTransit === 'aerien' ? 'selected' : ''}>Aérien</option>
+                    <option value="maritime" ${modeTransit === 'maritime' ? 'selected' : ''}>Maritime</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Produit ou service:</strong></label>
+                    <input type="text" class="form-control form-control-sm editable-field" value="${item.service || ''}" 
+                           data-field="service" data-original="${item.service || ''}" readonly>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Type de colis:</strong></label>
+                    <select class="form-control form-control-sm editable-field type-colis-select" 
+                            data-field="type_colis" data-original="${item.type_colis || 'standard'}" readonly>
+                        <option value="standard" ${(item.type_colis || 'standard') === 'standard' ? 'selected' : ''}>Standard</option>
+                        <option value="fragile" ${(item.type_colis || 'standard') === 'fragile' ? 'selected' : ''}>Fragile</option>
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Valeur (FCFA):</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.valeur_colis || ''}" 
+                           data-field="valeur_colis" data-original="${item.valeur_colis || ''}" readonly step="0.01">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-2 ${poidsClass}">
+                    <label class="small"><strong>Poids (kg):</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.poids || ''}" 
+                           data-field="poids" data-original="${item.poids || ''}" readonly step="0.01">
+                </div>
+                
+                <div class="dimensions-section ${dimensionsClass}">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Longueur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.longueur || ''}" 
+                                       data-field="longueur" data-original="${item.longueur || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Largeur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.largeur || ''}" 
+                                       data-field="largeur" data-original="${item.largeur || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Hauteur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.hauteur || ''}" 
+                                       data-field="hauteur" data-original="${item.hauteur || ''}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Quantité:</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.quantite_colis || '1'}" 
+                           data-field="quantite_colis" data-original="${item.quantite_colis || '1'}" readonly min="1">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label class="small"><strong>Description:</strong></label>
+            <textarea class="form-control form-control-sm editable-field" data-field="description_colis" 
+                      data-original="${item.description_colis || ''}" readonly rows="2">${item.description_colis || ''}</textarea>
+        </div>
+    `;
+}
+function toggleEditMode(programmeIndex, forceOn) {
+    if (forceOn === undefined) forceOn = false;
     const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+     // VÉRIFICATION DE SÉCURITÉ
+     if (pItem.length === 0) {
+        console.error(`❌ Programme item avec index ${programmeIndex} non trouvé`);
+        // Tentative de fallback
+        const fallbackItem = $('.programme-item').first();
+        if (fallbackItem.length > 0) {
+            const fallbackIndex = fallbackItem.data('programme-index');
+            console.log(`🔄 Utilisation du fallback index: ${fallbackIndex}`);
+            pItem = fallbackItem;
+            programmeIndex = fallbackIndex;
+        } else {
+            console.error('❌ Aucun programme item trouvé');
+            return;
+        }
+    }
     const btn = pItem.find('.toggle-edit-mode');
     const content = pItem.find('.devis-items-content');
-    const itemsSection = pItem.find('.devis-items-section');
     const isEdit = btn.hasClass('btn-warning');
+
+    console.log("🔄 toggleEditMode appelé pour programme", programmeIndex, "forceOn:", forceOn, "isEdit:", isEdit);
 
     if (!isEdit || forceOn) {
         // Activer le mode édition
         btn.html('<i class="fas fa-eye"></i> Visualiser').removeClass('btn-light').addClass('btn-warning');
+        
+        // Activer tous les champs éditables
         content.find('.editable-field').prop('readonly', false).addClass('border-primary');
+        content.find('.mode-transit-select').prop('readonly', false);
+        content.find('.type-colis-select').prop('readonly', false);
+        
+        // Afficher les boutons d'action
         content.find('.remove-item-btn').show();
         content.find('.item-actions').show();
         $(`#add-item-section-${programmeIndex}`).show();
+        
+        console.log("✅ Mode édition activé pour le programme", programmeIndex);
     } else {
         // Désactiver le mode édition
         btn.html('<i class="fas fa-edit"></i> Modifier').removeClass('btn-warning').addClass('btn-light');
+        
+        // Désactiver tous les champs
         content.find('.editable-field').prop('readonly', true).removeClass('border-primary');
+        content.find('.mode-transit-select').prop('readonly', true);
+        content.find('.type-colis-select').prop('readonly', true);
+        
+        // Cacher les boutons d'action
         content.find('.remove-item-btn').hide();
         content.find('.item-actions').hide();
         $(`#add-item-section-${programmeIndex}`).hide();
@@ -596,6 +751,7 @@ function toggleEditMode(programmeIndex, forceOn = false) {
         });
         
         updateTotalQuantity(programmeIndex);
+        console.log("🔒 Mode édition désactivé pour le programme", programmeIndex);
     }
 }
 function updateTotalQuantity(programmeIndex) {
@@ -623,6 +779,18 @@ function showTempMessage(message, type = 'info', programmeIndex = 0) {
     setTimeout(() => {
         tempAlert.alert('close');
     }, 3000);
+}
+function initAddItemButtons() {
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        const itemsSection = $(this).find('.devis-items-section');
+        const currentItems = itemsSection.data('devis-items') || [];
+        
+        // Afficher le bouton seulement s'il y a des articles
+        if (currentItems.length > 0) {
+            $(`#add-item-section-${programmeIndex}`).show();
+        }
+    });
 }
 
     // =========================================================================
@@ -656,7 +824,7 @@ function showTempMessage(message, type = 'info', programmeIndex = 0) {
                     // Stocker les items ET les informations du devis (dont mode_transit)
                     itemsSection.data('devis-items', JSON.parse(JSON.stringify(data.data.items)));
                     itemsSection.data('devis-info', {
-                        mode_transit: data.data.mode_transit || 'aerien', // IMPORTANT: Récupérer le mode transit
+                        mode_transit: data.data.mode_transit || 'aerien',
                         agence_destination: data.data.agence_destination,
                         montant: data.data.montant,
                         devise: data.data.devise,
@@ -721,9 +889,44 @@ function showTempMessage(message, type = 'info', programmeIndex = 0) {
             $(`.programme-item[data-programme-index="${programmeIndex}"] .devis-items-section`).hide();
         });
 }
+
 function initEditModeForProgramme(programmeIndex) {
     const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    
+    if (pItem.length === 0) {
+        console.warn(`⚠️ Programme item ${programmeIndex} non trouvé pour initEditModeForProgramme`);
+        return;
+    }
     const itemsSection = pItem.find('.devis-items-section');
+    
+    // Gestion du changement de mode transit
+    pItem.off('change.modeTransit').on('change.modeTransit', '.mode-transit-select', function(e) {
+        e.stopImmediatePropagation();
+        const itemIndex = $(this).closest('.item-details').data('item-index');
+        const newModeTransit = $(this).val();
+        
+        console.log(`🔄 Changement mode transit pour item ${itemIndex}:`, newModeTransit);
+        
+        // Mettre à jour l'affichage des champs selon le mode transit
+        const itemElement = $(this).closest('.item-details');
+        
+        if (newModeTransit === 'maritime') {
+            // Afficher dimensions, masquer poids
+            itemElement.find('.dimensions-section').removeClass('d-none');
+            itemElement.find('.form-group.mb-2:has(input[data-field="poids"])').addClass('d-none');
+        } else {
+            // Afficher poids, masquer dimensions
+            itemElement.find('.dimensions-section').addClass('d-none');
+            itemElement.find('.form-group.mb-2:has(input[data-field="poids"])').removeClass('d-none');
+        }
+        
+        // Mettre à jour les données stockées
+        const currentItems = itemsSection.data('devis-items');
+        if (currentItems && currentItems[itemIndex]) {
+            currentItems[itemIndex].mode_transit = newModeTransit;
+            itemsSection.data('devis-items', currentItems);
+        }
+    });
     
     // Sauvegarde d'un item
     pItem.off('click.saveItem').on('click.saveItem', '.save-item-btn', function(e) {
@@ -736,30 +939,30 @@ function initEditModeForProgramme(programmeIndex) {
         let hasErrors = false;
         
         itemElement.find('.editable-field').each(function() {
-    const field = $(this).data('field');
-    let value = $(this).val();
-    
-    // Validation
-    if (field === 'service' && !value.trim()) {
-        $(this).addClass('is-invalid');
-        hasErrors = true;
-        return;
-    } else {
-        $(this).removeClass('is-invalid');
-    }
-    
-    // Convertir les valeurs numériques
-    if (field === 'quantite_colis') {
-        value = parseInt(value) || 1;
-        if (value < 1) value = 1;
-    } else if (field === 'valeur_colis' || field === 'poids' || field === 'longueur' || field === 'largeur' || field === 'hauteur') {
-        value = parseFloat(value) || 0;
-        if (value < 0) value = 0;
-    }
-    
-    updatedItem[field] = value;
-    $(this).data('original', value);
-});
+            const field = $(this).data('field');
+            let value = $(this).val();
+            
+            // Validation
+            if (field === 'service' && !value.trim()) {
+                $(this).addClass('is-invalid');
+                hasErrors = true;
+                return;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+            
+            // Convertir les valeurs numériques
+            if (field === 'quantite_colis') {
+                value = parseInt(value) || 1;
+                if (value < 1) value = 1;
+            } else if (field === 'valeur_colis' || field === 'poids' || field === 'longueur' || field === 'largeur' || field === 'hauteur') {
+                value = parseFloat(value) || 0;
+                if (value < 0) value = 0;
+            }
+            
+            updatedItem[field] = value;
+            $(this).data('original', value);
+        });
         
         if (hasErrors) {
             showTempMessage('Veuillez remplir tous les champs obligatoires', 'error', programmeIndex);
@@ -834,44 +1037,43 @@ function initEditModeForProgramme(programmeIndex) {
     
     // Ajouter un nouvel item
     pItem.off('click.addNewItem').on('click.addNewItem', '.add-new-item-btn', function(e) {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    
-    const currentItems = itemsSection.data('devis-items') || [];
-    const devisInfo = itemsSection.data('devis-info') || {};
-    const modeTransit = devisInfo.mode_transit || 'aerien';
-    
-    // NOUVEAU: Définir les valeurs par défaut selon le mode transit
-    const newItem = {
-        quantite_colis: 1,
-        service: 'Nouveau service',
-        valeur_colis: 0,
-        type_colis: 'Colis divers',
-        description_colis: 'Description du nouvel article',
-        // Pour aérien: poids par défaut, pour maritime: 0
-        poids: modeTransit === 'aerien' ? 0 : 0,
-        // Pour maritime: dimensions par défaut, pour aérien: 0
-        longueur: modeTransit === 'maritime' ? 0 : 0,
-        largeur: modeTransit === 'maritime' ? 0 : 0,
-        hauteur: modeTransit === 'maritime' ? 0 : 0,
-        is_new: true,
-        id: 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-    };
-    
-    currentItems.push(newItem);
-    itemsSection.data('devis-items', currentItems);
-    
-    console.log("➕ Nouvel article ajouté avec mode transit:", modeTransit);
-    
-    generateEditableItemsHTML(currentItems, itemsSection.find('.devis-items-content'), programmeIndex);
-    initEditModeForProgramme(programmeIndex);
-    
-    // Activer automatiquement le mode édition
-    if (!pItem.find('.toggle-edit-mode').hasClass('btn-warning')) {
-        toggleEditMode(programmeIndex, true);
-    }
-});
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        
+        const currentItems = itemsSection.data('devis-items') || [];
+        const devisInfo = itemsSection.data('devis-info') || {};
+        const modeTransit = devisInfo.mode_transit || 'aerien';
+        
+        const newItem = {
+            quantite_colis: 1,
+            service: 'Nouveau service',
+            valeur_colis: 0,
+            type_colis: 'standard',
+            description_colis: 'Description du nouvel article',
+            mode_transit: modeTransit,
+            poids: modeTransit === 'aerien' ? 1 : 0,
+            longueur: modeTransit === 'maritime' ? 10 : 0,
+            largeur: modeTransit === 'maritime' ? 10 : 0,
+            hauteur: modeTransit === 'maritime' ? 10 : 0,
+            is_new: true,
+            id: 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        };
+        
+        currentItems.push(newItem);
+        itemsSection.data('devis-items', currentItems);
+        
+        console.log("➕ Nouvel article ajouté avec mode transit:", modeTransit);
+        
+        generateEditableItemsHTML(currentItems, itemsSection.find('.devis-items-content'), programmeIndex);
+        initEditModeForProgramme(programmeIndex);
+        
+        // Activer automatiquement le mode édition
+        if (!pItem.find('.toggle-edit-mode').hasClass('btn-warning')) {
+            toggleEditMode(programmeIndex, true);
+        }
+    });
 }
+
 function addProgramme() {
     const newIndex = $('.programme-item').length;
     const template = $($('.programme-item')[0]).clone();
@@ -895,7 +1097,6 @@ function addProgramme() {
 
     $('#programmes-container').append(template);
 }
-
     
     // =========================================================================
     // 5. ÉCOUTEURS D'ÉVÉNEMENTS
@@ -917,7 +1118,11 @@ function addProgramme() {
             currentPage = parseInt($(this).data('page'));
             updateTable();
         });
-
+        initDepotModal(); // <-- AJOUTER CETTE LIGNE
+        initRecuperationModal();
+        initAddItemButtons();
+        console.log("✅ Événements initialisés");
+    }
         // Modale de récupération
         $('#add-programme-btn').on('click', addProgramme);
         pContainer.on('click', '.remove-programme-btn', function() {
@@ -929,9 +1134,38 @@ function addProgramme() {
         });
 
         // Logique d'édition des articles
-        pContainer.on('click', '.toggle-edit-mode', function() {
-            toggleEditMode($(this).closest('.programme-item').data('programme-index'));
-        });
+      // Logique d'édition des articles - DÉLÉGATION D'ÉVÉNEMENT CORRECTE
+// Logique d'édition des articles - DÉLÉGATION D'ÉVÉNEMENT CORRECTE
+// CORRECTION : Délégation d'événement pour les boutons Modifier
+$(document).on('click', '.toggle-edit-mode', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const button = $(this);
+    const programmeItem = button.closest('.programme-item');
+    const programmeIndex = programmeItem.data('programme-index');
+    
+    console.log("🎯 Bouton Modifier cliqué");
+    console.log("📦 Élément programme-item:", programmeItem.length);
+    console.log("🔍 Data programme-index:", programmeIndex);
+    console.log("📍 Bouton trouvé dans:", button.closest('.devis-items-section').length ? 'devis-items-section' : 'autre');
+    
+    if (programmeIndex !== undefined) {
+        toggleEditMode(programmeIndex);
+    } else {
+        console.error("❌ Impossible de trouver programme-index");
+        // Fallback: chercher l'index via l'ID de la section
+        const sectionId = button.closest('.devis-items-section').attr('id');
+        if (sectionId) {
+            const match = sectionId.match(/devis_items_section_(\d+)/);
+            if (match) {
+                const fallbackIndex = parseInt(match[1]);
+                console.log("🔄 Fallback avec index:", fallbackIndex);
+                toggleEditMode(fallbackIndex);
+            }
+        }
+    }
+});
         pContainer.on('click', '.add-new-item-btn', function() {
             const pItem = $(this).closest('.programme-item');
             const itemsSection = pItem.find('.devis-items-section');
@@ -1038,6 +1272,155 @@ $('#recuperationForm').on('submit', function(e) {
             Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
         });
 });
+function addDepotProgramme() {
+    const newIndex = $('.depot-programme-item').length;
+    const template = $($('.depot-programme-item')[0]).clone();
+    
+    template.attr('data-depot-programme-index', newIndex);
+    template.find('h6').text(`Dépôt #${newIndex + 1}`);
+    template.find('input, textarea').val('');
+    template.find('.remove-depot-programme-btn').show();
+    
+    template.find('[id]').each(function() { 
+        $(this).attr('id', $(this).attr('id').replace('_0', `_${newIndex}`)); 
+    });
+    template.find('[name]').each(function() { 
+        $(this).attr('name', $(this).attr('name').replace('[0]', `[${newIndex}]`)); 
+    });
+
+    $('#depot-programmes-container').append(template);
+}
+
+function initDepotModal() {
+    // Ajouter un programme de dépôt
+    $('#add-depot-programme-btn').on('click', addDepotProgramme);
+    
+    // Supprimer un programme de dépôt
+    $('#depot-programmes-container').on('click', '.remove-depot-programme-btn', function() {
+        if ($('.depot-programme-item').length > 1) {
+            $(this).closest('.depot-programme-item').remove();
+        }
+    });
+    
+    // Soumission du formulaire de dépôt
+    $('#depotForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Préparer les données de tous les programmes de dépôt
+        const programmes = [];
+        $('.depot-programme-item').each(function() {
+            const programmeIndex = $(this).data('depot-programme-index');
+            
+            programmes.push({
+                quantite: $(this).find('[name$="[quantite]"]').val(),
+                nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+                nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+                tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+                lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val()
+            });
+        });
+
+        const payload = {
+            user_id: $('#user_id_depot').val(),
+            date_programme: $('#date_programme_depot').val(),
+            programmes: programmes
+        };
+
+        // Afficher un indicateur de chargement
+        Swal.fire({
+            title: 'Création en cours...',
+            text: 'Veuillez patienter',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        axios.post($(this).attr('action'), payload)
+            .then(res => {
+                Swal.close();
+                
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Succès!', 
+                    html: `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`,
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    // Fermer le modal
+                    $('#depotModal').modal('hide');
+                    // Recharger la page complète
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                Swal.close();
+                Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
+            });
+    });
+    
+    // Nettoyage de la modale à la fermeture
+    $('#depotModal').on('hidden.bs.modal', function(){
+        $('#depot-programmes-container').html($($('.depot-programme-item')[0]).clone());
+        $('#depotForm')[0].reset();
+        $('.depot-programme-item').attr('data-depot-programme-index', 0).find('h6').text('Dépôt #1');
+        $('.remove-depot-programme-btn').hide();
+    });
+}
+function initRecuperationModal() {
+    // Ajouter un programme de récupération
+    $('#add-programme-btn').on('click', addProgramme);
+    
+    // Supprimer un programme de récupération
+    $('#programmes-container').on('click', '.remove-programme-btn', function() {
+        if ($('.programme-item').length > 1) {
+            $(this).closest('.programme-item').remove();
+        }
+    });
+    
+    // Gestion du changement de type de référence
+    $('#programmes-container').on('change', '.type-reference', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        const referenceInput = $(this).closest('.programme-item').find('.reference-input');
+        
+        // Réinitialiser les champs quand le type change
+        if ($(this).val() === 'manuel') {
+            referenceInput.val('');
+            $(this).closest('.programme-item').find('.reference-info').hide();
+            $(this).closest('.programme-item').find('.devis-items-section').hide();
+        }
+    });
+    
+    // Recherche automatique lors de la saisie de référence
+    $('#programmes-container').on('input', '.reference-input', function() {
+        const programmeItem = $(this).closest('.programme-item');
+        const programmeIndex = programmeItem.data('programme-index');
+        const typeReference = programmeItem.find('.type-reference').val();
+        const referenceValue = $(this).val();
+        
+        if (referenceValue.length >= 3 && typeReference) {
+            searchReferenceInfo(referenceValue, typeReference, programmeIndex);
+        } else {
+            programmeItem.find('.reference-info').hide();
+            programmeItem.find('.devis-items-section').hide();
+        }
+    });
+    
+    // Gestion du mode édition pour les articles
+    $('#programmes-container').on('click', '.toggle-edit-mode', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        toggleEditMode(programmeIndex);
+    });
+    
+    // Nettoyage de la modale à la fermeture
+    $('#recuperationModal').on('hidden.bs.modal', function(){
+        $('#programmes-container').html($($('.programme-item')[0]).clone());
+        $('#recuperationForm')[0].reset();
+        $('.programme-item').attr('data-programme-index', 0).find('h6').text('Programme #1');
+        $('.remove-programme-btn').hide();
+        $('.devis-items-section').hide();
+        $('.reference-info').hide();
+    });
+}
         // Nettoyage de la modale à la fermeture
         $('#recuperationModal').on('hidden.bs.modal', function(){
             $('#programmes-container').html($($('.programme-item')[0]).clone());
@@ -1045,7 +1428,7 @@ $('#recuperationForm').on('submit', function(e) {
             $('.programme-item').attr('data-programme-index', 0).find('h6').text('Programme #1');
             $('.remove-programme-btn').hide();
         });
-    }
+    
 
     // --- Fonctions utilitaires rapides ---
     function getActionBadgeClass(a) { return { depot: 'badge-success', recuperation: 'badge-warning' }[a] || 'badge-secondary'; }
@@ -1172,7 +1555,10 @@ $('#recuperationForm').on('submit', function(e) {
 .remove-programme-btn {
     transition: all 0.3s ease;
 }
-
+.toggle-edit-mode {
+    display: block !important;
+    visibility: visible !important;
+}
 .remove-programme-btn:hover {
     transform: scale(1.1);
 }
@@ -1209,7 +1595,77 @@ $('#recuperationForm').on('submit', function(e) {
 .programme-item:last-child {
     animation: slideIn 0.5s ease;
 }
+/* Styles pour les programmes de dépôt multiples */
+.depot-programme-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #28a745 !important;
+    transition: all 0.3s ease;
+}
 
+.depot-programme-item h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.remove-depot-programme-btn {
+    transition: all 0.3s ease;
+}
+
+.remove-depot-programme-btn:hover {
+    transform: scale(1.1);
+}
+/* Styles pour les selects en mode édition */
+.mode-transit-select:not([readonly]),
+.type-colis-select:not([readonly]) {
+    background-color: white !important;
+    border-color: #007bff !important;
+}
+
+.mode-transit-select[readonly],
+.type-colis-select[readonly] {
+    background-color: #f8f9fa !important;
+    border-color: #ced4da !important;
+}
+
+/* Indicateur visuel pour le mode transit */
+.mode-transit-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Style pour les champs dimensions */
+.dimensions-section .form-group {
+    margin-bottom: 0.5rem;
+}
+
+.dimensions-section .form-control {
+    background-color: #f8f9fa;
+}
+/* Garantir l'affichage du bouton d'ajout */
+#add-item-section-0,
+#add-item-section-1,
+#add-item-section-2,
+#add-item-section-3,
+#add-item-section-4 {
+    display: block !important;
+}
+
+/* Style pour le bouton Modifier/Visualiser */
+.toggle-edit-mode.btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.toggle-edit-mode.btn-light {
+    background-color: #f8f9fa !important;
+    border-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+.devis-items-section .toggle-edit-mode {
+    z-index: 10;
+    position: relative;
+}
 @keyframes slideIn {
     from {
         opacity: 0;

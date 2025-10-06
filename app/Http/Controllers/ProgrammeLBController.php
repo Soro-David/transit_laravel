@@ -169,6 +169,107 @@ class ProgrammeLBController extends Controller
     /**
      * Création d'une récupération
      */
+    public function createMultipleDepot(Request $request)
+{
+    try {
+        DB::beginTransaction();
+
+        $request->validate([
+            'programmes' => 'required|array|min:1',
+            'programmes.*.quantite' => 'required|integer|min:1',
+            'programmes.*.nom_expediteur' => 'required|string|max:255',
+            'programmes.*.lieu_expedition' => 'required|string|max:255',
+            'programmes.*.tel_expediteur' => 'required|string|max:20',
+            'programmes.*.nature_du_colis' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id',
+            'date_programme' => 'required|date',
+        ]);
+
+        $user = auth()->user();
+        $chauffeur = User::find($request->user_id);
+        $createdCount = 0;
+        $failedCount = 0;
+        $details = [];
+
+        foreach ($request->programmes as $index => $programmeData) {
+            try {
+                // Générer la référence unique pour chaque dépôt
+                $referenceGeneree = $this->generateReferenceDepot($user, $chauffeur);
+
+                // Vérifier les doublons
+                $existingProgramme = Programme::where('reference_generee', $referenceGeneree)
+                    ->where('actions_a_faire', 'depot')
+                    ->first();
+
+                if ($existingProgramme) {
+                    $details[] = [
+                        'reference' => $referenceGeneree,
+                        'status' => '❌ Doublon - existe déjà'
+                    ];
+                    $failedCount++;
+                    continue;
+                }
+
+                // Création du programme de dépôt avec les nouvelles informations
+                $programme = Programme::create([
+                    'quantite' => $programmeData['quantite'],
+                    'date_programme' => $request->date_programme,
+                    'user_id' => $request->user_id,
+                    'agent_id' => $user->id, // ID de l'agent connecté
+                    'reference_generee' => $referenceGeneree,
+                    'type_reference' => 'generee',
+                    'actions_a_faire' => 'depot',
+                    'nom_expediteur' => $programmeData['nom_expediteur'],
+                    'lieu_expedition' => $programmeData['lieu_expedition'],
+                    'tel_expediteur' => $programmeData['tel_expediteur'],
+                    'nature_du_colis' => $programmeData['nature_du_colis'],
+                    // Informations par défaut pour les dépôts
+                    'mode_transit' => 'aerien', // Par défaut pour les dépôts
+                    'agence_expedition' => 'AFT Agence Louis Bleriot', // Agence fixe
+                    'devise' => 'EUR', // Devise par défaut
+                    'etat_rdv' => 'en attente',
+                ]);
+
+                $createdCount++;
+                $details[] = [
+                    'reference' => $referenceGeneree,
+                    'status' => '✅ Créé avec succès'
+                ];
+
+                Log::info("✅ Dépôt multiple créé avec ID: " . $programme->id . " - Référence: " . $referenceGeneree);
+
+            } catch (\Exception $e) {
+                $failedCount++;
+                $details[] = [
+                    'reference' => 'N/A',
+                    'status' => '❌ Erreur: ' . $e->getMessage()
+                ];
+                Log::error("❌ Erreur création dépôt multiple {$index}: " . $e->getMessage());
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Traitement des dépôts terminé',
+            'created_count' => $createdCount,
+            'failed_count' => $failedCount,
+            'details' => $details,
+            'total_programmes' => count($request->programmes)
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("❌ Erreur création dépôts multiples: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur globale: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
     public function createRecuperation(Request $request)
     {
         try {
@@ -392,64 +493,64 @@ if ($modeTransit === 'aerien') {
      * Récupère les informations d'un devis ou dépôt par référence
      */
 
-    public function getReferenceInfo($reference)
-    {
-        try {
-            Log::info("Recherche référence: " . $reference);
-    
-            // NOUVELLE LOGIQUE: Rechercher d'abord les devis confirmés
-            $devis = Devis::where('reference', $reference)
-                ->where('etat', 'confirmé')
-                ->with('items')
-                ->first();
-    
-            if ($devis) {
-                $items = $devis->items;
-                
-                $itemsData = $items->map(function($item) {
-                    return [
-                        'quantite_colis' => $item->quantite_colis,
-                        'service' => $item->service,
-                        'valeur_colis' => $item->valeur_colis,
-                        'type_colis' => $item->type_colis,
-                        'description_colis' => $item->description_colis,
-                        'poids' => $item->poids,
-                        'longueur' => $item->longueur,
-                        'largeur' => $item->largeur,
-                        'hauteur' => $item->hauteur
-                    ];
-                });
-    
-                $natureColis = $items->first()->type_colis ?? 'Colis divers';
-                $quantiteTotale = $items->sum('quantite_colis') ?? 1;
-                
-                Log::info("Devis confirmé trouvé: " . $devis->reference);
-                
-                return response()->json([
-                    'type' => 'devis',
-                    'existe' => true,
-                    'valide' => true,
-                    'etat_devis' => $devis->etat,
-                    'data' => [
-                        'nom_expediteur' => trim($devis->nom_expediteur . ' ' . $devis->prenom_expediteur),
-                        'prenom_expediteur' => $devis->prenom_expediteur,
-                        'email_expediteur' => $devis->email_expediteur,
-                        'tel_expediteur' => $devis->tel_expediteur,
-                        'lieu_expedition' => $devis->adresse_expediteur,
-                        'nature_du_colis' => $natureColis,
-                        'quantite' => $quantiteTotale,
-                        'mode_transit' => $devis->mode_transit,
-                        'pays_expedition' => $devis->pays_expedition,
-                        'agence_expedition' => $devis->agence_expedition,
-                        'agence_destination' => $devis->agence_destination,
-                        'devise' => $devis->devise,
-                        'montant' => $devis->montant,
-                        'mode_de_retrait' => $devis->mode_de_retrait,
-                        'items' => $itemsData
-                    ],
-                    'message' => '✅ Devis confirmé trouvé - Remplissage automatique'
-                ]);
-            }
+     public function getReferenceInfo($reference)
+     {
+         try {
+             Log::info("Recherche référence: " . $reference);
+     
+             // Rechercher d'abord les devis confirmés
+             $devis = Devis::where('reference', $reference)
+                 ->where('etat', 'confirmé')
+                 ->with('items')
+                 ->first();
+     
+             if ($devis) {
+                 $items = $devis->items;
+                 
+                 $itemsData = $items->map(function($item) {
+                     return [
+                         'quantite_colis' => $item->quantite_colis,
+                         'service' => $item->service,
+                         'valeur_colis' => $item->valeur_colis,
+                         'type_colis' => $item->type_colis,
+                         'description_colis' => $item->description_colis,
+                         'poids' => $item->poids,
+                         'longueur' => $item->longueur,
+                         'largeur' => $item->largeur,
+                         'hauteur' => $item->hauteur
+                     ];
+                 });
+     
+                 $natureColis = $items->first()->type_colis ?? 'Colis divers';
+                 $quantiteTotale = $items->sum('quantite_colis') ?? 1;
+                 
+                 Log::info("Devis confirmé trouvé: " . $devis->reference);
+                 
+                 return response()->json([
+                     'type' => 'devis',
+                     'existe' => true,
+                     'valide' => true,
+                     'etat_devis' => $devis->etat,
+                     'data' => [
+                         'nom_expediteur' => trim($devis->nom_expediteur . ' ' . $devis->prenom_expediteur),
+                         'prenom_expediteur' => $devis->prenom_expediteur,
+                         'email_expediteur' => $devis->email_expediteur,
+                         'tel_expediteur' => $devis->tel_expediteur,
+                         'lieu_expedition' => $devis->adresse_expediteur,
+                         'nature_du_colis' => $natureColis,
+                         'quantite' => $quantiteTotale,
+                         'mode_transit' => $devis->mode_transit,
+                         'pays_expedition' => $devis->pays_expedition,
+                         'agence_expedition' => $devis->agence_expedition,
+                         'agence_destination' => $devis->agence_destination,
+                         'devise' => $devis->devise,
+                         'montant' => $devis->montant,
+                         'mode_de_retrait' => $devis->mode_de_retrait,
+                         'items' => $itemsData
+                     ],
+                     'message' => '✅ Devis confirmé trouvé - Remplissage automatique'
+                 ]);
+             }
     
             // LOGIQUE EXISTANTE POUR LES DÉPÔTS
             $depot = Programme::where('reference_generee', $reference)
@@ -897,6 +998,7 @@ public function createMultipleRecuperation(Request $request)
             'date_programme' => 'required|date',
         ]);
 
+        $user = auth()->user(); // Agent connecté
         $createdCount = 0;
         $failedCount = 0;
         $details = [];
@@ -907,10 +1009,30 @@ public function createMultipleRecuperation(Request $request)
                 $modificationsApportees = isset($programmeData['modifications_apportees']);
                 $typeReference = $programmeData['type_reference'];
                 
+                // Variables pour stocker les informations du devis
+                $modeTransit = 'aerien';
+                $agenceExpedition = 'AFT Agence Louis Bleriot';
+                $emailExpediteur = '';
+                $devise = 'EUR';
+                $agenceDestination = '';
+                $prenomExpediteur = '';
+
+                // Si c'est un devis, récupérer les informations supplémentaires
+                if ($typeReference === 'devis') {
+                    $devis = Devis::where('reference', $referenceColis)->first();
+                    if ($devis) {
+                        $modeTransit = $devis->mode_transit ?? 'aerien';
+                        $agenceExpedition = $devis->agence_expedition ?? 'AFT Agence Louis Bleriot';
+                        $emailExpediteur = $devis->email_expediteur ?? '';
+                        $devise = $devis->devise ?? 'EUR';
+                        $agenceDestination = $devis->agence_destination ?? '';
+                        $prenomExpediteur = $devis->prenom_expediteur ?? '';
+                    }
+                }
+                
                 // Génération de la référence
                 $referenceGeneree = null;
                 if ($typeReference === 'manuel' && empty($referenceColis)) {
-                    $user = auth()->user();
                     $chauffeur = User::find($request->user_id);
                     $initialAgent = strtoupper(substr($user->first_name, 0, 2) ?: 'AG');
                     $nomChauffeur = strtoupper(substr($chauffeur->first_name, 0, 2) ?: 'CH');
@@ -935,7 +1057,7 @@ public function createMultipleRecuperation(Request $request)
                     continue;
                 }
 
-                // Vérification supplémentaire pour les devis : empêcher de créer plusieurs récupérations pour le même devis
+                // Vérification supplémentaire pour les devis
                 if ($typeReference === 'devis') {
                     $existingDevisRecuperation = Programme::where('reference_colis', $referenceColis)
                         ->where('actions_a_faire', 'recuperation')
@@ -951,25 +1073,32 @@ public function createMultipleRecuperation(Request $request)
                     }
                 }
 
-                // Création du programme
+                // Création du programme avec toutes les informations
                 $programme = Programme::create([
                     'quantite'        => $programmeData['quantite'],
                     'date_programme'  => $request->date_programme,
                     'user_id'         => $request->user_id,
+                    'agent_id'        => $user->id, // ID de l'agent connecté
                     'reference_colis'   => $referenceColis,
                     'reference_generee' => $referenceGeneree,
                     'type_reference'    => $typeReference,
                     'actions_a_faire'   => 'recuperation',
                     'nom_expediteur'    => $programmeData['nom_expediteur'],
+                    'prenom_expediteur' => $prenomExpediteur,
+                    'email_expediteur'  => $emailExpediteur,
                     'lieu_expedition'   => $programmeData['lieu_expedition'],
                     'tel_expediteur'    => $programmeData['tel_expediteur'],
                     'nature_du_colis'   => $programmeData['nature_du_colis'],
+                    'mode_transit'      => $modeTransit,
+                    'agence_expedition' => $agenceExpedition,
+                    'agence_destination' => $agenceDestination,
+                    'devise'            => $devise,
                     'etat_rdv'          => 'en attente',
                 ]);
 
                 Log::info("✅ Programme multiple créé avec ID: " . $programme->id . " - Référence: " . $referenceGeneree);
 
-                // CRÉATION DES ARTICLES - LOGIQUE SIMILAIRE À createRecuperation
+                // CRÉATION DES ARTICLES (le code existant reste le même)
                 $devisItemsCreated = false;
                 
                 // Cas 1: Type "devis" avec modifications
@@ -1088,7 +1217,6 @@ public function createMultipleRecuperation(Request $request)
                     'status' => '❌ Erreur: ' . $e->getMessage()
                 ];
                 Log::error("❌ Erreur création programme multiple {$index}: " . $e->getMessage());
-                Log::error("Stack trace: " . $e->getTraceAsString());
             }
         }
 
@@ -1106,7 +1234,6 @@ public function createMultipleRecuperation(Request $request)
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error("❌ Erreur création programmes multiples: " . $e->getMessage());
-        Log::error("Stack trace: " . $e->getTraceAsString());
 
         return response()->json([
             'success' => false,

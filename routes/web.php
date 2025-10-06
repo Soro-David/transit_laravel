@@ -861,7 +861,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
     ->name('aftlb_transport.programme.checkItems');
-   
+    Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
     Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
     Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
