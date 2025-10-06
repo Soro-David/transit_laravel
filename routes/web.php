@@ -850,6 +850,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
     Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroy'])->name('programme.destroy');
     Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
     Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
+     // AJOUTEZ CETTE LIGNE - Route pour la création multiple
+     Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
     Route::get('/programme-reference-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getReferenceInfo'])
 ->name('programme.referenceInfo')
 ->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
@@ -859,6 +861,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
     ->name('aftlb_transport.programme.checkItems');
+   
+    Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
+    Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         
         // Routes chauffeurs
