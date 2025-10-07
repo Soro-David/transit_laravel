@@ -14,7 +14,7 @@ class Programme extends Model
     protected $fillable = [
         'quantite',
         'date_programme',
-        'user_id', // Changé de chauffeur_id à user_id
+        'user_id',
         'reference_colis',
         'reference_generee',
         'nature_du_colis',

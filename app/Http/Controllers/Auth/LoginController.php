@@ -88,6 +88,7 @@ protected function sendFailedLoginResponse(Request $request)
     $user->last_session_id = Session::getId();
     $user->save();
 
+
     // 🔁 Redirections selon les rôles (inchangé)
     if ($user->role === 'admin') {
         return redirect()->route('home');

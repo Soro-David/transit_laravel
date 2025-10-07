@@ -19,6 +19,7 @@ class DevisItems extends Model
         'service',
         'valeur_colis',
         'type_colis',
+        'nom_produit',
         'description_colis',
         'poids',
         'longueur',
