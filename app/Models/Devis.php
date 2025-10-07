@@ -47,5 +47,15 @@ class Devis extends Model
     {
         return $this->hasMany(DevisItems::class, 'devis_id');
     }
-    
+    public function calculerMontantTotal()
+    {
+        return $this->items()->sum('montant');
+    }
+
+    // Méthode pour mettre à jour le montant total
+    public function mettreAJourMontantTotal()
+    {
+        $this->montant = $this->calculerMontantTotal();
+        $this->save();
+    }
 }

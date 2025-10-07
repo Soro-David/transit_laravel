@@ -10,7 +10,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Devis; // Assurez-vous d'importer le modèle Devis
-use App\Models\DevisItem; // Assurez-vous d'importer le modèle DevisItem si vous en avez besoin pour des détails
+use App\Models\DevisItems; // Assurez-vous d'importer le modèle DevisItem si vous en avez besoin pour des détails
 // use SimpleSoftwareIO\QrCode\Facades\QrCode; 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
@@ -31,6 +31,7 @@ use App\Models\Paiement;
 use App\Models\Produit;
 use App\Models\Article;
 use Endroid\QrCode\QrCode;
+
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
 use Endroid\QrCode\Builder\Builder;
@@ -805,77 +806,92 @@ class AftlbColisController extends Controller
         }
     }
 
-
     public function update_hold(Request $request, InfobipSmsService $infobipSmsService, $id)
     {
-        // 1. Valider la requête : on s'assure que le montant est bien présent et valide.
+        // 1. Valider la requête
         $validatedData = $request->validate([
             'montant' => 'required|numeric|min:0',
+            'montant_items' => 'sometimes|json'
         ]);
     
-        // 2. Trouver le devis ou échouer avec une erreur 404
+        // 2. Trouver le devis avec ses items
         $devis = Devis::with('items')->findOrFail($id);
     
-        // 3. Mettre à jour le devis avec le montant final et le nouvel état
-        $devis->update([
-            'montant' => $validatedData['montant'],
-            'etat' => 'Validé', // ou 'non payé' selon votre workflow
-            'status' => 'non payé', // Ajout du status pour cohérence
-        ]);
+        DB::beginTransaction();
     
-        // 4. Préparer et envoyer les notifications (Email & SMS)
-    
-        // Pour l'email, nous pouvons réutiliser la logique en créant un objet paiement "factice"
-        $paiementFactice = new Paiement();
-        $paiementFactice->montant = $devis->montant;
-        $paiementFactice->montant_paye = 0;
-        $paiementFactice->statut_paiement = 'En attente';
-        $paiementFactice->methode_paiement = 'Non défini';
-        $paiementFactice->date_validation = now();
-        // Associer l'expéditeur (si votre Mailable en a besoin)
-        $expediteurInfo = (object)[
-            'email' => $devis->email_expediteur,
-            'nom' => $devis->nom_expediteur,
-            'tel' => $devis->tel_expediteur
-        ];
-        $paiementFactice->expediteur = $expediteurInfo;
-    
-       // ===================================================================
-    // MODIFICATION PRINCIPALE : ENVOI DE L'EMAIL À L'AGENT (user_id)
-    // ===================================================================
-    try {
-        // On vérifie que l'agent a bien été trouvé et qu'il a un email valide
-        if ($agent && !empty($agent->email) && filter_var($agent->email, FILTER_VALIDATE_EMAIL)) {
-            
-            // On envoie l'email à l'adresse email de l'agent
-            Mail::to($agent->email)->send(new ColisValidatedMail($paiementFactice, $devis->items));
-            Log::info("Email de validation du devis envoyé avec succès à l'agent: " . $agent->email . " (Réf Devis: " . $devis->reference . ")");
-
-        } else {
-            Log::warning("Envoi d'email annulé : Agent non trouvé ou email invalide pour le devis Réf: " . $devis->reference, [
-                'user_id' => $devis->user_id,
-                'agent_email' => $agent->email ?? 'non défini'
-            ]);
-        }
-    } catch (\Exception $e) {
-        Log::error("Erreur critique lors de l'envoi de l'email de validation du devis à l'agent.", [
-            'reference_devis' => $devis->reference,
-            'agent_email' => $agent->email ?? 'non défini',
-            'exception' => $e
-        ]);
-    }
-        // Envoi du SMS
-        $message = "Bonjour " . $devis->nom_expediteur . ", votre devis (Réf: " . $devis->reference . ") a été validé. Montant Total: " . $devis->montant . " " . $devis->devise . ". Veuillez consulter vos emails pour les détails.";
-        
         try {
-            $infobipSmsService->sendSms($devis->tel_expediteur, $message);
-            Log::info("SMS de validation du devis envoyé à " . $devis->tel_expediteur);
-        } catch (\Exception $e) {
-            Log::error('Erreur envoi SMS: ' . $e->getMessage());
-        }
+            // 3. Mettre à jour les montants des items si fournis
+            if ($request->has('montant_items') && !empty($request->montant_items)) {
+                $montantItems = json_decode($request->montant_items, true);
+                
+                foreach ($montantItems as $itemId => $montant) {
+                    // CORRECTION : Utiliser DevisItems (avec 's') pour correspondre à votre modèle
+                    $item = DevisItems::where('id', $itemId)
+                                    ->where('devis_id', $devis->id)
+                                    ->first();
+                    
+                    if ($item) {
+                        $item->update(['montant' => $montant]);
+                    }
+                }
+                
+                // Recharger les relations pour avoir les données fraîches
+                $devis->load('items');
+            }
     
-        // 5. Rediriger vers la liste des devis en attente avec un message de succès
-        return redirect()->route('aftlb_colis.hold')->with('success', 'Devis validé et notifié au client avec succès !');
+            // 4. Mettre à jour le montant et l'état du devis
+            $devis->montant = $validatedData['montant'];
+            $devis->etat = 'Validé';
+            $devis->save();
+    
+            DB::commit();
+    
+            // Le reste du code pour les notifications...
+            $paiementFactice = new Paiement();
+            $paiementFactice->montant = $devis->montant;
+            $paiementFactice->montant_paye = 0;
+            $paiementFactice->statut_paiement = 'En attente';
+            $paiementFactice->methode_paiement = 'Non défini';
+            $paiementFactice->date_validation = now();
+            
+            $expediteurInfo = (object)[
+                'email' => $devis->email_expediteur,
+                'nom' => $devis->nom_expediteur,
+                'tel' => $devis->tel_expediteur
+            ];
+            $paiementFactice->expediteur = $expediteurInfo;
+    
+            // Envoi de l'email à l'agent
+            try {
+                $agent = User::find($devis->user_id);
+                if ($agent && !empty($agent->email) && filter_var($agent->email, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($agent->email)->send(new ColisValidatedMail($paiementFactice, $devis->items));
+                    Log::info("Email de validation du devis envoyé avec succès à l'agent: " . $agent->email . " (Réf Devis: " . $devis->reference . ")");
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi de l'email de validation du devis à l'agent.", [
+                    'reference_devis' => $devis->reference,
+                    'exception' => $e
+                ]);
+            }
+    
+            // Envoi du SMS
+            $message = "Bonjour " . $devis->nom_expediteur . ", votre devis (Réf: " . $devis->reference . ") a été validé. Montant Total: " . $devis->montant . " " . $devis->devise . ". Veuillez consulter vos emails pour les détails.";
+            
+            try {
+                $infobipSmsService->sendSms($devis->tel_expediteur, $message);
+                Log::info("SMS de validation du devis envoyé à " . $devis->tel_expediteur);
+            } catch (\Exception $e) {
+                Log::error('Erreur envoi SMS: ' . $e->getMessage());
+            }
+    
+            return redirect()->route('aftlb_colis.hold')->with('success', 'Devis validé et notifié au client avec succès !');
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Erreur lors de la validation du devis: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la validation du devis: ' . $e->getMessage());
+        }
     }
     public function editBon_livraison($id)
     {
@@ -1089,7 +1105,45 @@ class AftlbColisController extends Controller
 
         ));
     }
+// Dans Aftlbcoliscontroller.php
 
+public function update_devis_items(Request $request, $id)
+{
+    try {
+        $devis = Devis::findOrFail($id);
+        $montantItems = json_decode($request->montant_items, true);
+
+        DB::beginTransaction();
+
+        foreach ($montantItems as $itemId => $montant) {
+            // CORRECTION : Utiliser DevisItems (avec 's')
+            $item = DevisItems::where('id', $itemId)
+                            ->where('devis_id', $devis->id)
+                            ->first();
+            
+            if ($item) {
+                $item->update(['montant' => $montant]);
+            }
+        }
+
+        // Le montant total sera mis à jour automatiquement via l'observer
+        $devis->refresh();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'montant_total' => $devis->montant
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la mise à jour: ' . $e->getMessage()
+        ], 500);
+    }
+}
     public function editFacture($id)
     {
         $colis_principal = Colis::find($id);
@@ -1733,50 +1787,48 @@ class AftlbColisController extends Controller
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-        // --- CORRECTION DE LA REQUÊTE ---
-        $devis = Devis::with('items')
-            // 1. On sélectionne DIRECTEMENT les états que vous voulez voir.
-            ->whereIn('etat', ['En attente', 'Validé'])
-            // 2. On ajoute le filtre sur la devise.
-            ->where('devise', 'EUR')
-            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
-            ->get();
+        try {
+            \Log::info('Récupération des devis pour l\'agence de Chine');
+            
+            $devis = Devis::with('items')
+                ->whereIn('etat', ['En attente', 'Validé'])
+                ->where('devise', 'EUR')
+                ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+                ->get();
 
-        // --- CORRECTION DE LA TRANSFORMATION DES DONNÉES ---
-        $devisFormatted = $devis->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'reference_colis' => $item->reference,
-                'nombre_de_colis' => $item->items->sum('quantite_colis'),
-                'expediteur_nom' => $item->nom_expediteur,
-                'expediteur_prenom' => $item->prenom_expediteur,
-                'expediteur_tel' => $item->tel_expediteur,
-                'destinataire_agence' => $item->agence_destination,
-                // 3. On passe directement l'état de la base de données, sans transformation.
-                'etat' => $item->etat,
-                'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
-            ];
-        });
+            \Log::info('Nombre de devis trouvés: ' . $devis->count());
 
-        // Le reste de la fonction est inchangé et correct.
-        return DataTables::of($devisFormatted)
-            ->addColumn('action', function ($row) {
-                $showUrl = route('aftlb_colis.devis.show', ['id' => $row['id']]);
-                $reference = htmlspecialchars($row['reference_colis'], ENT_QUOTES, 'UTF-8');
-                return '
-                    <div class="d-flex justify-content-center">
-                        <a href="' . $showUrl . '" class="btn-action btn-info me-1" title="Voir les détails">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <button class="btn-action btn-danger" onclick="confirmDelete(' . $row['id'] . ', \'' . $reference . '\')" title="Annuler le devis">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                ';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+            $devisFormatted = $devis->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'reference_colis' => $item->reference,
+                    'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                    'expediteur_nom' => $item->nom_expediteur,
+                    'expediteur_prenom' => $item->prenom_expediteur,
+                    'expediteur_tel' => $item->tel_expediteur,
+                    'destinataire_agence' => $item->agence_destination,
+                    'etat' => $item->etat,
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+
+            \Log::info('Formatage des données terminé');
+
+            // Retourner les données dans le format attendu par DataTables
+            return response()->json([
+                'data' => $devisFormatted
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans get_colis_hold: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Erreur lors du chargement des données',
+                'data' => []
+            ], 500);
+        }
     }
+
+    abort(404);
 }
 public function destroy_devis($id)
 {

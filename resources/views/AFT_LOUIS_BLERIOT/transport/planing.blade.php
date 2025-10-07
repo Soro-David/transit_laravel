@@ -1097,32 +1097,99 @@ function addProgramme() {
 
     $('#programmes-container').append(template);
 }
+// $('#recuperationForm').on('submit', function(e) {
+//     e.preventDefault();
     
+//     // Préparer les données de tous les programmes
+//     const programmes = [];
+//     $('.programme-item').each(function() {
+//         const programmeIndex = $(this).data('programme-index');
+//         const itemsSection = $(this).find('.devis-items-section');
+//         const devisItems = itemsSection.data('devis-items') || [];
+        
+//         programmes.push({
+//             type_reference: $(this).find('.type-reference').val(),
+//             reference_input: $(this).find('.reference-input').val(),
+//             quantite: $(this).find('[name$="[quantite]"]').val(),
+//             nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+//             nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+//             tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+//             lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
+//             devis_items: devisItems.length > 0 ? JSON.stringify(devisItems) : null,
+//             modifications_apportees: devisItems.length > 0
+//         });
+//     });
+
+//     const payload = {
+//         user_id: $('#user_id_recup').val(),
+//         date_programme: $('#date_programme_recup').val(),
+//         programmes: programmes
+//     };
+
+//     // Afficher un indicateur de chargement
+//     Swal.fire({
+//         title: 'Création en cours...',
+//         text: 'Veuillez patienter',
+//         allowOutsideClick: false,
+//         didOpen: () => {
+//             Swal.showLoading();
+//         }
+//     });
+
+//     axios.post($(this).attr('action'), payload)
+//         .then(res => {
+//             Swal.close();
+//             let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
+//             if (res.data.details) {
+//                 msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
+//             }
+            
+//             Swal.fire({ 
+//                 icon: 'success', 
+//                 title: 'Succès!', 
+//                 html: msg,
+//                 confirmButtonText: 'OK',
+//                 timer: 5000 // 5 secondes maximum
+//             }).then((result) => {
+//                 // Fermer le modal
+//                 $('#recuperationModal').modal('hide');
+//                 // Recharger la page complète
+//                 location.reload();
+//             });
+//         })
+//         .catch(err => {
+//             Swal.close();
+//             Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
+//         });
+// });
     // =========================================================================
     // 5. ÉCOUTEURS D'ÉVÉNEMENTS
     // =========================================================================
     
     function initApp() {
-        const pContainer = $('#programmes-container');
+    const pContainer = $('#programmes-container');
 
-        // Tableau principal
-        loadData();
-        $('#search').on('input', updateTable);
-        $('.page-size-btn').on('click', function(e) {
-            e.preventDefault();
-            itemsPerPage = parseInt($(this).data('size'));
-            updateTable();
-        });
-        $('#pagination').on('click', 'a', function(e) {
-            e.preventDefault();
-            currentPage = parseInt($(this).data('page'));
-            updateTable();
-        });
-        initDepotModal(); // <-- AJOUTER CETTE LIGNE
-        initRecuperationModal();
-        initAddItemButtons();
-        console.log("✅ Événements initialisés");
-    }
+    // Tableau principal
+    loadData();
+    $('#search').on('input', updateTable);
+    $('.page-size-btn').on('click', function(e) {
+        e.preventDefault();
+        itemsPerPage = parseInt($(this).data('size'));
+        updateTable();
+    });
+    $('#pagination').on('click', 'a', function(e) {
+        e.preventDefault();
+        currentPage = parseInt($(this).data('page'));
+        updateTable();
+    });
+    
+    // Initialiser les modales
+    initDepotModal();
+    initRecuperationModal(); // Cette fonction inclut maintenant initReferenceHandling()
+    initAddItemButtons();
+    
+    console.log("✅ Événements initialisés");
+}
         // Modale de récupération
         $('#add-programme-btn').on('click', addProgramme);
         pContainer.on('click', '.remove-programme-btn', function() {
@@ -1207,71 +1274,7 @@ $(document).on('click', '.toggle-edit-mode', function(e) {
 
         // Soumission du formulaire
       // Soumission du formulaire - Version avec délai
-$('#recuperationForm').on('submit', function(e) {
-    e.preventDefault();
-    
-    // Préparer les données de tous les programmes
-    const programmes = [];
-    $('.programme-item').each(function() {
-        const programmeIndex = $(this).data('programme-index');
-        const itemsSection = $(this).find('.devis-items-section');
-        const devisItems = itemsSection.data('devis-items') || [];
-        
-        programmes.push({
-            type_reference: $(this).find('.type-reference').val(),
-            reference_input: $(this).find('.reference-input').val(),
-            quantite: $(this).find('[name$="[quantite]"]').val(),
-            nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
-            nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
-            tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
-            lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
-            devis_items: devisItems.length > 0 ? JSON.stringify(devisItems) : null,
-            modifications_apportees: devisItems.length > 0
-        });
-    });
 
-    const payload = {
-        user_id: $('#user_id_recup').val(),
-        date_programme: $('#date_programme_recup').val(),
-        programmes: programmes
-    };
-
-    // Afficher un indicateur de chargement
-    Swal.fire({
-        title: 'Création en cours...',
-        text: 'Veuillez patienter',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    axios.post($(this).attr('action'), payload)
-        .then(res => {
-            Swal.close();
-            let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
-            if (res.data.details) {
-                msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
-            }
-            
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Succès!', 
-                html: msg,
-                confirmButtonText: 'OK',
-                timer: 5000 // 5 secondes maximum
-            }).then((result) => {
-                // Fermer le modal
-                $('#recuperationModal').modal('hide');
-                // Recharger la page complète
-                location.reload();
-            });
-        })
-        .catch(err => {
-            Swal.close();
-            Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
-        });
-});
 function addDepotProgramme() {
     const newIndex = $('.depot-programme-item').length;
     const template = $($('.depot-programme-item')[0]).clone();
@@ -1366,6 +1369,172 @@ function initDepotModal() {
         $('.remove-depot-programme-btn').hide();
     });
 }
+// =========================================================================
+// 6. GESTION DU CHAMP RÉFÉRENCE MANUELLE
+// =========================================================================
+
+function toggleReferenceInput(programmeIndex) {
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    const typeReference = pItem.find('.type-reference').val();
+    const referenceInput = pItem.find('.reference-input');
+    
+    if (typeReference === 'manuel') {
+        // Mode référence manuelle - désactiver et vider le champ
+        referenceInput.prop('readonly', true)
+                     .addClass('bg-light')
+                     .val('')
+                     .attr('placeholder', 'Référence générée automatiquement');
+        
+        // Masquer les sections d'infos
+        pItem.find('.reference-info').hide();
+        pItem.find('.devis-items-section').hide();
+    } else {
+        // Mode devis ou dépôt - activer le champ
+        referenceInput.prop('readonly', false)
+                     .removeClass('bg-light')
+                     .attr('placeholder', 'Entrez la référence du devis, dépôt ou une référence manuelle');
+    }
+}
+
+function initReferenceHandling() {
+    // Gestion du changement de type de référence
+    $('#programmes-container').on('change', '.type-reference', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        toggleReferenceInput(programmeIndex);
+        
+        // Réinitialiser les champs quand le type change
+        if ($(this).val() !== 'manuel') {
+            const pItem = $(this).closest('.programme-item');
+            pItem.find('.reference-info').hide();
+            pItem.find('.devis-items-section').hide();
+        }
+    });
+    
+    // Validation avant soumission - permettre les références vides pour le mode manuel
+    $('#recuperationForm').on('submit', function(e) {
+        let isValid = true;
+        const errorMessages = [];
+        
+        $('.programme-item').each(function(index) {
+            const pItem = $(this);
+            const typeReference = pItem.find('.type-reference').val();
+            const referenceInput = pItem.find('.reference-input').val();
+            
+            // Pour les types devis ou depot, la référence est obligatoire
+            if ((typeReference === 'devis' || typeReference === 'depot') && !referenceInput.trim()) {
+                isValid = false;
+                errorMessages.push(`Le programme #${index + 1} nécessite une référence pour le type "${typeReference}"`);
+                pItem.find('.reference-input').addClass('is-invalid');
+            } else {
+                pItem.find('.reference-input').removeClass('is-invalid');
+            }
+            
+            // Validation des autres champs obligatoires
+            const requiredFields = pItem.find('input[required], textarea[required], select[required]');
+            requiredFields.each(function() {
+                if (!$(this).val().trim()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            let errorMessage = 'Veuillez corriger les erreurs suivantes:';
+            if (errorMessages.length > 0) {
+                errorMessage += '<ul class="text-left mt-2">';
+                errorMessages.forEach(msg => {
+                    errorMessage += `<li>${msg}</li>`;
+                });
+                errorMessage += '</ul>';
+            }
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur de validation',
+                html: errorMessage,
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+        
+        // Préparer les données pour l'envoi
+        prepareRecuperationData(e);
+    });
+}
+
+function prepareRecuperationData(e) {
+    e.preventDefault();
+    
+    // Préparer les données de tous les programmes
+    const programmes = [];
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        const itemsSection = $(this).find('.devis-items-section');
+        const devisItems = itemsSection.data('devis-items') || [];
+        
+        const programmeData = {
+            type_reference: $(this).find('.type-reference').val(),
+            reference_input: $(this).find('.reference-input').val(),
+            quantite: $(this).find('[name$="[quantite]"]').val(),
+            nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+            nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+            tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+            lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
+            modifications_apportees: devisItems.length > 0
+        };
+        
+        // Inclure les items seulement s'ils existent
+        if (devisItems.length > 0) {
+            programmeData.devis_items = JSON.stringify(devisItems);
+        }
+        
+        programmes.push(programmeData);
+    });
+
+    const payload = {
+        user_id: $('#user_id_recup').val(),
+        date_programme: $('#date_programme_recup').val(),
+        programmes: programmes
+    };
+
+    // Afficher un indicateur de chargement
+    Swal.fire({
+        title: 'Création en cours...',
+        text: 'Veuillez patienter',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    axios.post($('#recuperationForm').attr('action'), payload)
+        .then(res => {
+            Swal.close();
+            let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
+            if (res.data.details) {
+                msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
+            }
+            
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Succès!', 
+                html: msg,
+                confirmButtonText: 'OK',
+                timer: 5000
+            }).then((result) => {
+                $('#recuperationModal').modal('hide');
+                location.reload();
+            });
+        })
+        .catch(err => {
+            Swal.close();
+            Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
+        });
+}
 function initRecuperationModal() {
     // Ajouter un programme de récupération
     $('#add-programme-btn').on('click', addProgramme);
@@ -1376,7 +1545,13 @@ function initRecuperationModal() {
             $(this).closest('.programme-item').remove();
         }
     });
+    initReferenceHandling();
     
+    // AJOUT: Appliquer le comportement initial pour chaque programme existant
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        toggleReferenceInput(programmeIndex);
+    });
     // Gestion du changement de type de référence
     $('#programmes-container').on('change', '.type-reference', function() {
         const programmeIndex = $(this).closest('.programme-item').data('programme-index');

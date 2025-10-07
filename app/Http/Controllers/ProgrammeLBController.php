@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Programme;
 use App\Models\Agence;
+use App\Models\ProgrammeItems;
 use App\Models\Devis;
 use App\Models\DevisItems;
 use App\Models\User;
@@ -376,7 +377,7 @@ if ($modeTransit === 'aerien') {
                     Log::info("📦 Création de nouveaux articles pour le programme ID: " . $programme->id);
     
                     foreach ($devisItemsData as $itemData) {
-                        DevisItems::create([
+                        ProgrammeItems::create([
                             'programme_id'      => $programme->id,
                             'devis_id'          => null,
                             'quantite_colis'    => $itemData['quantite_colis'] ?? 1,
@@ -402,7 +403,7 @@ if ($modeTransit === 'aerien') {
                     Log::info("📦 Copie des articles du devis original pour le programme ID: " . $programme->id);
                     
                     foreach ($devis->items as $originalItem) {
-                        DevisItems::create([
+                        ProgrammeItems::create([
                             'programme_id'      => $programme->id,
                             'devis_id'          => $originalItem->devis_id,
                             'quantite_colis'    => $originalItem->quantite_colis,
@@ -430,7 +431,7 @@ if ($modeTransit === 'aerien') {
                         Log::info("📦 Création d'articles personnalisés pour le programme ID: " . $programme->id);
     
                         foreach ($devisItemsData as $itemData) {
-                            DevisItems::create([
+                            ProgrammeItems::create([
                                 'programme_id'      => $programme->id,
                                 'devis_id'          => null,
                                 'quantite_colis'    => $itemData['quantite_colis'] ?? 1,
@@ -451,7 +452,7 @@ if ($modeTransit === 'aerien') {
                     // Si pas de modifications, créer un seul article avec les infos du formulaire
                     Log::info("📦 Création d'un article par défaut pour le programme ID: " . $programme->id);
                     
-                    DevisItems::create([
+                    ProgrammeItems::create([
                         'programme_id'      => $programme->id,
                         'devis_id'          => null,
                         'quantite_colis'    => $request->quantite ?? 1,
@@ -906,7 +907,7 @@ public function createRecuperationFromDevis(Request $request)
         // Copier les items du devis vers le programme
         if ($devis->items->count() > 0) {
             foreach ($devis->items as $originalItem) {
-                DevisItems::create([
+                ProgrammeItems::create([
                     'programme_id'      => $programme->id,
                     'devis_id'          => $originalItem->devis_id,
                     'quantite_colis'    => $originalItem->quantite_colis,
@@ -987,8 +988,6 @@ public function createMultipleRecuperation(Request $request)
 
         $request->validate([
             'programmes' => 'required|array|min:1',
-            'programmes.*.type_reference' => 'required|in:devis,depot,manuel',
-            'programmes.*.reference_input' => 'required|string|max:255',
             'programmes.*.quantite' => 'required|integer|min:1',
             'programmes.*.nom_expediteur' => 'required|string|max:255',
             'programmes.*.lieu_expedition' => 'required|string|max:255',
@@ -999,16 +998,17 @@ public function createMultipleRecuperation(Request $request)
         ]);
 
         $user = auth()->user(); // Agent connecté
+        $chauffeur = User::find($request->user_id);
         $createdCount = 0;
         $failedCount = 0;
         $details = [];
 
         foreach ($request->programmes as $index => $programmeData) {
             try {
-                $referenceColis = $programmeData['reference_input'];
+                $typeReference = $programmeData['type_reference'] ?? 'manuel';
+                $referenceColis = $programmeData['reference_input'] ?? '';
                 $modificationsApportees = isset($programmeData['modifications_apportees']);
-                $typeReference = $programmeData['type_reference'];
-                
+
                 // Variables pour stocker les informations du devis
                 $modeTransit = 'aerien';
                 $agenceExpedition = 'AFT Agence Louis Bleriot';
@@ -1017,6 +1017,14 @@ public function createMultipleRecuperation(Request $request)
                 $agenceDestination = '';
                 $prenomExpediteur = '';
 
+                // GÉNÉRATION AUTOMATIQUE DE LA RÉFÉRENCE SI MANUEL OU VIDE
+                if ($typeReference === 'manuel' || empty($referenceColis)) {
+                    $initialAgent = strtoupper(substr($user->first_name, 0, 2) ?: 'AG');
+                    $nomChauffeur = strtoupper(substr($chauffeur->first_name, 0, 2) ?: 'CH');
+                    $randomNumber = str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+                    $referenceColis = $initialAgent . $randomNumber . $nomChauffeur;
+                }
+                
                 // Si c'est un devis, récupérer les informations supplémentaires
                 if ($typeReference === 'devis') {
                     $devis = Devis::where('reference', $referenceColis)->first();
@@ -1028,16 +1036,6 @@ public function createMultipleRecuperation(Request $request)
                         $agenceDestination = $devis->agence_destination ?? '';
                         $prenomExpediteur = $devis->prenom_expediteur ?? '';
                     }
-                }
-                
-                // Génération de la référence
-                $referenceGeneree = null;
-                if ($typeReference === 'manuel' && empty($referenceColis)) {
-                    $chauffeur = User::find($request->user_id);
-                    $initialAgent = strtoupper(substr($user->first_name, 0, 2) ?: 'AG');
-                    $nomChauffeur = strtoupper(substr($chauffeur->first_name, 0, 2) ?: 'CH');
-                    $randomNumber = str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
-                    $referenceColis = $initialAgent . $randomNumber . $nomChauffeur;
                 }
                 
                 // Toujours générer une référence -RE pour les récupérations
@@ -1098,7 +1096,7 @@ public function createMultipleRecuperation(Request $request)
 
                 Log::info("✅ Programme multiple créé avec ID: " . $programme->id . " - Référence: " . $referenceGeneree);
 
-                // CRÉATION DES ARTICLES (le code existant reste le même)
+                // CRÉATION DES ARTICLES DANS programme_items
                 $devisItemsCreated = false;
                 
                 // Cas 1: Type "devis" avec modifications
@@ -1110,9 +1108,8 @@ public function createMultipleRecuperation(Request $request)
                         Log::info("📦 Création de nouveaux articles pour le programme multiple ID: " . $programme->id);
 
                         foreach ($devisItemsData as $itemData) {
-                            DevisItems::create([
+                            ProgrammeItems::create([
                                 'programme_id'      => $programme->id,
-                                'devis_id'          => null,
                                 'quantite_colis'    => $itemData['quantite_colis'] ?? 1,
                                 'service'           => $itemData['service'] ?? 'Service non spécifié',
                                 'valeur_colis'      => $itemData['valeur_colis'] ?? 0,
@@ -1122,6 +1119,7 @@ public function createMultipleRecuperation(Request $request)
                                 'longueur'          => $itemData['longueur'] ?? 0,
                                 'largeur'           => $itemData['largeur'] ?? 0,
                                 'hauteur'           => $itemData['hauteur'] ?? 0,
+                                'montant'           => $itemData['valeur_colis'] ?? 0,
                             ]);
                         }
                         $devisItemsCreated = true;
@@ -1136,9 +1134,8 @@ public function createMultipleRecuperation(Request $request)
                         Log::info("📦 Copie des articles du devis original pour le programme multiple ID: " . $programme->id);
                         
                         foreach ($devis->items as $originalItem) {
-                            DevisItems::create([
+                            ProgrammeItems::create([
                                 'programme_id'      => $programme->id,
-                                'devis_id'          => null,
                                 'quantite_colis'    => $originalItem->quantite_colis,
                                 'service'           => $originalItem->service,
                                 'valeur_colis'      => $originalItem->valeur_colis,
@@ -1148,6 +1145,7 @@ public function createMultipleRecuperation(Request $request)
                                 'longueur'          => $originalItem->longueur,
                                 'largeur'           => $originalItem->largeur,
                                 'hauteur'           => $originalItem->hauteur,
+                                'montant'           => $originalItem->valeur_colis ?? 0,
                             ]);
                         }
                         $devisItemsCreated = true;
@@ -1164,9 +1162,8 @@ public function createMultipleRecuperation(Request $request)
                             Log::info("📦 Création d'articles personnalisés pour le programme multiple ID: " . $programme->id);
 
                             foreach ($devisItemsData as $itemData) {
-                                DevisItems::create([
+                                ProgrammeItems::create([
                                     'programme_id'      => $programme->id,
-                                    'devis_id'          => null,
                                     'quantite_colis'    => $itemData['quantite_colis'] ?? 1,
                                     'service'           => $itemData['service'] ?? 'Transport standard',
                                     'valeur_colis'      => $itemData['valeur_colis'] ?? 0,
@@ -1176,6 +1173,7 @@ public function createMultipleRecuperation(Request $request)
                                     'longueur'          => $itemData['longueur'] ?? 0,
                                     'largeur'           => $itemData['largeur'] ?? 0,
                                     'hauteur'           => $itemData['hauteur'] ?? 0,
+                                    'montant'           => $itemData['valeur_colis'] ?? 0,
                                 ]);
                             }
                             $devisItemsCreated = true;
@@ -1185,9 +1183,8 @@ public function createMultipleRecuperation(Request $request)
                         // Si pas de modifications, créer un seul article avec les infos du formulaire
                         Log::info("📦 Création d'un article par défaut pour le programme multiple ID: " . $programme->id);
                         
-                        DevisItems::create([
+                        ProgrammeItems::create([
                             'programme_id'      => $programme->id,
-                            'devis_id'          => null,
                             'quantite_colis'    => $programmeData['quantite'] ?? 1,
                             'service'           => 'Transport standard',
                             'valeur_colis'      => 0,
@@ -1197,6 +1194,7 @@ public function createMultipleRecuperation(Request $request)
                             'longueur'          => 0,
                             'largeur'           => 0,
                             'hauteur'           => 0,
+                            'montant'           => 0,
                         ]);
                         $devisItemsCreated = true;
                     }

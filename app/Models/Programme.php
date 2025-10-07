@@ -72,5 +72,9 @@ class Programme extends Model
          return $this->belongsTo(User::class, 'agent_id');
      }
  
-
+ // Relation avec ProgrammeItem
+ public function programmeItems()
+ {
+     return $this->hasMany(ProgrammeItem::class, 'programme_id');
+ }
 }

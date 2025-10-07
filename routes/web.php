@@ -1464,9 +1464,17 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/colis-valide-aft_chine', [ChineColisController::class, 'colis_valide'])->name('colis.valide');
         Route::get('/get-colis-valide-aft_chine', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-aft_chine', [ChineColisController::class, 'enregistrerPaiement'])->name('valide.payer');
-        
+        Route::get('/devis/{id}/show-chine', [ChineColisController::class, 'show'])->name('devis.show');
+Route::put('/devis/{id}/update-hold-chine', [ChineColisController::class, 'update_hold'])->name('devis.update_hold');
         Route::get('/devis-confirmes-chine', [ChineColisController::class, 'devisConfirme'])->name('devis.confirme');
+        // Dans le groupe chine_colis
+
+Route::delete('/devis/{id}/destroy-chine', [ChineColisController::class, 'destroy_devis'])->name('devis.destroy');
         Route::get('/get-devis-confirmes-chine', [ChineColisController::class, 'get_devis_confirmes'])->name('get.devis.confirmes');
+        // Routes pour la gestion des devis
+
+// Route pour récupérer les détails d'un devis (AJAX)
+Route::get('/devis/{id}/details-chine', [ChineColisController::class, 'get_devis_details'])->name('devis.details');
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft_chine', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft_chine', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');

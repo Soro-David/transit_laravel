@@ -1,5 +1,4 @@
 @extends('AGENCE_CHINE.layouts.agent')
-
 @section('content-header')
     Détails du Devis
 @endsection
@@ -14,7 +13,7 @@
                     <small class="text-light">Créé le : {{ $devis->created_at->format('d/m/Y H:i') }}</small>
                 </div>
                 <div class="text-end">
-                    <a href="{{ route('aftlb_colis.hold') }}" class="btn btn-light btn-sm">← Retour à la liste</a>
+                    <a href="{{ route('chine_colis.hold') }}" class="btn btn-light btn-sm">← Retour à la liste</a>
                 </div>
             </div>
         </div>
@@ -56,6 +55,7 @@
             {{-- Grouper les items par service --}}
             @php
                 $groupedItems = $devis->items->groupBy('service');
+                $montantTotal = 0;
             @endphp
             
             @forelse($groupedItems as $serviceName => $items)
@@ -71,6 +71,7 @@
                                 <th>Type</th>
                                 <th>Valeur Déclarée</th>
                                 <th>Description</th>
+                                <th>Montant ({{ $devis->devise }})</th>
                                 @if($devis->mode_transit === 'aerien')
                                     <th>Poids</th>
                                 @else
@@ -80,6 +81,9 @@
                         </thead>
                         <tbody>
                         @foreach($items as $item)
+                            @php
+                                $montantTotal += $item->montant ?? 0;
+                            @endphp
                             <tr>
                                 <td>{{ $item->quantite_colis }}</td>
                                 <td>
@@ -95,6 +99,15 @@
                                     @endif
                                 </td>
                                 <td class="text-muted">{{ $item->description_colis ?? 'Aucune' }}</td>
+                                <td>
+                                    <input type="number" 
+                                           step="0.01" 
+                                           class="form-control form-control-sm montant-item" 
+                                           name="montant_items[{{ $item->id }}]" 
+                                           value="{{ $item->montant ?? 0 }}" 
+                                           data-item-id="{{ $item->id }}"
+                                           style="min-width: 100px;">
+                                </td>
                                 <td>
                                     @if($devis->mode_transit === 'aerien')
                                         {{ $item->poids ? $item->poids . ' kg' : 'N/A' }}
@@ -118,69 +131,138 @@
                 </div>
             @endforelse
         </div>
-         {{-- ========================================================== --}}
-        {{-- NOUVELLE SECTION : FORMULAIRE DE VALIDATION --}}
-        {{-- ========================================================== --}}
-       {{-- SECTION FORMULAIRE DE VALIDATION --}}
-       <div class="card-footer bg-light p-4">
-        <h5 class="fw-bold mb-3">Validation du Devis</h5>
-        {{-- MODIFICATION 1 : Ajout d'un ID au formulaire --}}
-        <form id="validationForm" action="{{ route('aftlb_colis.devis.update_hold', ['id' => $devis->id]) }}" method="POST">
-            @csrf
-            @method('PUT')
 
-            <div class="row align-items-end">
-                <div class="col-md-8">
-                    <label for="montant" class="form-label">
-                        <strong>Montant Final de la Transaction ({{ $devis->devise }})</strong>
-                    </label>
-                    <input type="number" step="0.01" id="montant" name="montant" class="form-control form-control-lg @error('montant') is-invalid @enderror" placeholder="Ex: 150000" required>
-                    @error('montant')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+        {{-- SECTION FORMULAIRE DE VALIDATION --}}
+        <div class="card-footer bg-light p-4">
+            <h5 class="fw-bold mb-3">Validation du Devis</h5>
+            <form id="validationForm" action="{{ route('chine_colis.devis.update_hold', ['id' => $devis->id]) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                {{-- Champ caché pour les montants des items --}}
+                <input type="hidden" name="montant_items" id="montantItemsInput">
+
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="montant" class="form-label">
+                            <strong>Montant Final de la Transaction ({{ $devis->devise }})</strong>
+                        </label>
+                        <input type="number" 
+                               step="0.01" 
+                               id="montant" 
+                               name="montant" 
+                               class="form-control form-control-lg @error('montant') is-invalid @enderror" 
+                               value="{{ $montantTotal }}"
+                               placeholder="Ex: 150000" 
+                               required 
+                               readonly>
+                        @error('montant')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">
+                            Ce montant est calculé automatiquement à partir de la somme des montants des items.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-check-circle me-2"></i>Valider et Envoyer
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        <i class="fas fa-check-circle me-2"></i>Valider et Envoyer
-                    </button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 </div>
 @endsection
 
-{{-- MODIFICATION 2 : Ajout du script pour SweetAlert --}}
-@section('scripts')
+@section('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-const validationForm = document.getElementById('validationForm');
+    const validationForm = document.getElementById('validationForm');
+    const montantTotalInput = document.getElementById('montant');
+    const montantItemInputs = document.querySelectorAll('.montant-item');
 
-if (validationForm) {
-    validationForm.addEventListener('submit', function (event) {
-        // Empêcher la soumission normale du formulaire
-        event.preventDefault(); 
-        
-        // Afficher le pop-up de confirmation
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: "Cette action validera le devis et enverra une notification au client.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Oui, valider !',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            // Si l'utilisateur clique sur "Oui, valider !"
-            if (result.isConfirmed) {
-                // Soumettre le formulaire pour de bon
-                validationForm.submit();
-            }
+    // Fonction pour calculer et mettre à jour le montant total
+    function calculerEtMajMontantTotal() {
+        let total = 0;
+        montantItemInputs.forEach(input => {
+            // Utiliser parseFloat pour gérer les décimales et || 0 pour les champs vides
+            total += parseFloat(input.value) || 0;
         });
+        // Mettre à jour le champ du montant final, formaté à 2 décimales
+        montantTotalInput.value = total.toFixed(2);
+    }
+
+    // Ajouter un écouteur d'événement à chaque champ de montant d'item
+    // L'événement 'input' est plus réactif que 'change'
+    montantItemInputs.forEach(input => {
+        input.addEventListener('input', calculerEtMajMontantTotal);
     });
-}
+
+    // Calculer le montant total une première fois au chargement de la page
+    calculerEtMajMontantTotal();
+
+    // Gérer la soumission du formulaire
+    if (validationForm) {
+        validationForm.addEventListener('submit', function (event) {
+            // Empêcher la soumission par défaut pour afficher la confirmation
+            event.preventDefault();
+
+            // S'assurer que le calcul est à jour avant de soumettre
+            calculerEtMajMontantTotal();
+
+            // Rassembler tous les montants des items dans un objet
+            const montantItemsData = {};
+            montantItemInputs.forEach(input => {
+                const itemId = input.getAttribute('data-item-id');
+                montantItemsData[itemId] = parseFloat(input.value) || 0;
+            });
+            
+            // Mettre l'objet JSON dans le champ caché (non nécessaire si recalculé côté serveur, mais bonne pratique)
+            const montantItemsInput = document.getElementById('montantItemsInput');
+            if(montantItemsInput) {
+                montantItemsInput.value = JSON.stringify(montantItemsData);
+            }
+
+            // Afficher le pop-up de confirmation
+            Swal.fire({
+                title: 'Confirmer la validation',
+                text: "Êtes-vous sûr de vouloir valider et envoyer ce devis ?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, valider le devis',
+                cancelButtonText: 'Annuler',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    // C'est ici que l'on soumet le formulaire
+                    validationForm.submit();
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        });
+    }
+
+    // Afficher les messages de session (succès ou erreur)
+    @if(session('success'))
+    Swal.fire({
+        title: 'Opération réussie !',
+        text: '{{ session('success') }}',
+        icon: 'success',
+        confirmButtonColor: '#28a745'
+    });
+    @endif
+
+    @if($errors->any())
+    Swal.fire({
+        title: 'Erreur de validation',
+        html: `<ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+    });
+    @endif
 });
 </script>
 @endsection
