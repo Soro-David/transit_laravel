@@ -27,7 +27,18 @@ return new class extends Migration
             $table->text('adresse_expediteur');
             $table->string('devise', 10); 
             $table->decimal('montant', 10, 2)->nullable();
-            $table->string('etat')->default('Devis');
+            $table->enum('etat', [
+                'Devis',
+                'Fermé',
+                'En attente',
+                'Validé',
+                'En entrepot',
+                'Chargé',
+                'En transit',
+                'Déchargé',
+                'Livré',
+                'Annulé'
+            ])->default('Devis')->after('user_id');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('chauffeur_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();

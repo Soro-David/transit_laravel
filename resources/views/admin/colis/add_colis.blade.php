@@ -33,7 +33,7 @@
         </div>
 
         <!-- Étape 1 : Informations transport -->
-       <fieldset>
+        <fieldset>
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
                 <div class="row">
@@ -66,11 +66,6 @@
                             <label class="form-label" id="ref_label">Référence</label>
                             <input type="text" name="reference_colis" id="reference_colis_input" class="form-control" value="" readonly>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="devis_reference_autocomplete" class="form-label">Récupérer les informations d'un devis existant</label>
-                        <input type="text" id="devis_reference_autocomplete" class="form-control" placeholder="Saisir une référence...">
-                        <input type="hidden" id="selected_devis_id" name="selected_devis_id">
                     </div>
 
                 </div>
@@ -154,6 +149,17 @@
         <fieldset id="colis-fieldset" style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations du/des Colis</h5>
             
+            <div class="d-flex justify-content-center">
+                <div class="colis-item card p-3 mb-4 shadow-sm border-0" style="width: 50%;">
+                    <div class="col-md-12 mb-4">
+                        <label for="devis_reference_autocomplete" class="form-label">
+                            Récupérer les informations d'un programme existant
+                        </label>
+                        <input type="text" id="devis_reference_autocomplete" class="form-control" placeholder="Saisir une référence...">
+                        <input type="hidden" id="selected_devis_id" name="selected_devis_id">
+                    </div>
+                </div>
+            </div>
             {{-- Conteneur pour les colis dynamiques --}}
             <div id="colis-container">
                 {{-- Le premier colis (template) --}}
@@ -195,11 +201,13 @@
                     <div class="col-md-2"><label class="form-label">Valeur</label><input type="number" name="valeur_colis[]" class="form-control prix-colis"></div>
                     <div class="col-md-2"><label class="form-label">Type colis</label><select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select></div>
                     <div class="col-md-2"><label class="form-label">Devise</label><select name="devise[]" class="form-control devise-select"><option value="EUR">EUR</option><option value="FCFA">FCFA</option></select></div>
+
                 </div>
                 <div class="row mt-2">
-                    <div class="col-md-6 dimension-section"><label class="form-label">Dimensions (cm)</label><div class="d-flex gap-2"><input type="number" name="longueur[]" class="form-control" placeholder="L"><input type="number" name="largeur[]" class="form-control" placeholder="l"><input type="number" name="hauteur[]" class="form-control" placeholder="H"></div></div>
-                    <div class="col-md-6 poids-section"><label class="form-label">Poids (kg)</label><input type="number" name="poids[]" class="form-control poids-colis"></div>
-                    <div class="col-md-6 mt-2"><label class="form-label">Commentaire</label><textarea name="description_colis[]" class="form-control"></textarea></div>
+                    <div class="col-md-5 dimension-section"><label class="form-label">Dimensions (cm)</label><div class="d-flex gap-2"><input type="number" name="longueur[]" class="form-control" placeholder="L"><input type="number" name="largeur[]" class="form-control" placeholder="l"><input type="number" name="hauteur[]" class="form-control" placeholder="H"></div></div>
+                    <div class="col-md-5 poids-section"><label class="form-label">Poids (kg)</label><input type="number" name="poids[]" class="form-control poids-colis"></div>
+                    <div class="col-md-5 mt-2"><label class="form-label">Commentaire</label><textarea name="description_colis[]" class="form-control"></textarea></div>
+                    <div class="col-md-2 mb-3"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix"></div>
                 </div>
                 <div class="text-end mt-2"><button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button></div>
             </div>

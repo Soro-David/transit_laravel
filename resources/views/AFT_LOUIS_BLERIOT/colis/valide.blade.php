@@ -155,7 +155,7 @@
     }
 
 </style>
-
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 {{-- Script pour DataTables et les interactions --}}
 <script>
 $(document).ready(function () {
