@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Enlevement;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Programme;
+use App\Models\ProgrammeItems;
 use App\Models\Devis;
 use App\Models\DevisItems;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -73,7 +74,7 @@ class EnlevementController extends Controller
         }
 
         // CORRECTION: Utiliser DevisItems au lieu de DevisItem
-        $devisItems = DevisItems::where('programme_id', $programme->id)->get();
+        $devisItems = ProgrammeItems::where('programme_id', $programme->id)->get();
         
         // Calculer la quantité totale depuis les devisItems
         $quantiteTotale = $devisItems->sum('quantite_colis');
@@ -157,7 +158,7 @@ class EnlevementController extends Controller
 
         $etiquettes = [];
 
-        $devisItems = DevisItems::where('programme_id', $programme->id)->get();
+        $devisItems = ProgrammeItems::where('programme_id', $programme->id)->get();
 
         if ($devisItems->isNotEmpty()) {
             $compteurGlobal = 0;

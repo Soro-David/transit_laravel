@@ -475,10 +475,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-  // ---------- Fonction pour soumettre le formulaire ----------
+ // ---------- Fonction pour soumettre le formulaire ----------
 function submitDevisForm() {
     // Activer tous les champs désactivés avant soumission
-    // CORRECTION : remplacer ':input' par 'input, select, textarea'
     document.querySelectorAll('#colisContainer input, #colisContainer select, #colisContainer textarea').forEach(i => i.removeAttribute('disabled'));
     
     document.querySelectorAll('select[name="type_colis[]"]').forEach(s => { if (!s.value) s.value = 'standard'; });
@@ -497,9 +496,8 @@ function submitDevisForm() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            dernierDevisCree = data.devis;
-            // Afficher le popup de programmation
-            showProgrammationPopup(data.devis.reference);
+            // Afficher le popup de confirmation avec option "Plus tard"
+            showConfirmationPopup(data.reference_generee);
         } else {
             // Gérer les erreurs de création de devis
             Swal.fire({
@@ -518,6 +516,35 @@ function submitDevisForm() {
             text: 'Une erreur est survenue lors de la soumission',
             confirmButtonText: 'OK'
         });
+    });
+}
+
+// ---------- Fonction pour afficher le popup de confirmation ----------
+function showConfirmationPopup(referenceGeneree) {
+    Swal.fire({
+        title: '✅ Devis créé avec succès !',
+        html: `
+            <div class="text-start">
+                <p class="mb-3">Référence du programme : <strong>${referenceGeneree}</strong></p>
+                <p class="mb-3">Le devis a été enregistré avec l'état <strong>"à planifié"</strong>.</p>
+                <p class="text-muted">Vous pourrez ultérieurement attribuer une date et un chauffeur.</p>
+            </div>
+        `,
+        icon: 'success',
+        confirmButtonText: 'Programmer maintenant',
+        cancelButtonText: 'Plus tard',
+        showCancelButton: true,
+        confirmButtonColor: '#05a805',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si l'utilisateur veut programmer maintenant
+            chargerChauffeurs().then(() => {
+                showProgrammationForm(referenceGeneree);
+            });
+        } else {
+            // Si l'utilisateur clique sur "Plus tard" - redirection simple
+            window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+        }
     });
 }
     // ---------- Fonction pour afficher le popup de programmation ----------

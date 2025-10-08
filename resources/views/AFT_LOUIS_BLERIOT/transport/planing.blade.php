@@ -41,23 +41,32 @@
 
     
 <!-- Filtres et recherche -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="form-inline">
-                        <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown">
-                                <span id="pageSizeDisplay">10</span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
-                                <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
-                                <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
-                            </div>
-                        </div>
-                    </div>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="form-inline">
+            <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
+            
+            <!-- NOUVEAU FILTRE ACTION À FAIRE -->
+            <select id="actionFilter" class="form-control mr-2">
+                <option value="">Toutes les actions</option>
+                <option value="depot">Dépôt</option>
+                <option value="recuperation">Récupération</option>
+                <option value="livraison">Livraison</option>
+            </select>
+            
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown">
+                    <span id="pageSizeDisplay">10</span>
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
+                    <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
+                    <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
             <!-- Tableau des programmes -->
             <div class="table-responsive">
@@ -245,7 +254,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="reference_input_0">Référence <span style="color: brown">*</span></label>
+                                            <label for="reference_input_0">Référence <span style="color: brown"></span></label>
                                             <input type="text" class="form-control reference-input" id="reference_input_0" name="programmes[0][reference_input]" 
                                                    placeholder="Entrez la référence du devis, dépôt ou une référence manuelle" data-index="0">
                                             <small class="form-text text-center" style="font-size: 10px; color:brown">
@@ -423,44 +432,82 @@ $(document).ready(function() {
     }
 
     function generateTable(programmes) {
-        const tableBody = $('#programmes-table');
-        tableBody.empty();
-        if (!programmes || programmes.length === 0) {
-            tableBody.append('<tr><td colspan="10" class="text-center">Aucun programme trouvé.</td></tr>');
-            return;
-        }
-        programmes.forEach(p => {
-            const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : 'N/A';
-            tableBody.append(`
-                <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : ''}">
-                    <td>${p.quantite || 1}</td>
-                    <td><span class="badge ${getActionBadgeClass(p.actions_a_faire)}">${getActionText(p.actions_a_faire)}</span></td>
-                    <td>${p.reference_a_afficher || 'N/A'}</td>
-                    <td>${p.nature_du_colis || 'N/A'}</td>
-                    <td>${p.nom_expediteur || 'N/A'}</td>
-                    <td>${p.tel_expediteur || 'N/A'}</td>
-                    <td>${p.lieu_expedition || 'N/A'}</td>
-                    <td>${user}</td>
-                    <td><span class="badge ${getEtatBadgeClass(p.etat_rdv)}">${p.etat_rdv || 'N/A'}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-info edit-programme-btn" data-id="${p.id}"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${p.id}"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `);
-        });
+    const tableBody = $('#programmes-table');
+    tableBody.empty();
+    
+    if (!programmes || programmes.length === 0) {
+        tableBody.append('<tr><td colspan="10" class="text-center">Aucun programme trouvé.</td></tr>');
+        return;
     }
-
+    
+    programmes.forEach(p => {
+        const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : 'N/A';
+        tableBody.append(`
+            <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : ''}">
+                <td>${p.quantite || 1}</td>
+                <td>
+                    <span class="badge ${getActionBadgeClass(p.actions_a_faire)}">
+                        ${getActionText(p.actions_a_faire)}
+                    </span>
+                </td>
+                <td>${p.reference_a_afficher || 'N/A'}</td>
+                <td>${p.nature_du_colis || 'N/A'}</td>
+                <td>${p.nom_expediteur || 'N/A'}</td>
+                <td>${p.tel_expediteur || 'N/A'}</td>
+                <td>${p.lieu_expedition || 'N/A'}</td>
+                <td>${user}</td>
+                <td>
+                    <span class="badge ${getEtatBadgeClass(p.etat_rdv)}">
+                        ${p.etat_rdv || 'N/A'}
+                    </span>
+                </td>
+                <td>
+                    ${p.etat_rdv !== 'effectué' ? 
+                        `<a href="/aftlb_transport/programme-edit-page/${p.id}-aft-louis-b" class="btn btn-sm btn-info edit-programme-btn" data-id="${p.id}">
+                            <i class="fas fa-edit"></i> Modifier
+                         </a>
+                         <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${p.id}">
+                            <i class="fas fa-trash"></i> Supprimer
+                         </button>` 
+                        : 
+                        `<button class="btn btn-sm btn-secondary" disabled title="Programme déjà effectué">
+                            <i class="fas fa-edit"></i> Modifier
+                         </button>
+                         <button class="btn btn-sm btn-secondary" disabled title="Programme déjà effectué">
+                            <i class="fas fa-trash"></i> Supprimer
+                         </button>`
+                    }
+                </td>
+            </tr>
+        `);
+    });
+}
     function updateTable() {
-        const searchTerm = $('#search').val().toLowerCase();
-        const filtered = programmesData.programmes.filter(p => 
-            p && Object.values(p).some(val => val && val.toString().toLowerCase().includes(searchTerm))
-        );
+        const filtered = filterProgrammes();
         const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
         generateTable(paginated);
         generatePagination(filtered.length);
+        
+        // Mettre à jour le compteur de résultats
+        updateResultsCount(filtered.length);
     }
-    
+    function updateResultsCount(count) {
+        const totalCount = programmesData.programmes.length;
+        const filteredCount = count;
+        
+        let countText = `Affichage de ${filteredCount} programme(s)`;
+        if (filteredCount !== totalCount) {
+            countText += ` (filtrés sur ${totalCount} au total)`;
+        }
+        
+        // Créer ou mettre à jour l'élément de compteur
+        let countElement = $('#resultsCount');
+        if (countElement.length === 0) {
+            $('.table-responsive').before(`<div id="resultsCount" class="mb-2 text-muted small">${countText}</div>`);
+        } else {
+            countElement.text(countText);
+        }
+    }
     function generatePagination(totalItems) {
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         $('#pagination').empty();
@@ -1097,75 +1144,6 @@ function addProgramme() {
 
     $('#programmes-container').append(template);
 }
-// $('#recuperationForm').on('submit', function(e) {
-//     e.preventDefault();
-    
-//     // Préparer les données de tous les programmes
-//     const programmes = [];
-//     $('.programme-item').each(function() {
-//         const programmeIndex = $(this).data('programme-index');
-//         const itemsSection = $(this).find('.devis-items-section');
-//         const devisItems = itemsSection.data('devis-items') || [];
-        
-//         programmes.push({
-//             type_reference: $(this).find('.type-reference').val(),
-//             reference_input: $(this).find('.reference-input').val(),
-//             quantite: $(this).find('[name$="[quantite]"]').val(),
-//             nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
-//             nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
-//             tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
-//             lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
-//             devis_items: devisItems.length > 0 ? JSON.stringify(devisItems) : null,
-//             modifications_apportees: devisItems.length > 0
-//         });
-//     });
-
-//     const payload = {
-//         user_id: $('#user_id_recup').val(),
-//         date_programme: $('#date_programme_recup').val(),
-//         programmes: programmes
-//     };
-
-//     // Afficher un indicateur de chargement
-//     Swal.fire({
-//         title: 'Création en cours...',
-//         text: 'Veuillez patienter',
-//         allowOutsideClick: false,
-//         didOpen: () => {
-//             Swal.showLoading();
-//         }
-//     });
-
-//     axios.post($(this).attr('action'), payload)
-//         .then(res => {
-//             Swal.close();
-//             let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
-//             if (res.data.details) {
-//                 msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
-//             }
-            
-//             Swal.fire({ 
-//                 icon: 'success', 
-//                 title: 'Succès!', 
-//                 html: msg,
-//                 confirmButtonText: 'OK',
-//                 timer: 5000 // 5 secondes maximum
-//             }).then((result) => {
-//                 // Fermer le modal
-//                 $('#recuperationModal').modal('hide');
-//                 // Recharger la page complète
-//                 location.reload();
-//             });
-//         })
-//         .catch(err => {
-//             Swal.close();
-//             Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
-//         });
-// });
-    // =========================================================================
-    // 5. ÉCOUTEURS D'ÉVÉNEMENTS
-    // =========================================================================
-    
     function initApp() {
     const pContainer = $('#programmes-container');
 
@@ -1182,7 +1160,11 @@ function addProgramme() {
         currentPage = parseInt($(this).data('page'));
         updateTable();
     });
-    
+       // NOUVEL ÉVÉNEMENT pour le filtre d'action
+       $('#actionFilter').on('change', function() {
+            currentPage = 1; // Retour à la première page
+            updateTable();
+        });
     // Initialiser les modales
     initDepotModal();
     initRecuperationModal(); // Cette fonction inclut maintenant initReferenceHandling()
@@ -1604,15 +1586,107 @@ function initRecuperationModal() {
             $('.remove-programme-btn').hide();
         });
     
-
+// Gestion de la suppression
+$(document).on('click', '.delete-programme-btn', function() {
+    let programmeId = $(this).data('id');
+    
+    Swal.fire({
+        title: 'Êtes-vous sûr?',
+        text: "Cette action supprimera le programme et tous ses articles!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer!',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            axios.delete(`/aftlb_transport/programme-delete/${programmeId}-aft-louis-b`)
+                .then(response => {
+                    if (response.data.success) {
+                        Swal.fire('Supprimé!', response.data.message, 'success');
+                        // Recharger les données
+                        loadData();
+                    } else {
+                        Swal.fire('Erreur!', response.data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur suppression:', error);
+                    Swal.fire('Erreur!', 'Une erreur est survenue lors de la suppression.', 'error');
+                });
+        }
+    });
+});
     // --- Fonctions utilitaires rapides ---
-    function getActionBadgeClass(a) { return { depot: 'badge-success', recuperation: 'badge-warning' }[a] || 'badge-secondary'; }
-    function getActionText(a) { return { depot: 'DÉPÔT', recuperation: 'RÉCUPÉRATION' }[a] || a; }
+    function getActionBadgeClass(a) { 
+        return { 
+            depot: 'badge-success', 
+            recuperation: 'badge-warning',
+            livraison: 'badge-info'
+        }[a] || 'badge-secondary'; 
+    }
+    function getActionText(a) { 
+        return { 
+            depot: 'DÉPÔT', 
+            recuperation: 'RÉCUPÉRATION',
+            livraison: 'LIVRAISON'
+        }[a] || a; 
+    }
+ // Fonction de filtrage des données
+ function filterProgrammes() {
+        const searchTerm = $('#search').val().toLowerCase();
+        const actionFilter = $('#actionFilter').val();
+        
+        let filtered = programmesData.programmes.filter(p => {
+            if (!p) return false;
+            
+            // Filtre par recherche texte
+            const matchesSearch = !searchTerm || 
+                Object.values(p).some(val => 
+                    val && val.toString().toLowerCase().includes(searchTerm)
+                );
+            
+            // Filtre par action
+            const matchesAction = !actionFilter || 
+                p.actions_a_faire === actionFilter;
+            
+            return matchesSearch && matchesAction;
+        });
+        
+        return filtered;
+    }
     function getEtatBadgeClass(e) { return { 'effectué': 'badge-success', 'en attente': 'badge-warning' }[e] || 'badge-secondary'; }
 });
 </script>
 
 <style>
+    /* Style pour le filtre d'action */
+#actionFilter {
+    min-width: 180px;
+}
+
+/* Style pour les badges d'action */
+.badge.badge-success { background-color: #28a745; }
+.badge.badge-warning { background-color: #ffc107; color: #212529; }
+.badge.badge-info { background-color: #17a2b8; }
+
+/* Responsive pour les filtres */
+@media (max-width: 768px) {
+    .form-inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-inline .form-control {
+        margin-bottom: 10px;
+        width: 100% !important;
+    }
+    
+    #actionFilter {
+        min-width: 100%;
+    }
+}
     .item-details {
         background-color: #f8f9fa;
         border-left: 4px solid #007bff !important;
