@@ -265,7 +265,7 @@
                         <li class="nav-item">
                             <a href="{{ route('aftlb_transport.ajoutDevis') }}" class="nav-link">
                                 <i class="far nav-icon"></i> {{-- Adaptez l'icône si besoin --}}
-                                <p>{{ __('Creation de Devis à programmer') }}</p>
+                                <p>{{ __('Programmation') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">

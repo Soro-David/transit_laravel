@@ -849,6 +849,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/autocomplete/produit-aftlb', [AftlbColisController::class, 'autocompleteProduit'])->name('recherche.auto');
         // AJOUT : Route pour les détails du devis dans le groupe aftlb_colis
         Route::get('/devis/{id}/details', [AftlbColisController::class, 'get_devis_details'])->name('devis.details');
+        
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft-louis-b', [AftlbColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
@@ -911,6 +912,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         // Création et stockage d'un colis
         Route::get('/create/colis-aft-louis-b', [AftlbColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-aft-louis-b', [AftlbColisController::class, 'store_colis'])->name('store.colis');
+        Route::get('/devis/{id}/show-chine', [AftlbColisController::class, 'show'])->name('devis.show');
+        Route::delete('/devis/{id}/destroy-chine', [AftlbColisController::class, 'destroy_devis'])->name('devis.destroy');
 
 
 
@@ -989,6 +992,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
     Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroy'])->name('programme.destroy');
     Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
     Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
+     // AJOUTEZ CETTE LIGNE - Route pour la création multiple
+     Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
     Route::get('/programme-reference-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getReferenceInfo'])
 ->name('programme.referenceInfo')
 ->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
@@ -998,6 +1003,9 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
     ->name('aftlb_transport.programme.checkItems');
+    Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
+    Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
+    Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         
         // Routes chauffeurs
@@ -1635,7 +1643,17 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/colis-valide-aft_chine', [ChineColisController::class, 'colis_valide'])->name('colis.valide');
         Route::get('/get-colis-valide-aft_chine', [ChineColisController::class, 'get_colis_valide'])->name('get.colis.valide');
         Route::post('/colis/valide/payer-aft_chine', [ChineColisController::class, 'enregistrerPaiement'])->name('valide.payer');
+        Route::get('/devis/{id}/show-chine', [ChineColisController::class, 'show'])->name('devis.show');
+        Route::put('/devis/{id}/update-hold-chine', [ChineColisController::class, 'update_hold'])->name('devis.update_hold');
+        Route::get('/devis-confirmes-chine', [ChineColisController::class, 'devisConfirme'])->name('devis.confirme');
+        // Dans le groupe chine_colis
 
+        Route::delete('/devis/{id}/destroy-chine', [ChineColisController::class, 'destroy_devis'])->name('devis.destroy');
+        Route::get('/get-devis-confirmes-chine', [ChineColisController::class, 'get_devis_confirmes'])->name('get.devis.confirmes');
+        // Routes pour la gestion des devis
+
+        // Route pour récupérer les détails d'un devis (AJAX)
+        Route::get('/devis/{id}/details-chine', [ChineColisController::class, 'get_devis_details'])->name('devis.details');
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft_chine', [ChineColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft_chine', [ChineColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');

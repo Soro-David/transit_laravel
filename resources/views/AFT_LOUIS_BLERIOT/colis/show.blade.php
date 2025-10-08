@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+<section class="py-3">
 <div class="container py-4">
     <div class="card shadow-lg rounded-3 border-0">
         <div class="card-header" style="background: linear-gradient(90deg, #0d6efd, #6f42c1); color:#fff;">
@@ -56,6 +57,7 @@
             {{-- Grouper les items par service --}}
             @php
                 $groupedItems = $devis->items->groupBy('service');
+                $montantTotal = 0;
             @endphp
             
             @forelse($groupedItems as $serviceName => $items)
@@ -71,6 +73,7 @@
                                 <th>Type</th>
                                 <th>Valeur Déclarée</th>
                                 <th>Description</th>
+                                <th>Montant ({{ $devis->devise }})</th>
                                 @if($devis->mode_transit === 'aerien')
                                     <th>Poids</th>
                                 @else
@@ -80,6 +83,9 @@
                         </thead>
                         <tbody>
                         @foreach($items as $item)
+                            @php
+                                $montantTotal += $item->montant ?? 0;
+                            @endphp
                             <tr>
                                 <td>{{ $item->quantite_colis }}</td>
                                 <td>
@@ -95,6 +101,15 @@
                                     @endif
                                 </td>
                                 <td class="text-muted">{{ $item->description_colis ?? 'Aucune' }}</td>
+                                <td>
+                                    <input type="number" 
+                                           step="0.01" 
+                                           class="form-control form-control-sm montant-item" 
+                                           name="montant_items[{{ $item->id }}]" 
+                                           value="{{ $item->montant ?? 0 }}" 
+                                           data-item-id="{{ $item->id }}"
+                                           style="min-width: 100px;">
+                                </td>
                                 <td>
                                     @if($devis->mode_transit === 'aerien')
                                         {{ $item->poids ? $item->poids . ' kg' : 'N/A' }}
@@ -118,69 +133,147 @@
                 </div>
             @endforelse
         </div>
-         {{-- ========================================================== --}}
-        {{-- NOUVELLE SECTION : FORMULAIRE DE VALIDATION --}}
-        {{-- ========================================================== --}}
-       {{-- SECTION FORMULAIRE DE VALIDATION --}}
-       <div class="card-footer bg-light p-4">
-        <h5 class="fw-bold mb-3">Validation du Devis</h5>
-        {{-- MODIFICATION 1 : Ajout d'un ID au formulaire --}}
-        <form id="validationForm" action="{{ route('aftlb_colis.devis.update_hold', ['id' => $devis->id]) }}" method="POST">
-            @csrf
-            @method('PUT')
 
-            <div class="row align-items-end">
-                <div class="col-md-8">
-                    <label for="montant" class="form-label">
-                        <strong>Montant Final de la Transaction ({{ $devis->devise }})</strong>
-                    </label>
-                    <input type="number" step="0.01" id="montant" name="montant" class="form-control form-control-lg @error('montant') is-invalid @enderror" placeholder="Ex: 150000" required>
-                    @error('montant')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+        {{-- SECTION FORMULAIRE DE VALIDATION --}}
+        <div class="card-footer bg-light p-4">
+            <h5 class="fw-bold mb-3">Validation du Devis</h5>
+            <form id="validationForm" action="{{ route('aftlb_colis.devis.show', ['id' => $devis->id]) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                {{-- Champ caché pour les montants des items --}}
+                <input type="hidden" name="montant_items" id="montantItemsInput">
+
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="montant" class="form-label">
+                            <strong>Montant Final de la Transaction ({{ $devis->devise }})</strong>
+                        </label>
+                        <input type="number" 
+                               step="0.01" 
+                               id="montant" 
+                               name="montant" 
+                               class="form-control form-control-lg @error('montant') is-invalid @enderror" 
+                               value="{{ $montantTotal }}"
+                               placeholder="Ex: 150000" 
+                               required 
+                               readonly>
+                        @error('montant')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">
+                            Ce montant est calculé automatiquement à partir de la somme des montants des items.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-check-circle me-2"></i>Valider et Envoyer
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        <i class="fas fa-check-circle me-2"></i>Valider et Envoyer
-                    </button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
-</div>
+</section>
 @endsection
 
-{{-- MODIFICATION 2 : Ajout du script pour SweetAlert --}}
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-const validationForm = document.getElementById('validationForm');
+@section('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const validationForm = document.getElementById('validationForm');
+        const montantItemsInput = document.getElementById('montantItemsInput');
+        const montantTotalInput = document.getElementById('montant');
+        const montantItemInputs = document.querySelectorAll('.montant-item');
 
-if (validationForm) {
-    validationForm.addEventListener('submit', function (event) {
-        // Empêcher la soumission normale du formulaire
-        event.preventDefault(); 
-        
-        // Afficher le pop-up de confirmation
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: "Cette action validera le devis et enverra une notification au client.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Oui, valider !',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            // Si l'utilisateur clique sur "Oui, valider !"
-            if (result.isConfirmed) {
-                // Soumettre le formulaire pour de bon
-                validationForm.submit();
-            }
+        // Fonction pour calculer le montant total
+        function calculerMontantTotal() {
+            let total = 0;
+            montantItemInputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            montantTotalInput.value = total.toFixed(2);
+            return total;
+        }
+
+        // Mettre à jour le montant total quand un montant d'item change
+        montantItemInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                calculerMontantTotal();
+            });
+            
+            input.addEventListener('input', function() {
+                calculerMontantTotal();
+            });
         });
+
+        // Préparer les données avant soumission
+        if (validationForm) {
+            validationForm.addEventListener('submit', function (event) {
+                // Rassembler tous les montants des items dans un objet
+                const montantItems = {};
+                montantItemInputs.forEach(input => {
+                    const itemId = input.getAttribute('data-item-id');
+                    montantItems[itemId] = parseFloat(input.value) || 0;
+                });
+                
+                // Mettre l'objet dans le champ caché
+                montantItemsInput.value = JSON.stringify(montantItems);
+                
+                // Afficher le pop-up de confirmation
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Confirmer la validation',
+                    text: "Êtes-vous sûr de vouloir valider et envoyer ce devis ?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Oui, valider le devis',
+                    cancelButtonText: 'Annuler',
+                    showLoaderOnConfirm: true,
+                    preConfirm: () => {
+                        return new Promise((resolve) => {
+                            // Soumettre le formulaire
+                            validationForm.submit();
+                            resolve();
+                        });
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Cette partie sera exécutée après la soumission réussie
+                        // grâce à la redirection depuis le contrôleur
+                    }
+                });
+            });
+        }
+
+        // Calcul initial
+        calculerMontantTotal();
+
+        // Afficher le message de succès si présent dans la session
+        @if(session('success'))
+        Swal.fire({
+            title: 'Devis envoyé !',
+            text: '{{ session('success') }}',
+            icon: 'success',
+            confirmButtonColor: '#28a745',
+            confirmButtonText: 'OK'
+        });
+        @endif
+
+        // Afficher les erreurs si présentes
+        @if($errors->any())
+        Swal.fire({
+            title: 'Erreur',
+            text: '{{ $errors->first() }}',
+            icon: 'error',
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'OK'
+        });
+        @endif
     });
-}
-});
-</script>
+    </script>
 @endsection

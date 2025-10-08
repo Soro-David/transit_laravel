@@ -38,12 +38,10 @@ class DevisController extends Controller
         $agencesDestination = Agence::where('pays_agence', '=', 'Côte d\'Ivoire')->get();
 
 
-        $client_expediteurs = Client::where('type_client', 'expediteur')->select('nom', 'prenom')->get();
-        $client_destinataires = Client::where('type_client', 'destinataire')->select('nom', 'prenom')->get();
 
         return view('customer.devis.create', compact(
             'agencesExpedition', 'agencesDestination', 'paysUniques',
-            'client_expediteurs', 'client_destinataires','user'
+             'user'
         ));
     }
 

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use App\Models\Devis;
-use App\Models\DevisItem;
+use App\Models\DevisItems;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -1770,9 +1770,13 @@ public function vol_fermer(Request $request)
      */
     public function show($id)
     {
-        //
-    }
+        // 1. Récupérer le devis avec ses items depuis la base de données
+        // findOrFail() renverra une erreur 404 si le devis n'est pas trouvé
+        $devis = Devis::with('items')->findOrFail($id);
 
+        // 2. Retourner la nouvelle vue en lui passant les données du devis
+        return view('AGENCE_CHINE.colis.show', compact('devis'));
+    }
     public function hold()
     {
         return view('AGENCE_CHINE.colis.hold');
@@ -1857,77 +1861,180 @@ public function vol_fermer(Request $request)
     }
 
 
-    public function update_hold(Request $request, InfobipSmsService $infobipSmsService)
-    {
-        $validatedData = $request->validate([
-            'groupes' => 'required|array',
-            'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
-            'groupes.*.colis_ids' => 'required|array',
-            'groupes.*.colis_ids.*' => 'exists:colis,id',
-        ]);
-    
-        $groupes = $validatedData['groupes'];
-        $allColisIds = [];
-        $prixTotalGeneral = 0;
-    
-        foreach ($groupes as $groupeData) {
-            $colisIds = $groupeData['colis_ids'];
-            $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
-            $nombreDeColisDansGroupe = count($colisIds);
+   
+    public function update_hold(Request $request, InfobipSmsService $infobipSmsService, $id)
+{
+    // 1. Valider la requête
+    $validatedData = $request->validate([
+        'montant' => 'required|numeric|min:0',
+        'montant_items' => 'required|json'
+    ]);
+
+    $devis = Devis::with('items')->findOrFail($id);
+
+    DB::beginTransaction();
+
+    try {
+        // 2. Mettre à jour les montants des items
+        $montantItems = json_decode($validatedData['montant_items'], true);
+        
+        foreach ($montantItems as $itemId => $montant) {
+            $item = DevisItems::where('id', $itemId)
+                            ->where('devis_id', $devis->id)
+                            ->first();
             
-            // On ajoute le prix de ce groupe au total général
-            $prixTotalGeneral += $prixTotalGroupe;
-            
-            if ($nombreDeColisDansGroupe > 0) {
-                $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
-                $allColisIds = array_merge($allColisIds, $colisIds); // Fusionner les IDs pour la collection finale
-    
-                foreach ($colisIds as $colisId) {
-                    $colis = Colis::find($colisId);
-                    if ($colis) {
-                        $colis->update([
-                            'prix_transit_colis' => $prixUnitaire,
-                            'status' => 'non payé',
-                            'etat' => 'Validé',
-                        ]);
-                    }
-                }
+            if ($item) {
+                $item->update(['montant' => $montant]);
             }
         }
         
-        // Pour l'email et le SMS, on utilise les informations du premier colis de la première liste
-        $premierColis = Colis::find($allColisIds[0]);
-        $colisCollection = Colis::whereIn('id', $allColisIds)->get();
+        // Recharger la relation pour avoir les données à jour
+        $devis->load('items');
+
+        // 3. Mettre à jour le montant total du devis et son état
+        $devis->montant = $validatedData['montant']; // On fait confiance au montant calculé par le JS
+        $devis->etat = 'Validé';
+        $devis->save();
+
+        DB::commit();
     
-        // Création de l'objet paiement factice pour l'email
-        $paiementFactice = new Paiement();
-        $paiementFactice->montant = $prixTotalGeneral; // Utiliser le prix total général
-        $paiementFactice->montant_paye = 0;
-        $paiementFactice->statut_paiement = 'En attente';
-        $paiementFactice->methode_paiement = 'Non défini';
-        $paiementFactice->date_validation = now();
-        $paiementFactice->setRelation('expediteur', $premierColis->expediteur);
+            // --- Le reste de votre logique pour les notifications (semble correct) ---
+            
+            $paiementFactice = new \App\Models\Paiement(); // Assurez-vous d'utiliser le bon namespace
+            $paiementFactice->montant = $devis->montant;
+            $paiementFactice->montant_paye = 0;
+            $paiementFactice->statut_paiement = 'En attente';
+            $paiementFactice->methode_paiement = 'Non défini';
+            $paiementFactice->date_validation = now();
+            
+            $expediteurInfo = (object)[
+                'email' => $devis->email_expediteur,
+                'nom' => $devis->nom_expediteur,
+                'tel' => $devis->tel_expediteur
+            ];
+            $paiementFactice->expediteur = $expediteurInfo;
     
-        // Envoi de l'email
-        try {
-            Mail::to($premierColis->expediteur->email)->send(new ColisValidateMail($paiementFactice, $colisCollection));
-            Log::info("Email de validation du devis envoyé à " . $premierColis->expediteur->email);
+            // Envoi de l'email à l'agent
+            try {
+                $agent = \App\Models\User::find($devis->user_id); // Assurez-vous d'utiliser le bon namespace
+                if ($agent && !empty($agent->email) && filter_var($agent->email, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($agent->email)->send(new \App\Mail\ColisValidatedMail($paiementFactice, $devis->items));
+                    Log::info("Email de validation du devis envoyé à l'agent: " . $agent->email . " (Réf Devis: " . $devis->reference . ")");
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur envoi email agent: " . $e->getMessage(), ['devis_ref' => $devis->reference]);
+            }
+    
+            // Envoi du SMS
+            $message = "Bonjour " . $devis->nom_expediteur . ", votre devis (Réf: " . $devis->reference . ") a été validé. Montant Total: " . number_format($devis->montant, 0, ',', ' ') . " " . $devis->devise . ". Consultez vos emails.";
+            
+            try {
+                if($devis->tel_expediteur) {
+                    $infobipSmsService->sendSms($devis->tel_expediteur, $message);
+                    Log::info("SMS de validation du devis envoyé à " . $devis->tel_expediteur);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur envoi SMS: ' . $e->getMessage());
+            }
+    
+            // REDIRECTION vers la liste des devis en attente avec un message de succès
+            return redirect()->route('chine_colis.devis.hold')->with('success', 'Devis validé et notifié au client avec succès !');
+    
         } catch (\Exception $e) {
-            Log::error("Erreur lors de l'envoi de l'email de validation du devis: " . $e->getMessage());
+            DB::rollBack();
+            Log::error("Erreur lors de la validation du devis ID {$id}: " . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Une erreur technique est survenue: ' . $e->getMessage()]);
         }
-    
-        // Envoi du SMS
-        $message = "Bonjour " . $premierColis->expediteur->nom . ", le devis pour votre colis (Réf: " . $premierColis->reference_colis . ") est disponible. Montant Total: " . $prixTotalGeneral . " EUR/FCFA. Veuillez consulter vos emails.";
-        
-        try {
-            $infobipSmsService->sendSms($premierColis->expediteur->tel, $message);
-        } catch (\Exception $e) {
-            Log::error('Erreur envoi SMS: ' . $e->getMessage());
-        }
-        return redirect()->route('chine_colis.hold')->with('success', 'Devis faits avec succès !');
     }
-
-
+    public function destroy_devis($id)
+    {
+        try {
+            // Trouver le devis
+            $devis = Devis::findOrFail($id);
+            
+            // Vérifier que le devis est bien en attente
+            if ($devis->etat !== 'En attente') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seuls les devis en attente peuvent être supprimés.'
+                ], 422);
+            }
+            
+            // Supprimer les items associés au devis
+            $devis->items()->delete();
+            
+            // Supprimer le devis
+            $devis->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Devis supprimé avec succès.'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur suppression devis: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du devis: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function get_devis_details($id)
+    {
+        try {
+            \Log::info("Tentative de récupération du devis ID: " . $id);
+            
+            $devis = Devis::with('items')
+                ->where('id', $id)
+                ->where('agence_expedition', 'Agence de Chine')
+                ->firstOrFail();
+    
+            \Log::info("Devis trouvé: " . $devis->reference);
+    
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $devis->id,
+                    'reference' => $devis->reference,
+                    'mode_transit' => $devis->mode_transit,
+                    'pays_expedition' => $devis->pays_expedition,
+                    'agence_expedition' => $devis->agence_expedition,
+                    'agence_destination' => $devis->agence_destination,
+                    'nom_expediteur' => $devis->nom_expediteur,
+                    'prenom_expediteur' => $devis->prenom_expediteur,
+                    'email_expediteur' => $devis->email_expediteur,
+                    'tel_expediteur' => $devis->tel_expediteur,
+                    'adresse_expediteur' => $devis->adresse_expediteur,
+                    'devise' => $devis->devise,
+                    'montant' => $devis->montant,
+                    'etat' => $devis->etat,
+                    'mode_de_retrait' => $devis->mode_de_retrait,
+                    'created_at' => $devis->created_at,
+                    'items' => $devis->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'quantite_colis' => $item->quantite_colis,
+                            'service' => $item->service,
+                            'valeur_colis' => $item->valeur_colis,
+                            'type_colis' => $item->type_colis,
+                            'description_colis' => $item->description_colis,
+                            'poids' => $item->poids,
+                            'longueur' => $item->longueur,
+                            'largeur' => $item->largeur,
+                            'hauteur' => $item->hauteur,
+                        ];
+                    })
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Erreur lors de la récupération du devis: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Devis non trouvé: ' . $e->getMessage()
+            ], 404);
+        }
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -2466,63 +2573,89 @@ public function destroy_colis_valide($reference)
         return $filePath;
     }
 
+public function update_devis_items(Request $request, $id)
+{
+    try {
+        $devis = Devis::findOrFail($id);
+        $montantItems = json_decode($request->montant_items, true);
 
+        DB::beginTransaction();
+
+        foreach ($montantItems as $itemId => $montant) {
+            // CORRECTION : Utiliser DevisItems (avec 's')
+            $item = DevisItems::where('id', $itemId)
+                            ->where('devis_id', $devis->id)
+                            ->first();
+            
+            if ($item) {
+                $item->update(['montant' => $montant]);
+            }
+        }
+
+        // Le montant total sera mis à jour automatiquement via l'observer
+        $devis->refresh();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'montant_total' => $devis->montant
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la mise à jour: ' . $e->getMessage()
+        ], 500);
+    }
+}
 public function get_colis_hold(Request $request)
 {
     if ($request->ajax()) {
-            $colis = Colis::select(
-                'colis.*',
-                'colis.reference_colis as reference_colis',
-                'expediteurs.nom as expediteur_nom', 
-                'expediteurs.prenom as expediteur_prenom', 
-                'expediteurs.tel as expediteur_tel', 
-                'expediteurs.agence as expediteur_agence', 
-                'destinataires.nom as destinataire_nom', 
-                'destinataires.prenom as destinataire_prenom', 
-                'destinataires.agence as destinataire_agence', 
-                'destinataires.tel as destinataire_tel',
-                'colis.etat as etat',
-                'colis.created_at as created_at'
-            )
-            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-            ->where('etat', 'En attente')
-            ->where('expediteurs.agence', 'Agence de Chine')
-            ->get()
-            ->groupBy('reference_colis');
-            $colisWithCount = $colis->map(function ($group, $reference) {
-                return [
-                    'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
-                    'expediteur_nom' => $group->first()->expediteur_nom,
-                    'expediteur_prenom' => $group->first()->expediteur_prenom,
-                    'expediteur_tel' => $group->first()->expediteur_tel,
-                    'expediteur_agence' => $group->first()->expediteur_agence,
-                    'destinataire_nom' => $group->first()->destinataire_nom,
-                    'destinataire_prenom' => $group->first()->destinataire_prenom,
-                    'destinataire_tel' => $group->first()->destinataire_tel,
-                    'destinataire_agence' => $group->first()->destinataire_agence,
-                    'etat' => $group->first()->etat === 'Devis' ? 'Dévis validé' : 'En attente',
-                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-                    'colis' => $group->values(), // Force un tableau indexé
-                ];
-            })->values();
-            return DataTables::of($colisWithCount)
-            ->addColumn('action', function ($row) {
-                $editUrl = route('chine_colis.hold.edit', ['id' => $row['colis']->first()->id]);
-                return '
-                        <div class="btn-group">
-                            <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
-                                <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-            }
-}
+        try {
+            \Log::info('Récupération des devis pour l\'agence de Chine');
+            
+            $devis = Devis::with('items')
+                ->whereIn('etat', ['En attente', 'Validé'])
+                ->where('devise', 'FCFA')
+                ->where('agence_expedition', 'Agence de Chine')
+                ->get();
 
+            \Log::info('Nombre de devis trouvés: ' . $devis->count());
+
+            $devisFormatted = $devis->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'reference_colis' => $item->reference,
+                    'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                    'expediteur_nom' => $item->nom_expediteur,
+                    'expediteur_prenom' => $item->prenom_expediteur,
+                    'expediteur_tel' => $item->tel_expediteur,
+                    'destinataire_agence' => $item->agence_destination,
+                    'etat' => $item->etat,
+                    'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+
+            \Log::info('Formatage des données terminé');
+
+            // Retourner les données dans le format attendu par DataTables
+            return response()->json([
+                'data' => $devisFormatted
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans get_colis_hold: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Erreur lors du chargement des données',
+                'data' => []
+            ], 500);
+        }
+    }
+
+    abort(404);
+}
 
     public function get_colis_dump(Request $request)
     {
@@ -3601,7 +3734,7 @@ public function get_devis_confirmes(Request $request)
             // MODIFICATION CLÉ : On filtre par l'état 'confirmé'
             ->where('etat', 'confirmé')
             // MODIFICATION CLÉ : On filtre sur l'agence de la Chine
-            ->where('agence_expedition', 'AGENCE CHINE') // <-- VÉRIFIEZ CE NOM, il doit correspondre exactement à ce qui est en base de données
+            ->where('agence_expedition', 'Agence de Chine') // <-- VÉRIFIEZ CE NOM, il doit correspondre exactement à ce qui est en base de données
             ->get();
 
         $devisFormatted = $devis->map(function ($item) {

@@ -15,19 +15,31 @@ class Programme extends Model
         'quantite',
         'date_programme',
         'user_id',
+<<<<<<< HEAD
+=======
+        'agent_id',
+>>>>>>> 1736db80f62dd93f0a6fd4ff25c7ddb7b3671b2f
         'reference_colis',
         'reference_generee',
+        'type_reference',
         'nature_du_colis',
+        'mode_transit',
+        'agence_expedition',
+        'agence_destination',
         'actions_a_faire',
         'nom_expediteur',
+        'prenom_expediteur',
+        'email_expediteur',
         'nom_destinataire',
         'lieu_destinataire',
         'tel_expediteur',
         'tel_destinataire',
         'lieu_expedition',
         'lieu_destination',
+        'montant',
+        'devise',
         'etat_rdv',
-        'qr_code',
+        'qr_code'
     ];
 
     // Relation avec User au lieu de Chauffeur
@@ -57,4 +69,15 @@ class Programme extends Model
     {
         return $this->hasMany(DevisItems::class, 'programme_id');
     }
+     // Relation avec l'agent qui a créé le programme
+     public function agent()
+     {
+         return $this->belongsTo(User::class, 'agent_id');
+     }
+ 
+ // Relation avec ProgrammeItem
+ public function programmeItems()
+ {
+     return $this->hasMany(ProgrammeItem::class, 'programme_id');
+ }
 }

@@ -39,7 +39,7 @@
 </section>
 @endsection
 
-@section('scripts')
+@section('js')
 <script>
 $(document).ready(function () {
     $("#devisConfirmeTableChine").DataTable({

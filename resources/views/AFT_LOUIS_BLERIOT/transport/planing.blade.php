@@ -94,69 +94,104 @@
     </div>
 </div>
 
-<!-- Modal pour Dépôt -->
+<!-- Modal pour Dépôt Multiple -->
 <div class="modal fade" id="depotModal" tabindex="-1" role="dialog" aria-labelledby="depotModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="depotModalLabel">Programmer un Dépôt</h5>
+                <h5 class="modal-title" id="depotModalLabel">Programmer des Dépôts</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="depotForm" method="POST">
+            <form id="depotForm" action="{{ route('aftlb_transport.programme.createMultipleDepot') }}" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="quantite">Quantité *</label>
-                                <input type="number" class="form-control" id="quantite" name="quantite" required min="1">
-                            </div>
+                    <!-- Section pour programmes multiples -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Programmes de dépôt</h6>
+                            <button type="button" class="btn btn-sm btn-success" id="add-depot-programme-btn">
+                                <i class="fas fa-plus"></i> Ajouter un autre dépôt
+                            </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="date_programme_depot">Date du Programme *</label>
-                                <input type="date" class="form-control" id="date_programme_depot" name="date_programme" required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="user_id_depot">Chauffeur *</label>
-                                <select class="form-control" id="user_id_depot" name="user_id" required>
-                                    <option value="">-- Sélectionner un Chauffeur --</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="nature_du_colis_depot">Nature de l'objet a deposé *</label>
-                                <input type="text" class="form-control" id="nature_du_colis_depot" name="nature_du_colis" required>
+                        <div class="card-body" id="depot-programmes-container">
+                            <!-- Premier programme (toujours présent) -->
+                            <div class="depot-programme-item border rounded p-3 mb-3" data-depot-programme-index="0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-primary mb-0">Dépôt #1</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-depot-programme-btn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="quantite_depot_0">Quantité *</label>
+                                            <input type="number" class="form-control" id="quantite_depot_0" name="programmes[0][quantite]" required min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nature_du_colis_depot_0">Nature de l'objet à déposer *</label>
+                                            <input type="text" class="form-control" id="nature_du_colis_depot_0" name="programmes[0][nature_du_colis]" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nom_expediteur_depot_0">Nom du Concerné *</label>
+                                            <input type="text" class="form-control" id="nom_expediteur_depot_0" name="programmes[0][nom_expediteur]" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="tel_expediteur_depot_0">Numéro de Téléphone *</label>
+                                            <input type="text" class="form-control" id="tel_expediteur_depot_0" name="programmes[0][tel_expediteur]" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="lieu_expedition_depot_0">Adresse de Dépôt *</label>
+                                            <textarea class="form-control" id="lieu_expedition_depot_0" name="programmes[0][lieu_expedition]" rows="2" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="nom_expediteur_depot">Nom du Concerné *</label>
-                        <input type="text" class="form-control" id="nom_expediteur_depot" name="nom_expediteur" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="lieu_expedition_depot">Adresse de Dépôt *</label>
-                        <textarea class="form-control" id="lieu_expedition_depot" name="lieu_expedition" rows="2" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="tel_expediteur_depot">Numéro de Téléphone *</label>
-                        <input type="text" class="form-control" id="tel_expediteur_depot" name="tel_expediteur" required>
+                    <!-- Informations communes à tous les programmes -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Informations communes</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="user_id_depot">Chauffeur *</label>
+                                        <select class="form-control" id="user_id_depot" name="user_id" required>
+                                            <option value="">-- Sélectionner un Chauffeur --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="date_programme_depot">Date du Programme *</label>
+                                        <input type="date" class="form-control" id="date_programme_depot" name="date_programme" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="submit" class="btn btn-success">Enregistrer le Dépôt</button>
+                    <button type="submit" class="btn btn-success">Enregistrer les Dépôts</button>
                 </div>
             </form>
         </div>
@@ -175,114 +210,142 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="recuperationForm" method="POST">
+            <form id="recuperationForm" action="{{ route('aftlb_transport.programme.createMultipleRecuperation') }}" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="type_reference">Type de récupération <span style="color: brown">*</span></label>
-                                <select class="form-control" id="type_reference" name="type_reference">
-                                    <option value="">-- Sélectionner le type --</option>
-                                    <option value="devis">Devis confirmé</option>
-                                    <option value="depot">Dépôt effectué</option>
-                                    <option value="manuel">Référence manuelle</option>
-                                </select>
-                            </div>
+                    <!-- Section pour programmes multiples -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Programmes de récupération</h6>
+                            <button type="button" class="btn btn-sm btn-success" id="add-programme-btn">
+                                <i class="fas fa-plus"></i> Ajouter un autre programme
+                            </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="reference_input">Référence <span style="color: brown">*</span></label>
-                                <input type="text" class="form-control" id="reference_input" name="reference_input" 
-                                       placeholder="Entrez la référence du devis, dépôt ou une référence manuelle">
-                                <small class="form-text text-center" style="font-size: 10px; color:brown" id="reference_help">
-                                    Référence devis confirmé, dépôt effectué ou référence personnalisée
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="quantite_recup">Quantité totale <span style="color: brown">*</span></label>
-                                <input type="number" class="form-control" id="quantite_recup" name="quantite" min="1">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="user_id_recup">Chauffeur <span style="color: brown">*</span></label>
-                                <select class="form-control" id="user_id_recup" name="user_id">
-                                    <option value="">-- Sélectionner un Chauffeur --</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="date_programme_recup">Date du Programme <span style="color: brown">*</span></label>
-                                <input type="date" class="form-control" id="date_programme_recup" name="date_programme">
+                        <div class="card-body" id="programmes-container">
+                            <!-- Premier programme (toujours présent) -->
+                            <div class="programme-item border rounded p-3 mb-3" data-programme-index="0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-primary mb-0">Programme #1</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-programme-btn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="type_reference_0">Type de récupération <span style="color: brown">*</span></label>
+                                            <select class="form-control type-reference" id="type_reference_0" name="programmes[0][type_reference]" data-index="0">
+                                                <option value="">-- Sélectionner le type --</option>
+                                                <option value="devis">Devis confirmé</option>
+                                                <option value="depot">Dépôt effectué</option>
+                                                <option value="manuel">Référence manuelle</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="reference_input_0">Référence <span style="color: brown">*</span></label>
+                                            <input type="text" class="form-control reference-input" id="reference_input_0" name="programmes[0][reference_input]" 
+                                                   placeholder="Entrez la référence du devis, dépôt ou une référence manuelle" data-index="0">
+                                            <small class="form-text text-center" style="font-size: 10px; color:brown">
+                                                Référence devis confirmé, dépôt effectué ou référence personnalisée
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="quantite_recup_0">Quantité totale <span style="color: brown">*</span></label>
+                                            <input type="number" class="form-control" id="quantite_recup_0" name="programmes[0][quantite]" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nature_du_colis_recup_0">Nature du Colis <span style="color: brown">*</span></label>
+                                            <input type="text" class="form-control" id="nature_du_colis_recup_0" name="programmes[0][nature_du_colis]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="nom_expediteur_recup_0">Nom du Client <span style="color: brown">*</span></label>
+                                            <input type="text" class="form-control" id="nom_expediteur_recup_0" name="programmes[0][nom_expediteur]">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="tel_expediteur_recup_0">Numéro de Téléphone <span style="color: brown">*</span></label>
+                                            <input type="text" class="form-control" id="tel_expediteur_recup_0" name="programmes[0][tel_expediteur]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="lieu_expedition_recup_0">Adresse de Récupération <span style="color: brown">*</span></label>
+                                            <textarea class="form-control" id="lieu_expedition_recup_0" name="programmes[0][lieu_expedition]" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section devis_items pour ce programme -->
+                                <div class="devis-items-section" id="devis_items_section_0" style="display: none;">
+                                    <div class="card mt-3">
+                                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Informations détaillées du colis</h6>
+                                            <button type="button" class="btn btn-sm btn-light toggle-edit-mode" data-index="0">
+                                                <i class="fas fa-edit"></i> Modifier
+                                            </button>
+                                        </div>
+                                        <div class="card-body devis-items-content" id="devis_items_content_0">
+                                            <!-- Les informations des devis_items seront injectées ici -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info reference-info" id="reference_info_0" style="display: none;">
+                                    <i class="fas fa-info-circle"></i> <span class="reference-message"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- NOUVEAU: Section pour afficher et modifier les informations des devis_items -->
-                    <div id="devis_items_section" style="display: none;">
-                        <div class="card mb-3">
-                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Informations détaillées du colis</h6>
-                                <button type="button" class="btn btn-sm btn-light" id="toggleEditMode">
-                                    <i class="fas fa-edit"></i> Modifier
-                                </button>
-                            </div>
-                            <div class="card-body" id="devis_items_content">
-                                <!-- Les informations des devis_items seront injectées ici -->
-                            </div>
+                    <!-- Informations communes à tous les programmes -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Informations communes</h6>
                         </div>
-                    </div>
-
-                    <div class="alert alert-info" id="reference_info" style="display: none;">
-                        <i class="fas fa-info-circle"></i> <span id="reference_message"></span>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="nature_du_colis_recup">Nature du Colis <span style="color: brown">*</span></label>
-                                <input type="text" class="form-control" id="nature_du_colis_recup" name="nature_du_colis">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="nom_expediteur_recup">Nom du Client <span style="color: brown">*</span></label>
-                                <input type="text" class="form-control" id="nom_expediteur_recup" name="nom_expediteur">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="tel_expediteur_recup">Numéro de Téléphone <span style="color: brown">*</span></label>
-                                <input type="text" class="form-control" id="tel_expediteur_recup" name="tel_expediteur">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="lieu_expedition_recup">Adresse de Récupération <span style="color: brown">*</span></label>
-                                <textarea class="form-control" id="lieu_expedition_recup" name="lieu_expedition" rows="2"></textarea>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="user_id_recup">Chauffeur <span style="color: brown">*</span></label>
+                                        <select class="form-control" id="user_id_recup" name="user_id">
+                                            <option value="">-- Sélectionner un Chauffeur --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="date_programme_recup">Date du Programme <span style="color: brown">*</span></label>
+                                        <input type="date" class="form-control" id="date_programme_recup" name="date_programme">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="submit" class="btn btn-warning">Enregistrer la Récupération</button>
+                    <button type="submit" class="btn btn-warning">Enregistrer les Récupérations</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-  
 
 </div>
 
@@ -309,458 +372,150 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 $(document).ready(function() {
-    let programmesData = { programmes: [] };
+
+    // =========================================================================
+    // 1. VARIABLES GLOBALES ET INITIALISATION
+    // =========================================================================
+
+    let programmesData = { programmes: [], chauffeurs: [] };
     let currentPage = 1;
     let itemsPerPage = 10;
+    let programmeCount = 1;
 
-    // Chargement initial des données - VERSION AMÉLIORÉE
+    // Lancement de l'application
+    initApp();
+
+
+    // =========================================================================
+    // 2. FONCTIONS DE GESTION DU TABLEAU PRINCIPAL
+    // =========================================================================
+
     function loadData() {
-        console.log("=== DÉBUT loadData ===");
-        
         axios.get("{{ route('aftlb_transport.programme.data') }}")
             .then(function(response) {
-                console.log("✅ DONNÉES REÇUES");
-                
-                if (!response.data) {
-                    throw new Error('Réponse vide du serveur');
-                }
-                
+                if (!response.data) throw new Error('Réponse vide du serveur');
                 programmesData.programmes = response.data.programmes || [];
                 programmesData.chauffeurs = response.data.chauffeurs || [];
-                
-                console.log("📊 Programmes chargés:", programmesData.programmes.length);
-                console.log("📊 Chauffeurs chargés:", programmesData.chauffeurs.length);
-                
-                // Mettre à jour LES DEUX selects des chauffeurs
-                var selectChauffeurDepot = $('#user_id_depot');
-                var selectChauffeurRecup = $('#user_id_recup'); // Cible le select de récupération
-                
-                selectChauffeurDepot.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-                selectChauffeurRecup.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>'); // Vide aussi celui de récupération
-                
-                if (programmesData.chauffeurs && programmesData.chauffeurs.length > 0) {
-                    programmesData.chauffeurs.forEach(function(chauffeur) {
-                        if (chauffeur && chauffeur.id) {
-                            const nomComplet = `${chauffeur.first_name || ''} ${chauffeur.last_name || ''}`.trim();
-                            const option = `<option value="${chauffeur.id}">${nomComplet}</option>`;
-                            selectChauffeurDepot.append(option);
-                            selectChauffeurRecup.append(option); // Ajoute l'option aux deux selects
-                        }
-                    });
-                }
-
+                updateChauffeurSelects();
                 updateTable();
-                console.log("=== FIN loadData ===");
             })
             .catch(function(error) {
                 console.error('❌ Erreur de chargement des données:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: 'Impossible de charger les données: ' + (error.response?.data?.message || error.message)
-                });
+                Swal.fire('Erreur', 'Impossible de charger les données du serveur.', 'error');
             });
     }
 
-    // Génération du tableau
+    function updateChauffeurSelects() {
+        const selects = $('#user_id_depot, #user_id_recup');
+        selects.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
+        
+        if (programmesData.chauffeurs && programmesData.chauffeurs.length > 0) {
+            programmesData.chauffeurs.forEach(function(chauffeur) {
+                if (chauffeur && chauffeur.id) {
+                    const nomComplet = `${chauffeur.first_name || ''} ${chauffeur.last_name || ''}`.trim();
+                    selects.append(`<option value="${chauffeur.id}">${nomComplet}</option>`);
+                }
+            });
+        }
+    }
+
     function generateTable(programmes) {
-    const tableBody = $('#programmes-table');
-    tableBody.empty();
-
-    // CORRECTION: Vérifier que programmes est valide
-    if (!programmes || !Array.isArray(programmes) || programmes.length === 0) {
-        tableBody.append('<tr><td colspan="13" class="text-center">Aucun programme trouvé.</td></tr>');
-        return;
-    }
-
-    programmes.forEach(programme => {
-        // CORRECTION: Vérifier que programme n'est pas null
-        if (!programme) return;
-        
-        let rowClass = '';
-        if (programme.etat_rdv === 'effectué') {
-            rowClass = 'table-success';
-        } else if (programme.etat_rdv === 'à replanifié') {
-            rowClass = 'table-warning';
+        const tableBody = $('#programmes-table');
+        tableBody.empty();
+        if (!programmes || programmes.length === 0) {
+            tableBody.append('<tr><td colspan="10" class="text-center">Aucun programme trouvé.</td></tr>');
+            return;
         }
-        
-        // CORRECTION: Utiliser des valeurs par défaut sécurisées
-        const userDisplayName = programme.user ? 
-            `${programme.user.first_name || ''} ${programme.user.last_name || ''}`.trim() : 
-            'N/A';
-        
-        tableBody.append(`
-            <tr class="${rowClass}">
-                <td>${programme.quantite || '1'}</td>
-                <td>
-                    <span class="badge ${getActionBadgeClass(programme.actions_a_faire)}">
-                        ${getActionText(programme.actions_a_faire)}
-                    </span>
-                </td>
-                <td>${programme.reference_a_afficher || 'N/A'}</td>
-                <td>${programme.nature_du_colis || 'N/A'}</td>
-                <td>${programme.nom_expediteur || 'N/A'}</td>
-                <td>${programme.tel_expediteur || 'N/A'}</td>
-                <td>${programme.lieu_expedition || 'N/A'}</td>
-               
-                <td>${userDisplayName}</td>
-                <td>
-                    <span class="badge ${getEtatBadgeClass(programme.etat_rdv)}">
-                        ${programme.etat_rdv || 'N/A'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `);
-    });
-}
-
-    function getActionBadgeClass(action) {
-        switch(action) {
-            case 'depot': return 'badge-success';
-            case 'recuperation': return 'badge-warning';
-            case 'livraison': return 'badge-info';
-            default: return 'badge-secondary';
-        }
-    }
-
-    function getActionText(action) {
-        switch(action) {
-            case 'depot': return 'DÉPÔT';
-            case 'recuperation': return 'RÉCUPÉRATION';
-            case 'livraison': return 'LIVRAISON';
-            default: return action;
-        }
-    }
-
-    function getEtatBadgeClass(etat) {
-        switch(etat) {
-            case 'effectué': return 'badge-success';
-            case 'en attente': return 'badge-warning';
-            case 'à replanifié': return 'badge-danger';
-            default: return 'badge-secondary';
-        }
-    }
-
-    // Gestion de la pagination
-    function generatePagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        const paginationContainer = $('#pagination');
-        paginationContainer.empty();
-        if (totalPages <= 1) return;
-
-        const prevButton = $(`<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" aria-label="Précédent"><span aria-hidden="true">«</span></a></li>`);
-        prevButton.on('click', () => { if (currentPage > 1) { currentPage--; updateTable(); } });
-        paginationContainer.append(prevButton);
-
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = $(`<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#">${i}</a></li>`);
-            pageButton.on('click', () => { currentPage = i; updateTable(); });
-            paginationContainer.append(pageButton);
-        }
-
-        const nextButton = $(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" aria-label="Suivant"><span aria-hidden="true">»</span></a></li>`);
-        nextButton.on('click', () => { if (currentPage < totalPages) { currentPage++; updateTable(); } });
-        paginationContainer.append(nextButton);
+        programmes.forEach(p => {
+            const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : 'N/A';
+            tableBody.append(`
+                <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : ''}">
+                    <td>${p.quantite || 1}</td>
+                    <td><span class="badge ${getActionBadgeClass(p.actions_a_faire)}">${getActionText(p.actions_a_faire)}</span></td>
+                    <td>${p.reference_a_afficher || 'N/A'}</td>
+                    <td>${p.nature_du_colis || 'N/A'}</td>
+                    <td>${p.nom_expediteur || 'N/A'}</td>
+                    <td>${p.tel_expediteur || 'N/A'}</td>
+                    <td>${p.lieu_expedition || 'N/A'}</td>
+                    <td>${user}</td>
+                    <td><span class="badge ${getEtatBadgeClass(p.etat_rdv)}">${p.etat_rdv || 'N/A'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-programme-btn" data-id="${p.id}"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${p.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `);
+        });
     }
 
     function updateTable() {
-    const searchTerm = $('#search').val().toLowerCase();
-    
-    // CORRECTION: Vérifier que programmesData.programmes existe et est un tableau
-    if (!programmesData.programmes || !Array.isArray(programmesData.programmes)) {
-        console.error('❌ programmesData.programmes est invalide:', programmesData.programmes);
-        const tableBody = $('#programmes-table');
-        tableBody.empty();
-        tableBody.append('<tr><td colspan="13" class="text-center text-danger">Erreur: Données invalides</td></tr>');
-        return;
-    }
-
-    const filteredProgrammes = programmesData.programmes.filter(programme => {
-        // CORRECTION: Vérifier que programme n'est pas null/undefined
-        if (!programme) return false;
-        
-        // Vérifier les valeurs du programme
-        const programmeValues = Object.values(programme);
-        const hasMatchInProgramme = programmeValues.some(value => 
-            value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)
+        const searchTerm = $('#search').val().toLowerCase();
+        const filtered = programmesData.programmes.filter(p => 
+            p && Object.values(p).some(val => val && val.toString().toLowerCase().includes(searchTerm))
         );
-        
-        // Vérifier les valeurs de l'utilisateur
-        const hasMatchInUser = programme.user && 
-            ((programme.user.first_name && programme.user.first_name.toLowerCase().includes(searchTerm)) ||
-             (programme.user.last_name && programme.user.last_name.toLowerCase().includes(searchTerm)));
-        
-        return hasMatchInProgramme || hasMatchInUser;
-    });
-    
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const programmesToDisplay = filteredProgrammes.slice(startIndex, endIndex);
-    generateTable(programmesToDisplay);
-    generatePagination(filteredProgrammes.length);
-}
-    // Recherche
-    $('#search').on('input', function() {
-        currentPage = 1;
-        updateTable();
-    });
-
-    // Pagination
-    $('.page-size-btn').on('click', function(e) {
-        e.preventDefault();
-        itemsPerPage = parseInt($(this).data('size'));
-        currentPage = 1;
-        $('#pageSizeDisplay').text(itemsPerPage);
-        updateTable();
-    });
-
-    // Soumission du formulaire de dépôt - CORRECTION ICI
-    $('#depotForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = $(this).serialize();
-        
-        axios.post("{{ route('aftlb_transport.programme.createDepot') }}", formData)
-            .then(response => {
-                if (response.data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Succès!',
-                        text: response.data.message,
-                        timer: 2000
-                    });
-                    $('#depotModal').modal('hide');
-                    $('#depotForm')[0].reset();
-                    loadData(); // Recharger les données
-                } else {
-                    throw new Error(response.data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: error.response?.data?.message || error.message
-                });
-            });
-    });
-    function loadChauffeursRecup() {
-    console.log("🔄 Chargement des chauffeurs pour récupération...");
-    
-    var selectChauffeur = $('#user_id_recup');
-    selectChauffeur.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-    
-    // Vérification plus robuste des données
-    if (programmesData.chauffeurs && Array.isArray(programmesData.chauffeurs) && programmesData.chauffeurs.length > 0) {
-        console.log(`✅ ${programmesData.chauffeurs.length} chauffeurs disponibles dans programmesData`);
-        
-        programmesData.chauffeurs.forEach(function(chauffeur) {
-            if (chauffeur && chauffeur.id && chauffeur.first_name) {
-                const nomComplet = `${chauffeur.first_name || ''} ${chauffeur.last_name || ''}`.trim();
-                selectChauffeur.append(`<option value="${chauffeur.id}">${nomComplet}</option>`);
-            }
-        });
-        
-        console.log("✅ Select récupération mis à jour. Options:", $('#user_id_recup option').length);
-    } else {
-        console.warn("⚠️ Aucun chauffeur disponible dans programmesData, rechargement...");
-        
-        // Recharger les données complètes
-        axios.get("{{ route('aftlb_transport.programme.data') }}")
-            .then(function(response) {
-                programmesData.chauffeurs = response.data.chauffeurs;
-                programmesData.programmes = response.data.programmes;
-                
-                if (programmesData.chauffeurs && Array.isArray(programmesData.chauffeurs) && programmesData.chauffeurs.length > 0) {
-                    programmesData.chauffeurs.forEach(function(chauffeur) {
-                        if (chauffeur && chauffeur.id && chauffeur.first_name) {
-                            const nomComplet = `${chauffeur.first_name || ''} ${chauffeur.last_name || ''}`.trim();
-                            selectChauffeur.append(`<option value="${chauffeur.id}">${nomComplet}</option>`);
-                        }
-                    });
-                    console.log("✅ Chauffeurs chargés après rechargement:", programmesData.chauffeurs.length);
-                } else {
-                    console.error("❌ Aucun chauffeur trouvé même après rechargement");
-                    selectChauffeur.append('<option value="">Aucun chauffeur disponible</option>');
-                }
-            })
-            .catch(function(error) {
-                console.error('❌ Erreur chargement chauffeurs fallback:', error);
-                selectChauffeur.append('<option value="">Erreur de chargement</option>');
-            });
-    }
-}
-// Recherche automatique des informations de référence
-$('#reference_input').on('input', function() {
-    const reference = $(this).val();
-    const typeReference = $('#type_reference').val();
-    let urlTemplate = "{{ route('aftlb_transport.programme.referenceInfo', ['reference' => 'PLACEHOLDER']) }}";
-    let finalUrl = urlTemplate.replace('PLACEHOLDER', reference);
-    
-
-    if (reference.length >= 3 && typeReference) {
-        console.log("🔍 Recherche référence:", reference, "Type:", typeReference);
-        
-        axios.get(finalUrl)
-            .then(function(response) {
-                const data = response.data;
-                const infoDiv = $('#reference_info');
-                const messageSpan = $('#reference_message');
-                const devisItemsSection = $('#devis_items_section');
-                const devisItemsContent = $('#devis_items_content');
-                
-                console.log("Réponse référence:", data);
-                
-                if (data.existe) {
-                    // Auto-remplissage des champs de base
-                    $('#nom_expediteur_recup').val(data.data.nom_expediteur || '');
-                    $('#lieu_expedition_recup').val(data.data.lieu_expedition || '');
-                    $('#tel_expediteur_recup').val(data.data.tel_expediteur || '');
-                    $('#nature_du_colis_recup').val(data.data.nature_du_colis || '');
-                    
-                    // CORRECTION: Toujours remplir la quantité avec la valeur calculée
-                    const quantiteTotale = data.data.quantite || 1;
-                    $('#quantite_recup').val(quantiteTotale);
-                    console.log("✅ Quantité totale remplie:", quantiteTotale);
-                    
-                    // NOUVEAU: Afficher les informations des devis_items si disponibles
-                    if (data.data.items && data.data.items.length > 0) {
-                        console.log("📦 Items du devis:", data.data.items);
-                        
-                        // Générer le HTML avec possibilité d'édition
-                        generateEditableItemsHTML(data.data.items, devisItemsContent);
-                        devisItemsSection.show();
-                        
-                        // Stocker les items pour modification éventuelle
-                        $('#recuperationForm').data('devis-items', data.data.items);
-                        $('#recuperationForm').data('devis-info', {
-                            mode_transit: data.data.mode_transit,
-                            agence_destination: data.data.agence_destination,
-                            montant: data.data.montant,
-                            devise: data.data.devise,
-                            quantite_originale: data.data.quantite
-                        });
-                        
-                        // Initialiser le mode édition
-                        initEditMode();
-                    } else {
-                        devisItemsSection.hide();
-                        $('#recuperationForm').removeData('devis-items');
-                    }
-
-                    // LOGIQUE EXISTANTE POUR LES TYPES DE RÉFÉRENCES
-                    if (data.type === 'reference_re') {
-                        infoDiv.removeClass('alert-danger alert-warning').addClass('alert-success');
-                        messageSpan.html(`
-                            <strong>✅ Référence -RE trouvée!</strong><br>
-                            <small>Remplissage automatique effectué à partir de la table programmes</small>
-                        `);
-                    }
-                    else if (data.type === 'devis') {
-                        if (data.etat_devis === 'confirmé') {
-                            infoDiv.removeClass('alert-danger alert-warning').addClass('alert-success');
-                            messageSpan.html(`
-                                <strong>✅ Devis confirmé trouvé!</strong><br>
-                                <small>
-                                    • Mode transit: ${data.data.mode_transit || 'N/A'}<br>
-                                    • Agence destination: ${data.data.agence_destination || 'N/A'}<br>
-                                    • Montant: ${data.data.montant || 'N/A'} ${data.data.devise || ''}<br>
-                                    • Quantité totale: ${quantiteTotale} article(s)
-                                </small>
-                            `);
-                        } 
-                        else if (data.etat_devis === 'validé') {
-                            infoDiv.removeClass('alert-danger alert-warning').addClass('alert-info');
-                            messageSpan.html(`
-                                <strong>✅ Devis validé trouvé</strong><br>
-                                <small>Remplissage automatique effectué - Quantité: ${quantiteTotale}</small>
-                            `);
-                        }
-                    } 
-                    else if (data.type === 'depot') {
-                        if (data.valide) {
-                            infoDiv.removeClass('alert-danger alert-warning').addClass('alert-success');
-                            messageSpan.text('✅ Dépôt effectué trouvé - Remplissage automatique effectué - Quantité: ' + quantiteTotale);
-                        } else {
-                            infoDiv.removeClass('alert-success alert-danger').addClass('alert-warning');
-                            messageSpan.text('⚠️ Dépôt trouvé mais pas encore effectué - Remplissage automatique effectué - Quantité: ' + quantiteTotale);
-                        }
-                    }
-                } else {
-                    // Référence manuelle
-                    infoDiv.removeClass('alert-success alert-danger').addClass('alert-info');
-                    messageSpan.text('ℹ️ Référence manuelle - Veuillez remplir les informations manuellement');
-                    
-                    // Vider les champs
-                    $('#nom_expediteur_recup').val('');
-                    $('#lieu_expedition_recup').val('');
-                    $('#tel_expediteur_recup').val('');
-                    $('#nature_du_colis_recup').val('');
-                    $('#quantite_recup').val(1); // Valeur par défaut
-                    
-                    // Masquer la section devis_items
-                    devisItemsSection.hide();
-                    
-                    // Nettoyer les données stockées
-                    $('#recuperationForm').removeData('devis-items');
-                    $('#recuperationForm').removeData('devis-info');
-                }
-                
-                infoDiv.show();
-            })
-            .catch(function(error) {
-                console.error('Erreur recherche référence:', error);
-                $('#reference_info').hide();
-                $('#devis_items_section').hide();
-            });
-    } else {
-        $('#reference_info').hide();
-        $('#devis_items_section').hide();
-    }
-});
-
-// Modification de la validation selon le type de référence sélectionné
-$('#type_reference').on('change', function() {
-    const typeRef = $(this).val();
-    const referenceInput = $('#reference_input');
-    
-    // Adapter le placeholder selon le type
-    if (typeRef === 'devis') {
-        referenceInput.attr('placeholder', 'Entrez la référence du devis confirmé');
-    } else if (typeRef === 'depot') {
-        referenceInput.attr('placeholder', 'Entrez la référence du dépôt effectué');
-    } else if (typeRef === 'manuel') {
-        referenceInput.attr('placeholder', 'Entrez une référence personnalisée ou laissez vide pour génération automatique');
+        const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+        generateTable(paginated);
+        generatePagination(filtered.length);
     }
     
-    // Déclencher la recherche si une référence est déjà saisie
-    if (referenceInput.val().length >= 3) {
-        referenceInput.trigger('input');
+    function generatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        $('#pagination').empty();
+        if (totalPages <= 1) return;
+        for (let i = 1; i <= totalPages; i++) {
+            $('#pagination').append(`<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
+        }
     }
-});
-function generateEditableItemsHTML(items, container) {
-    let itemsHTML = '';
+
+
+    // =========================================================================
+    // 3. FONCTIONS DE GESTION DES ARTICLES (LOGIQUE DE L'ANCIEN CODE)
+    // =========================================================================
+
+    function generateEditableItemsHTML(items, container, programmeIndex) {
+    let html = '';
+    
+    // Récupérer le mode transit depuis les données stockées
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    const itemsSection = pItem.find('.devis-items-section');
+    const devisInfo = itemsSection.data('devis-info') || {};
+    const modeTransit = devisInfo.mode_transit || 'aerien';
+    
+    console.log(`🚚 Mode transit détecté pour programme ${programmeIndex}:`, modeTransit);
     
     items.forEach((item, index) => {
-        itemsHTML += `
-            <div class="item-details mb-3 p-3 border rounded ${index > 0 ? 'mt-2' : ''}" data-item-index="${index}">
+        const itemClass = item.is_new ? 'new-item' : '';
+        
+        // Déterminer quels champs afficher selon le mode transit
+        const showDimensions = modeTransit === 'maritime';
+        const showPoids = modeTransit === 'aerien';
+        const dimensionsClass = showDimensions ? '' : 'd-none';
+        const poidsClass = showPoids ? '' : 'd-none';
+        
+        html += `
+            <div class="item-details mb-3 p-3 border rounded ${itemClass} ${modeTransit === 'maritime' ? 'maritime-item' : 'aerien-item'}" data-item-index="${index}">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="text-primary mb-0">Article ${index + 1}</h6>
+                    <h6 class="text-primary mb-0">Article ${index + 1} ${item.is_new ? '<span class="badge badge-success ml-2">Nouveau</span>' : ''}</h6>
                     <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-index="${index}" style="display: none;">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
+                
+                <!-- Section MODE TRANSIT modifiable -->
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label class="small"><strong>Mode de transit:</strong></label>
+                        <select class="form-control form-control-sm editable-field mode-transit-select" 
+                                data-field="mode_transit" data-original="${modeTransit}" readonly>
+                            <option value="aerien" ${modeTransit === 'aerien' ? 'selected' : ''}>Aérien</option>
+                            <option value="maritime" ${modeTransit === 'maritime' ? 'selected' : ''}>Maritime</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-2">
@@ -770,49 +525,53 @@ function generateEditableItemsHTML(items, container) {
                         </div>
                         <div class="form-group mb-2">
                             <label class="small"><strong>Type de colis:</strong></label>
-                            <input type="text" class="form-control form-control-sm editable-field" value="${item.type_colis || 'Colis divers'}" 
-                                   data-field="type_colis" data-original="${item.type_colis || 'Colis divers'}" readonly>
+                            <select class="form-control form-control-sm editable-field type-colis-select" 
+                                    data-field="type_colis" data-original="${item.type_colis || 'standard'}" readonly>
+                                <option value="standard" ${(item.type_colis || 'standard') === 'standard' ? 'selected' : ''}>Standard</option>
+                                <option value="fragile" ${(item.type_colis || 'standard') === 'fragile' ? 'selected' : ''}>Fragile</option>
+                            </select>
                         </div>
                         <div class="form-group mb-2">
                             <label class="small"><strong>Valeur (FCFA):</strong></label>
                             <input type="number" class="form-control form-control-sm editable-field" value="${item.valeur_colis || ''}" 
                                    data-field="valeur_colis" data-original="${item.valeur_colis || ''}" readonly step="0.01">
                         </div>
-                        <div class="form-group mb-2">
-                            <label class="small"><strong>Description:</strong></label>
-                            <textarea class="form-control form-control-sm editable-field" data-field="description_colis" 
-                                      data-original="${item.description_colis || ''}" readonly rows="2">${item.description_colis || ''}</textarea>
-                        </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group mb-2">
+                        <!-- POIDS - Visible uniquement pour AÉRIEN -->
+                        <div class="form-group mb-2 ${poidsClass}">
                             <label class="small"><strong>Poids (kg):</strong></label>
                             <input type="number" class="form-control form-control-sm editable-field" value="${item.poids || ''}" 
                                    data-field="poids" data-original="${item.poids || ''}" readonly step="0.01">
                         </div>
-                        <div class="row">
-                            <div class="col-4">
-                                <div class="form-group mb-2">
-                                    <label class="small"><strong>Longueur:</strong></label>
-                                    <input type="number" class="form-control form-control-sm editable-field" value="${item.longueur || ''}" 
-                                           data-field="longueur" data-original="${item.longueur || ''}" readonly>
+                        
+                        <!-- DIMENSIONS - Visibles uniquement pour MARITIME -->
+                        <div class="dimensions-section ${dimensionsClass}">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-group mb-2">
+                                        <label class="small"><strong>Longueur (cm):</strong></label>
+                                        <input type="number" class="form-control form-control-sm editable-field" value="${item.longueur || ''}" 
+                                               data-field="longueur" data-original="${item.longueur || ''}" readonly>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-group mb-2">
-                                    <label class="small"><strong>Largeur:</strong></label>
-                                    <input type="number" class="form-control form-control-sm editable-field" value="${item.largeur || ''}" 
-                                           data-field="largeur" data-original="${item.largeur || ''}" readonly>
+                                <div class="col-4">
+                                    <div class="form-group mb-2">
+                                        <label class="small"><strong>Largeur (cm):</strong></label>
+                                        <input type="number" class="form-control form-control-sm editable-field" value="${item.largeur || ''}" 
+                                               data-field="largeur" data-original="${item.largeur || ''}" readonly>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-group mb-2">
-                                    <label class="small"><strong>Hauteur:</strong></label>
-                                    <input type="number" class="form-control form-control-sm editable-field" value="${item.hauteur || ''}" 
-                                           data-field="hauteur" data-original="${item.hauteur || ''}" readonly>
+                                <div class="col-4">
+                                    <div class="form-group mb-2">
+                                        <label class="small"><strong>Hauteur (cm):</strong></label>
+                                        <input type="number" class="form-control form-control-sm editable-field" value="${item.hauteur || ''}" 
+                                               data-field="hauteur" data-original="${item.hauteur || ''}" readonly>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="form-group mb-2">
                             <label class="small"><strong>Quantité:</strong></label>
                             <input type="number" class="form-control form-control-sm editable-field" value="${item.quantite_colis || '1'}" 
@@ -820,6 +579,13 @@ function generateEditableItemsHTML(items, container) {
                         </div>
                     </div>
                 </div>
+                
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Description:</strong></label>
+                    <textarea class="form-control form-control-sm editable-field" data-field="description_colis" 
+                              data-original="${item.description_colis || ''}" readonly rows="2">${item.description_colis || ''}</textarea>
+                </div>
+                
                 <div class="item-actions mt-2" style="display: none;">
                     <button type="button" class="btn btn-sm btn-success save-item-btn" data-index="${index}">
                         <i class="fas fa-check"></i> Sauvegarder
@@ -832,57 +598,341 @@ function generateEditableItemsHTML(items, container) {
         `;
     });
     
-    // Ajouter un bouton pour ajouter un nouvel item
-    itemsHTML += `
-        <div class="text-center mt-3" id="add-item-section" style="display: none;">
-            <button type="button" class="btn btn-sm btn-primary" id="add-new-item">
+  // CORRECTION : Toujours afficher le bouton d'ajout
+  html += `
+        <div class="text-center mt-3" id="add-item-section-${programmeIndex}">
+            <button type="button" class="btn btn-sm btn-primary add-new-item-btn" data-programme-index="${programmeIndex}">
                 <i class="fas fa-plus"></i> Ajouter un nouvel article
             </button>
         </div>
     `;
     
-    container.html(itemsHTML);
+    container.html(html);
+}
+function generateItemFields(item, index, modeTransit, dimensionsClass, poidsClass) {
+    return `
+        <div class="mb-3">
+            <div class="form-group">
+                <label class="small"><strong>Mode de transit:</strong></label>
+                <select class="form-control form-control-sm editable-field mode-transit-select" 
+                        data-field="mode_transit" data-original="${modeTransit}" readonly>
+                    <option value="aerien" ${modeTransit === 'aerien' ? 'selected' : ''}>Aérien</option>
+                    <option value="maritime" ${modeTransit === 'maritime' ? 'selected' : ''}>Maritime</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Produit ou service:</strong></label>
+                    <input type="text" class="form-control form-control-sm editable-field" value="${item.service || ''}" 
+                           data-field="service" data-original="${item.service || ''}" readonly>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Type de colis:</strong></label>
+                    <select class="form-control form-control-sm editable-field type-colis-select" 
+                            data-field="type_colis" data-original="${item.type_colis || 'standard'}" readonly>
+                        <option value="standard" ${(item.type_colis || 'standard') === 'standard' ? 'selected' : ''}>Standard</option>
+                        <option value="fragile" ${(item.type_colis || 'standard') === 'fragile' ? 'selected' : ''}>Fragile</option>
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Valeur (FCFA):</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.valeur_colis || ''}" 
+                           data-field="valeur_colis" data-original="${item.valeur_colis || ''}" readonly step="0.01">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-2 ${poidsClass}">
+                    <label class="small"><strong>Poids (kg):</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.poids || ''}" 
+                           data-field="poids" data-original="${item.poids || ''}" readonly step="0.01">
+                </div>
+                
+                <div class="dimensions-section ${dimensionsClass}">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Longueur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.longueur || ''}" 
+                                       data-field="longueur" data-original="${item.longueur || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Largeur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.largeur || ''}" 
+                                       data-field="largeur" data-original="${item.largeur || ''}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group mb-2">
+                                <label class="small"><strong>Hauteur (cm):</strong></label>
+                                <input type="number" class="form-control form-control-sm editable-field" value="${item.hauteur || ''}" 
+                                       data-field="hauteur" data-original="${item.hauteur || ''}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-2">
+                    <label class="small"><strong>Quantité:</strong></label>
+                    <input type="number" class="form-control form-control-sm editable-field" value="${item.quantite_colis || '1'}" 
+                           data-field="quantite_colis" data-original="${item.quantite_colis || '1'}" readonly min="1">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group mb-2">
+            <label class="small"><strong>Description:</strong></label>
+            <textarea class="form-control form-control-sm editable-field" data-field="description_colis" 
+                      data-original="${item.description_colis || ''}" readonly rows="2">${item.description_colis || ''}</textarea>
+        </div>
+    `;
+}
+function toggleEditMode(programmeIndex, forceOn) {
+    if (forceOn === undefined) forceOn = false;
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+     // VÉRIFICATION DE SÉCURITÉ
+     if (pItem.length === 0) {
+        console.error(`❌ Programme item avec index ${programmeIndex} non trouvé`);
+        // Tentative de fallback
+        const fallbackItem = $('.programme-item').first();
+        if (fallbackItem.length > 0) {
+            const fallbackIndex = fallbackItem.data('programme-index');
+            console.log(`🔄 Utilisation du fallback index: ${fallbackIndex}`);
+            pItem = fallbackItem;
+            programmeIndex = fallbackIndex;
+        } else {
+            console.error('❌ Aucun programme item trouvé');
+            return;
+        }
+    }
+    const btn = pItem.find('.toggle-edit-mode');
+    const content = pItem.find('.devis-items-content');
+    const isEdit = btn.hasClass('btn-warning');
+
+    console.log("🔄 toggleEditMode appelé pour programme", programmeIndex, "forceOn:", forceOn, "isEdit:", isEdit);
+
+    if (!isEdit || forceOn) {
+        // Activer le mode édition
+        btn.html('<i class="fas fa-eye"></i> Visualiser').removeClass('btn-light').addClass('btn-warning');
+        
+        // Activer tous les champs éditables
+        content.find('.editable-field').prop('readonly', false).addClass('border-primary');
+        content.find('.mode-transit-select').prop('readonly', false);
+        content.find('.type-colis-select').prop('readonly', false);
+        
+        // Afficher les boutons d'action
+        content.find('.remove-item-btn').show();
+        content.find('.item-actions').show();
+        $(`#add-item-section-${programmeIndex}`).show();
+        
+        console.log("✅ Mode édition activé pour le programme", programmeIndex);
+    } else {
+        // Désactiver le mode édition
+        btn.html('<i class="fas fa-edit"></i> Modifier').removeClass('btn-warning').addClass('btn-light');
+        
+        // Désactiver tous les champs
+        content.find('.editable-field').prop('readonly', true).removeClass('border-primary');
+        content.find('.mode-transit-select').prop('readonly', true);
+        content.find('.type-colis-select').prop('readonly', true);
+        
+        // Cacher les boutons d'action
+        content.find('.remove-item-btn').hide();
+        content.find('.item-actions').hide();
+        $(`#add-item-section-${programmeIndex}`).hide();
+        
+        // Annuler les modifications non sauvegardées
+        content.find('.editable-field').each(function() {
+            const original = $(this).data('original');
+            $(this).val(original);
+        });
+        
+        updateTotalQuantity(programmeIndex);
+        console.log("🔒 Mode édition désactivé pour le programme", programmeIndex);
+    }
+}
+function updateTotalQuantity(programmeIndex) {
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    const itemsSection = pItem.find('.devis-items-section');
+    const currentItems = itemsSection.data('devis-items') || [];
     
-    // Mettre à jour la quantité totale
-    updateTotalQuantity();
+    const totalQuantity = currentItems.reduce((total, item) => {
+        return total + parseInt(item.quantite_colis || 1);
+    }, 0);
+    
+    pItem.find('[name$="[quantite]"]').val(totalQuantity);
 }
 
-// NOUVELLE FONCTION: Initialiser le mode édition
-function initEditMode() {
-    let isEditMode = false;
+function showTempMessage(message, type = 'info', programmeIndex = 0) {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-danger' : 'alert-info';
+    const tempAlert = $(`<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>`);
     
-    $('#toggleEditMode').on('click', function() {
-        isEditMode = !isEditMode;
+    $(`.programme-item[data-programme-index="${programmeIndex}"] .reference-info`).after(tempAlert);
+    
+    setTimeout(() => {
+        tempAlert.alert('close');
+    }, 3000);
+}
+function initAddItemButtons() {
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        const itemsSection = $(this).find('.devis-items-section');
+        const currentItems = itemsSection.data('devis-items') || [];
         
-        if (isEditMode) {
-            // Activer le mode édition
-            $(this).html('<i class="fas fa-eye"></i> Visualiser').removeClass('btn-light').addClass('btn-warning');
-            $('.editable-field').prop('readonly', false).addClass('border-primary');
-            $('.remove-item-btn').show();
-            $('#add-item-section').show();
-            $('.item-actions').show();
+        // Afficher le bouton seulement s'il y a des articles
+        if (currentItems.length > 0) {
+            $(`#add-item-section-${programmeIndex}`).show();
+        }
+    });
+}
+
+    // =========================================================================
+    // 4. GESTION DES PROGRAMMES MULTIPLES
+    // =========================================================================
+
+    function searchReferenceInfo(reference, typeReference, programmeIndex) {
+    if (reference.length < 3 || !typeReference) return;
+    
+    let url = `{{ route('aftlb_transport.programme.referenceInfo', ['reference' => 'PLACEHOLDER']) }}`.replace('PLACEHOLDER', reference);
+    
+    axios.get(url)
+        .then(res => {
+            const { data } = res;
+            const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+            const itemsSection = pItem.find('.devis-items-section');
+            
+            if (data.existe) {
+                // Auto-remplissage des champs de base
+                pItem.find('[name$="[nom_expediteur]"]').val(data.data.nom_expediteur || '');
+                pItem.find('[name$="[lieu_expedition]"]').val(data.data.lieu_expedition || '');
+                pItem.find('[name$="[tel_expediteur]"]').val(data.data.tel_expediteur || '');
+                pItem.find('[name$="[nature_du_colis]"]').val(data.data.nature_du_colis || '');
+                
+                // Quantité totale
+                const quantiteTotale = data.data.quantite || 1;
+                pItem.find('[name$="[quantite]"]').val(quantiteTotale);
+                
+                // Gestion des items
+                if (data.data.items && data.data.items.length > 0) {
+                    // Stocker les items ET les informations du devis (dont mode_transit)
+                    itemsSection.data('devis-items', JSON.parse(JSON.stringify(data.data.items)));
+                    itemsSection.data('devis-info', {
+                        mode_transit: data.data.mode_transit || 'aerien',
+                        agence_destination: data.data.agence_destination,
+                        montant: data.data.montant,
+                        devise: data.data.devise,
+                        quantite_originale: data.data.quantite
+                    });
+                    
+                    console.log(`📦 Mode transit récupéré: ${data.data.mode_transit || 'aerien'} pour programme ${programmeIndex}`);
+                    
+                    // Générer l'affichage des items avec le bon mode transit
+                    generateEditableItemsHTML(data.data.items, itemsSection.find('.devis-items-content'), programmeIndex);
+                    itemsSection.show();
+                    
+                    // Initialiser les événements d'édition
+                    initEditModeForProgramme(programmeIndex);
+                } else {
+                    itemsSection.hide();
+                    itemsSection.removeData('devis-items');
+                    itemsSection.removeData('devis-info');
+                }
+
+                // Afficher les informations de référence
+                const infoDiv = pItem.find('.reference-info');
+                const messageSpan = pItem.find('.reference-message');
+                
+                if (data.type === 'devis') {
+                    if (data.etat_devis === 'confirmé') {
+                        infoDiv.removeClass('alert-danger alert-warning').addClass('alert-success');
+                        messageSpan.html(`
+                            <strong>✅ Devis confirmé trouvé!</strong><br>
+                            <small>• Mode transit: ${data.data.mode_transit || 'N/A'}<br>
+                            • Agence destination: ${data.data.agence_destination || 'N/A'}<br>
+                            • Montant: ${data.data.montant || 'N/A'} ${data.data.devise || ''}<br>
+                            • Quantité totale: ${quantiteTotale} article(s)</small>
+                        `);
+                    }
+                } else if (data.type === 'depot') {
+                    infoDiv.removeClass('alert-danger alert-warning').addClass('alert-success');
+                    messageSpan.text('✅ Dépôt effectué trouvé - Remplissage automatique effectué - Quantité: ' + quantiteTotale);
+                }
+            } else {
+                // Référence manuelle - par défaut mode aérien
+                const infoDiv = pItem.find('.reference-info');
+                infoDiv.removeClass('alert-success alert-danger').addClass('alert-info');
+                pItem.find('.reference-message').text('ℹ️ Référence manuelle - Veuillez remplir les informations manuellement');
+                
+                // Pour les références manuelles, définir le mode transit par défaut (aérien)
+                itemsSection.data('devis-info', {
+                    mode_transit: 'aerien',
+                    quantite_originale: 1
+                });
+                
+                // Masquer la section devis_items
+                itemsSection.hide();
+                itemsSection.removeData('devis-items');
+            }
+            
+            pItem.find('.reference-info').show();
+        })
+        .catch(err => {
+            console.error('Erreur recherche référence:', err);
+            $(`.programme-item[data-programme-index="${programmeIndex}"] .reference-info`).hide();
+            $(`.programme-item[data-programme-index="${programmeIndex}"] .devis-items-section`).hide();
+        });
+}
+
+function initEditModeForProgramme(programmeIndex) {
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    
+    if (pItem.length === 0) {
+        console.warn(`⚠️ Programme item ${programmeIndex} non trouvé pour initEditModeForProgramme`);
+        return;
+    }
+    const itemsSection = pItem.find('.devis-items-section');
+    
+    // Gestion du changement de mode transit
+    pItem.off('change.modeTransit').on('change.modeTransit', '.mode-transit-select', function(e) {
+        e.stopImmediatePropagation();
+        const itemIndex = $(this).closest('.item-details').data('item-index');
+        const newModeTransit = $(this).val();
+        
+        console.log(`🔄 Changement mode transit pour item ${itemIndex}:`, newModeTransit);
+        
+        // Mettre à jour l'affichage des champs selon le mode transit
+        const itemElement = $(this).closest('.item-details');
+        
+        if (newModeTransit === 'maritime') {
+            // Afficher dimensions, masquer poids
+            itemElement.find('.dimensions-section').removeClass('d-none');
+            itemElement.find('.form-group.mb-2:has(input[data-field="poids"])').addClass('d-none');
         } else {
-            // Désactiver le mode édition
-            $(this).html('<i class="fas fa-edit"></i> Modifier').removeClass('btn-warning').addClass('btn-light');
-            $('.editable-field').prop('readonly', true).removeClass('border-primary');
-            $('.remove-item-btn').hide();
-            $('#add-item-section').hide();
-            $('.item-actions').hide();
-            
-            // Annuler les modifications non sauvegardées
-            $('.editable-field').each(function() {
-                const original = $(this).data('original');
-                $(this).val(original);
-            });
-            
-            updateTotalQuantity();
+            // Afficher poids, masquer dimensions
+            itemElement.find('.dimensions-section').addClass('d-none');
+            itemElement.find('.form-group.mb-2:has(input[data-field="poids"])').removeClass('d-none');
+        }
+        
+        // Mettre à jour les données stockées
+        const currentItems = itemsSection.data('devis-items');
+        if (currentItems && currentItems[itemIndex]) {
+            currentItems[itemIndex].mode_transit = newModeTransit;
+            itemsSection.data('devis-items', currentItems);
         }
     });
     
-   // Sauvegarder les modifications d'un item
-   $(document).on('click', '.save-item-btn', function() {
+    // Sauvegarde d'un item
+    pItem.off('click.saveItem').on('click.saveItem', '.save-item-btn', function(e) {
+        e.stopImmediatePropagation();
         const index = $(this).data('index');
-        const itemElement = $(`.item-details[data-item-index="${index}"]`);
+        const itemElement = pItem.find(`.item-details[data-item-index="${index}"]`);
         
         // Récupérer les données modifiées
         const updatedItem = {};
@@ -892,7 +942,7 @@ function initEditMode() {
             const field = $(this).data('field');
             let value = $(this).val();
             
-            // Validation basique
+            // Validation
             if (field === 'service' && !value.trim()) {
                 $(this).addClass('is-invalid');
                 hasErrors = true;
@@ -902,42 +952,35 @@ function initEditMode() {
             }
             
             // Convertir les valeurs numériques
-            if (field === 'quantite_colis' || field === 'longueur' || field === 'largeur' || field === 'hauteur') {
-                value = parseInt(value) || 0;
-                if (value < 0) value = 0;
-            } else if (field === 'valeur_colis' || field === 'poids') {
+            if (field === 'quantite_colis') {
+                value = parseInt(value) || 1;
+                if (value < 1) value = 1;
+            } else if (field === 'valeur_colis' || field === 'poids' || field === 'longueur' || field === 'largeur' || field === 'hauteur') {
                 value = parseFloat(value) || 0;
                 if (value < 0) value = 0;
             }
             
             updatedItem[field] = value;
-            // Mettre à jour la valeur originale
             $(this).data('original', value);
         });
         
         if (hasErrors) {
-            showTempMessage('Veuillez remplir tous les champs obligatoires', 'error');
+            showTempMessage('Veuillez remplir tous les champs obligatoires', 'error', programmeIndex);
             return;
         }
         
         // Mettre à jour les données stockées
-        const currentItems = $('#recuperationForm').data('devis-items');
+        const currentItems = itemsSection.data('devis-items');
         
         if (currentItems && currentItems[index]) {
-            // Conserver les métadonnées existantes
             updatedItem.is_new = currentItems[index].is_new || false;
             updatedItem.id = currentItems[index].id || `item_${index}`;
             
             currentItems[index] = { ...currentItems[index], ...updatedItem };
-            $('#recuperationForm').data('devis-items', currentItems);
+            itemsSection.data('devis-items', currentItems);
             
-            // Mettre à jour la quantité totale
-            updateTotalQuantity();
-            
-            // Afficher un message de confirmation
-            showTempMessage('Article ' + (index + 1) + ' sauvegardé', 'success');
-            
-            console.log("💾 Article sauvegardé:", currentItems[index]);
+            updateTotalQuantity(programmeIndex);
+            showTempMessage('Article ' + (index + 1) + ' sauvegardé', 'success', programmeIndex);
             
             // Désactiver le mode édition pour cet item
             itemElement.find('.editable-field').prop('readonly', true).removeClass('border-primary');
@@ -946,12 +989,12 @@ function initEditMode() {
         }
     });
     
-     // Annuler les modifications d'un item
-     $(document).on('click', '.cancel-edit-btn', function() {
+    // Annuler les modifications
+    pItem.off('click.cancelEdit').on('click.cancelEdit', '.cancel-edit-btn', function(e) {
+        e.stopImmediatePropagation();
         const index = $(this).data('index');
-        const itemElement = $(`.item-details[data-item-index="${index}"]`);
+        const itemElement = pItem.find(`.item-details[data-item-index="${index}"]`);
         
-        // Restaurer les valeurs originales
         itemElement.find('.editable-field').each(function() {
             const original = $(this).data('original');
             $(this).val(original);
@@ -959,9 +1002,10 @@ function initEditMode() {
     });
     
     // Supprimer un item
-    $(document).on('click', '.remove-item-btn', function() {
+    pItem.off('click.removeItem').on('click.removeItem', '.remove-item-btn', function(e) {
+        e.stopImmediatePropagation();
         const index = $(this).data('index');
-        const currentItems = $('#recuperationForm').data('devis-items');
+        const currentItems = itemsSection.data('devis-items');
         
         if (currentItems.length <= 1) {
             Swal.fire('Attention', 'Vous ne pouvez pas supprimer le dernier article', 'warning');
@@ -980,14 +1024,11 @@ function initEditMode() {
         }).then((result) => {
             if (result.isConfirmed) {
                 currentItems.splice(index, 1);
-                $('#recuperationForm').data('devis-items', currentItems);
+                itemsSection.data('devis-items', currentItems);
                 
-                // Regénérer l'affichage
-                generateEditableItemsHTML(currentItems, $('#devis_items_content'));
-                initEditMode();
-                
-                // Mettre à jour la quantité totale
-                updateTotalQuantity();
+                generateEditableItemsHTML(currentItems, itemsSection.find('.devis-items-content'), programmeIndex);
+                initEditModeForProgramme(programmeIndex);
+                updateTotalQuantity(programmeIndex);
                 
                 Swal.fire('Supprimé!', 'L\'article a été supprimé.', 'success');
             }
@@ -995,177 +1036,470 @@ function initEditMode() {
     });
     
     // Ajouter un nouvel item
-    $(document).on('click', '#add-new-item', function() {
-        const currentItems = $('#recuperationForm').data('devis-items') || [];
+    pItem.off('click.addNewItem').on('click.addNewItem', '.add-new-item-btn', function(e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        
+        const currentItems = itemsSection.data('devis-items') || [];
+        const devisInfo = itemsSection.data('devis-info') || {};
+        const modeTransit = devisInfo.mode_transit || 'aerien';
+        
         const newItem = {
             quantite_colis: 1,
             service: 'Nouveau service',
             valeur_colis: 0,
-            type_colis: 'Colis divers',
+            type_colis: 'standard',
             description_colis: 'Description du nouvel article',
-            poids: 0,
-            longueur: 0,
-            largeur: 0,
-            hauteur: 0,
+            mode_transit: modeTransit,
+            poids: modeTransit === 'aerien' ? 1 : 0,
+            longueur: modeTransit === 'maritime' ? 10 : 0,
+            largeur: modeTransit === 'maritime' ? 10 : 0,
+            hauteur: modeTransit === 'maritime' ? 10 : 0,
             is_new: true,
             id: 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
         };
         
         currentItems.push(newItem);
-        $('#recuperationForm').data('devis-items', currentItems);
+        itemsSection.data('devis-items', currentItems);
         
-        console.log("➕ Nouvel article ajouté:", newItem);
+        console.log("➕ Nouvel article ajouté avec mode transit:", modeTransit);
         
-        // Regénérer l'affichage
-        generateEditableItemsHTML(currentItems, $('#devis_items_content'));
-        initEditMode();
+        generateEditableItemsHTML(currentItems, itemsSection.find('.devis-items-content'), programmeIndex);
+        initEditModeForProgramme(programmeIndex);
         
-        // Activer automatiquement le mode édition pour le nouvel item
-        if (!$('#toggleEditMode').hasClass('btn-warning')) {
-            $('#toggleEditMode').click(); // Activer le mode édition si pas déjà activé
+        // Activer automatiquement le mode édition
+        if (!pItem.find('.toggle-edit-mode').hasClass('btn-warning')) {
+            toggleEditMode(programmeIndex, true);
         }
-        
-        // Mettre le focus sur le premier champ du nouvel article
-        setTimeout(() => {
-            const lastIndex = currentItems.length - 1;
-            $(`.item-details[data-item-index="${lastIndex}"] .editable-field`).first().focus();
-        }, 100);
     });
 }
 
-function updateTotalQuantity() {
-    const currentItems = $('#recuperationForm').data('devis-items') || [];
-    const totalQuantity = currentItems.reduce((total, item) => {
-        return total + parseInt(item.quantite_colis || 1);
-    }, 0);
+function addProgramme() {
+    const newIndex = $('.programme-item').length;
+    const template = $($('.programme-item')[0]).clone();
     
-    $('#quantite_recup').val(totalQuantity);
+    template.attr('data-programme-index', newIndex);
+    template.find('h6').text(`Programme #${newIndex + 1}`);
+    template.find('input, textarea, select').val('');
+    template.find('.devis-items-section').hide().removeData('devis-items').find('.devis-items-content').empty();
+    template.find('.reference-info').hide();
+    template.find('.remove-programme-btn').show();
+    
+    template.find('[id]').each(function() { 
+        $(this).attr('id', $(this).attr('id').replace('_0', `_${newIndex}`)); 
+    });
+    template.find('[name]').each(function() { 
+        $(this).attr('name', $(this).attr('name').replace('[0]', `[${newIndex}]`)); 
+    });
+    template.find('[data-index]').each(function() { 
+        $(this).attr('data-index', newIndex); 
+    });
+
+    $('#programmes-container').append(template);
+}
+// $('#recuperationForm').on('submit', function(e) {
+//     e.preventDefault();
+    
+//     // Préparer les données de tous les programmes
+//     const programmes = [];
+//     $('.programme-item').each(function() {
+//         const programmeIndex = $(this).data('programme-index');
+//         const itemsSection = $(this).find('.devis-items-section');
+//         const devisItems = itemsSection.data('devis-items') || [];
+        
+//         programmes.push({
+//             type_reference: $(this).find('.type-reference').val(),
+//             reference_input: $(this).find('.reference-input').val(),
+//             quantite: $(this).find('[name$="[quantite]"]').val(),
+//             nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+//             nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+//             tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+//             lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
+//             devis_items: devisItems.length > 0 ? JSON.stringify(devisItems) : null,
+//             modifications_apportees: devisItems.length > 0
+//         });
+//     });
+
+//     const payload = {
+//         user_id: $('#user_id_recup').val(),
+//         date_programme: $('#date_programme_recup').val(),
+//         programmes: programmes
+//     };
+
+//     // Afficher un indicateur de chargement
+//     Swal.fire({
+//         title: 'Création en cours...',
+//         text: 'Veuillez patienter',
+//         allowOutsideClick: false,
+//         didOpen: () => {
+//             Swal.showLoading();
+//         }
+//     });
+
+//     axios.post($(this).attr('action'), payload)
+//         .then(res => {
+//             Swal.close();
+//             let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
+//             if (res.data.details) {
+//                 msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
+//             }
+            
+//             Swal.fire({ 
+//                 icon: 'success', 
+//                 title: 'Succès!', 
+//                 html: msg,
+//                 confirmButtonText: 'OK',
+//                 timer: 5000 // 5 secondes maximum
+//             }).then((result) => {
+//                 // Fermer le modal
+//                 $('#recuperationModal').modal('hide');
+//                 // Recharger la page complète
+//                 location.reload();
+//             });
+//         })
+//         .catch(err => {
+//             Swal.close();
+//             Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
+//         });
+// });
+    // =========================================================================
+    // 5. ÉCOUTEURS D'ÉVÉNEMENTS
+    // =========================================================================
+    
+    function initApp() {
+    const pContainer = $('#programmes-container');
+
+    // Tableau principal
+    loadData();
+    $('#search').on('input', updateTable);
+    $('.page-size-btn').on('click', function(e) {
+        e.preventDefault();
+        itemsPerPage = parseInt($(this).data('size'));
+        updateTable();
+    });
+    $('#pagination').on('click', 'a', function(e) {
+        e.preventDefault();
+        currentPage = parseInt($(this).data('page'));
+        updateTable();
+    });
+    
+    // Initialiser les modales
+    initDepotModal();
+    initRecuperationModal(); // Cette fonction inclut maintenant initReferenceHandling()
+    initAddItemButtons();
+    
+    console.log("✅ Événements initialisés");
+}
+        // Modale de récupération
+        $('#add-programme-btn').on('click', addProgramme);
+        pContainer.on('click', '.remove-programme-btn', function() {
+            if ($('.programme-item').length > 1) $(this).closest('.programme-item').remove();
+        });
+        pContainer.on('input', '.reference-input', function() {
+            const pItem = $(this).closest('.programme-item');
+            searchReferenceInfo($(this).val(), pItem.find('.type-reference').val(), pItem.data('programme-index'));
+        });
+
+        // Logique d'édition des articles
+      // Logique d'édition des articles - DÉLÉGATION D'ÉVÉNEMENT CORRECTE
+// Logique d'édition des articles - DÉLÉGATION D'ÉVÉNEMENT CORRECTE
+// CORRECTION : Délégation d'événement pour les boutons Modifier
+$(document).on('click', '.toggle-edit-mode', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const button = $(this);
+    const programmeItem = button.closest('.programme-item');
+    const programmeIndex = programmeItem.data('programme-index');
+    
+    console.log("🎯 Bouton Modifier cliqué");
+    console.log("📦 Élément programme-item:", programmeItem.length);
+    console.log("🔍 Data programme-index:", programmeIndex);
+    console.log("📍 Bouton trouvé dans:", button.closest('.devis-items-section').length ? 'devis-items-section' : 'autre');
+    
+    if (programmeIndex !== undefined) {
+        toggleEditMode(programmeIndex);
+    } else {
+        console.error("❌ Impossible de trouver programme-index");
+        // Fallback: chercher l'index via l'ID de la section
+        const sectionId = button.closest('.devis-items-section').attr('id');
+        if (sectionId) {
+            const match = sectionId.match(/devis_items_section_(\d+)/);
+            if (match) {
+                const fallbackIndex = parseInt(match[1]);
+                console.log("🔄 Fallback avec index:", fallbackIndex);
+                toggleEditMode(fallbackIndex);
+            }
+        }
+    }
+});
+        pContainer.on('click', '.add-new-item-btn', function() {
+            const pItem = $(this).closest('.programme-item');
+            const itemsSection = pItem.find('.devis-items-section');
+            let items = itemsSection.data('devis-items') || [];
+            items.push({ is_new: true });
+            itemsSection.data('devis-items', items);
+            generateEditableItemsHTML(items, itemsSection.find('.devis-items-content'));
+            toggleEditMode(pItem.data('programme-index'), true);
+        });
+        pContainer.on('click', '.remove-item-btn', function() {
+            const pItem = $(this).closest('.programme-item');
+            const itemIndex = $(this).closest('.item-details').data('item-index');
+            const itemsSection = pItem.find('.devis-items-section');
+            let items = itemsSection.data('devis-items') || [];
+            if (items.length > 1) {
+                items.splice(itemIndex, 1);
+                itemsSection.data('devis-items', items);
+                generateEditableItemsHTML(items, itemsSection.find('.devis-items-content'));
+                toggleEditMode(pItem.data('programme-index'), true);
+            }
+        });
+        pContainer.on('input', '.editable-field', function() {
+            const pItem = $(this).closest('.programme-item');
+            const itemIndex = $(this).closest('.item-details').data('item-index');
+            const field = $(this).data('field');
+            let items = pItem.find('.devis-items-section').data('devis-items');
+            if (items && items[itemIndex]) {
+                items[itemIndex][field] = $(this).val();
+            }
+        });
+        pContainer.on('input', '.editable-field[data-field="quantite_colis"]', function() {
+            const pItem = $(this).closest('.programme-item');
+            let total = 0;
+            pItem.find('.devis-items-content .editable-field[data-field="quantite_colis"]').each(function() {
+                total += parseInt($(this).val()) || 0;
+            });
+            pItem.find('[name$="[quantite]"]').val(total);
+        });
+
+        // Soumission du formulaire
+      // Soumission du formulaire - Version avec délai
+
+function addDepotProgramme() {
+    const newIndex = $('.depot-programme-item').length;
+    const template = $($('.depot-programme-item')[0]).clone();
+    
+    template.attr('data-depot-programme-index', newIndex);
+    template.find('h6').text(`Dépôt #${newIndex + 1}`);
+    template.find('input, textarea').val('');
+    template.find('.remove-depot-programme-btn').show();
+    
+    template.find('[id]').each(function() { 
+        $(this).attr('id', $(this).attr('id').replace('_0', `_${newIndex}`)); 
+    });
+    template.find('[name]').each(function() { 
+        $(this).attr('name', $(this).attr('name').replace('[0]', `[${newIndex}]`)); 
+    });
+
+    $('#depot-programmes-container').append(template);
 }
 
-// NOUVELLE FONCTION: Afficher un message temporaire
-function showTempMessage(message, type = 'info') {
-    const alertClass = type === 'success' ? 'alert-success' : 
-                      type === 'error' ? 'alert-danger' : 'alert-info';
-    const tempAlert = $(`<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-        ${message}
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-    </div>`);
+function initDepotModal() {
+    // Ajouter un programme de dépôt
+    $('#add-depot-programme-btn').on('click', addDepotProgramme);
     
-    $('#reference_info').after(tempAlert);
+    // Supprimer un programme de dépôt
+    $('#depot-programmes-container').on('click', '.remove-depot-programme-btn', function() {
+        if ($('.depot-programme-item').length > 1) {
+            $(this).closest('.depot-programme-item').remove();
+        }
+    });
     
-    setTimeout(() => {
-        tempAlert.alert('close');
-    }, 3000);
+    // Soumission du formulaire de dépôt
+    $('#depotForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Préparer les données de tous les programmes de dépôt
+        const programmes = [];
+        $('.depot-programme-item').each(function() {
+            const programmeIndex = $(this).data('depot-programme-index');
+            
+            programmes.push({
+                quantite: $(this).find('[name$="[quantite]"]').val(),
+                nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+                nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+                tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+                lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val()
+            });
+        });
+
+        const payload = {
+            user_id: $('#user_id_depot').val(),
+            date_programme: $('#date_programme_depot').val(),
+            programmes: programmes
+        };
+
+        // Afficher un indicateur de chargement
+        Swal.fire({
+            title: 'Création en cours...',
+            text: 'Veuillez patienter',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        axios.post($(this).attr('action'), payload)
+            .then(res => {
+                Swal.close();
+                
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Succès!', 
+                    html: `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`,
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    // Fermer le modal
+                    $('#depotModal').modal('hide');
+                    // Recharger la page complète
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                Swal.close();
+                Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
+            });
+    });
+    
+    // Nettoyage de la modale à la fermeture
+    $('#depotModal').on('hidden.bs.modal', function(){
+        $('#depot-programmes-container').html($($('.depot-programme-item')[0]).clone());
+        $('#depotForm')[0].reset();
+        $('.depot-programme-item').attr('data-depot-programme-index', 0).find('h6').text('Dépôt #1');
+        $('.remove-depot-programme-btn').hide();
+    });
+}
+// =========================================================================
+// 6. GESTION DU CHAMP RÉFÉRENCE MANUELLE
+// =========================================================================
+
+function toggleReferenceInput(programmeIndex) {
+    const pItem = $(`.programme-item[data-programme-index="${programmeIndex}"]`);
+    const typeReference = pItem.find('.type-reference').val();
+    const referenceInput = pItem.find('.reference-input');
+    
+    if (typeReference === 'manuel') {
+        // Mode référence manuelle - désactiver et vider le champ
+        referenceInput.prop('readonly', true)
+                     .addClass('bg-light')
+                     .val('')
+                     .attr('placeholder', 'Référence générée automatiquement');
+        
+        // Masquer les sections d'infos
+        pItem.find('.reference-info').hide();
+        pItem.find('.devis-items-section').hide();
+    } else {
+        // Mode devis ou dépôt - activer le champ
+        referenceInput.prop('readonly', false)
+                     .removeClass('bg-light')
+                     .attr('placeholder', 'Entrez la référence du devis, dépôt ou une référence manuelle');
+    }
 }
 
-// Soumission du formulaire de récupération
-$('#recuperationForm').on('submit', function(e) {
+function initReferenceHandling() {
+    // Gestion du changement de type de référence
+    $('#programmes-container').on('change', '.type-reference', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        toggleReferenceInput(programmeIndex);
+        
+        // Réinitialiser les champs quand le type change
+        if ($(this).val() !== 'manuel') {
+            const pItem = $(this).closest('.programme-item');
+            pItem.find('.reference-info').hide();
+            pItem.find('.devis-items-section').hide();
+        }
+    });
+    
+    // Validation avant soumission - permettre les références vides pour le mode manuel
+    $('#recuperationForm').on('submit', function(e) {
+        let isValid = true;
+        const errorMessages = [];
+        
+        $('.programme-item').each(function(index) {
+            const pItem = $(this);
+            const typeReference = pItem.find('.type-reference').val();
+            const referenceInput = pItem.find('.reference-input').val();
+            
+            // Pour les types devis ou depot, la référence est obligatoire
+            if ((typeReference === 'devis' || typeReference === 'depot') && !referenceInput.trim()) {
+                isValid = false;
+                errorMessages.push(`Le programme #${index + 1} nécessite une référence pour le type "${typeReference}"`);
+                pItem.find('.reference-input').addClass('is-invalid');
+            } else {
+                pItem.find('.reference-input').removeClass('is-invalid');
+            }
+            
+            // Validation des autres champs obligatoires
+            const requiredFields = pItem.find('input[required], textarea[required], select[required]');
+            requiredFields.each(function() {
+                if (!$(this).val().trim()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            let errorMessage = 'Veuillez corriger les erreurs suivantes:';
+            if (errorMessages.length > 0) {
+                errorMessage += '<ul class="text-left mt-2">';
+                errorMessages.forEach(msg => {
+                    errorMessage += `<li>${msg}</li>`;
+                });
+                errorMessage += '</ul>';
+            }
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur de validation',
+                html: errorMessage,
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+        
+        // Préparer les données pour l'envoi
+        prepareRecuperationData(e);
+    });
+}
+
+function prepareRecuperationData(e) {
     e.preventDefault();
     
-    // Sauvegarder tous les articles non sauvegardés avant la soumission
-    $('.save-item-btn').each(function() {
-        const index = $(this).data('index');
-        const itemElement = $(`.item-details[data-item-index="${index}"]`);
+    // Préparer les données de tous les programmes
+    const programmes = [];
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        const itemsSection = $(this).find('.devis-items-section');
+        const devisItems = itemsSection.data('devis-items') || [];
         
-        // Vérifier si l'article a des modifications non sauvegardées
-        let hasUnsavedChanges = false;
-        itemElement.find('.editable-field').each(function() {
-            const currentValue = $(this).val();
-            const originalValue = $(this).data('original');
-            if (currentValue !== originalValue) {
-                hasUnsavedChanges = true;
-                return false; // Sortir de la boucle
-            }
-        });
+        const programmeData = {
+            type_reference: $(this).find('.type-reference').val(),
+            reference_input: $(this).find('.reference-input').val(),
+            quantite: $(this).find('[name$="[quantite]"]').val(),
+            nature_du_colis: $(this).find('[name$="[nature_du_colis]"]').val(),
+            nom_expediteur: $(this).find('[name$="[nom_expediteur]"]').val(),
+            tel_expediteur: $(this).find('[name$="[tel_expediteur]"]').val(),
+            lieu_expedition: $(this).find('[name$="[lieu_expedition]"]').val(),
+            modifications_apportees: devisItems.length > 0
+        };
         
-        if (hasUnsavedChanges) {
-            $(this).click(); // Sauvegarder les modifications
+        // Inclure les items seulement s'ils existent
+        if (devisItems.length > 0) {
+            programmeData.devis_items = JSON.stringify(devisItems);
         }
-    });
-    
-    // Attendre un peu que toutes les sauvegardes soient faites
-    setTimeout(() => {
-        submitRecuperationForm();
-    }, 500);
-});
-// NOUVELLE FONCTION: Soumission réelle du formulaire
-// NOUVELLE FONCTION: Soumission réelle du formulaire
-function submitRecuperationForm() {
-    // FORCER la sauvegarde de TOUS les articles avant envoi
-    const currentItems = $('#recuperationForm').data('devis-items') || [];
-    console.log("🔄 Pré-sauvegarde des articles:", currentItems);
-    
-    // Sauvegarder tous les articles (y compris les nouveaux)
-    let allItemsSaved = true;
-    $('.item-details').each(function() {
-        const index = $(this).data('item-index');
-        const saveButton = $(`.save-item-btn[data-index="${index}"]`);
         
-        // Si le bouton de sauvegarde est visible, c'est qu'il y a des modifications non sauvegardées
-        if (saveButton.is(':visible')) {
-            console.log(`💾 Sauvegarde forcée de l'article ${index}`);
-            saveButton.click();
-            allItemsSaved = false;
-        }
+        programmes.push(programmeData);
     });
-    
-    // Attendre que toutes les sauvegardes soient faites
-    const waitForSave = () => {
-        setTimeout(() => {
-            const hasUnsavedChanges = $('.save-item-btn:visible').length > 0;
-            
-            if (hasUnsavedChanges) {
-                console.log("⏳ Attente sauvegarde...");
-                waitForSave();
-            } else {
-                console.log("✅ Tous les articles sauvegardés, envoi au serveur");
-                sendFormToServer();
-            }
-        }, 300);
-    };
-    
-    waitForSave();
-}
 
-// Fonction séparée pour l'envoi au serveur
-function sendFormToServer() {
-    let formData = $('#recuperationForm').serializeArray();
-    
-    // Récupérer les items FINAUX après toutes les sauvegardes
-    const devisItems = $('#recuperationForm').data('devis-items') || [];
-    console.log("📦 Articles finaux à envoyer:", devisItems);
-    
-    if (devisItems && devisItems.length > 0) {
-        // Préparer les données pour l'envoi
-        const itemsToSend = devisItems.map(item => ({
-            quantite_colis: parseInt(item.quantite_colis) || 1,
-            service: item.service || 'Service non spécifié',
-            valeur_colis: parseFloat(item.valeur_colis) || 0,
-            type_colis: item.type_colis || 'Colis divers',
-            description_colis: item.description_colis || '',
-            poids: parseFloat(item.poids) || 0,
-            longueur: parseFloat(item.longueur) || 0,
-            largeur: parseFloat(item.largeur) || 0,
-            hauteur: parseFloat(item.hauteur) || 0,
-            // Inclure l'identifiant pour le tracking
-            temp_id: item.id || null,
-            is_new: item.is_new || false
-        }));
-        
-        console.log("📤 Données préparées pour envoi:", itemsToSend);
-        
-        // Ajouter les items au formData
-        formData.push({ 
-            name: 'devis_items', 
-            value: JSON.stringify(itemsToSend) 
-        });
-        
-        // TOUJOURS envoyer l'indicateur de modifications
-        formData.push({ 
-            name: 'modifications_apportees', 
-            value: 'true' 
-        });
-    }
+    const payload = {
+        user_id: $('#user_id_recup').val(),
+        date_programme: $('#date_programme_recup').val(),
+        programmes: programmes
+    };
 
     // Afficher un indicateur de chargement
     Swal.fire({
@@ -1177,166 +1511,107 @@ function sendFormToServer() {
         }
     });
 
-    axios.post("{{ route('aftlb_transport.programme.createRecuperation') }}", $.param(formData))
-        .then(function(response) {
+    axios.post($('#recuperationForm').attr('action'), payload)
+        .then(res => {
             Swal.close();
-            
-            if (response.data.success) {
-                let successMessage = response.data.message;
-                if (response.data.items_created) {
-                    successMessage += ' Les articles ont été liés au programme.';
-                }
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Succès!',
-                    html: successMessage + '<br><small>Référence: ' + (response.data.reference_generee || '') + '</small>',
-                    timer: 4000
-                });
-                
-                $('#recuperationModal').modal('hide');
-                $('#recuperationForm')[0].reset();
-                $('#recuperationForm').removeData('devis-items devis-info');
-                $('#devis_items_section').hide();
-                loadData();
-            } else {
-                throw new Error(response.data.message);
+            let msg = `<strong>${res.data.message}</strong><br>Créés: ${res.data.created_count} | Échecs: ${res.data.failed_count}`;
+            if (res.data.details) {
+                msg += '<ul class="text-left mt-2">' + res.data.details.map(d => `<li>${d.reference}: ${d.status}</li>`).join('') + '</ul>';
             }
-        })
-        .catch(function(error) {
-            Swal.close();
-            console.error('❌ Erreur:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: error.response?.data?.message || error.message,
-                footer: 'Vérifiez les logs pour plus de détails'
+            
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Succès!', 
+                html: msg,
+                confirmButtonText: 'OK',
+                timer: 5000
+            }).then((result) => {
+                $('#recuperationModal').modal('hide');
+                location.reload();
             });
+        })
+        .catch(err => {
+            Swal.close();
+            Swal.fire('Erreur', err.response?.data?.message || 'Erreur inconnue', 'error');
         });
 }
-
-// Charger les chauffeurs quand le modal récupération s'ouvre
-$('#recuperationModal').on('show.bs.modal', function () {
-    loadChauffeursRecup();
-    $('#reference_info').hide();
-    $('#devis_items_section').hide();
-});
-
-// MODIFICATION: Masquer la section devis_items quand le modal se ferme
-$('#recuperationModal').on('hidden.bs.modal', function () {
-    $('#devis_items_section').hide();
-    $('#devis_items_content').empty();
-    // Réinitialiser le bouton d'édition
-    $('#toggleEditMode').html('<i class="fas fa-edit"></i> Modifier').removeClass('btn-warning').addClass('btn-light');
-});
-    // Édition d'un programme - CORRECTION ICI
-    $(document).on('click', '.edit-programme-btn', function() {
-        const programmeId = $(this).data('id');
-        
-        axios.get("/aftlb_transport/programme-edit/" + programmeId + "-aft-louis-b")
-            .then(response => {
-                const programme = response.data.programme;
-                // Ouvrir un modal d'édition ou utiliser SweetAlert pour l'édition
-                Swal.fire({
-                    title: 'Modifier le Programme',
-                    html: `
-                        <form id="editProgrammeForm">
-                            <div class="form-group">
-                                <label for="edit_quantite">Quantité</label>
-                                <input type="number" class="form-control" id="edit_quantite" value="${programme.quantite || 1}" min="1">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_date_programme">Date du Programme</label>
-                                <input type="date" class="form-control" id="edit_date_programme" value="${programme.date_programme}">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_actions_a_faire">Action à faire</label>
-                                <select class="form-control" id="edit_actions_a_faire">
-                                    <option value="depot" ${programme.actions_a_faire === 'depot' ? 'selected' : ''}>Dépôt</option>
-                                    <option value="recuperation" ${programme.actions_a_faire === 'recuperation' ? 'selected' : ''}>Récupération</option>
-                                    <option value="livraison" ${programme.actions_a_faire === 'livraison' ? 'selected' : ''}>Livraison</option>
-                                </select>
-                            </div>
-                        </form>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Enregistrer',
-                    cancelButtonText: 'Annuler',
-                    preConfirm: () => {
-                        return {
-                            quantite: $('#edit_quantite').val(),
-                            date_programme: $('#edit_date_programme').val(),
-                            actions_a_faire: $('#edit_actions_a_faire').val()
-                        };
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const formData = result.value;
-                        axios.put("/aftlb_transport/programme-update/" + programmeId + "-aft-louis-b", formData)
-                            .then(response => {
-                                if (response.data.success) {
-                                    Swal.fire('Succès!', response.data.message, 'success');
-                                    loadData(); // Recharger les données
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire('Erreur!', error.response?.data?.message || 'Erreur lors de la modification', 'error');
-                            });
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                Swal.fire('Erreur', 'Impossible de charger les données du programme', 'error');
-            });
+function initRecuperationModal() {
+    // Ajouter un programme de récupération
+    $('#add-programme-btn').on('click', addProgramme);
+    
+    // Supprimer un programme de récupération
+    $('#programmes-container').on('click', '.remove-programme-btn', function() {
+        if ($('.programme-item').length > 1) {
+            $(this).closest('.programme-item').remove();
+        }
     });
-
-    // Suppression d'un programme - CORRECTION ICI
-    $(document).on('click', '.delete-programme-btn', function() {
-        const programmeId = $(this).data('id');
+    initReferenceHandling();
+    
+    // AJOUT: Appliquer le comportement initial pour chaque programme existant
+    $('.programme-item').each(function() {
+        const programmeIndex = $(this).data('programme-index');
+        toggleReferenceInput(programmeIndex);
+    });
+    // Gestion du changement de type de référence
+    $('#programmes-container').on('change', '.type-reference', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        const referenceInput = $(this).closest('.programme-item').find('.reference-input');
         
-        Swal.fire({
-            title: 'Êtes-vous sûr?',
-            text: "Vous ne pourrez pas annuler cette action!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Oui, supprimer!',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.delete("/aftlb_transport/programme-delete/" + programmeId + "-aft-louis-b")
-                    .then(response => {
-                        if (response.data.success) {
-                            programmesData.programmes = programmesData.programmes.filter(p => p.id !== programmeId);
-                            updateTable();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Supprimé!',
-                                text: response.data.message,
-                                timer: 2000
-                            });
-                        } else {
-                            throw new Error(response.data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la suppression:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur',
-                            text: error.message,
-                        });
-                    });
-            }
+        // Réinitialiser les champs quand le type change
+        if ($(this).val() === 'manuel') {
+            referenceInput.val('');
+            $(this).closest('.programme-item').find('.reference-info').hide();
+            $(this).closest('.programme-item').find('.devis-items-section').hide();
+        }
+    });
+    
+    // Recherche automatique lors de la saisie de référence
+    $('#programmes-container').on('input', '.reference-input', function() {
+        const programmeItem = $(this).closest('.programme-item');
+        const programmeIndex = programmeItem.data('programme-index');
+        const typeReference = programmeItem.find('.type-reference').val();
+        const referenceValue = $(this).val();
+        
+        if (referenceValue.length >= 3 && typeReference) {
+            searchReferenceInfo(referenceValue, typeReference, programmeIndex);
+        } else {
+            programmeItem.find('.reference-info').hide();
+            programmeItem.find('.devis-items-section').hide();
+        }
+    });
+    
+    // Gestion du mode édition pour les articles
+    $('#programmes-container').on('click', '.toggle-edit-mode', function() {
+        const programmeIndex = $(this).closest('.programme-item').data('programme-index');
+        toggleEditMode(programmeIndex);
+    });
+    
+    // Nettoyage de la modale à la fermeture
+    $('#recuperationModal').on('hidden.bs.modal', function(){
+        $('#programmes-container').html($($('.programme-item')[0]).clone());
+        $('#recuperationForm')[0].reset();
+        $('.programme-item').attr('data-programme-index', 0).find('h6').text('Programme #1');
+        $('.remove-programme-btn').hide();
+        $('.devis-items-section').hide();
+        $('.reference-info').hide();
+    });
+}
+        // Nettoyage de la modale à la fermeture
+        $('#recuperationModal').on('hidden.bs.modal', function(){
+            $('#programmes-container').html($($('.programme-item')[0]).clone());
+            $('#recuperationForm')[0].reset();
+            $('.programme-item').attr('data-programme-index', 0).find('h6').text('Programme #1');
+            $('.remove-programme-btn').hide();
         });
-    });
+    
 
-    // Chargement initial
-    loadData();
+    // --- Fonctions utilitaires rapides ---
+    function getActionBadgeClass(a) { return { depot: 'badge-success', recuperation: 'badge-warning' }[a] || 'badge-secondary'; }
+    function getActionText(a) { return { depot: 'DÉPÔT', recuperation: 'RÉCUPÉRATION' }[a] || a; }
+    function getEtatBadgeClass(e) { return { 'effectué': 'badge-success', 'en attente': 'badge-warning' }[e] || 'badge-secondary'; }
 });
 </script>
+
 <style>
     .item-details {
         background-color: #f8f9fa;
@@ -1386,5 +1661,195 @@ $('#recuperationModal').on('hidden.bs.modal', function () {
         border-left: 4px solid #28a745 !important;
         background-color: #f8fff9;
     }
+    /* EMPÊCHER LE GRISAGE AUTOMATIQUE DES CHAMPS */
+.editable-field:not([readonly]) {
+    background-color: white !important;
+    color: #495057 !important;
+}
+
+.editable-field[readonly] {
+    background-color: #f8f9fa !important;
+    border-color: #ced4da !important;
+}
+
+/* Style pour les champs en mode édition */
+.editable-field.border-primary {
+    background-color: white !important;
+    border-color: #007bff !important;
+}
+.dimensions-section {
+    transition: all 0.3s ease;
+}
+
+.dimensions-section.d-none {
+    display: none !important;
+}
+
+/* Indicateur visuel pour le mode transit */
+.mode-transit-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Style spécifique pour les articles maritimes */
+.item-details.maritime-item {
+    border-left: 4px solid #17a2b8 !important;
+    background-color: #f8f9fa;
+}
+
+.item-details.aerien-item {
+    border-left: 4px solid #ffc107 !important;
+    background-color: #fffaf0;
+}
+
+/* Style pour les champs dimensions quand visibles */
+.dimensions-section .form-group {
+    margin-bottom: 0.5rem;
+}
+
+.dimensions-section .form-control {
+    background-color: #f8f9fa;
+}
+/* Styles pour les programmes multiples */
+.programme-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #28a745 !important;
+    transition: all 0.3s ease;
+}
+
+.programme-item.border-danger {
+    border-left: 4px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+.programme-item h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.remove-programme-btn {
+    transition: all 0.3s ease;
+}
+.toggle-edit-mode {
+    display: block !important;
+    visibility: visible !important;
+}
+.remove-programme-btn:hover {
+    transform: scale(1.1);
+}
+/* Styles pour les différents modes transit */
+.maritime-item {
+    border-left: 4px solid #17a2b8 !important;
+    background-color: #f8f9fa;
+}
+
+.aerien-item {
+    border-left: 4px solid #ffc107 !important;
+    background-color: #fffaf0;
+}
+
+.mode-transit-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Style pour les sections conditionnelles */
+.dimensions-section .form-group {
+    margin-bottom: 0.5rem;
+}
+
+.dimensions-section .form-control {
+    background-color: #f8f9fa;
+}
+
+/* Indication visuelle pour les champs masqués */
+.d-none {
+    display: none !important;
+}
+/* Animation pour l'ajout de nouveaux programmes */
+.programme-item:last-child {
+    animation: slideIn 0.5s ease;
+}
+/* Styles pour les programmes de dépôt multiples */
+.depot-programme-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #28a745 !important;
+    transition: all 0.3s ease;
+}
+
+.depot-programme-item h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.remove-depot-programme-btn {
+    transition: all 0.3s ease;
+}
+
+.remove-depot-programme-btn:hover {
+    transform: scale(1.1);
+}
+/* Styles pour les selects en mode édition */
+.mode-transit-select:not([readonly]),
+.type-colis-select:not([readonly]) {
+    background-color: white !important;
+    border-color: #007bff !important;
+}
+
+.mode-transit-select[readonly],
+.type-colis-select[readonly] {
+    background-color: #f8f9fa !important;
+    border-color: #ced4da !important;
+}
+
+/* Indicateur visuel pour le mode transit */
+.mode-transit-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Style pour les champs dimensions */
+.dimensions-section .form-group {
+    margin-bottom: 0.5rem;
+}
+
+.dimensions-section .form-control {
+    background-color: #f8f9fa;
+}
+/* Garantir l'affichage du bouton d'ajout */
+#add-item-section-0,
+#add-item-section-1,
+#add-item-section-2,
+#add-item-section-3,
+#add-item-section-4 {
+    display: block !important;
+}
+
+/* Style pour le bouton Modifier/Visualiser */
+.toggle-edit-mode.btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.toggle-edit-mode.btn-light {
+    background-color: #f8f9fa !important;
+    border-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+.devis-items-section .toggle-edit-mode {
+    z-index: 10;
+    position: relative;
+}
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
     </style>
 @endsection
