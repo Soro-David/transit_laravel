@@ -595,7 +595,7 @@ function showConfirmationPopup(referenceGeneree) {
     }
 
    // ---------- Fonction pour afficher le formulaire de programmation ----------
-function showProgrammationForm(referenceDevis) {
+   function showProgrammationForm(referenceDevis) {
     const chauffeursOptions = listeChauffeurs.map(chauffeur => 
         `<option value="${chauffeur.id}">${chauffeur.full_name}</option>`
     ).join('');
@@ -611,7 +611,7 @@ function showProgrammationForm(referenceDevis) {
         html: `
             <form id="programmationForm">
                 <div class="mb-3">
-                    <label class="form-label">Référence du devis</label>
+                    <label class="form-label">Référence du programme</label>
                     <input type="text" class="form-control" value="${referenceDevis}" readonly>
                     <input type="hidden" name="reference_devis" value="${referenceDevis}">
                 </div>
@@ -656,7 +656,10 @@ function showProgrammationForm(referenceDevis) {
             formData.append('tel_expediteur', telExp);
             formData.append('lieu_expedition', adresseExp);
 
-            return fetch("{{ route('aftlb_transport.programme.from.devis') }}", {
+            // CORRECTION : Utiliser le bon nom de route
+            const url = "{{ route('aftlb_transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+            
+            return fetch(url, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -678,7 +681,7 @@ function showProgrammationForm(referenceDevis) {
                 html: `
                     <div class="text-start">
                         <p>Récupération programmée avec succès !</p>
-                        <p><strong>Référence :</strong> ${result.value.reference_generee}</p>
+                        <p><strong>Référence :</strong> ${result.value.programme.reference_generee}</p>
                         <p class="text-muted">Vous allez être redirigé...</p>
                     </div>
                 `,

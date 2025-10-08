@@ -53,7 +53,14 @@
                 <option value="recuperation">Récupération</option>
                 <option value="livraison">Livraison</option>
             </select>
-            
+               <!-- NOUVEAU FILTRE ÉTAT -->
+               <select id="etatFilter" class="form-control mr-2">
+                <option value="">Tous les états</option>
+                <option value="à planifié">À planifié</option>
+                <option value="en attente">En attente</option>
+                <option value="programmé">Programmé</option>
+                <option value="effectué">Effectué</option>
+            </select>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown">
                     <span id="pageSizeDisplay">10</span>
@@ -443,7 +450,7 @@ $(document).ready(function() {
     programmes.forEach(p => {
         const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : 'N/A';
         tableBody.append(`
-            <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : ''}">
+            <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : p.etat_rdv === 'à planifié' ? 'table-warning' : ''}">
                 <td>${p.quantite || 1}</td>
                 <td>
                     <span class="badge ${getActionBadgeClass(p.actions_a_faire)}">
@@ -1635,28 +1642,40 @@ $(document).on('click', '.delete-programme-btn', function() {
     }
  // Fonction de filtrage des données
  function filterProgrammes() {
-        const searchTerm = $('#search').val().toLowerCase();
-        const actionFilter = $('#actionFilter').val();
+    const searchTerm = $('#search').val().toLowerCase();
+    const actionFilter = $('#actionFilter').val();
+    const etatFilter = $('#etatFilter').val(); // Nouveau filtre
+    
+    let filtered = programmesData.programmes.filter(p => {
+        if (!p) return false;
         
-        let filtered = programmesData.programmes.filter(p => {
-            if (!p) return false;
-            
-            // Filtre par recherche texte
-            const matchesSearch = !searchTerm || 
-                Object.values(p).some(val => 
-                    val && val.toString().toLowerCase().includes(searchTerm)
-                );
-            
-            // Filtre par action
-            const matchesAction = !actionFilter || 
-                p.actions_a_faire === actionFilter;
-            
-            return matchesSearch && matchesAction;
-        });
+        // Filtre par recherche texte
+        const matchesSearch = !searchTerm || 
+            Object.values(p).some(val => 
+                val && val.toString().toLowerCase().includes(searchTerm)
+            );
         
-        return filtered;
-    }
-    function getEtatBadgeClass(e) { return { 'effectué': 'badge-success', 'en attente': 'badge-warning' }[e] || 'badge-secondary'; }
+        // Filtre par action
+        const matchesAction = !actionFilter || 
+            p.actions_a_faire === actionFilter;
+        
+        // Filtre par état
+        const matchesEtat = !etatFilter || 
+            p.etat_rdv === etatFilter;
+        
+        return matchesSearch && matchesAction && matchesEtat;
+    });
+    
+    return filtered;
+}
+    function getEtatBadgeClass(e) { 
+    return { 
+        'effectué': 'badge-success', 
+        'en attente': 'badge-warning',
+        'à planifié': 'badge-info',
+        'programmé': 'badge-primary'
+    }[e] || 'badge-secondary'; 
+}
 });
 </script>
 
