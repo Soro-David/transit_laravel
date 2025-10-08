@@ -784,27 +784,70 @@ public function store_devis(Request $request)
             // 2. On génère un code unique avec le format NA000000NC (sans -RE)
             do {
                 $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                $reference = 'NA' . $randomNumber . $initiales; // Suppression du "-RE"
+                $reference = 'NA' . $randomNumber . $initiales;
             } while (Devis::where('reference', $reference)->exists());
 
-            // Création du devis avec les données fixes
+            // 3. Créer directement dans la table programme avec référence -RE
+            $referenceGeneree = $reference . '-RE';
+
+            // Vérifier si une récupération existe déjà pour cette référence
+            $existingProgramme = Programme::where('reference_generee', $referenceGeneree)->first();
+            if ($existingProgramme) {
+                throw new \Exception('Une récupération avec cette référence existe déjà.');
+            }
+
+            // 4. Création du programme directement
+            $programme = Programme::create([
+                'quantite' => $this->calculerQuantiteTotale($request), // Fonction à créer
+                'date_programme' => null, // Pas de date pour "Plus tard"
+                'user_id' => null, // Pas de chauffeur attribué pour l'instant
+                'reference_colis' => $reference,
+                'reference_generee' => $referenceGeneree,
+                'type_reference' => 'devis',
+                'actions_a_faire' => 'recuperation',
+                'nom_expediteur' => $request->nom_expediteur,
+                'lieu_expedition' => $request->adresse_expediteur,
+                'tel_expediteur' => $request->tel_expediteur,
+                'nature_du_colis' => 'Colis divers',
+                'etat_rdv' => 'à planifié', // Nouvel état
+                'mode_transit' => $request->mode_transit,
+                'agence_destination' => $request->agence_destination_societe,
+            ]);
+
+            // 5. Créer les items du programme
+            foreach ($request->service as $key => $service) {
+                ProgrammeItems::create([
+                    'programme_id' => $programme->id,
+                    'quantite_colis' => $request->quantite_colis[$key],
+                    'service' => $service,
+                    'valeur_colis' => $request->valeur_colis[$key] ?? null,
+                    'type_colis' => $request->type_colis[$key],
+                    'description_colis' => $request->description_colis[$key] ?? null,
+                    'poids' => $request->poids[$key] ?? null,
+                    'longueur' => $request->longueur[$key] ?? null,
+                    'largeur' => $request->largeur[$key] ?? null,
+                    'hauteur' => $request->hauteur[$key] ?? null,
+                ]);
+            }
+
+            // 6. Optionnel : Créer aussi dans la table devis si nécessaire
             $newDevis = Devis::create([
                 'reference' => $reference,
                 'mode_transit' => $request->mode_transit,
-                'pays_expedition' => 'France', // Fixe
-                'agence_expedition' => 'AFT Agence Louis Bleriot', // Fixe
+                'pays_expedition' => 'France',
+                'agence_expedition' => 'AFT Agence Louis Bleriot',
                 'agence_destination' => $request->agence_destination_societe,
                 'nom_expediteur' => $request->nom_expediteur,
                 'prenom_expediteur' => $request->prenom_expediteur,
                 'email_expediteur' => $request->email_expediteur,
                 'tel_expediteur' => $request->tel_expediteur,
                 'adresse_expediteur' => $request->adresse_expediteur,
-                'devise' => 'EUR', // Devise fixée à EUR
+                'devise' => 'EUR',
                 'user_id' => auth()->id(),
-                'etat' => 'confirmé', // État à confirmé
+                'etat' => 'à planifié', // Même état
             ]);
 
-            // 2b. On boucle sur les colis envoyés par le formulaire pour les créer
+            // Créer les items du devis
             foreach ($request->service as $key => $service) {
                 $newDevis->items()->create([
                     'quantite_colis' => $request->quantite_colis[$key],
@@ -819,17 +862,19 @@ public function store_devis(Request $request)
                 ]);
             }
 
-            return $newDevis;
+            return [
+                'programme' => $programme,
+                'devis' => $newDevis
+            ];
         });
 
         // Retourner une réponse JSON pour le traitement en AJAX
         return response()->json([
             'success' => true,
-            'message' => 'Devis créé avec succès !',
-            'devis' => [
-                'reference' => $devis->reference,
-                'id' => $devis->id
-            ]
+            'message' => 'Devis créé avec succès et programmé !',
+            'reference_generee' => $devis['programme']->reference_generee,
+            'programme' => $devis['programme'],
+            'devis' => $devis['devis']
         ]);
 
     } catch (\Exception $e) {
@@ -837,6 +882,61 @@ public function store_devis(Request $request)
         return response()->json([
             'success' => false,
             'message' => 'Une erreur est survenue lors de la soumission de votre devis. Veuillez réessayer.'
+        ], 500);
+    }
+}
+private function calculerQuantiteTotale($request)
+{
+    $quantiteTotale = 0;
+    if (isset($request->quantite_colis)) {
+        foreach ($request->quantite_colis as $quantite) {
+            $quantiteTotale += intval($quantite);
+        }
+    }
+    return $quantiteTotale > 0 ? $quantiteTotale : 1;
+}
+public function programmerDevis(Request $request, $reference)
+{
+    try {
+        DB::beginTransaction();
+
+        $request->validate([
+            'date_programme' => 'required|date',
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        // Trouver le programme existant
+        $programme = Programme::where('reference_generee', $reference)->first();
+
+        if (!$programme) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Programme non trouvé'
+            ], 404);
+        }
+
+        // Mettre à jour le programme avec la date et le chauffeur
+        $programme->update([
+            'date_programme' => $request->date_programme,
+            'user_id' => $request->user_id,
+            'etat_rdv' => 'programmé', // Changer l'état
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Récupération programmée avec succès!',
+            'programme' => $programme
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erreur programmation devis: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur: ' . $e->getMessage()
         ], 500);
     }
 }
@@ -1236,6 +1336,145 @@ public function createMultipleRecuperation(Request $request)
         return response()->json([
             'success' => false,
             'message' => 'Erreur globale: ' . $e->getMessage()
+        ], 500);
+    }
+}
+// Afficher la page d'édition
+public function showEdit($id)
+{
+    try {
+        $programme = Programme::with(['user', 'items'])
+            ->whereHas('user', function($q) {
+                $q->where('agence_id', 5)
+                  ->where('role', 'chauffeur');
+            })
+            ->findOrFail($id);
+
+        // Récupération et normalisation des chauffeurs
+        $rawChauffeurs = User::where('agence_id', 5)
+            ->where('role', 'chauffeur')
+            ->where('is_active', true)
+            ->get(['id', 'nom', 'prenom', 'first_name', 'last_name']);
+
+        $chauffeurs = $rawChauffeurs->map(function ($c) {
+            $first = $c->first_name ?? $c->nom ?? ($c->name ?? '');
+            $last  = $c->last_name  ?? $c->prenom ?? '';
+            return [
+                'id' => $c->id,
+                'first_name' => trim($first),
+                'last_name' => trim($last),
+            ];
+        })->values();
+
+        return view('AFT_LOUIS_BLERIOT.transport.planingedit', compact('programme', 'chauffeurs'));
+
+    } catch (\Exception $e) {
+        Log::error("Erreur affichage page édition: " . $e->getMessage());
+        return redirect()->route('aftlb_transport.planing.chauffeur')
+            ->with('error', 'Programme non trouvé');
+    }
+}
+
+// Mettre à jour un programme
+public function updateProgramme(Request $request, $id)
+{
+    try {
+        DB::beginTransaction();
+
+        $programme = Programme::whereHas('user', function($q) {
+                $q->where('agence_id', 5)
+                  ->where('role', 'chauffeur');
+            })
+            ->findOrFail($id);
+
+        // Vérifier si le programme est déjà effectué
+        if ($programme->etat_rdv === 'effectué') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible de modifier un programme déjà effectué'
+            ], 422);
+        }
+
+        $request->validate([
+            'quantite' => 'required|integer|min:1',
+            'date_programme' => 'required|date',
+            'user_id' => 'required|exists:users,id',
+            'actions_a_faire' => 'required|in:depot,recuperation,livraison',
+            'nom_expediteur' => 'required|string|max:255',
+            'lieu_expedition' => 'required|string|max:255',
+            'tel_expediteur' => 'required|string|max:20',
+            'nature_du_colis' => 'required|string|max:255',
+        ]);
+
+        // Mise à jour du programme
+        $programme->update([
+            'quantite' => $request->quantite,
+            'date_programme' => $request->date_programme,
+            'user_id' => $request->user_id,
+            'actions_a_faire' => $request->actions_a_faire,
+            'nom_expediteur' => $request->nom_expediteur,
+            'lieu_expedition' => $request->lieu_expedition,
+            'tel_expediteur' => $request->tel_expediteur,
+            'nature_du_colis' => $request->nature_du_colis,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Programme mis à jour avec succès'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erreur mise à jour programme: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur: ' . $e->getMessage()
+        ], 500);
+    }
+}
+// Supprimer un programme et ses items
+public function destroyProgramme($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $programme = Programme::whereHas('user', function($q) {
+                $q->where('agence_id', 5)
+                  ->where('role', 'chauffeur');
+            })
+            ->findOrFail($id);
+
+        // Vérifier si le programme est déjà effectué
+        if ($programme->etat_rdv === 'effectué') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible de supprimer un programme déjà effectué'
+            ], 422);
+        }
+
+        // Supprimer les items liés
+        ProgrammeItems::where('programme_id', $programme->id)->delete();
+        
+        // Supprimer le programme
+        $programme->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Programme et ses articles supprimés avec succès'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erreur suppression programme: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
         ], 500);
     }
 }

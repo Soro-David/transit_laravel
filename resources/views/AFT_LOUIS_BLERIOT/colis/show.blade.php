@@ -137,7 +137,7 @@
         {{-- SECTION FORMULAIRE DE VALIDATION --}}
         <div class="card-footer bg-light p-4">
             <h5 class="fw-bold mb-3">Validation du Devis</h5>
-            <form id="validationForm" action="{{ route('aftlb_colis.devis.show', ['id' => $devis->id]) }}" method="POST">
+            <form id="validationForm" action="{{ route('aftlb_colis.devis.update_hold', ['id' => $devis->id]) }}" method="POST">
                 @csrf
                 @method('PUT')
 

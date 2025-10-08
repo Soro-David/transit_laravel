@@ -849,7 +849,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/autocomplete/produit-aftlb', [AftlbColisController::class, 'autocompleteProduit'])->name('recherche.auto');
         // AJOUT : Route pour les détails du devis dans le groupe aftlb_colis
         Route::get('/devis/{id}/details', [AftlbColisController::class, 'get_devis_details'])->name('devis.details');
-        
+                Route::put('/devis/{id}/update-hold-aft-louis-b', [AftlbColisController::class, 'update_hold'])->name('devis.update_hold');
+
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-aft-louis-b', [AftlbColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-aft-louis-b', [AftlbColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
@@ -912,8 +913,8 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         // Création et stockage d'un colis
         Route::get('/create/colis-aft-louis-b', [AftlbColisController::class, 'add_colis'])->name('create.colis');
         Route::post('/store/colis-aft-louis-b', [AftlbColisController::class, 'store_colis'])->name('store.colis');
-        Route::get('/devis/{id}/show-chine', [AftlbColisController::class, 'show'])->name('devis.show');
-        Route::delete('/devis/{id}/destroy-chine', [AftlbColisController::class, 'destroy_devis'])->name('devis.destroy');
+        Route::get('/devis/{id}/show-louis-b', [AftlbColisController::class, 'show'])->name('devis.show');
+        Route::delete('/devis/{id}/destroy-louis-b', [AftlbColisController::class, 'destroy_devis'])->name('devis.destroy');
 
 
 
@@ -988,24 +989,26 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
     Route::get('/programme-data-aft-louis-b', [ProgrammeLBController::class, 'data'])->name('programme.data');
     Route::post('/programme-depot-aft-louis-b', [ProgrammeLBController::class, 'createDepot'])->name('programme.createDepot');
     Route::get('/programme-edit/{id}-aft-louis-b', [ProgrammeLBController::class, 'edit'])->name('programme.edit');
-    Route::put('/programme-update/{id}-aft-louis-b', [ProgrammeLBController::class, 'update'])->name('programme.update');
-    Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroy'])->name('programme.destroy');
     Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
     Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
      // AJOUTEZ CETTE LIGNE - Route pour la création multiple
      Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
     Route::get('/programme-reference-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getReferenceInfo'])
-->name('programme.referenceInfo')
-->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
+    ->name('programme.referenceInfo')
+    ->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
         // Route AJAX pour DataTables
         Route::get('/ajout-devis', [ProgrammeLBController::class, 'ajoutDevis'])->name('ajoutDevis');
         Route::get('/ajout-devis-form', [ProgrammeLBController::class, 'add_devis'])->name('ajoutDevis.form');
         Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
     ->name('aftlb_transport.programme.checkItems');
+    Route::post('/programmer-devis/{reference}', [ProgrammeLBcontroller::class, 'programmerDevis'])->name('aftlb_transport.programmer.devis');
     Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
     Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
     Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
+    Route::get('/programme-edit-page/{id}-aft-louis-b', [ProgrammeLBController::class, 'showEdit'])->name('programme.edit.page');
+    Route::put('/programme-update/{id}-aft-louis-b', [ProgrammeLBController::class, 'updateProgramme'])->name('programme.update');
+    Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroyProgramme'])->name('programme.destroy');
         Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         
         // Routes chauffeurs
