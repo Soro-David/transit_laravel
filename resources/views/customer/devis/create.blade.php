@@ -99,8 +99,6 @@
                         <label for="agence_destination_societe" class="form-label">Agence Destination</label>
                         <select name="agence_destination_societe" id="agence_destination_societe" class="form-select">
                             <option value="" disabled selected>-- Choisir --</option>
-                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
                         </select>
                     </div>
 
@@ -304,6 +302,12 @@
 {{-- SCRIPTS (fusion complète : selects, toggle, clonage, navigation, fallbacks...) --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ---------------- Configuration des agences par mode ----------------
+    const agenceOptionsByMode = {
+        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
+        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
+    };
+
     // ---------------- DOM references ----------------
     const form = document.querySelector('form.form-container');
     const paysSelect = document.getElementById('pays_expedition');
@@ -312,8 +316,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const deviseSelect = document.getElementById('devise');
     const deviseHidden = document.getElementById('devise_hidden');
     const modeTransitSelect = document.getElementById('mode_transit');
-    const modeSelect = document.getElementById('mode_transit');
-    const agenceDestSelect = document.querySelector('select[name="agence_destination_societe"]');
+    const agenceDestSelect = document.getElementById('agence_destination_societe');
+
+    // ---------- Mise à jour des options d'agence en fonction du mode ----------
+    function updateAgenceOptionsByMode(mode) {
+        if (!agenceDestSelect) return;
+        
+        // Vider les options actuelles
+        agenceDestSelect.innerHTML = '';
+        
+        // Ajouter l'option par défaut
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        defaultOption.textContent = '-- Choisir --';
+        agenceDestSelect.appendChild(defaultOption);
+        
+        // Ajouter l'option correspondant au mode
+        if (mode && agenceOptionsByMode[mode]) {
+            const option = document.createElement('option');
+            option.value = agenceOptionsByMode[mode].value;
+            option.textContent = agenceOptionsByMode[mode].label;
+            agenceDestSelect.appendChild(option);
+            
+            // Sélectionner automatiquement l'option
+            agenceDestSelect.value = agenceOptionsByMode[mode].value;
+        }
+    }
+
+    // Écouteur sur le changement de mode de transit
+    if (modeTransitSelect) {
+        modeTransitSelect.addEventListener('change', function() {
+            updateAgenceOptionsByMode(this.value);
+            toggleFields(this.value);
+        });
+        
+        // Initialisation au chargement
+        updateAgenceOptionsByMode(modeTransitSelect.value);
+    }
+
     // ---------- Helper: rebuild agence options based on pays ----------
     function rebuildAgenceOptions(selectedPays) {
         if (!agenceSelect) return;
@@ -357,69 +399,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---------- Update devise from agence logic ----------
     function updateDeviseFromPays() {
-    if (!paysSelect || !deviseSelect) return;
-    const pays = paysSelect.value;
+        if (!paysSelect || !deviseSelect) return;
+        const pays = paysSelect.value;
 
-    if (pays === 'France') {
-        deviseSelect.value = 'EUR';
-        deviseSelect.disabled = true;
-        deviseSelect.style.backgroundColor = '#f3f4f6';
-    } else if (pays === 'Chine') {
-        deviseSelect.value = 'FCFA';
-        deviseSelect.disabled = true;
-        deviseSelect.style.backgroundColor = '#f3f4f6';
-    } else {
-        deviseSelect.value = '';
-        deviseSelect.disabled = true; // toujours auto, pas de choix manuel
-        deviseSelect.style.backgroundColor = '#f3f4f6';
-    }
-
-    if (deviseHidden) deviseHidden.value = deviseSelect.value || '';
-}
-if (!modeSelect || !agenceDestSelect) return;
-
-    const targetsByMode = {
-        maritime: ['Carrefour Angré', 'Carrefour Angre', 'Carrefour-Angré'],
-        aerien:  ['Angré 8ème Tranche', 'Angre 8ème Tranche', 'Angré 8eme Tranche']
-    };
-
-    function setAgenceByMode(mode) {
-        const targets = targetsByMode[mode] || [];
-        if (targets.length === 0) return;
-
-        // 1) essayer un match exact sur value ou text
-        for (const opt of agenceDestSelect.options) {
-            if (targets.includes(opt.value) || targets.includes(opt.text)) {
-                agenceDestSelect.value = opt.value;
-                agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                return;
-            }
+        if (pays === 'France') {
+            deviseSelect.value = 'EUR';
+            deviseSelect.disabled = true;
+            deviseSelect.style.backgroundColor = '#f3f4f6';
+        } else if (pays === 'Chine') {
+            deviseSelect.value = 'FCFA';
+            deviseSelect.disabled = true;
+            deviseSelect.style.backgroundColor = '#f3f4f6';
+        } else {
+            deviseSelect.value = '';
+            deviseSelect.disabled = true; // toujours auto, pas de choix manuel
+            deviseSelect.style.backgroundColor = '#f3f4f6';
         }
 
-        // 2) essayer un match "contains" (insensible à la casse)
-        for (const opt of agenceDestSelect.options) {
-            const txt = (opt.text || '').toLowerCase();
-            for (const t of targets) {
-                if (txt.indexOf(t.toLowerCase()) !== -1) {
-                    agenceDestSelect.value = opt.value;
-                    agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                    return;
-                }
-            }
-        }
+        if (deviseHidden) deviseHidden.value = deviseSelect.value || '';
     }
 
-    // écouteur sur le select mode_transit
-    modeSelect.addEventListener('change', function() {
-        setAgenceByMode(this.value);
-    });
-
-    // initialisation au chargement (si un mode déjà sélectionné)
-    setAgenceByMode(modeSelect.value);
-if (paysSelect) {
-    paysSelect.addEventListener('change', updateDeviseFromPays);
-    if (paysSelect.value) updateDeviseFromPays();
-}
+    if (paysSelect) {
+        paysSelect.addEventListener('change', updateDeviseFromPays);
+        if (paysSelect.value) updateDeviseFromPays();
+    }
 
     // ---------- Toggle dimension/poids ----------
     function toggleFields(mode) {
@@ -438,12 +441,6 @@ if (paysSelect) {
                 if (poids) poids.style.display = 'none';
             }
         });
-    }
-    if (modeTransitSelect) {
-        modeTransitSelect.addEventListener('change', function() {
-            toggleFields(this.value);
-        });
-        toggleFields(modeTransitSelect.value);
     }
 
     // ---------- Dimension listeners ----------

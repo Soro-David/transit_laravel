@@ -675,41 +675,7 @@ if ($modeTransit === 'aerien') {
         ]);
     }
 
-    public function update(Request $request, $id)
-    {
-        $programme = Programme::whereHas('user', function($q) {
-                $q->where('agence_id', 5)
-                  ->where('role', 'chauffeur');
-            })
-            ->findOrFail($id);
-
-        $request->validate([
-            'quantite' => 'nullable|integer|min:1',
-            'date_programme' => 'nullable|date',
-            'user_id' => 'nullable|exists:users,id',
-            'actions_a_faire' => 'nullable|in:depot,recuperation,livraison',
-        ]);
-
-        $updated = false;
-        $fields = ['quantite', 'date_programme', 'user_id', 'actions_a_faire'];
-
-        foreach ($fields as $field) {
-            if ($request->has($field) && $request->$field != $programme->$field) {
-                $programme->$field = $request->$field;
-                $updated = true;
-            }
-        }
-
-        if ($updated) {
-            $programme->save();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Programme mis à jour avec succès'
-        ]);
-    }
-
+   
     public function destroy($id)
     {
         try {
@@ -872,7 +838,7 @@ public function store_devis(Request $request)
         // Retourner une réponse JSON pour le traitement en AJAX
         return response()->json([
             'success' => true,
-            'message' => 'Devis créé avec succès et programmé !',
+            'message' => 'Programme enregister !',
             'reference_generee' => $devis['programme']->reference_generee,
             'programme' => $devis['programme'],
             'devis' => $devis['devis']
@@ -920,7 +886,7 @@ public function programmerDevis(Request $request, $reference)
         $programme->update([
             'date_programme' => $request->date_programme,
             'user_id' => $request->user_id,
-            'etat_rdv' => 'programmé', // Changer l'état
+            'etat_rdv' => 'en attente', // Changer l'état
         ]);
 
         DB::commit();
@@ -1357,61 +1323,74 @@ if ($typeReference === 'devis') {
     }
 }
 // Afficher la page d'édition
-public function showEdit($id)
+public function showEdit($slug)
 {
     try {
-        $programme = Programme::with(['user', 'items'])
-            ->whereHas('user', function($q) {
-                $q->where('agence_id', 5)
-                  ->where('role', 'chauffeur');
+        // EXTRACTION DE L'ID NUMÉRIQUE
+        $id_numerique = explode('-', $slug)[0];
+        
+        Log::info("🔍 Tentative de chargement du programme ID: " . $id_numerique);
+       
+        // CORRECTION : Charger les ProgrammeItems au lieu de DevisItems
+        $programme = Programme::with(['user', 'items']) // ✅ items() fait référence à ProgrammeItems
+            ->where(function($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('agence_id', 5)
+                      ->where('role', 'chauffeur');
+                })
+                ->orWhereNull('user_id');
             })
-            ->findOrFail($id);
-
-        // Récupération et normalisation des chauffeurs
-        $rawChauffeurs = User::where('agence_id', 5)
+            ->whereIn('etat_rdv', ['en attente', 'à planifié'])
+            ->findOrFail($id_numerique);
+        
+        // CORRECTION : Convertir la date en objet Carbon si c'est une string
+        if ($programme->date_programme && is_string($programme->date_programme)) {
+            $programme->date_programme = \Carbon\Carbon::parse($programme->date_programme);
+        }
+        
+        Log::info("✅ Programme trouvé: " . $programme->reference_generee . " - État: " . $programme->etat_rdv);
+        Log::info("📦 Nombre d'articles trouvés: " . ($programme->items ? $programme->items->count() : 0));
+        
+        // Récupérer les chauffeurs
+        $chauffeurs = User::where('agence_id', 5)
             ->where('role', 'chauffeur')
             ->where('is_active', true)
-            ->get(['id', 'nom', 'prenom', 'first_name', 'last_name']);
-
-        $chauffeurs = $rawChauffeurs->map(function ($c) {
-            $first = $c->first_name ?? $c->nom ?? ($c->name ?? '');
-            $last  = $c->last_name  ?? $c->prenom ?? '';
-            return [
-                'id' => $c->id,
-                'first_name' => trim($first),
-                'last_name' => trim($last),
-            ];
-        })->values();
-
+            ->get(['id', 'first_name', 'last_name']);
+        
         return view('AFT_LOUIS_BLERIOT.transport.planingedit', compact('programme', 'chauffeurs'));
-
-    } catch (\Exception $e) {
-        Log::error("Erreur affichage page édition: " . $e->getMessage());
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        Log::error("❌ Programme non trouvé avec ID: " . ($id_numerique ?? 'N/A'));
         return redirect()->route('aftlb_transport.planing.chauffeur')
-            ->with('error', 'Programme non trouvé');
+            ->with('error', 'Programme non trouvé ou déjà effectué');
+            
+    } catch (\Exception $e) {
+        Log::error("❌ Erreur affichage page édition: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+        
+        return redirect()->route('aftlb_transport.planing.chauffeur')
+            ->with('error', 'Une erreur est survenue: ' . $e->getMessage());
     }
 }
-
 // Mettre à jour un programme
 public function updateProgramme(Request $request, $id)
 {
+    $id_numerique = explode('-', $id)[0];
+    Log::info("🔄 Début de la mise à jour du programme ID: " . $id_numerique);
+
     try {
-        DB::beginTransaction();
+        $programme = Programme::findOrFail($id_numerique);
 
-        $programme = Programme::whereHas('user', function($q) {
-                $q->where('agence_id', 5)
-                  ->where('role', 'chauffeur');
-            })
-            ->findOrFail($id);
-
-        // Vérifier si le programme est déjà effectué
         if ($programme->etat_rdv === 'effectué') {
             return response()->json([
                 'success' => false,
-                'message' => 'Impossible de modifier un programme déjà effectué'
+                'message' => 'Impossible de modifier un programme déjà effectué.'
             ], 422);
         }
 
+        DB::beginTransaction();
+
+        // Validation des données de base
         $request->validate([
             'quantite' => 'required|integer|min:1',
             'date_programme' => 'required|date',
@@ -1423,7 +1402,7 @@ public function updateProgramme(Request $request, $id)
             'nature_du_colis' => 'required|string|max:255',
         ]);
 
-        // Mise à jour du programme
+        // Mise à jour des informations du programme principal
         $programme->update([
             'quantite' => $request->quantite,
             'date_programme' => $request->date_programme,
@@ -1433,22 +1412,51 @@ public function updateProgramme(Request $request, $id)
             'lieu_expedition' => $request->lieu_expedition,
             'tel_expediteur' => $request->tel_expediteur,
             'nature_du_colis' => $request->nature_du_colis,
+            'etat_rdv' => 'en attente',
         ]);
+        
+        Log::info("✅ Programme principal ID " . $programme->id . " mis à jour.");
+
+        // Gestion des articles
+        $itemsData = null;
+        
+        if ($request->has('items_data') && !empty($request->items_data)) {
+            $itemsData = json_decode($request->items_data, true);
+            Log::info("📦 Format JSON détecté via items_data");
+        } elseif ($request->has('items')) {
+            // Format direct depuis le formulaire
+            $itemsData = [];
+            foreach ($request->items as $itemId => $itemArray) {
+                $itemArray['id'] = $itemId;
+                $itemsData[] = $itemArray;
+            }
+            Log::info("📦 Format formulaire détecté via items");
+        }
+        
+        if (!empty($itemsData)) {
+            Log::info("📦 Données des articles à traiter:", ['count' => count($itemsData)]);
+            $this->updateProgrammeItemsData($programme->id, $itemsData);
+        } else {
+            Log::warning("⚠️ Aucune donnée d'article trouvée");
+        }
 
         DB::commit();
 
+        Log::info("✅✅ Mise à jour complète du programme " . $programme->reference_generee . " réussie !");
+
         return response()->json([
             'success' => true,
-            'message' => 'Programme mis à jour avec succès'
+            'message' => 'Programme et articles mis à jour avec succès !'
         ]);
 
     } catch (\Exception $e) {
         DB::rollBack();
-        Log::error("Erreur mise à jour programme: " . $e->getMessage());
+        Log::error("❌ Erreur lors de la mise à jour du programme: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
 
         return response()->json([
             'success' => false,
-            'message' => 'Erreur: ' . $e->getMessage()
+            'message' => 'Une erreur est survenue : ' . $e->getMessage()
         ], 500);
     }
 }
@@ -1456,15 +1464,20 @@ public function updateProgramme(Request $request, $id)
 public function destroyProgramme($id)
 {
     try {
-        DB::beginTransaction();
-
-        $programme = Programme::whereHas('user', function($q) {
-                $q->where('agence_id', 5)
-                  ->where('role', 'chauffeur');
+        $id_numerique = explode('-', $id)[0];
+        
+        // CORRECTION : Autoriser la suppression des programmes sans chauffeur
+        $programme = Programme::where(function($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('agence_id', 5)
+                      ->where('role', 'chauffeur');
+                })
+                ->orWhereNull('user_id');
             })
-            ->findOrFail($id);
+            ->whereIn('etat_rdv', ['en attente', 'à planifié']) // Seulement ces états
+            ->findOrFail($id_numerique);
 
-        // Vérifier si le programme est déjà effectué
+        // Vérifier si le programme est déjà effectué (sécurité)
         if ($programme->etat_rdv === 'effectué') {
             return response()->json([
                 'success' => false,
@@ -1478,7 +1491,7 @@ public function destroyProgramme($id)
         // Supprimer le programme
         $programme->delete();
 
-        DB::commit();
+        Log::info("✅ Programme supprimé: " . $programme->reference_generee);
 
         return response()->json([
             'success' => true,
@@ -1486,12 +1499,258 @@ public function destroyProgramme($id)
         ]);
 
     } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error("Erreur suppression programme: " . $e->getMessage());
+        Log::error("❌ Erreur suppression programme: " . $e->getMessage());
 
         return response()->json([
             'success' => false,
             'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+        ], 500);
+    }
+}
+public function updateProgrammeItems(Request $request, $id)
+{
+    try {
+        DB::beginTransaction();
+
+        $id_numerique = explode('-', $id)[0];
+        
+        $programme = Programme::where(function($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('agence_id', 5)
+                      ->where('role', 'chauffeur');
+                })
+                ->orWhereNull('user_id');
+            })
+            ->whereIn('etat_rdv', ['en attente', 'à planifié'])
+            ->findOrFail($id_numerique);
+
+        // Vérifier si le programme est déjà effectué
+        if ($programme->etat_rdv === 'effectué') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible de modifier les articles d\'un programme déjà effectué'
+            ], 422);
+        }
+
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'sometimes|exists:programme_items,id',
+            'items.*.quantite_colis' => 'required|integer|min:1',
+            'items.*.service' => 'required|string|max:255',
+            'items.*.valeur_colis' => 'nullable|numeric|min:0',
+            'items.*.type_colis' => 'required|string|max:255',
+            'items.*.description_colis' => 'nullable|string',
+            'items.*.poids' => 'nullable|numeric|min:0',
+            'items.*.longueur' => 'nullable|numeric|min:0',
+            'items.*.largeur' => 'nullable|numeric|min:0',
+            'items.*.hauteur' => 'nullable|numeric|min:0',
+        ]);
+
+        $updatedItems = [];
+        $totalQuantite = 0;
+
+        // Mettre à jour ou créer les articles
+        foreach ($request->items as $itemData) {
+            if (isset($itemData['id'])) {
+                // Mettre à jour l'article existant
+                $item = ProgrammeItems::where('programme_id', $programme->id)
+                    ->where('id', $itemData['id'])
+                    ->first();
+
+                if ($item) {
+                    $item->update([
+                        'quantite_colis' => $itemData['quantite_colis'],
+                        'service' => $itemData['service'],
+                        'valeur_colis' => $itemData['valeur_colis'] ?? 0,
+                        'type_colis' => $itemData['type_colis'],
+                        'description_colis' => $itemData['description_colis'] ?? null,
+                        'poids' => $itemData['poids'] ?? 0,
+                        'longueur' => $itemData['longueur'] ?? 0,
+                        'largeur' => $itemData['largeur'] ?? 0,
+                        'hauteur' => $itemData['hauteur'] ?? 0,
+                    ]);
+                    $updatedItems[] = $item;
+                }
+            } else {
+                // Créer un nouvel article
+                $item = ProgrammeItems::create([
+                    'programme_id' => $programme->id,
+                    'quantite_colis' => $itemData['quantite_colis'],
+                    'service' => $itemData['service'],
+                    'valeur_colis' => $itemData['valeur_colis'] ?? 0,
+                    'type_colis' => $itemData['type_colis'],
+                    'description_colis' => $itemData['description_colis'] ?? null,
+                    'poids' => $itemData['poids'] ?? 0,
+                    'longueur' => $itemData['longueur'] ?? 0,
+                    'largeur' => $itemData['largeur'] ?? 0,
+                    'hauteur' => $itemData['hauteur'] ?? 0,
+                ]);
+                $updatedItems[] = $item;
+            }
+            
+            $totalQuantite += $itemData['quantite_colis'];
+        }
+
+        // Mettre à jour la quantité totale du programme
+        $programme->update(['quantite' => $totalQuantite]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Articles mis à jour avec succès',
+            'total_quantite' => $totalQuantite,
+            'items_count' => count($updatedItems)
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("❌ Erreur mise à jour articles: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur: ' . $e->getMessage()
+        ], 500);
+    }
+}
+// Nouvelle méthode pour gérer la mise à jour des articles
+private function updateProgrammeItemsData($programmeId, $itemsData)
+{
+    try {
+        $totalQuantite = 0;
+        $existingItemIds = [];
+
+        Log::info("📦 Début mise à jour articles pour programme: " . $programmeId);
+        Log::info("📦 Nombre d'articles reçus: " . count($itemsData));
+        Log::info("📦 Données complètes:", ['items' => $itemsData]);
+
+        foreach ($itemsData as $index => $itemData) {
+            Log::info("🔍 Traitement article index " . $index, ['item' => $itemData]);
+            
+            // Vérifier si c'est un nouvel article ou un article existant
+            $isNewItem = !isset($itemData['id']) || 
+                         is_null($itemData['id']) || 
+                         str_starts_with(strval($itemData['id']), 'new-');
+            
+            if (!$isNewItem) {
+                // Mettre à jour l'article existant
+                $item = ProgrammeItems::where('programme_id', $programmeId)
+                    ->where('id', $itemData['id'])
+                    ->first();
+
+                if ($item) {
+                    Log::info("🔄 Mise à jour article existant ID: " . $item->id);
+                    
+                    $updateData = [
+                        'quantite_colis' => $itemData['quantite_colis'] ?? 1,
+                        'service' => $itemData['service'] ?? 'Service non spécifié',
+                        'valeur_colis' => $itemData['valeur_colis'] ?? 0,
+                        'type_colis' => $itemData['type_colis'] ?? 'standard',
+                        'description_colis' => $itemData['description_colis'] ?? null,
+                        'poids' => $itemData['poids'] ?? 0,
+                        'longueur' => $itemData['longueur'] ?? 0,
+                        'largeur' => $itemData['largeur'] ?? 0,
+                        'hauteur' => $itemData['hauteur'] ?? 0,
+                    ];
+                    
+                    Log::info("📝 Données de mise à jour:", $updateData);
+                    $item->update($updateData);
+                    
+                    $existingItemIds[] = $item->id;
+                    $totalQuantite += $itemData['quantite_colis'] ?? 1;
+                    
+                    Log::info("✅ Article mis à jour avec succès: " . $item->id);
+                } else {
+                    Log::warning("⚠️ Article non trouvé pour mise à jour ID: " . $itemData['id']);
+                }
+            } else {
+                // Créer un nouvel article
+                Log::info("🆕 Création nouvel article pour programme: " . $programmeId);
+                
+                $createData = [
+                    'programme_id' => $programmeId,
+                    'quantite_colis' => $itemData['quantite_colis'] ?? 1,
+                    'service' => $itemData['service'] ?? 'Transport standard',
+                    'valeur_colis' => $itemData['valeur_colis'] ?? 0,
+                    'type_colis' => $itemData['type_colis'] ?? 'standard',
+                    'description_colis' => $itemData['description_colis'] ?? 'Nouvel article créé',
+                    'poids' => $itemData['poids'] ?? 0,
+                    'longueur' => $itemData['longueur'] ?? 0,
+                    'largeur' => $itemData['largeur'] ?? 0,
+                    'hauteur' => $itemData['hauteur'] ?? 0,
+                ];
+                
+                Log::info("📝 Données de création:", $createData);
+                $item = ProgrammeItems::create($createData);
+                
+                $existingItemIds[] = $item->id;
+                $totalQuantite += $itemData['quantite_colis'] ?? 1;
+                
+                Log::info("✅ Nouvel article créé ID: " . $item->id);
+            }
+        }
+
+        // Supprimer les articles qui n'existent plus
+        $itemsToDelete = ProgrammeItems::where('programme_id', $programmeId)
+            ->whereNotIn('id', $existingItemIds)
+            ->get();
+            
+        Log::info("🗑️ Articles à supprimer:", ['ids' => $itemsToDelete->pluck('id')->toArray()]);
+        
+        $deletedCount = ProgrammeItems::where('programme_id', $programmeId)
+            ->whereNotIn('id', $existingItemIds)
+            ->delete();
+
+        Log::info("🗑️ Nombre d'articles supprimés: " . $deletedCount);
+
+        // Mettre à jour la quantité totale du programme
+        Programme::where('id', $programmeId)->update(['quantite' => $totalQuantite]);
+
+        Log::info("📊 Quantité totale mise à jour: " . $totalQuantite);
+        Log::info("✅ Fin mise à jour articles - Total: " . count($existingItemIds) . " articles");
+
+        return $totalQuantite;
+
+    } catch (\Exception $e) {
+        Log::error("❌ Erreur dans updateProgrammeItemsData: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+        throw $e;
+    }
+}
+public function deleteProgrammeItem($programmeId, $itemId)
+{
+    try {
+        $programme = Programme::where(function($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('agence_id', 5)
+                      ->where('role', 'chauffeur');
+                })
+                ->orWhereNull('user_id');
+            })
+            ->whereIn('etat_rdv', ['en attente', 'à planifié'])
+            ->findOrFail($programmeId);
+
+        $item = ProgrammeItems::where('programme_id', $programme->id)
+            ->where('id', $itemId)
+            ->firstOrFail();
+
+        $item->delete();
+
+        // Recalculer la quantité totale
+        $totalQuantite = ProgrammeItems::where('programme_id', $programme->id)->sum('quantite_colis');
+        $programme->update(['quantite' => $totalQuantite]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Article supprimé avec succès',
+            'total_quantite' => $totalQuantite
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error("❌ Erreur suppression article: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression'
         ], 500);
     }
 }

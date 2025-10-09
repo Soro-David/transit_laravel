@@ -2,6 +2,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BilanController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\Customer\ClientFactureController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\customer\HController;
 use App\Http\Controllers\OrderController;
@@ -540,7 +541,9 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
             
             Route::get('/suivi-customer', [CustomerColisController::class,'suivi'])->name('suivi');
-            Route::get('/invoices', [CustomerColisController::class,'facture'])->name('facture');
+            Route::get('/invoices', [ClientFactureController::class, 'index'])->name('facture');
+            Route::get('/invoices/{reference}', [ClientFactureController::class, 'show'])->name('facture.show');
+            Route::get('/invoices/{reference}/pdf', [ClientFactureController::class, 'downloadPdf'])->name('facture.pdf');
             // Route::get('invoices/print/{invoice}', [CustomerColisController::class, 'print'])->name('invoices.print');
             Route::get('invoices/print/', [CustomerColisController::class, 'invoice'])->name('edit.invoice');
 
@@ -553,7 +556,7 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('/get-colis-suivi-customer',[CustomerColisController::class, 'get_colis_suivi'])->name('get.colis.suivi');
             Route::get('/get-colis-valide',[CustomerColisController::class, 'get_colis_valide'])->name('get.colis.valide');
             Route::get('/get-invoice',[CustomerColisController::class, 'get_facture'])->name('get.facture');
-            Route::get('/facture/pdf', [CustomerColisController::class, 'telechargerPdf'])->name('facture.pdf');
+        
 
     // route edit de paiement
             Route::get('/payment/{id}/edit', [CustomerColisController::class, 'edit_payement'])->name('payement.edit');
@@ -618,7 +621,7 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::post('/notification-markAsRead', [NavCustomerController::class, 'markAsRead'])->name('markAsRead');
 
         });
-    
+        
 });
 
 
@@ -840,48 +843,55 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/', [AgentLBTransportController::class, 'index'])->name('index'); 
         Route::get('/create-aft-louis-b', [AgentLBTransportController::class, 'create'])->name('create');
         Route::get('/show-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'show_chauffeur'])->name('show.chauffeur');
-         Route::get('/planing-chauffeur-aft-louis-b', [ProgrammeLBController::class, 'index'])->name('planing.chauffeur');
+        Route::get('/planing-chauffeur-aft-louis-b', [ProgrammeLBController::class, 'index'])->name('planing.chauffeur');
         Route::get('/reference.auto/{query}-aft-louis-b', [AgentLBTransportController::class, 'reference_auto'])->name('reference.auto');
-        // Nouvelles routes pour les programmes - CORRECTION ICI
-    Route::get('/programme-data-aft-louis-b', [ProgrammeLBController::class, 'data'])->name('programme.data');
-    Route::post('/programme-depot-aft-louis-b', [ProgrammeLBController::class, 'createDepot'])->name('programme.createDepot');
-    Route::get('/programme-edit/{id}-aft-louis-b', [ProgrammeLBController::class, 'edit'])->name('programme.edit');
-    Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
-    Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
-    Route::post('/programmer-devis/{reference}', [ProgrammeLBController::class, 'programmerDevis'])->name('aftlb_transport.programmer.devis');
-     // AJOUTEZ CETTE LIGNE - Route pour la création multiple
-     Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
-    Route::get('/programme-reference-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getReferenceInfo'])
-    ->name('programme.referenceInfo')
-    ->where('reference', '[a-zA-Z0-9\-]+'); // <-- Correction : Ajout de \- pour autoriser le tiret
-        // Route AJAX pour DataTables
+        
+        // Nouvelles routes pour les programmes
+        Route::get('/programme-data-aft-louis-b', [ProgrammeLBController::class, 'data'])->name('programme.data');
+        Route::post('/programme-depot-aft-louis-b', [ProgrammeLBController::class, 'createDepot'])->name('programme.createDepot');
+        Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
+        Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
+        Route::post('/programmer-devis/{reference}', [ProgrammeLBController::class, 'programmerDevis'])->name('programmer.devis');
+        
+        // Routes pour les opérations multiples
+        Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
+        Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
+        
+        // Route pour les informations de référence
+        Route::get('/programme-reference-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getReferenceInfo'])
+            ->name('programme.referenceInfo')
+            ->where('reference', '[a-zA-Z0-9\-]+');
+        
+        // Routes pour les devis
         Route::get('/ajout-devis', [ProgrammeLBController::class, 'ajoutDevis'])->name('ajoutDevis');
         Route::get('/ajout-devis-form', [ProgrammeLBController::class, 'add_devis'])->name('ajoutDevis.form');
         Route::post('/store-devis', [ProgrammeLBController::class, 'store_devis'])->name('store.devis');
-        Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])
-    ->name('aftlb_transport.programme.checkItems');
-   // Route::post('/programmer-devis/{reference}', [ProgrammeLBcontroller::class, 'programmerDevis'])->name('aftlb_transport.programmer.devis');
-    Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
-    Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
-    Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
-    Route::get('/programme-edit-page/{id}-aft-louis-b', [ProgrammeLBController::class, 'showEdit'])->name('programme.edit.page');
-    Route::put('/programme-update/{id}-aft-louis-b', [ProgrammeLBController::class, 'updateProgramme'])->name('programme.update');
-    Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroyProgramme'])->name('programme.destroy');
-       // CORRECTION : Cette route doit avoir le bon nom
-       Route::post('/programmer-devis/{reference}', [ProgrammeLBController::class, 'programmerDevis'])->name('programmer.devis');
-        Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         
+        // Routes pour la gestion des programmes
+        Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])->name('programme.checkItems');
+        Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
+        Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
+        
+        // CORRECTION : Routes pour l'édition des programmes et articles
+        Route::get('/programme-edit-page/{slug}', [ProgrammeLBController::class, 'showEdit'])->name('programme.edit.page');
+        Route::put('/programme-update/{id}-aft-louis-b', [ProgrammeLBController::class, 'updateProgramme'])->name('programme.update');
+        Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroyProgramme'])->name('programme.destroy');
+        
+        // CORRECTION : Routes pour la gestion des articles - SUPPRIMER 'aftlb_transport.' du nom
+        Route::put('/programme/{id}/items', [ProgrammeLBController::class, 'updateProgrammeItems'])->name('programme.updateItems');
+        Route::delete('/programme/{programmeId}/item/{itemId}', [ProgrammeLBController::class, 'deleteProgrammeItem'])->name('programme.deleteItem');
+        Route::put('/programme-update-items/{id}', [ProgrammeLBController::class, 'updateProgrammeItems'])->name('programme.updateItems');
         // Routes chauffeurs
+        Route::get('/chauffeur/data-aft-louis-b', [AgentLBTransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::post('/store-chauffeur-aft-louis-b', [AgentLBTransportController::class, 'store_chauffeur'])->name('store.chauffeur'); 
         Route::post('/store-planification-aft-louis-b', [AgentLBTransportController::class, 'store_plannification'])->name('store.plannification'); 
         Route::match(['get', 'post'], '/store', [AgentLBTransportController::class, 'store'])->name('store'); 
-    
+        
         // Routes CRUD chauffeurs
         Route::get('/chauffeurs/{id}/edit', [AgentLBTransportController::class, 'edit'])->name('edit');
         Route::put('/chauffeurs/{id}', [AgentLBTransportController::class, 'update'])->name('update');
         Route::delete('/chauffeurs/{id}', [AgentLBTransportController::class, 'destroy'])->name('destroy');
     });
-
     
     // Route::prefix('programme')->name('programme.')->group(function() {
     //     Route::get('/data-aft-louis-b', [ProgrammeLBController::class, 'data'])->name('data');
@@ -1449,7 +1459,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
             Route::put('/toggle-activation/{id}', [ChineController::class, 'toggleActivation'])->name('toggleActivation');
             Route::post('/send-message/{id}', [ChineController::class, 'sendMessageToClient'])->name('sendMessage');
             Route::post('/send-global-message', [ChineController::class, 'sendGlobalMessage'])->name('sendGlobalMessage');
-            Route::get('/edit/{id}', [AftControlChineControllerler::class, 'edit'])->name('edit');
+            // Route::get('/edit/{id}', [AftControlChineControllerler::class, 'edit'])->name('edit');
             Route::put('/update/{id}', [ChineController::class, 'update'])->name('update');
         });
     Route::prefix('chine_colis')->name('chine_colis.')->group(function(){

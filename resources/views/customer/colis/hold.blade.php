@@ -83,88 +83,106 @@
 </style>
 
 <script>
-$(document).ready(function() {
-    // CSRF pour AJAX
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
+    // Options d'affichage des agences (doit être défini AVANT la DataTable)
+    const agenceOptionsByMode = {
+        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
+        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
+    };
 
-    // Template d'URL pour la suppression (on génère l'URL via route nommée avec PLACEHOLDER)
-    var deleteUrlTemplate = "{{ route('customer_colis.devis.delete', ['reference' => 'PLACEHOLDER']) }}";
-
-    var table = $("#productTable").DataTable({
-        responsive: true,
-        language: {
-            url: "{{ asset('js/fr-FR.json') }}"
-        },
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("customer_colis.get.devis") }}',
-            type: 'GET',
-            error: function(xhr, error, thrown) {
-                console.error('Erreur AJAX:', error, thrown);
-                console.error('Réponse:', xhr.responseText);
-                alert('Erreur lors du chargement des données. Veuillez réessayer.');
-            }
-        },
-        columns: [
-            { data: 'reference', name: 'reference' },
-            { data: 'nombre_items', name: 'nombre_items' },
-            { data: 'agence_expedition', name: 'agence_expedition' },
-            { data: 'expediteur_nom_complet', name: 'expediteur_nom_complet' },
-            { data: 'tel_expediteur', name: 'tel_expediteur' },
-            { data: 'agence_destination', name: 'agence_destination' },
-            { data: 'etat', name: 'etat' },
-            { data: 'last_updated_at', name: 'last_updated_at' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
-        ],
-        initComplete: function() {
-            console.log('DataTable initialisé (devis)');
-        }
-    });
-
-    // Handler pour suppression (délégation event sur table)
-    $('#productTable').on('click', '.btn-delete-group', function(e) {
-        e.preventDefault();
-        var reference = $(this).data('reference');
-        if (!reference) {
-            alert('Référence introuvable.');
-            return;
-        }
-
-        if (!confirm('Êtes-vous sûr de vouloir supprimer le devis : ' + reference + ' ?')) {
-            return;
-        }
-
-        // Construire l'URL finale
-        var finalUrl = deleteUrlTemplate.replace('PLACEHOLDER', reference);
-
-        $.ajax({
-            url: finalUrl,
-            type: 'DELETE',
-            success: function(response) {
-                if (response.success && typeof response.success === 'string') {
-                    alert(response.success);
-                } else if (response.success === true) {
-                    alert('Devis supprimé avec succès.');
-                } else {
-                    // si message d'erreur fourni
-                    var msg = response.message || response.error || 'Suppression échouée.';
-                    alert(msg);
-                }
-                table.ajax.reload(null, false);
-            },
-            error: function(xhr) {
-                console.error('Erreur delete:', xhr);
-                var err = 'Erreur lors de la suppression du devis.';
-                if (xhr.responseJSON && xhr.responseJSON.message) err = xhr.responseJSON.message;
-                alert(err);
+    $(document).ready(function() {
+        // CSRF pour AJAX
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        // Template d'URL pour la suppression (on génère l'URL via route nommée avec PLACEHOLDER)
+        var deleteUrlTemplate = "{{ route('customer_colis.devis.delete', ['reference' => 'PLACEHOLDER']) }}";
+
+        var table = $("#productTable").DataTable({
+            responsive: true,
+            language: {
+                url: "{{ asset('js/fr-FR.json') }}"
+            },
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("customer_colis.get.devis") }}',
+                type: 'GET',
+                error: function(xhr, error, thrown) {
+                    console.error('Erreur AJAX:', error, thrown);
+                    console.error('Réponse:', xhr.responseText);
+                    alert('Erreur lors du chargement des données. Veuillez réessayer.');
+                }
+            },
+            columns: [
+                { data: 'reference', name: 'reference' },
+                { data: 'nombre_items', name: 'nombre_items' },
+                { data: 'agence_expedition', name: 'agence_expedition' },
+                { data: 'expediteur_nom_complet', name: 'expediteur_nom_complet' },
+                { data: 'tel_expediteur', name: 'tel_expediteur' },
+                {
+                    data: 'agence_destination',
+                    name: 'agence_destination',
+                    render: function (data, type, row) {
+                        // retourne le label correspondant à la valeur stockée en base
+                        if (!data) return ''; // pas de valeur
+                        // trouver la correspondance parmi les options
+                        var match = Object.values(agenceOptionsByMode).find(function(opt) {
+                            return opt.value === data;
+                        });
+                        return (match && match.label) ? match.label : data;
+                    }
+                },
+                { data: 'etat', name: 'etat' },
+                { data: 'last_updated_at', name: 'last_updated_at' },
+                { data: 'action', name: 'action', orderable: false, searchable: false }
+            ],
+            initComplete: function() {
+                console.log('DataTable initialisé (devis)');
+            }
+        });
+
+        // Handler pour suppression (délégation event sur table)
+        $('#productTable').on('click', '.btn-delete-group', function(e) {
+            e.preventDefault();
+            var reference = $(this).data('reference');
+            if (!reference) {
+                alert('Référence introuvable.');
+                return;
+            }
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer le devis : ' + reference + ' ?')) {
+                return;
+            }
+
+            // Construire l'URL finale
+            var finalUrl = deleteUrlTemplate.replace('PLACEHOLDER', reference);
+
+            $.ajax({
+                url: finalUrl,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response && (response.success === true || typeof response.success === 'string')) {
+                        var msg = (typeof response.success === 'string') ? response.success : (response.message || 'Devis supprimé avec succès.');
+                        alert(msg);
+                    } else {
+                        // si message d'erreur fourni
+                        var msg = (response && (response.message || response.error)) || 'Suppression échouée.';
+                        alert(msg);
+                    }
+                    table.ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    console.error('Erreur delete:', xhr);
+                    var err = 'Erreur lors de la suppression du devis.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) err = xhr.responseJSON.message;
+                    alert(err);
+                }
+            });
+        });
     });
-});
 </script>
+
 @endsection

@@ -448,29 +448,40 @@ $(document).ready(function() {
     }
     
     programmes.forEach(p => {
+        // VÉRIFICATION DE SÉCURITÉ - éviter les erreurs si p est null/undefined
+        if (!p) return;
+        
         const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : 'N/A';
+        const reference = p.reference_a_afficher || p.reference_generee || p.reference_colis || 'N/A';
+        const quantite = p.quantite || 1;
+        const nature = p.nature_du_colis || 'N/A';
+        const expediteur = p.nom_expediteur || 'N/A';
+        const tel = p.tel_expediteur || 'N/A';
+        const lieu = p.lieu_expedition || 'N/A';
+        const etat = p.etat_rdv || 'N/A';
+        
         tableBody.append(`
-            <tr class="${p.etat_rdv === 'effectué' ? 'table-success' : p.etat_rdv === 'à planifié' ? 'table-warning' : ''}">
-                <td>${p.quantite || 1}</td>
+            <tr class="${etat === 'effectué' ? 'table-success' : etat === 'à planifié' ? 'table-warning' : ''}">
+                <td>${quantite}</td>
                 <td>
                     <span class="badge ${getActionBadgeClass(p.actions_a_faire)}">
                         ${getActionText(p.actions_a_faire)}
                     </span>
                 </td>
-                <td>${p.reference_a_afficher || 'N/A'}</td>
-                <td>${p.nature_du_colis || 'N/A'}</td>
-                <td>${p.nom_expediteur || 'N/A'}</td>
-                <td>${p.tel_expediteur || 'N/A'}</td>
-                <td>${p.lieu_expedition || 'N/A'}</td>
+                <td>${reference}</td>
+                <td>${nature}</td>
+                <td>${expediteur}</td>
+                <td>${tel}</td>
+                <td>${lieu}</td>
                 <td>${user}</td>
                 <td>
-                    <span class="badge ${getEtatBadgeClass(p.etat_rdv)}">
-                        ${p.etat_rdv || 'N/A'}
+                    <span class="badge ${getEtatBadgeClass(etat)}">
+                        ${etat}
                     </span>
                 </td>
                 <td>
-                    ${p.etat_rdv !== 'effectué' ? 
-                        `<a href="/aftlb_transport/programme-edit-page/${p.id}-aft-louis-b" class="btn btn-sm btn-info edit-programme-btn" data-id="${p.id}">
+                    ${etat !== 'effectué' ? 
+                       `<a href="{{ route('aftlb_transport.programme.edit.page', '') }}/${p.id}-aft-louis-b" class="btn btn-sm btn-info edit-programme-btn" data-id="${p.id}">
                             <i class="fas fa-edit"></i> Modifier
                          </a>
                          <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${p.id}">
@@ -488,8 +499,8 @@ $(document).ready(function() {
             </tr>
         `);
     });
-}
-    function updateTable() {
+}  
+ function updateTable() {
         const filtered = filterProgrammes();
         const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
         generateTable(paginated);
@@ -1151,7 +1162,8 @@ function addProgramme() {
 
     $('#programmes-container').append(template);
 }
-    function initApp() {
+function initApp() {
+    // DÉFINIR pContainer AVANT DE L'UTILISER
     const pContainer = $('#programmes-container');
 
     // Tableau principal
@@ -1167,11 +1179,13 @@ function addProgramme() {
         currentPage = parseInt($(this).data('page'));
         updateTable();
     });
-       // NOUVEL ÉVÉNEMENT pour le filtre d'action
-       $('#actionFilter').on('change', function() {
-            currentPage = 1; // Retour à la première page
-            updateTable();
-        });
+    
+    // NOUVEL ÉVÉNEMENT pour le filtre d'action
+    $('#actionFilter').on('change', function() {
+        currentPage = 1; // Retour à la première page
+        updateTable();
+    });
+    
     // Initialiser les modales
     initDepotModal();
     initRecuperationModal(); // Cette fonction inclut maintenant initReferenceHandling()
@@ -1626,20 +1640,22 @@ $(document).on('click', '.delete-programme-btn', function() {
     });
 });
     // --- Fonctions utilitaires rapides ---
-    function getActionBadgeClass(a) { 
-        return { 
-            depot: 'badge-success', 
-            recuperation: 'badge-warning',
-            livraison: 'badge-info'
-        }[a] || 'badge-secondary'; 
-    }
-    function getActionText(a) { 
-        return { 
-            depot: 'DÉPÔT', 
-            recuperation: 'RÉCUPÉRATION',
-            livraison: 'LIVRAISON'
-        }[a] || a; 
-    }
+    function getActionBadgeClass(action) {
+    const classes = {
+        'depot': 'badge-success',
+        'recuperation': 'badge-warning',
+        'livraison': 'badge-info'
+    };
+    return classes[action] || 'badge-secondary';
+}
+function getActionText(action) {
+    const texts = {
+        'depot': 'DÉPÔT',
+        'recuperation': 'RÉCUPÉRATION',
+        'livraison': 'LIVRAISON'
+    };
+    return texts[action] || action;
+}
  // Fonction de filtrage des données
  function filterProgrammes() {
     const searchTerm = $('#search').val().toLowerCase();
@@ -1668,13 +1684,14 @@ $(document).on('click', '.delete-programme-btn', function() {
     
     return filtered;
 }
-    function getEtatBadgeClass(e) { 
-    return { 
-        'effectué': 'badge-success', 
+function getEtatBadgeClass(etat) {
+    const classes = {
+        'effectué': 'badge-success',
         'en attente': 'badge-warning',
         'à planifié': 'badge-info',
         'programmé': 'badge-primary'
-    }[e] || 'badge-secondary'; 
+    };
+    return classes[etat] || 'badge-secondary';
 }
 });
 </script>
