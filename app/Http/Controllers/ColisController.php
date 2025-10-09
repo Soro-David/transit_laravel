@@ -885,7 +885,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
     $dernierColis = DB::table('colis')
         ->where('mode_transit', $mode_transit)
         ->where('agence', $agence)
-        ->orderByDesc('created_at')
+        ->orderByDesc('id')
         ->first();
 
     // Si aucun colis n'existe, on prend directement la référence passée
@@ -906,7 +906,6 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
             $lastColis = DB::table('colis')
                 ->where('mode_transit', $mode_transit)
                 ->where('agence', $agence)
-                ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->first();
 

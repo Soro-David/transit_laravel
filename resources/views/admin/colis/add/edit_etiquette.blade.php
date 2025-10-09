@@ -188,6 +188,7 @@
                 $dest = $colisItem->destinataire;
                 $exp  = $colisItem->expediteur;
                 $qr   = $colisItem->qr_code_path;
+                $type_colis   = $colisItem->type_colis;
             @endphp
 
             <<div class="etiquette-page last-page">
@@ -262,7 +263,7 @@
                                     @endif
                                     <span class="reference-number">{{ $colisItem->reference_colis }}</span>
                                 </div>
-                                <div class="type-colis-info">{{ $colisItem->service }}</div>
+                                <div class="type-colis-info">{{ $colisItem->type_colis }}</div>
                             </td>
                            <td class="count-cell">
                                 <span class="counter-text">{{ $loop->iteration }} / {{ $colis_collection->count() }}</span>

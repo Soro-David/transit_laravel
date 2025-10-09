@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <title>Étiquettes Colis AFT</title>
     <style>
-                .bw-logo {
-            filter: grayscale(100%) contrast(150%);
-        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -177,7 +174,11 @@
 
         .etiquette-page:not(.last-page) {
             page-break-after: always !important;
-}
+        }
+
+        .bw-logo {
+            filter: grayscale(100%) contrast(150%);
+        }
     </style>
 </head>
 <body>
@@ -187,9 +188,10 @@
                 $dest = $colisItem->destinataire;
                 $exp  = $colisItem->expediteur;
                 $qr   = $colisItem->qr_code_path;
+                $type_colis   = $colisItem->type_colis;
             @endphp
 
-            <div class="etiquette-page last-page">
+            <<div class="etiquette-page last-page">
                 <div class="etiquette-content">
                     <div class="etiquette-header">
                         A F T   I M P O R T   E X P O R T
@@ -245,7 +247,7 @@
                                 </td>
                                 <td class="exp-cell">
                                     <span>{{ optional($exp)->nom }} {{ optional($exp)->prenom }}</span><br>
-                                    <span class="sub-info">{{ optional($exp)->tel ? str_replace([' ', '-'], '', $exp->tel) : 'N/A' }}</span>
+                                    {{-- <span class="sub-info">{{ optional($exp)->tel ? str_replace([' ', '-'], '', $exp->tel) : 'N/A' }}</span> --}}
                                 </td>
                             </tr>
                         </tbody>
@@ -261,10 +263,9 @@
                                     @endif
                                     <span class="reference-number">{{ $colisItem->reference_colis }}</span>
                                 </div>
-                                <div class="type-colis-info">{{ $colisItem->service }}</div>
-                                
+                                <div class="type-colis-info">{{ $colisItem->type_colis }}</div>
                             </td>
-                            <td class="count-cell">
+                           <td class="count-cell">
                                 <span class="counter-text">{{ $loop->iteration }} / {{ $colis_collection->count() }}</span>
                                 <span class="destination-text">
                                     @php
@@ -280,6 +281,7 @@
                                     @endif
                                 </span>
                             </td>
+
                         </tr>
                     </table>
                 </div>

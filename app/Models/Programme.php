@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany; // <-- Ajouter cet import
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\ProgrammeItems;
 
 class Programme extends Model
 {
@@ -15,10 +16,7 @@ class Programme extends Model
         'quantite',
         'date_programme',
         'user_id',
-<<<<<<< HEAD
-=======
         'agent_id',
->>>>>>> 1736db80f62dd93f0a6fd4ff25c7ddb7b3671b2f
         'reference_colis',
         'reference_generee',
         'type_reference',
@@ -78,6 +76,7 @@ class Programme extends Model
  // Relation avec ProgrammeItem
  public function programmeItems()
  {
-     return $this->hasMany(ProgrammeItem::class, 'programme_id');
+     return $this->hasMany(ProgrammeItems::class, 'programme_id');
  }
+ 
 }

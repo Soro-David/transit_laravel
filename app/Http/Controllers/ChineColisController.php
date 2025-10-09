@@ -283,12 +283,10 @@ private function generateReferenceParMode(string $mode_transit)
     $dernierColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('agence', $agence)
-            ->orderByDesc('created_at')
             ->orderByDesc('id') 
             ->first();
 
 
-        // dd($dernierColis);
     if ($dernierColis && $dernierColis->etat === 'Fermé') {
         // Si le dernier est fermé => reset
         $nextIdRef = 1;
@@ -297,8 +295,7 @@ private function generateReferenceParMode(string $mode_transit)
         $lastColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('agence', $agence)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id') // sécurité en cas d’égalité de dates
+            ->orderByDesc('id')
             ->first();
 
         $lastIdRef = $lastColis ? $lastColis->id_reference : null;
@@ -332,6 +329,7 @@ private function generateReferenceParMode(string $mode_transit)
     $contenaireRef = is_array($contenaireRef) ? ($contenaireRef[0] ?? 'UNKNOWN') : $contenaireRef;
     $reference = "{$initiales}-{$numero}-{$contenaireRef}";
 
+
     return [
         'reference_colis' => $reference,
         'id_reference' => $nextIdRef,
@@ -361,6 +359,7 @@ private function generateReferenceParMode(string $mode_transit)
         // Génère juste les références, sans enregistrer encore dans la base
         // $referenceColis = $this->generateReferenceParMode();
         $referenceColis_maritime = $this->generateReferenceParMode('maritime');
+
         $referenceColis_aerien = $this->generateReferenceParMode('aerien');
         // dd($referenceColis);
         return view('AGENCE_CHINE.colis.add_colis', compact(
@@ -674,6 +673,7 @@ public function vol_fermer(Request $request)
         } elseif ($modePaiement) { // Ex: CinetPay, Virement, etc.
             $montantPaiementTransaction = $montantTotalEstime;
         }
+        // dd($montantTotalEstime, $montantPaiementTransaction);
 
         // Détermination du statut global du paiement
         $statutPaiementGlobal = 'non payé';
@@ -730,7 +730,7 @@ public function vol_fermer(Request $request)
         $dernierColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
             ->where('agence', $agence)
-            ->orderByDesc('created_at') // Le colis le plus récent
+            ->orderByDesc('id')
             ->first();
 
         if (!$dernierColis) {
@@ -744,10 +744,10 @@ public function vol_fermer(Request $request)
             // Condition pour continuer le conteneur existant :
             // 1. L'état du dernier colis n'est PAS 'Fermé'.
             // 2. La référence fournie par l'utilisateur est IDENTIQUE à la référence du dernier colis.
-            if (isset($dernierColis->etat) && $dernierColis->etat !== 'Fermé' && $reference_colis_fournie === $dernierColis->reference_colis) {
+            if (isset($dernierColis->etat) && $dernierColis->etat !== 'Fermé' && $reference_colis_fournie !== $dernierColis->reference_colis) {
                 // Scénario 2.1: Le conteneur précédent est ouvert et l'utilisateur veut continuer le même conteneur.
                 // On utilise la référence existante du dernier colis.
-                $referenceColisPrincipale = $dernierColis->reference_colis;
+                $referenceColisPrincipale = $reference_colis_fournie;
 
                 // On doit trouver le plus grand 'id_reference' pour CE conteneur spécifique
                 // pour s'assurer de ne pas avoir de doublons et d'incrémenter correctement.
@@ -791,6 +791,7 @@ public function vol_fermer(Request $request)
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
             $prixUnitairePourCetteLigne = (float)($data['prix'][$index] ?? 0);
+        // dd( $agence,$reference_colis_fournie);
         
             // Créer un colis pour chaque unité physique de la quantité spécifiée
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
@@ -798,7 +799,6 @@ public function vol_fermer(Request $request)
                     'reference_colis' => $referenceColisPrincipale,
                     'id_reference' => $id_reference_next_available, // Utilise l'ID de référence actuel
                     'agence' => $agence,
-                    'agence' => 'FCFA',
                     'quantite_colis' => 1, // Chaque enregistrement représente un colis physique unique
                     'service' => $data['service'][$index] ?? null,
                     'montant_service' => $data['prix_service'][$index] ?? null,
@@ -828,7 +828,7 @@ public function vol_fermer(Request $request)
                     // Génération du QR Code pour ce colis individuel
                     $qrData = [
                         'ID' => $colisModel->id,
-                        'Ref' => $colisModel->reference_colis . '-' . $colisModel->id_reference, // Utilise l'id_reference du modèle créé
+                        'Ref' => $colisModel->reference_colis,
                         'Etat' => $colisModel->etat,
                         'Exp' => optional($expediteur)->nom,
                         'Dest' => optional($destinataire)->nom . '/' . optional($destinataire)->tel,
@@ -851,7 +851,7 @@ public function vol_fermer(Request $request)
                     $colisModel->update(['qr_code_path' => $filePath]);
                     $colisEnregistres[] = $colisModel->fresh();
 
-                    $id_reference_next_available++; // Incrémenter pour le prochain colis physique
+                    // $id_reference_next_available++;
                 } catch (\Exception $e) {
                     Log::error("Erreur création colis/QR: " . $e->getMessage(), ['data' => $colisItemData]);
                     $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, ID interne: {$id_reference_next_available}).";
@@ -1394,6 +1394,7 @@ public function vol_fermer(Request $request)
         $colisPourEtiquettes = Colis::where('reference_colis', $reference_colis)
                                    ->with(['expediteur', 'destinataire']) // Charger les relations
                                    ->get(); // Important: ->get() pour avoir une collection
+        // dd($colisPourEtiquettes);
     
         if ($colisPourEtiquettes->isEmpty()) {
             // Cela ne devrait pas arriver si $colisInitial a été trouvé, mais c'est une sécurité

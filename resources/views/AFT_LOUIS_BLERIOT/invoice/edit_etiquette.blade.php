@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <title>Étiquettes Colis AFT</title>
     <style>
-                .bw-logo {
-            filter: grayscale(100%) contrast(150%);
-        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -178,6 +175,10 @@
         .etiquette-page:not(.last-page) {
             page-break-after: always !important;
         }
+
+        .bw-logo {
+            filter: grayscale(100%) contrast(150%);
+        }
     </style>
 </head>
 <body>
@@ -187,6 +188,7 @@
                 $dest = $colisItem->destinataire;
                 $exp  = $colisItem->expediteur;
                 $qr   = $colisItem->qr_code_path;
+                $type_colis   = $colisItem->type_colis;
             @endphp
 
             <<div class="etiquette-page last-page">
@@ -261,12 +263,25 @@
                                     @endif
                                     <span class="reference-number">{{ $colisItem->reference_colis }}</span>
                                 </div>
-                                <div class="type-colis-info">{{ $colisItem->service }}</div>
+                                <div class="type-colis-info">{{ $colisItem->type_colis }}</div>
                             </td>
-                            <td class="count-cell">
+                           <td class="count-cell">
                                 <span class="counter-text">{{ $loop->iteration }} / {{ $colis_collection->count() }}</span>
-                                <span class="destination-text">{{ $colisItem->destination_agence ?? optional($dest)->agence }}</span>
+                                <span class="destination-text">
+                                    @php
+                                        $agence = $colisItem->destination_agence ?? optional($dest)->agence;
+                                    @endphp
+
+                                    @if($agence === 'IPMS-SIMEX-CI')
+                                        DS Translog Carrefour Angré
+                                    @elseif($agence === 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                                        DS Translog Angré 8ème Tranche
+                                    @else
+                                        {{ $agence }}
+                                    @endif
+                                </span>
                             </td>
+
                         </tr>
                     </table>
                 </div>

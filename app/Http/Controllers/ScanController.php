@@ -464,7 +464,6 @@ public function updateColisEntrepot(Request $request)
 
 public function updateColisCharge(Request $request)
 {
-    // --- 1. Vérification des paramètres obligatoires ---
     if (!$request->has('colisId') || !$request->has('id')) {
         $missingParams = [];
         if (!$request->has('colisId')) {
@@ -492,7 +491,6 @@ public function updateColisCharge(Request $request)
         ], 404);
     }
 
-    // --- 3. Mise à jour des colis trouvés ---
     $messages = [];
     $updatedColis = [];
 
@@ -511,21 +509,18 @@ public function updateColisCharge(Request $request)
                 'nouvel_etat'  => $colis->etat,
             ];
 
-            // dd($updatedColis);
             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis à jour en 'Chargé' avec succès.";
         } else {
             $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est dans l'état {$colis->etat} et n'a pas été modifié.";
         }
     }
     
-    // --- 4. Réponse finale JSON ---
     return response()->json([
         'success'  => !empty($updatedColis),
         'messages' => $messages,
         'colis'    => $updatedColis,
     ]);
 }
-
 
 
 public function updateColisDecharge(Request $request)

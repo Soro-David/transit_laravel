@@ -42,7 +42,7 @@ class ProgrammeLBController extends Controller
      */
     public function data()
     {
-        // Récupération des chauffeurs (existant)
+        // Récupération des chauffeurs
         $rawChauffeurs = User::where('agence_id', 5)
             ->where('role', 'chauffeur')
             ->where('is_active', true)
@@ -58,35 +58,36 @@ class ProgrammeLBController extends Controller
             ];
         })->values();
     
-        // Récupération des programmes (CORRIGÉ ICI)
+        // Récupération des programmes (INCLUANT "à planifié")
         $programmes = Programme::with(['user', 'devis'])
-            ->whereHas('user', function ($query) {
-                $query->where('agence_id', 5)
+            ->where(function($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('agence_id', 5)
                       ->where('role', 'chauffeur');
+                })->orWhereNull('user_id'); // Inclure les programmes sans chauffeur (à planifié)
             })
-            ->orderByDesc('date_programme')
+            ->orderByDesc('created_at')
             ->get()
             ->map(function ($programme) {
                 // Déterminer la référence à afficher
                 $programme->reference_a_afficher = $programme->reference_generee ?: $programme->reference_colis;
-
+    
                 // S'assurer que les données utilisateur sont bien formatées
                 if ($programme->user) {
                     $first = $programme->user->first_name ?? $programme->user->nom ?? '';
                     $last = $programme->user->last_name ?? $programme->user->prenom ?? '';
                     $programme->user->full_name = trim($first . ' ' . $last);
                 }
-
-                // **LA LIGNE LA PLUS IMPORTANTE : RETOURNER L'OBJET MODIFIÉ**
-                return $programme; 
+    
+                return $programme;
             });
     
-        // NOUVELLE LOGIQUE: Récupérer les références de devis confirmés
+        // Récupérer les références de devis confirmés
         $devisConfirmes = Devis::where('etat', 'confirmé')
             ->whereNotIn('reference', Programme::pluck('reference_colis')->toArray())
             ->pluck('reference');
     
-        // Récupérer les références de dépôts disponibles pour récupération (existant)
+        // Récupérer les références de dépôts disponibles pour récupération
         $depotsPourRecuperation = Programme::where('actions_a_faire', 'depot')
             ->where('etat_rdv', 'effectué')
             ->whereNotNull('reference_generee')
@@ -95,12 +96,12 @@ class ProgrammeLBController extends Controller
     
         $response = [
             'chauffeurs' => $chauffeurs,
-            'programmes' => $programmes, // Ce tableau ne sera plus vide
+            'programmes' => $programmes,
             'devisReferences' => $devisConfirmes,
             'depotsPourRecuperation' => $depotsPourRecuperation,
             'debug_info' => [
                 'chauffeurs_count' => $chauffeurs->count(),
-                'programmes_count' => $programmes->count(), // Pour vérifier
+                'programmes_count' => $programmes->count(),
                 'devis_count' => $devisConfirmes->count(),
                 'depots_recuperables_count' => $depotsPourRecuperation->count(),
                 'timestamp' => now()->toDateTimeString()
@@ -1154,7 +1155,23 @@ public function createMultipleRecuperation(Request $request)
                     $failedCount++;
                     continue;
                 }
-
+// Dans createMultipleRecuperation, après la vérification des doublons
+if ($typeReference === 'devis') {
+    // Vérifier si le devis existe et est à planifié
+    $devisProgramme = Programme::where('reference_colis', $referenceColis)
+        ->where('actions_a_faire', 'recuperation')
+        ->where('etat_rdv', 'à planifié')
+        ->first();
+        
+    if ($devisProgramme) {
+        $details[] = [
+            'reference' => $referenceGeneree,
+            'status' => '❌ Cette référence existe déjà avec état "à planifié". Veuillez la programmer d\'abord.'
+        ];
+        $failedCount++;
+        continue;
+    }
+}
                 // Vérification supplémentaire pour les devis
                 if ($typeReference === 'devis') {
                     $existingDevisRecuperation = Programme::where('reference_colis', $referenceColis)

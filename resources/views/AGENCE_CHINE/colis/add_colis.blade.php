@@ -1,5 +1,4 @@
 @extends('AGENCE_CHINE.layouts.agent')
-
 @section('content-header')
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -34,7 +33,7 @@
         </div>
 
         <!-- Étape 1 : Informations transport -->
-        <fieldset id="transport-fieldset">
+        <fieldset>
             <h5 class="text-center mb-4 mt-5">Informations sur le mode de transport</h5>
             <div class="form-section">
                 <div class="row">
@@ -46,34 +45,27 @@
                             <option value="aerien">Aérien</option>
                         </select>
                     </div>
-
                     <div class="col-md-4 mb-3">
                         <label for="agence_expediteur" class="form-label">Agence d'expédition</label>
-                        <input type="text" name="agence_expediteur" id="agence_expediteur" class="form-control"
-                            value="{{ $agencesExpedition->first()->nom_agence ?? '' }}" readonly>
+                        <input type="text" name="agence_expediteur" id="agence_expediteur" class="form-control" value="{{ $agencesExpedition->first()->nom_agence ?? '' }}" readonly>
                     </div>
-
                     <div class="col-md-4 mb-3">
                         <label for="agence_destinataire" class="form-label">Agence de destination</label>
-                        <select name="agence_destinataire" id="agence_destinataire" class="form-control"></select>
+                        <select name="agence_destinataire" id="agence_destinataire" class="form-control">
+                        </select>
                     </div>
-
                     <div class="col-md-6" id="ref_maritime" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Maritime)</label>
-                            <input type="text" name="reference_colis_maritime" class="form-control"
-                                value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_maritime" class="form-control" value="{{ $referenceColis_maritime['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
-
                     <div class="col-md-6" id="ref_aerien" style="display: none;">
                         <div class="mb-3">
                             <label class="form-label">Référence (Aérien)</label>
-                            <input type="text" name="reference_colis_aerien" class="form-control"
-                                value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
+                            <input type="text" name="reference_colis_aerien" class="form-control" value="{{ $referenceColis_aerien['reference_colis'] ?? '' }}" readonly>
                         </div>
                     </div>
-
 
                 </div>
             </div>
@@ -130,10 +122,155 @@
                         <div class="col-md-4 mb-3"><label for="nom_destinataire" class="form-label">Nom</label><input type="text" name="nom_destinataire" id="nom_destinataire" class="form-control"></div>
                         <div class="col-md-4 mb-3"><label for="prenom_destinataire" class="form-label">Prénom</label><input type="text" name="prenom_destinataire" id="prenom_destinataire" class="form-control"></div>
                         <div class="col-md-4 mb-3"><label for="email_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire" id="email_destinataire" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_particulier" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_particulier" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire_particulier" class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_particulier" class="form-control" required>
+                                <option value="">-- Sélectionnez une commune ou un quartier --</option>
+                                <option value="Pas de livraison">Pas de Livraison</option>
+
+                                <!-- 🌆 ABIDJAN CENTRE -->
+                                <optgroup label="Abobo">
+                                    <option value="Abobo Avocatier">Avocatier</option>
+                                    <option value="Abobo Baoulé">Baoulé</option>
+                                    <option value="Abobo PK18">PK18</option>
+                                    <option value="Abobo Banco">Banco</option>
+                                    <option value="Abobo Kennedy">Kennedy</option>
+                                    <option value="Abobo Belleville">Belleville</option>
+                                    <option value="Abobo Sagbé">Sagb&eacute;</option>
+                                    <option value="Abobo N’Dotré">N’Dotré</option>
+                                    <option value="Abobo SOS">SOS</option>
+                                    <option value="Abobo Derrière Rail">Derrière Rail</option>
+                                    <option value="Abobo Anador">Anador</option>
+                                    <option value="Abobo Clouetcha">Clouetcha</option>
+                                    <option value="Abobo Gagnoa Gare">Gagnoa Gare</option>
+                                </optgroup>
+
+                                <optgroup label="Adjamé">
+                                    <option value="Adjamé Liberté">Liberté</option>
+                                    <option value="Adjamé Bracodi">Bracodi</option>
+                                    <option value="Adjamé Williamsville">Williamsville</option>
+                                    <option value="Adjamé Camp Commandant">Camp Commandant</option>
+                                    <option value="Adjamé Indénié">Indénié</option>
+                                    <option value="Adjamé 220 Logements">220 Logements</option>
+                                </optgroup>
+
+                                <optgroup label="Attécoubé">
+                                    <option value="Attécoubé Santé">Santé</option>
+                                    <option value="Attécoubé Mossikro">Mossikro</option>
+                                    <option value="Attécoubé Abobo Doumé">Abobo Doumé</option>
+                                    <option value="Attécoubé Toit Rouge">Toit Rouge</option>
+                                    <option value="Attécoubé Djibi">Djibi</option>
+                                </optgroup>
+
+                                <optgroup label="Cocody">
+                                    <option value="Cocody Deux Plateaux">Deux Plateaux</option>
+                                    <option value="Cocody Angré">Angré</option>
+                                    <option value="Cocody Riviera 1">Riviera 1</option>
+                                    <option value="Cocody Riviera 2">Riviera 2</option>
+                                    <option value="Cocody Riviera 3">Riviera 3</option>
+                                    <option value="Cocody Riviera 4">Riviera 4</option>
+                                    <option value="Cocody Riviera Bonoumin">Riviera Bonoumin</option>
+                                    <option value="Cocody Riviera Palmeraie">Riviera Palmeraie</option>
+                                    <option value="Cocody Riviera Golf">Riviera Golf</option>
+                                    <option value="Cocody 7e Tranche">7e Tranche</option>
+                                    <option value="Cocody Blockhaus">Blockhaus</option>
+                                    <option value="Cocody Danga">Danga</option>
+                                    <option value="Cocody M’Badon">M’Badon</option>
+                                    <option value="Cocody Ambassades">Ambassades</option>
+                                </optgroup>
+
+                                <optgroup label="Koumassi">
+                                    <option value="Koumassi Campement">Campement</option>
+                                    <option value="Koumassi Remblais">Remblais</option>
+                                    <option value="Koumassi Sopim">Sopim</option>
+                                    <option value="Koumassi Divo">Divo</option>
+                                    <option value="Koumassi Sicogi">Sicogi</option>
+                                    <option value="Koumassi Prodomo">Prodomo</option>
+                                </optgroup>
+
+                                <optgroup label="Marcory">
+                                    <option value="Marcory Zone 4">Zone 4</option>
+                                    <option value="Marcory Biétry">Biétry</option>
+                                    <option value="Marcory Résidentiel">Résidentiel</option>
+                                    <option value="Marcory Poto-Poto">Poto-Poto</option>
+                                    <option value="Marcory Konan Raphael">Konan Raphael</option>
+                                </optgroup>
+
+                                <optgroup label="Le Plateau">
+                                    <option value="Plateau Administratif">Administratif</option>
+                                    <option value="Plateau Cité Financière">Cité Financière</option>
+                                    <option value="Plateau Indénié">Indénié</option>
+                                </optgroup>
+
+                                <optgroup label="Port-Bouët">
+                                    <option value="Port-Bouët Vridi">Vridi</option>
+                                    <option value="Port-Bouët Gonzagueville">Gonzagueville</option>
+                                    <option value="Port-Bouët Aéroport">Aéroport</option>
+                                    <option value="Port-Bouët Petit Bassam">Petit Bassam</option>
+                                    <option value="Port-Bouët Port">Port</option>
+                                </optgroup>
+
+                                <optgroup label="Treichville">
+                                    <option value="Treichville Avenue 16">Avenue 16</option>
+                                    <option value="Treichville Zone 3">Zone 3</option>
+                                    <option value="Treichville Rue 12">Rue 12</option>
+                                    <option value="Treichville Rue 21">Rue 21</option>
+                                    <option value="Treichville Biafra">Biafra</option>
+                                </optgroup>
+
+                                <optgroup label="Yopougon">
+                                    <option value="Yopougon Toits Rouges">Toits Rouges</option>
+                                    <option value="Yopougon Niangon">Niangon</option>
+                                    <option value="Yopougon Sideci">Sideci</option>
+                                    <option value="Yopougon Maroc">Maroc</option>
+                                    <option value="Yopougon Kouté">Kouté</option>
+                                    <option value="Yopougon Andokoi">Andokoi</option>
+                                    <option value="Yopougon Gesco">Gesco</option>
+                                    <option value="Yopougon Siporex">Siporex</option>
+                                    <option value="Yopougon Selmer">Selmer</option>
+                                    <option value="Yopougon Banco">Banco</option>
+                                </optgroup>
+
+                                <!-- 🌍 COMMUNES PÉRIPHÉRIQUES -->
+                                <optgroup label="Anyama">
+                                    <option value="Anyama Centre">Centre</option>
+                                    <option value="Anyama Akoupé Zeudji">Akoupé Zeudji</option>
+                                    <option value="Anyama Ebimpé">Ebimpé</option>
+                                    <option value="Anyama Ahouabo">Ahouabo</option>
+                                </optgroup>
+
+                                <optgroup label="Bingerville">
+                                    <option value="Bingerville Centre">Centre</option>
+                                    <option value="Bingerville Adjamé Bingerville">Adjamé Bingerville</option>
+                                    <option value="Bingerville Akandjé">Akandjé</option>
+                                    <option value="Bingerville M’Pouto">M’Pouto</option>
+                                    <option value="Bingerville Eloka">Eloka</option>
+                                </optgroup>
+
+                                <optgroup label="Songon">
+                                    <option value="Songon Kassemblé">Kassemblé</option>
+                                    <option value="Songon Dagbé">Dagbé</option>
+                                    <option value="Songon M’Braté">M’Braté</option>
+                                    <option value="Songon Agban">Agban</option>
+                                </optgroup>
+
+                                <optgroup label="Brofodoumé">
+                                    <option value="Brofodoumé Centre">Centre</option>
+                                    <option value="Brofodoumé M’Bédo">M’Bédo</option>
+                                    <option value="Brofodoumé Akouai-Santé">Akouai-Santé</option>
+                                </optgroup>
+                            </select>
+                        </div>                        
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Téléphone</label>
-                            <div class="input-group"><select name="country_code_particulier" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire" class="form-control" placeholder="Ex: 0123456789"></div>
+                            <div class="input-group">
+                                <select name="country_code_particulier" class="input-group-text">
+                                    <option value="+33">FR (+33)</option>
+                                    <option value="+225">CI (+225)</option>
+                                    <option value="+86">CN (+86)</option>
+                                </select>
+                                <input type="text" name="tel_destinataire" class="form-control" placeholder="Ex: 0123456789">
+                            </div> 
                         </div>
                     </div>
                 </div>
@@ -142,20 +279,165 @@
                     <div class="row">
                         <div class="col-md-6 mb-3"><label for="nom_societe_destinataire" class="form-label">Nom de la société</label><input type="text" name="nom_destinataire_societe" id="nom_societe_destinataire" class="form-control"></div>
                         <div class="col-md-6 mb-3"><label for="email_societe_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label><select name="adresse_destinataire_societe" class="form-control"><option value="">-- Sélectionnez une commune --</option><option value="Pas de livraison">Pas de Livraison</option><option value="Abobo">Abobo</option><option value="Adjamé">Adjamé</option><option value="Yopougon">Yopougon</option></select></div>
+                        <div class="col-md-6 mb-3">
+                            <label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label>
+                            <select name="adresse_destinataire_societe" class="form-control" required>
+                                <option value="">-- Sélectionnez une commune ou un quartier --</option>
+                                <option value="Pas de livraison">Pas de Livraison</option>
+
+                                <!-- 🌆 ABIDJAN CENTRE -->
+                                <optgroup label="Abobo">
+                                    <option value="Abobo Avocatier">Avocatier</option>
+                                    <option value="Abobo Baoulé">Baoulé</option>
+                                    <option value="Abobo PK18">PK18</option>
+                                    <option value="Abobo Banco">Banco</option>
+                                    <option value="Abobo Kennedy">Kennedy</option>
+                                    <option value="Abobo Belleville">Belleville</option>
+                                    <option value="Abobo Sagbé">Sagb&eacute;</option>
+                                    <option value="Abobo N’Dotré">N’Dotré</option>
+                                    <option value="Abobo SOS">SOS</option>
+                                    <option value="Abobo Derrière Rail">Derrière Rail</option>
+                                    <option value="Abobo Anador">Anador</option>
+                                    <option value="Abobo Clouetcha">Clouetcha</option>
+                                    <option value="Abobo Gagnoa Gare">Gagnoa Gare</option>
+                                </optgroup>
+
+                                <optgroup label="Adjamé">
+                                    <option value="Adjamé Liberté">Liberté</option>
+                                    <option value="Adjamé Bracodi">Bracodi</option>
+                                    <option value="Adjamé Williamsville">Williamsville</option>
+                                    <option value="Adjamé Camp Commandant">Camp Commandant</option>
+                                    <option value="Adjamé Indénié">Indénié</option>
+                                    <option value="Adjamé 220 Logements">220 Logements</option>
+                                </optgroup>
+
+                                <optgroup label="Attécoubé">
+                                    <option value="Attécoubé Santé">Santé</option>
+                                    <option value="Attécoubé Mossikro">Mossikro</option>
+                                    <option value="Attécoubé Abobo Doumé">Abobo Doumé</option>
+                                    <option value="Attécoubé Toit Rouge">Toit Rouge</option>
+                                    <option value="Attécoubé Djibi">Djibi</option>
+                                </optgroup>
+
+                                <optgroup label="Cocody">
+                                    <option value="Cocody Deux Plateaux">Deux Plateaux</option>
+                                    <option value="Cocody Angré">Angré</option>
+                                    <option value="Cocody Riviera 1">Riviera 1</option>
+                                    <option value="Cocody Riviera 2">Riviera 2</option>
+                                    <option value="Cocody Riviera 3">Riviera 3</option>
+                                    <option value="Cocody Riviera 4">Riviera 4</option>
+                                    <option value="Cocody Riviera Bonoumin">Riviera Bonoumin</option>
+                                    <option value="Cocody Riviera Palmeraie">Riviera Palmeraie</option>
+                                    <option value="Cocody Riviera Golf">Riviera Golf</option>
+                                    <option value="Cocody 7e Tranche">7e Tranche</option>
+                                    <option value="Cocody Blockhaus">Blockhaus</option>
+                                    <option value="Cocody Danga">Danga</option>
+                                    <option value="Cocody M’Badon">M’Badon</option>
+                                    <option value="Cocody Ambassades">Ambassades</option>
+                                </optgroup>
+
+                                <optgroup label="Koumassi">
+                                    <option value="Koumassi Campement">Campement</option>
+                                    <option value="Koumassi Remblais">Remblais</option>
+                                    <option value="Koumassi Sopim">Sopim</option>
+                                    <option value="Koumassi Divo">Divo</option>
+                                    <option value="Koumassi Sicogi">Sicogi</option>
+                                    <option value="Koumassi Prodomo">Prodomo</option>
+                                </optgroup>
+
+                                <optgroup label="Marcory">
+                                    <option value="Marcory Zone 4">Zone 4</option>
+                                    <option value="Marcory Biétry">Biétry</option>
+                                    <option value="Marcory Résidentiel">Résidentiel</option>
+                                    <option value="Marcory Poto-Poto">Poto-Poto</option>
+                                    <option value="Marcory Konan Raphael">Konan Raphael</option>
+                                </optgroup>
+
+                                <optgroup label="Le Plateau">
+                                    <option value="Plateau Administratif">Administratif</option>
+                                    <option value="Plateau Cité Financière">Cité Financière</option>
+                                    <option value="Plateau Indénié">Indénié</option>
+                                </optgroup>
+
+                                <optgroup label="Port-Bouët">
+                                    <option value="Port-Bouët Vridi">Vridi</option>
+                                    <option value="Port-Bouët Gonzagueville">Gonzagueville</option>
+                                    <option value="Port-Bouët Aéroport">Aéroport</option>
+                                    <option value="Port-Bouët Petit Bassam">Petit Bassam</option>
+                                    <option value="Port-Bouët Port">Port</option>
+                                </optgroup>
+
+                                <optgroup label="Treichville">
+                                    <option value="Treichville Avenue 16">Avenue 16</option>
+                                    <option value="Treichville Zone 3">Zone 3</option>
+                                    <option value="Treichville Rue 12">Rue 12</option>
+                                    <option value="Treichville Rue 21">Rue 21</option>
+                                    <option value="Treichville Biafra">Biafra</option>
+                                </optgroup>
+
+                                <optgroup label="Yopougon">
+                                    <option value="Yopougon Toits Rouges">Toits Rouges</option>
+                                    <option value="Yopougon Niangon">Niangon</option>
+                                    <option value="Yopougon Sideci">Sideci</option>
+                                    <option value="Yopougon Maroc">Maroc</option>
+                                    <option value="Yopougon Kouté">Kouté</option>
+                                    <option value="Yopougon Andokoi">Andokoi</option>
+                                    <option value="Yopougon Gesco">Gesco</option>
+                                    <option value="Yopougon Siporex">Siporex</option>
+                                    <option value="Yopougon Selmer">Selmer</option>
+                                    <option value="Yopougon Banco">Banco</option>
+                                </optgroup>
+
+                                <!-- 🌍 COMMUNES PÉRIPHÉRIQUES -->
+                                <optgroup label="Anyama">
+                                    <option value="Anyama Centre">Centre</option>
+                                    <option value="Anyama Akoupé Zeudji">Akoupé Zeudji</option>
+                                    <option value="Anyama Ebimpé">Ebimpé</option>
+                                    <option value="Anyama Ahouabo">Ahouabo</option>
+                                </optgroup>
+
+                                <optgroup label="Bingerville">
+                                    <option value="Bingerville Centre">Centre</option>
+                                    <option value="Bingerville Adjamé Bingerville">Adjamé Bingerville</option>
+                                    <option value="Bingerville Akandjé">Akandjé</option>
+                                    <option value="Bingerville M’Pouto">M’Pouto</option>
+                                    <option value="Bingerville Eloka">Eloka</option>
+                                </optgroup>
+
+                                <optgroup label="Songon">
+                                    <option value="Songon Kassemblé">Kassemblé</option>
+                                    <option value="Songon Dagbé">Dagbé</option>
+                                    <option value="Songon M’Braté">M’Braté</option>
+                                    <option value="Songon Agban">Agban</option>
+                                </optgroup>
+
+                                <optgroup label="Brofodoumé">
+                                    <option value="Brofodoumé Centre">Centre</option>
+                                    <option value="Brofodoumé M’Bédo">M’Bédo</option>
+                                    <option value="Brofodoumé Akouai-Santé">Akouai-Santé</option>
+                                </optgroup>
+                            </select>
+                        </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Téléphone</label>
-                            <div class="input-group"><select name="country_code_societe" class="input-group-text"><option value="+33">FR (+33)</option><option value="+225">CI (+225)</option></select><input type="text" name="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789"></div>
+                            <div class="input-group">
+                                <select name="country_code_societe" class="input-group-text">
+                                    <option value="+33">FR (+33)</option>
+                                    <option value="+225">CI (+225)</option>
+                                    <option value="+86">CN (+86)</option>
+                                </select>
+                                <input type="text" name="tel_destinataire_societe" class="form-control" placeholder="Ex: 0123456789">
+                            </div> 
                         </div>
                     </div>
                 </div>
             </div>
         </fieldset>
 
-        <!-- Étape 4 : Informations Colis -->
+
+                <!-- Étape 4 : Informations Colis -->
         <fieldset id="colis-fieldset" style="display: none;">
             <h5 class="text-center mb-4 mt-5">Informations du/des Colis</h5>
-
             <div class="d-flex justify-content-center">
                 <div class="colis-item card p-3 mb-4 shadow-sm border-0" style="width: 50%;">
                     <div class="col-md-12 mb-4">
@@ -167,6 +449,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="colis-container">
                 <!-- Premier colis -->
                 <div class="colis-item form-section mb-4">
@@ -247,7 +530,10 @@
                     <div class="row">
                         <div class="col-md-2"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis"></div>
                         <div class="col-md-4"><label class="form-label">Produit</label><input type="text" name="service[]" class="form-control produit-input"></div>
-                        <div class="col-md-2"><label class="form-label">Valeur</label><input type="number" name="valeur_colis[]" class="form-control prix-colis"></div>
+                        {{-- <div class="col-md-2"><label class="form-label">Valeur</label><input type="number" name="valeur_colis[]" class="form-control prix-colis"></div> --}}
+                        <div class="col-md-2"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
+                            {{-- <div class="mt-2">Prix Total: <span class="prix-total">0.00</span></div> --}}
+                        </div>
                         <div class="col-md-2">
                             <label class="form-label">Type colis</label>
                             <select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select>
@@ -266,14 +552,12 @@
                             <label class="form-label">Poids (kg)</label><input type="number" name="poids[]" class="form-control poids-colis">
                         </div>
                         <div class="col-md-5 mt-2"><label class="form-label">Commentaire</label><textarea name="description_colis[]" class="form-control"></textarea></div>
-                        <div class="col-md-2"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
-                            <div class="mt-2">Prix Total: <span class="prix-total">0.00</span></div>
-                        </div>
                     </div>
                     <div class="text-end mt-2"><button type="button" class="btn btn-danger remove-colis">Retirer ce colis</button></div>
                 </div>
             </div>
         </fieldset>
+
 
         <!-- Étape 5 : Services et Récapitulatif -->
         <fieldset style="display: none;">
@@ -371,11 +655,11 @@
                 </div>
                 <div class="payment-section mt-3" id="cheque_section" style="display:none;">
                     <h5>Détails du Chèque</h5>
-                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Montant du chèque</label><input type="text" name="cheque_montant" class="form-control"></div></div>
+                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Montant du chèque</label><input type="text" name="montant_reçu" class="form-control"></div></div>
                 </div>
                 <div class="payment-section mt-3" id="cash_section" style="display:none;">
                     <h5>Paiement en Espèces</h5>
-                    <div class="mb-3"><label class="form-label">Montant reçu</label><input type="number" name="cash_montant_recu" class="form-control" min="0"></div>
+                    <div class="mb-3"><label class="form-label">Montant reçu</label><input type="number" name="montant_reçu" class="form-control" min="0"></div>
                 </div>
                 <div class="payment-section mt-3" id="delivery_section" style="display:none;">
                     <h5>Paiement à la Livraison</h5>
@@ -403,7 +687,12 @@
                         <div class="mb-3"><label for="description_service" class="form-label">Description</label><input type="text" name="description" id="description_service" class="form-control"></div>
                         <input type="hidden" name="categorie" value="Service">
                         <div class="mb-3"><label for="prix_unitaire_service" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire_service" class="form-control" min="0"></div>
-                        <div class="mb-3"><label for="agence_service" class="form-label">Agence de destination</label><select name="agence" id="agence_service" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                        <div class="mb-3">
+                            <label for="agence_service" class="form-label">Agence de destination</label>
+                            <select name="agence" id="agence_service" class="form-control">
+                                <option value="" disabled selected>-- Sélectionnez --</option>
+                                <option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option>
+                                <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
                     </form>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('chine_colis.store.service') }}">Créer</button></div>
@@ -420,7 +709,8 @@
                         <div class="mb-3"><label for="description_produit" class="form-label">Description</label><input type="text" name="description" id="description_produit" class="form-control"></div>
                         <input type="hidden" name="categorie" value="Colis">
                         <div class="mb-3"><label for="prix_unitaire" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire" class="form-control" min="0"></div>
-                        <div class="mb-3"><label for="agence" class="form-label">Agence de destination</label><select name="agence" id="agence" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                        <input type="hidden"  id="agence" name="agence" value="Agence de Chine">
+
                     </form>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-produit" data-url="{{ route('chine_colis.store.produit') }}">Créer</button></div>
@@ -435,7 +725,6 @@
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
 <script>
-
 jQuery(document).ready(function($) {
     const colisContainer = $('#colis-container');
     const colisFieldset = $('#colis-fieldset');
@@ -465,65 +754,52 @@ jQuery(document).ready(function($) {
      * Charge les informations complètes du devis (programme), y compris
      * expéditeur, destinataire, transport et colis.
      */
-    function chargerInformationsCompletesDuDevis(programmeId) {
-        $.ajax({
-            url: "{{ route('chine_colis.devis.getItems', ['programme' => 'PROGRAMME_ID']) }}".replace('PROGRAMME_ID', programmeId),
-            type: 'GET',
-            success: function(response) {
-                if (response.programme) {
-                    const programme = response.programme;
+function chargerInformationsCompletesDuDevis(programmeId) {
+    $.ajax({
+        url: "{{ route('chine_colis.devis.getItems', ['programme' => 'PROGRAMME_ID']) }}"
+            .replace('PROGRAMME_ID', programmeId),
+        type: 'GET',
+        success: function(response) {
+            if (response.programme) {
+                const programme = response.programme;
 
-                    // 1. Remplir les informations de transport (Étape 1)
-                    if (programme.mode_expedition) {
-                        $('#mode_transit').val(programme.mode_expedition).trigger('change');
-                    }
-                    setTimeout(function() {
-                        if (programme.agence_destination) {
-                            $('#agence_destinataire').val(programme.agence_destination);
-                        }
-                    }, 200);
-
-                    // 2. Remplir les informations de l'expéditeur et du destinataire (Étapes 2 & 3)
-                    const categorie = programme.categorie_client || 'particulier';
-                    $('#categorie_client').val(categorie).trigger('change');
-
-                    if (categorie === 'societe') {
-                        $('#nom_societe_expediteur').val(programme.nom_expediteur || '');
-                        $('#email_societe_expediteur').val(programme.email_expediteur || '');
-                        $('#tel_expediteur_societe').val(programme.tel_expediteur || '');
-                        $('#adresse_expediteur_societe').val(programme.adresse_expediteur || '');
-                        $('#nom_societe_destinataire').val(programme.nom_destinataire || '');
-                        $('#email_societe_destinataire').val(programme.email_destinataire || '');
-                        $('input[name="tel_destinataire_societe"]').val(programme.tel_destinataire || '');
-                    } else { // Particulier
-                        $('#nom_expediteur').val(programme.nom_expediteur || '');
-                        $('#prenom_expediteur').val(programme.prenom_expediteur || '');
-                        $('#email_expediteur').val(programme.email_expediteur || '');
-                        $('#tel_expediteur').val(programme.tel_expediteur || '');
-                        $('#nom_destinataire').val(programme.nom_destinataire || '');
-                        $('#prenom_destinataire').val(programme.prenom_destinataire || '');
-                        $('#email_destinataire').val(programme.email_destinataire || '');
-                        $('input[name="tel_destinataire"]').val(programme.tel_destinataire || '');
-                    }
+                // 1. Remplir uniquement les informations de transport (Étape 1)
+                if (programme.mode_expedition) {
+                    $('#mode_transit').val(programme.mode_expedition).trigger('change');
                 }
 
-                // --- GESTION DES COLIS ---
-                colisContainer.empty();
-                
-                if(response.items && response.items.length > 0){
-                    response.items.forEach(item => ajouterLigneColis(item, true));
-                } else {
-                    ajouterLigneColis(null, true);
-                }
+                setTimeout(function() {
+                    if (programme.agence_destination) {
+                        $('#agence_destinataire').val(programme.agence_destination);
+                    }
+                }, 200);
 
-                mettreAJourVisibiliteBoutonRetirer();
-            },
-            error: function(xhr) {
-                console.error(xhr.responseText);
-                alert('Erreur lors de la récupération des informations du devis.');
+                // 2. Ne pas remplir les informations du client (nom, prénom, email, téléphone)
+                // Seule la catégorie est gardée si utile pour d'autres traitements
+                if (programme.categorie_client) {
+                    $('#categorie_client').val(programme.categorie_client).trigger('change');
+                }
             }
-        });
-    }
+
+            // --- GESTION DES COLIS ---
+            colisContainer.empty();
+
+            // Pas de modification de la logique d'affichage, seulement suppression du remplissage client
+            if (response.items && response.items.length > 0) {
+                response.items.forEach(item => ajouterLigneColis(item, true));
+            } else {
+                ajouterLigneColis(null, true);
+            }
+
+            mettreAJourVisibiliteBoutonRetirer();
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert('Erreur lors de la récupération des informations du devis.');
+        }
+    });
+}
+
 
     // ---------- Ajouter une ligne colis (fonction utilitaire) ----------
     function ajouterLigneColis(itemData = null, isDevis = false) {
@@ -533,7 +809,8 @@ jQuery(document).ready(function($) {
         if(itemData){
             ligne.find('input[name="quantite_colis[]"]').val(itemData.quantite_colis || itemData.quantite || 1);
             ligne.find('input[name="service[]"]').val(itemData.service || '');
-            ligne.find('input[name="valeur_colis[]"]').val(itemData.valeur_colis || itemData.prix_unitaire || '');
+            // ligne.find('input[name="valeur_colis[]"]').val(itemData.valeur_colis || itemData.prix_unitaire || '');
+            ligne.find('input[name="prix[]"]').val(itemData.montant || '');
             ligne.find('select[name="type_colis[]"]').val(itemData.type_colis || 'standard');
             ligne.find('select[name="devise[]"]').val(itemData.devise || 'EUR');
             ligne.find('textarea[name="description_colis[]"]').val(itemData.description_colis || itemData.description || '');
