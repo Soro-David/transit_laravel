@@ -896,14 +896,14 @@
                     <h4><i class="fas fa-building"></i> Bureau en France</h4>
                     <ul>
                         <li><a href="tel:+33652983519"><i class="fas fa-phone"></i> +33 6 52 98 35 19</a></li>
-                        <li><a href="mailto:contact@aft-import-export.net"><i class="fas fa-envelope"></i> contact@aft-import-export.net</a></li>
+                        <li><a href="mailto:contact@aft-app.com"><i class="fas fa-envelope"></i> contact@aft-app.com</a></li>
                     </ul>
                     
                     <h4><i class="fas fa-building"></i> Bureaux en Côte d'Ivoire</h4>
                     <p><i class="fas fa-map-pin"></i> Angré & Cocody, Abidjan</p>
                     <ul>
-                        <li><a href="#"><i class="fas fa-phone"></i> +225 XX XX XX XX</a></li>
-                        <li><a href="mailto:contact.ci@aft-import-export.net"><i class="fas fa-envelope"></i> contact.ci@aft-import-export.net</a></li>
+                        <li><a href="#"><i class="fas fa-phone"></i> +225 05 84 40 22 00</a></li>
+                        <li><a href="mailto:contact@aft-app.com"><i class="fas fa-envelope"></i>contact@aft-app.com</a></li>
                     </ul>
                 </div>
                 

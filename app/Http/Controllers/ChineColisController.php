@@ -621,6 +621,18 @@ public function vol_fermer(Request $request)
         // Définition des statuts par défaut
         $data['status'] = $data['mode_payement'] ?? 'non payé';
         $data['etat'] = $data['etat'] ?? 'Validé';
+
+        $telephone_user = $data['tel_expediteur'] ?? null;
+
+        if ($telephone_user) {
+            $user = User::where('tel', $telephone_user)
+                ->orderByDesc('id')
+                ->first();
+            // dd($user);
+        } else {
+            $user = 'null';
+        }
+        $user_id = $user->id;
     
         // Préparation des numéros de téléphone complets (avec indicatif)
         $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
@@ -637,9 +649,10 @@ public function vol_fermer(Request $request)
             'prenom' => $data['prenom_expediteur'] ?? '',
             'email' => $data['email_expediteur'] ?? $data['email_expediteur_societe'] ?? '',
             'tel' => $expediteurTel,
+            'user_id' => $user_id,
             'agence' => $data['agence_expediteur_societe'] ?? $data['agence_expediteur'] ?? '',
             'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur_particulier'] ?? 'null',
-        ];
+        ]; 
 
         $destinataireData = [
             'nom' => $data['nom_destinataire'] ?? $data['nom_destinataire_societe'] ?? '',

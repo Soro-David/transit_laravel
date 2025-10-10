@@ -47,6 +47,10 @@ class Devis extends Model
     {
         return $this->hasMany(DevisItems::class, 'devis_id');
     }
+    public function devisItems(): HasMany
+    {
+        return $this->items();
+    }
     public function calculerMontantTotal()
     {
         return $this->items()->sum('montant');

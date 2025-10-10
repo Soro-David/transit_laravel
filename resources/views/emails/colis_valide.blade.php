@@ -109,7 +109,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">AFT Express</div>
+            <div class="logo">AFT IMPORT EXPORT</div>
         </div>
         
         <div class="content">
@@ -177,8 +177,8 @@
         </div>
         
         <div class="footer">
-            <p>© 2023 AFT Express. Tous droits réservés.</p>
-            <p>Si vous avez des questions, contactez-nous à support@aftexpress.com</p>
+            <p>© 2023 AFT IMPORT EXPORT. Tous droits réservés.</p>
+            <p>Si vous avez des questions, contactez-nous à contact@aft-app.com</p>
         </div>
     </div>
 </body>
