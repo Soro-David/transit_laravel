@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8">
     <title>Facture - {{ $devis->reference ?? 'N/A' }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
         /* Police DejaVu (recommandée pour DOMPDF) */
         @font-face {
@@ -22,358 +21,313 @@
 
         body {
             font-family: "DejaVu Sans", Arial, Helvetica, sans-serif;
-            font-size: 12px;
             color: #333;
+            background-color: #fff;
             margin: 0;
-            padding: 20px;
-            line-height: 1.4;
+            padding: 0;
+            font-size: 10px; /* <-- Nouvelle réduction de la police de base */
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #667eea;
+        .invoice-box {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px; /* <-- Espacement principal réduit */
+            background-color: #fff;
+            line-height: 1.4; /* <-- Interligne resserré */
+            box-sizing: border-box;
         }
 
-        .logo-section {
-            flex: 1;
-        }
-
-        .logo {
-            margin-bottom: 10px;
-        }
-
-        .logo img {
-            max-height: 60px;
-        }
-
-        .company-info {
-            flex: 2;
-            text-align: center;
-        }
-
-        .invoice-info {
-            flex: 1;
-            text-align: right;
-        }
-
-        .title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 0 0 5px 0;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #666;
-            margin: 0;
-        }
-
-        .reference {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #28a745;
-            color: white;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .client-company {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            gap: 30px;
-        }
-
-        .client-info, .company-details {
-            flex: 1;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .info-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 20px;
-        }
-
-        .info-item {
-            flex: 1;
-        }
-
-        .info-label {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-
-        .info-value {
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        table {
+        .layout-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
+            margin-bottom: 12px; /* <-- Marge réduite */
         }
-
-        th {
-            background: #667eea;
-            color: white;
-            padding: 12px 8px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #dee2e6;
+        .layout-table td {
+            padding: 0;
             vertical-align: top;
         }
 
-        tr:nth-child(even) {
-            background: #f8f9fa;
+        .logo img {
+            max-width: 180px; /* <-- Taille du logo de nouveau réduite */
+            height: auto;
         }
-
-        .text-right {
+        .company-details-header {
             text-align: right;
         }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-bold {
+        .company-details-header h2 {
+            margin: 0 0 4px 0;
+            font-size: 16px; /* <-- Titre de l'entreprise réduit */
             font-weight: bold;
         }
-
-        .total-section {
-            margin-top: 20px;
-            text-align: right;
-        }
-
-        .total-line {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-            text-align: center;
+        .company-details-header p {
+            margin: 0;
             font-size: 10px;
-            color: #666;
         }
 
-        .notes {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            font-size: 11px;
+        .invoice-title-section {
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+            padding: 8px 0; /* <-- Espacement réduit */
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
         }
-
-        .notes-title {
+        .invoice-title-section h1 {
+            font-size: 30px; /* <-- Titre "FACTURE" réduit */
             font-weight: bold;
-            color: #667eea;
+            margin: 0;
+            color: #000000;
+        }
+
+        .client-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 12px; /* <-- Police réduite */
+            font-weight: bold;
+        }
+        .client-details p {
+            margin: 1px 0;
+            font-size: 10px;
+        }
+
+        .invoice-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invoice-meta td {
+            padding: 4px 6px; /* <-- Espacement des cellules réduit */
+            font-size: 10px;
+            border: 1px solid #eee;
+        }
+        .invoice-meta td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            width: 40%;
+        }
+        .invoice-meta td:last-child {
+            text-align: right;
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ddd;
+            padding: 6px; /* <-- Espacement des cellules réduit */
+            text-align: left;
+            font-size: 10px;
+        }
+        .items-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .items-table .text-right {
+            text-align: right;
+        }
+        .items-table .col-produit { width: 55%; }
+        .items-table .col-qty { width: 10%; }
+        .items-table .col-price { width: 15%; }
+        .items-table .col-montant { width: 20%; }
+
+        .totals-summary {
+            margin-top: 12px;
+        }
+        .totals-summary table {
+            width: 45%;
+            margin-left: auto;
+            border-collapse: collapse;
+        }
+        .totals-summary td {
+            padding: 5px 7px; /* <-- Espacement réduit */
+            font-size: 10px;
+        }
+        .totals-summary td:first-child {
+            text-align: right;
+            font-weight: bold;
+        }
+        .totals-summary td:last-child {
+            text-align: right;
+            font-weight: bold;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+        .grand-total-header {
+            background-color: #e0e0e0 !important;
+            font-size: 12px !important; /* <-- Police réduite */
+        }
+
+        .conditions {
+            margin-top: 20px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+        .conditions h4 {
+            margin: 0 0 6px 0;
+            font-size: 12px; /* <-- Police réduite */
+            font-weight: bold;
+            text-align: center;
+        }
+        .conditions p {
+            font-size: 9px; /* <-- Police réduite */
+            line-height: 1.3;
+            color: #555;
+            text-align: justify;
+        }
+
+        .footer-section {
+            margin-top: 15px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+            color: #555;
+        }
+        .footer-generation-table {
+            width: 100%;
             margin-bottom: 8px;
         }
-
-        /* Ajustements pour éviter débordement sur PDF */
-        thead { 
-            display: table-header-group; 
+        .footer-generation-table td {
+            font-size: 9px;
         }
-        tfoot { 
-            display: table-footer-group; 
+        .footer-company-details {
+            text-align: center;
+            line-height: 1.3;
+            font-size: 9px;
         }
-        tr { 
-            page-break-inside: avoid; 
-        }
-
-        .page-break {
-            page-break-before: always;
-        }
-
-        .dimensions {
-            font-size: 10px;
-            color: #666;
+        .footer-company-details p {
+            margin: 1px 0;
         }
     </style>
 </head>
 <body>
-    <!-- En-tête -->
-    <div class="header">
-        <div class="logo-section">
-            @php
-                $logoPath = public_path('images/LOGOAFT.png');
-            @endphp
+    <div class="invoice-box">
+        <!-- Header Section -->
+        <table class="layout-table">
+            <tr>
+                <td>
+                    <div class="logo">
+                        @php
+                            $logoPath = public_path('images/LOGOAFT.png');
+                        @endphp
+                        @if(file_exists($logoPath))
+                            <img src="{{ $logoPath }}" alt="Company Logo">
+                        @else
+                            <h2>AFT IMPORT EXPORT</h2>
+                        @endif
+                    </div>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <div class="company-details-header">
+                        <h2>AFT IMPORT EXPORT</h2>
+                        <p>7 AVENUE LOUIS BLERIOT LA COURNEUVE</p>
+                        <p>93120 France</p>
+                        <p>Tel. +33171894351</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
-            @if(file_exists($logoPath))
-                <div class="logo">
-                    <img src="{{ $logoPath }}" alt="Logo">
-                </div>
-            @endif
-            <div class="company-name">
-                <strong>{{ config('app.name', 'Mon Entreprise') }}</strong>
+        <!-- Invoice Title -->
+        <div class="invoice-title-section">
+            <h1>FACTURE</h1>
+        </div>
+
+        <!-- Client and Invoice Meta -->
+        <table class="layout-table">
+            <tr>
+                <td style="width: 55%; vertical-align: top;">
+                    <div class="client-details">
+                        @php
+                            $expediteur = trim(($devis->nom_expediteur ?? '') . ' ' . ($devis->prenom_expediteur ?? ''));
+                        @endphp
+                        <h3>De: {{ $expediteur ?: 'N/A Expediteur' }}</h3>
+                        <p>Tel: {{ $devis->tel_expediteur ?? 'N/A' }}</p>
+                        <br>
+                        <h3>À: {{ $expediteur ?: 'N/A Destinataire' }}</h3>
+                        <p>Tel: {{ $devis->tel_expediteur ?? 'N/A' }}</p>
+                        <p>Adresse: Pas de livraison</p>
+                    </div>
+                </td>
+                <td style="width: 45%; vertical-align: top;">
+                    <div class="invoice-meta">
+                        <table>
+                            <tr><td>Facture n°</td><td>{{ $devis->reference ?? 'N/A' }}</td></tr>
+                            <tr><td>Date</td><td>{{ $devis->created_at ? $devis->created_at->format('d-m-Y') : 'N/A' }}</td></tr>
+                            <tr><td>Référence</td><td>{{ $devis->reference ?? 'N/A' }}</td></tr>
+                            <tr><td>Colis</td><td></td></tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+        <!-- Items Table -->
+        @php
+            $items = $devis->devisItems ?? $devis->items ?? collect();
+            $devise = $devis->devise ?? '';
+            $montantTotal = $devis->montant ?? ($items->sum('montant') ?? 0);
+        @endphp
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="col-produit">Produit / Service</th>
+                    <th class="col-qty text-right">Qté</th>
+                    <th class="col-price text-right">P.U. ({{ $devise }})</th>
+                    <th class="col-montant text-right">Montant ({{ $devise }})</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                    <tr>
+                        <td>{{ $item->service ?? $item->description_colis ?? '—' }}</td>
+                        <td class="text-right">{{ $item->quantite_colis ?? 1 }}</td>
+                        <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
+                        <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" style="text-align: center;">Aucun article trouvé.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <!-- Totals Summary -->
+        <div class="totals-summary">
+            <table>
+                <tr><td>Sous-total Produits</td><td>{{ number_format($montantTotal, 2, ',', ' ') }}</td></tr>
+                <tr><td>Montant total ({{ $devise }})</td><td class="grand-total-header">{{ number_format($montantTotal, 2, ',', ' ') }}</td></tr>
+            </table>
+        </div>
+
+        <!-- Conditions de vente -->
+        <div class="conditions">
+            <h4>Conditions de vente</h4>
+            <p>
+                Les colis et marchandises transportés par AFRIQUE FRET TRANSIT IMPORT EXPORT, de la France vers la Côte d'Ivoire et de la Côte d'Ivoire vers la France, doivent faire l'objet du règlement intégral des frais de transport, des droits de douane et des taxes avant toute livraison. Les colis non solides seront conservés dans nos entrepôts en attendant la régularisation de la situation. Passé un délai de 5 jours, des frais de magasinage ainsi qu'une pénalité de 10 % du montant total seront appliqués. Au-delà de 30 jours, les colis et marchandises non réclamés seront vendus afin de couvrir les frais engagés.
+            </p>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer-section">
+            <table class="footer-generation-table">
+                <tr>
+                    <td>Généré le {{ now()->format('d-m-Y') }}<br>par aft chine</td>
+                    <td style="text-align: right;">Page 1/1</td>
+                </tr>
+            </table>
+            <div class="footer-company-details">
+                <p><strong>AFT IMPORT EXPORT</strong> 7 AVENUE LOUIS BLERIOT LA COURNEUVE 93120 France | Tel. +33978809389 | contacts.aft@gmail.com</p>
+                <p>IBAN FR03 1744 8000 01PO MONE AERZ W45 | BIC: SFPEFRP2</p>
+                <p>N°TVA:FR96881916365 N°ORI FR88191636500011 SIRET881916365 RCS Bobigny, EXO TVA, article 262 DU CGI</p>
             </div>
         </div>
-
-        <div class="company-info">
-            <div class="title">FACTURE</div>
-            <div class="subtitle">Document commercial</div>
-        </div>
-
-        <div class="invoice-info">
-            <div class="reference">Réf: {{ $devis->reference ?? '-' }}</div>
-            <div>Date: {{ $devis->created_at ? $devis->created_at->format('d/m/Y') : '-' }}</div>
-            <div class="status-badge">{{ ucfirst($devis->etat ?? 'confirmé') }}</div>
-        </div>
-    </div>
-
-    <!-- Informations client et entreprise -->
-    <div class="client-company">
-        <div class="client-info">
-            <div class="section-title">CLIENT</div>
-            <div class="text-bold">{{ $devis->nom_expediteur ?? '-' }} {{ $devis->prenom_expediteur ?? '' }}</div>
-            <div>{{ $devis->adresse_expediteur ?? '' }}</div>
-            <div>Tél: {{ $devis->tel_expediteur ?? '-' }}</div>
-            <div>Email: {{ $devis->email_expediteur ?? '-' }}</div>
-        </div>
-
-        <div class="company-details">
-            <div class="section-title">{{ config('app.name', 'Mon Entreprise') }}</div>
-            <div>Tél: +225 00 00 00 00</div>
-            <div>Email: contact@exemple.com</div>
-            <div>Site: www.votreentreprise.com</div>
-        </div>
-    </div>
-
-    <!-- Informations supplémentaires -->
-    <div class="info-grid">
-        <div class="info-item">
-            <div class="info-label">Mode de Transit</div>
-            <div class="info-value">{{ $devis->mode_transit ?? '-' }}</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">Mode de Retrait</div>
-            <div class="info-value">{{ $devis->mode_de_retrait ?? '-' }}</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">Pays</div>
-            <div class="info-value">{{ $devis->pays_expedition ?? '-' }}</div>
-        </div>
-    </div>
-
-    <!-- Détails des articles -->
-    <div class="section-title">DÉTAILS DES ARTICLES</div>
-    
-    @php
-        $items = $devis->devisItems ?? $devis->items ?? collect();
-    @endphp
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 40%">Description</th>
-                <th style="width: 10%" class="text-center">Quantité</th>
-                <th style="width: 10%" class="text-center">Poids</th>
-                <th style="width: 15%" class="text-center">Dimensions</th>
-                <th style="width: 12%" class="text-right">Valeur</th>
-                <th style="width: 13%" class="text-right">Montant</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($items as $item)
-                <tr>
-                    <td>
-                        <div class="text-bold">{{ $item->service ?? $item->description_colis ?? '—' }}</div>
-                        @if($item->type_colis)
-                            <div class="dimensions">{{ $item->type_colis }}</div>
-                        @endif
-                    </td>
-                    <td class="text-center">{{ $item->quantite_colis ?? 1 }}</td>
-                    <td class="text-center">{{ $item->poids ?? '-' }}</td>
-                    <td class="text-center">
-                        @if($item->longueur || $item->largeur || $item->hauteur)
-                            {{ $item->longueur ?? '-' }}×{{ $item->largeur ?? '-' }}×{{ $item->hauteur ?? '-' }}
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="text-right">{{ $devis->devise ?? 'XOF' }} {{ number_format($item->valeur_colis ?? 0, 0, ',', ' ') }}</td>
-                    <td class="text-right">{{ $devis->devise ?? 'XOF' }} {{ number_format($item->montant ?? 0, 0, ',', ' ') }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center" style="padding: 20px;">
-                        Aucun article pour ce devis
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-        @if($items->isNotEmpty())
-            <tfoot>
-                <tr>
-                    <td colspan="5" class="text-right text-bold" style="border: none; padding-top: 15px;">
-                        TOTAL {{ $devis->devise ?? 'XOF' }}
-                    </td>
-                    <td class="text-right text-bold" style="border: none; padding-top: 15px; font-size: 14px;">
-                        {{ number_format($devis->montant ?? ($items->sum('montant') ?? 0), 0, ',', ' ') }}
-                    </td>
-                </tr>
-            </tfoot>
-        @endif
-    </table>
-
-    <!-- Notes -->
-    <div class="notes">
-        <div class="notes-title">INFORMATIONS COMPLÉMENTAIRES</div>
-        <div>Mode de transit : {{ $devis->mode_transit ?? '-' }} — Mode de retrait : {{ $devis->mode_de_retrait ?? '-' }}</div>
-        <div style="margin-top: 8px;">
-            Merci pour votre confiance. Pour toute question relative à cette facture, contactez-nous à contact@exemple.com ou au +225 00 00 00 00.
-        </div>
-    </div>
-
-    <!-- Pied de page -->
-    <div class="footer">
-        {{ config('app.name', 'Mon Entreprise') }} — {{ now()->format('Y') }} • Adresse : aft-import-export
-        <br>
-        Document généré le {{ now()->format('d/m/Y à H:i') }}
     </div>
 </body>
 </html>

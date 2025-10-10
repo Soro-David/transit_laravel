@@ -65,13 +65,13 @@
                         <i class="fas fa-building me-2"></i>{{ config('app.name', 'Mon Entreprise') }}
                     </h6>
                     <div class="small text-muted mb-1">
-                        <i class="fas fa-phone me-1"></i>+225 00 00 00 00
+                        <i class="fas fa-phone me-1"></i>+33 6 52 98 35 19
                     </div>
                     <div class="small text-muted mb-1">
-                        <i class="fas fa-envelope me-1"></i>contact@exemple.com
+                        <i class="fas fa-envelope me-1"></i>contact@aft-import-export.net
                     </div>
                     <div class="small text-muted mb-2">
-                        <i class="fas fa-globe me-1"></i>www.votreentreprise.com
+                        <i class="fas fa-globe me-1"></i>www.aft-app.com
                     </div>
                     <div class="mt-3 pt-2 border-top">
                         <div class="small text-muted">Mode / Retrait</div>
