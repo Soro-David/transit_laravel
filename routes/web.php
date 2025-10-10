@@ -541,9 +541,9 @@ Route::prefix('customer')->middleware(['auth', 'role:user'])->group(function () 
             Route::get('/on-hold', [CustomerColisController::class,'hold'])->name('hold'); 
             
             Route::get('/suivi-customer', [CustomerColisController::class,'suivi'])->name('suivi');
-            Route::get('/invoices', [ClientFactureController::class, 'index'])->name('facture');
-            Route::get('/invoices/{reference}', [ClientFactureController::class, 'show'])->name('facture.show');
-            Route::get('/invoices/{reference}/pdf', [ClientFactureController::class, 'downloadPdf'])->name('facture.pdf');
+          Route::get('/invoices', [ClientFactureController::class, 'index'])->name('facture');
+Route::get('/invoices/{reference}', [ClientFactureController::class, 'show'])->name('facture.show');
+Route::get('/invoices/{reference}/pdf', [ClientFactureController::class, 'downloadPdf'])->name('facture.pdf');
             // Route::get('invoices/print/{invoice}', [CustomerColisController::class, 'print'])->name('invoices.print');
             Route::get('invoices/print/', [CustomerColisController::class, 'invoice'])->name('edit.invoice');
 
