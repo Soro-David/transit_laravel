@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
-
+use App\Models\ProgrammeItems;
+use App\Models\Devis;
+use App\Models\DevisItems;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Product;
@@ -1682,10 +1684,7 @@ private function generateReferenceParMode(string $mode_transit)
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
-    }
+   
 
     public function hold()
     {
@@ -1799,167 +1798,7 @@ private function generateReferenceParMode(string $mode_transit)
 
 
 
-    public function get_colis_valide(Request $request)
-    {
-        if ($request->ajax()) {
-            try {
-
-                $colis = Colis::select(
-                    'colis.id',
-                    'colis.reference_colis',
-                    'colis.quantite_colis',
-                    'colis.prix_transit_colis',
-                    'colis.expediteur_id', // Garder les IDs si besoin pour les relations
-                    'colis.destinataire_id',
-                    'colis.etat',
-                    'colis.created_at',
-                    'expediteurs.nom as expediteur_nom',
-                    'expediteurs.prenom as expediteur_prenom',
-                    'expediteurs.tel as expediteur_tel',
-                    'expediteurs.agence as expediteur_agence',
-                    'destinataires.nom as destinataire_nom',
-                    'destinataires.prenom as destinataire_prenom',
-                    'destinataires.agence as destinataire_agence',
-                    'destinataires.tel as destinataire_tel'
-                )
-                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                ->where('colis.etat', 'Validé') // Filtrer par état 'Validé'
-                ->whereNull('colis.archived_at') // Exclure les colis archivés
-                ->orderBy('colis.created_at', 'desc') // Optionnel: trier
-                ->get();
-
-                $colisIds = $colis->pluck('id')->unique()->toArray();
-
-                $paiements = Paiement::whereIn('colis_id', $colisIds)
-                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye')) // Sommer directement en SQL
-                                    ->groupBy('colis_id')
-                                    ->get()
-                                    ->keyBy('colis_id'); 
-
-                $colisGrouped = $colis->groupBy('reference_colis');
-
-                $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
-                    $firstColis = $group->first(); // Prendre le premier colis comme référence pour certaines infos
-                    $quantiteTotale = $group->sum('quantite_colis');
-                    $prixTotalColis = $group->sum('prix_transit_colis');
-                    $montantTotalPaye = 0;
-                    $colisIdsInGroup = $group->pluck('id')->toArray(); // IDs des colis dans ce groupe
-
-                    foreach ($colisIdsInGroup as $colisId) {
-                        if (isset($paiements[$colisId])) {
-                            $montantTotalPaye += $paiements[$colisId]->total_paye;
-                        }
-                    }
-
-                    $paymentStatus = 'impaye';
-                    $tolerance = 0.01; // Tolérance pour les comparaisons flottantes
-
-                    if ($montantTotalPaye > 0) {
-                        if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
-                            $paymentStatus = 'paye'; // Totalement payé
-                        } elseif ($montantTotalPaye < $prixTotalColis) {
-                            $paymentStatus = 'partiel'; // Partiellement payé
-                        }
-                    }
-
-                    return [
-                        'reference_colis' => $reference,
-                        'nombre_de_colis' => $quantiteTotale, // Somme des quantités
-                        'expediteur_nom' => $firstColis->expediteur_nom,
-                        'expediteur_prenom' => $firstColis->expediteur_prenom,
-                        'expediteur_tel' => $firstColis->expediteur_tel,
-                        'expediteur_agence' => $firstColis->expediteur_agence,
-                        'destinataire_nom' => $firstColis->destinataire_nom,
-                        'destinataire_prenom' => $firstColis->destinataire_prenom,
-                        'destinataire_tel' => $firstColis->destinataire_tel,
-                        'destinataire_agence' => $firstColis->destinataire_agence,
-                        'etat' => $firstColis->etat, // L'état devrait être le même pour tout le groupe
-                        'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A', // Formatage de la date
-                        'payment_status' => $paymentStatus, // Statut calculé
-                        'prix_total' => $prixTotalColis, // Prix total du groupe
-                        'montant_paye' => $montantTotalPaye, // Montant total payé pour le groupe
-                        'colis_ids' => json_encode($colisIdsInGroup), // IDs du groupe en JSON pour le bouton Payer
-                        'first_colis_id' => $firstColis->id // ID du premier colis pour Edit/Invoice
-                    ];
-                })->values(); // Transformer la collection en tableau indexé numériquement
-
-                return DataTables::of($processedData)
-                    ->addColumn('statut_paiement', function ($row) {
-                        // Générer l'icône de statut de paiement avec tooltip
-                        $status = $row['payment_status'];
-                        $iconClass = ''; $iconColor = ''; $title = '';
-                        $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
-                        $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
-                        switch ($status) {
-                            case 'paye':
-                                $iconClass = 'fas fa-check-circle'; $iconColor = 'green';
-                                $title = 'Payé (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
-                                break;
-                            case 'partiel':
-                                $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange';
-                                $title = 'Paiement Partiel (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
-                                break;
-                            case 'impaye':
-                            default:
-                                $iconClass = 'fas fa-times-circle'; $iconColor = 'red';
-                                $title = 'Impayé (0 / ' . $prixTotalFormatted . ')';
-                                break;
-                        }
-                        return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
-                    })
-                    ->addColumn('action', function ($row) {
-                        // Générer les boutons d'action
-                        $reference = $row['reference_colis'];
-                        $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
-
-                        $editUrl = route('colis.valide.edit', ['id' => $firstColisId]); // Route pour modifier (utilise l'ID)
-                        $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
-                        $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
-
-                        $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
-                                        <i class="fas fa-edit"></i>
-                                    </a>';
-
-                        $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
-                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                            data-total="' . $row['prix_total'] . '"
-                                            data-paid="' . $row['montant_paye'] . '"
-                                            data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
-                                            title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                        <i class="fas fa-dollar-sign"></i>
-                                    </button>';
-
-                        $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
-                                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                                data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                            <i class="fas fa-trash"></i>
-                                        </button>';
-
-                        $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
-                                        <i class="fas fa-file-invoice"></i>
-                                       </a>';
-
-                        return '<div class="action-buttons-container">'
-                               . $editBtn
-                               . $payBtn
-                               . $deleteBtn
-                               . $invoiceBtn
-                               . '</div>';
-                    })
-                    ->rawColumns(['action', 'statut_paiement'])
-                    ->make(true); 
-
-            } catch (\Exception $e) {
-                Log::error('Erreur dans get_colis_valide: ' . $e->getMessage());
-                return response()->json(['error' => 'Une erreur interne est survenue.'], 500);
-            }
-        }
-
-        Log::warning("Requête non-AJAX reçue sur get_colis_valide");
-        abort(404); 
-    }
+  
 
     public function enregistrerPaiement(Request $request)
     {
@@ -2144,62 +1983,7 @@ public function destroy_colis_valide($reference)
         }
     }
 
-    // AJAX pour les devis colis
-    public function get_devis_colis(Request $request)
-    {
-        if ($request->ajax()) {
-            $colis = Colis::select(
-                    'colis.id',
-                    'colis.reference_colis',
-                    'colis.etat',
-                    'colis.created_at',
-                    'expediteurs.nom as expediteur_nom', 
-                    'expediteurs.prenom as expediteur_prenom', 
-                    'expediteurs.tel as expediteur_tel', 
-                    'expediteurs.agence as expediteur_agence', 
-                    'destinataires.nom as destinataire_nom', 
-                    'destinataires.prenom as destinataire_prenom', 
-                    'destinataires.agence as destinataire_agence', 
-                    'destinataires.tel as destinataire_tel'
-                )
-                ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-                ->whereIn('colis.etat', ['Devis', 'Validé'])
-                ->get()
-                ->groupBy('reference_colis');
-    
-            $colisWithCount = $colis->map(function ($group, $reference) {
-                return [
-                    'reference_colis' => $reference,
-                    'nombre_de_colis' => $group->count(),
-                    'expediteur_nom' => $group->first()->expediteur_nom,
-                    'expediteur_prenom' => $group->first()->expediteur_prenom,
-                    'expediteur_tel' => $group->first()->expediteur_tel,
-                    'expediteur_agence' => $group->first()->expediteur_agence,
-                    'destinataire_nom' => $group->first()->destinataire_nom,
-                    'destinataire_prenom' => $group->first()->destinataire_prenom,
-                    'destinataire_tel' => $group->first()->destinataire_tel,
-                    'destinataire_agence' => $group->first()->destinataire_agence,
-                    'etat' => $group->first()->etat === 'Devis' ? 'Dévis validé' : 'Colis validé',
-                    'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
-                    'colis' => $group
-                ];
-            })->values();
-            return DataTables::of($colisWithCount)
-                ->addColumn('action', function ($row) {
-                    $printUrl = route('colis.qrcode.edit', ['id' => $row['colis']->first()->id]);
-                    return '
-                        <div class="btn-group">
-                            <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="View">
-                                <i class="fas fa-print"></i>
-                            </a>
-                        </div>
-                    ';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
-    }
+
     
     
     
@@ -2259,64 +2043,51 @@ public function destroy_colis_valide($reference)
     }
 
 
-public function get_colis_hold(Request $request)
-{
-    if ($request->ajax()) {
-        $colis = Colis::select(
-            'colis.*',  // Sélectionne toutes les colonnes de colis
-            'colis.reference_colis as reference_colis',
-            'expediteurs.nom as expediteur_nom', 
-            'expediteurs.prenom as expediteur_prenom', 
-            'expediteurs.tel as expediteur_tel', 
-            'expediteurs.agence as expediteur_agence', 
-            'destinataires.nom as destinataire_nom', 
-            'destinataires.prenom as destinataire_prenom', 
-            'destinataires.agence as destinataire_agence', 
-            'destinataires.tel as destinataire_tel',
-            'colis.etat as etat',
-            'colis.created_at as created_at'
-        )
-        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-        ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-        ->where('etat', 'En attente','Validé')
-        ->get()
-        ->groupBy('reference_colis');
-
-        $colisWithCount = $colis->map(function ($group, $reference) {
-        return [
-            'reference_colis' => $reference,
-            'nombre_de_colis' => $group->count(),
-            'expediteur_nom' => $group->first()->expediteur_nom,
-            'expediteur_prenom' => $group->first()->expediteur_prenom,
-            'expediteur_tel' => $group->first()->expediteur_tel,
-            'expediteur_agence' => $group->first()->expediteur_agence,
-            'destinataire_nom' => $group->first()->destinataire_nom,
-            'destinataire_prenom' => $group->first()->destinataire_prenom,
-            'destinataire_tel' => $group->first()->destinataire_tel,
-            'destinataire_agence' => $group->first()->destinataire_agence,
-            'etat' => $group->first()->etat === 'Devis' ? 'Dévis validé' : 'Colis validé',
-            'created_at' => $group->first()->created_at ? $group->first()->created_at->format('d/m/Y') : null,
-            'colis' => $group
-        ];
-    })->values();
-    return DataTables::of($colisWithCount)
-    ->addColumn('action', function ($row) {
-        // $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-        $editUrl = route('colis.hold.edit', ['id' => $row['colis']->first()->id]);
-    // dd($editUrl);
-        return '
-                <div class="btn-group">
-                    <a href="' . $editUrl . '" class="btn btn-sm btn-warning d-flex justify-content-center align-items-center" title="Modify" data-bs-target="#modifModal">
-                        <i class="fas fa-credit-card" style="font-size: 15px;"></i>
-                    </a>
-                </div>
-            ';
-        })
-        ->rawColumns(['action'])
-        ->make(true);
+    public function get_colis_hold(Request $request)
+    {
+        if ($request->ajax()) {
+            try {
+                \Log::info('Récupération des devis pour l\'agence de Chine');
+                
+                $devis = Devis::with('items')
+                    ->whereIn('etat', ['En attente', 'Validé'])
+                   
+                    ->get();
+    
+                \Log::info('Nombre de devis trouvés: ' . $devis->count());
+    
+                $devisFormatted = $devis->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'reference_colis' => $item->reference,
+                        'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                        'expediteur_nom' => $item->nom_expediteur,
+                        'expediteur_prenom' => $item->prenom_expediteur,
+                        'expediteur_tel' => $item->tel_expediteur,
+                        'destinataire_agence' => $item->agence_destination,
+                        'etat' => $item->etat,
+                        'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+                    ];
+                });
+    
+                \Log::info('Formatage des données terminé');
+    
+                // Retourner les données dans le format attendu par DataTables
+                return response()->json([
+                    'data' => $devisFormatted
+                ]);
+    
+            } catch (\Exception $e) {
+                \Log::error('Erreur dans get_colis_hold: ' . $e->getMessage());
+                return response()->json([
+                    'error' => 'Erreur lors du chargement des données',
+                    'data' => []
+                ], 500);
+            }
+        }
+    
+        abort(404);
     }
-}
-
     // Fonction edit pour les colis en attente
     public function edit_hold($id)
     {
@@ -2419,76 +2190,96 @@ public function get_colis_hold(Request $request)
     }
 
  
-    public function update_hold(Request $request, InfobipSmsService $infobipSmsService)
+    public function update_hold(Request $request, InfobipSmsService $infobipSmsService, $id)
     {
+        // 1. Valider la requête
         $validatedData = $request->validate([
-            'groupes' => 'required|array',
-            'groupes.*.prix_transit_colis' => 'required|numeric|min:0',
-            'groupes.*.colis_ids' => 'required|array',
-            'groupes.*.colis_ids.*' => 'exists:colis,id',
+            'montant' => 'required|numeric|min:0',
+            'montant_items' => 'sometimes|json'
+            
         ]);
-    
-        $groupes = $validatedData['groupes'];
-        $allColisIds = [];
-        $prixTotalGeneral = 0;
-    
-        foreach ($groupes as $groupeData) {
-            $colisIds = $groupeData['colis_ids'];
-            $prixTotalGroupe = (float)$groupeData['prix_transit_colis'];
-            $nombreDeColisDansGroupe = count($colisIds);
-            
-            // On ajoute le prix de ce groupe au total général
-            $prixTotalGeneral += $prixTotalGroupe;
-            
-            if ($nombreDeColisDansGroupe > 0) {
-                $prixUnitaire = round($prixTotalGroupe / $nombreDeColisDansGroupe, 2);
-                $allColisIds = array_merge($allColisIds, $colisIds); // Fusionner les IDs pour la collection finale
-    
-                foreach ($colisIds as $colisId) {
-                    $colis = Colis::find($colisId);
-                    if ($colis) {
-                        $colis->update([
-                            'prix_transit_colis' => $prixUnitaire,
-                            'status' => 'non payé',
-                            'etat' => 'Validé',
-                        ]);
+
+        // 2. Trouver le devis avec ses items
+        $devis = Devis::with('items')->findOrFail($id);
+
+        DB::beginTransaction();
+
+        try {
+            // 3. Mettre à jour les montants des items si fournis
+            if ($request->has('montant_items') && !empty($request->montant_items)) {
+                $montantItems = json_decode($request->montant_items, true);
+                
+                foreach ($montantItems as $itemId => $montant) {
+                    // CORRECTION : Utiliser DevisItems (avec 's') pour correspondre à votre modèle
+                    $item = DevisItems::where('id', $itemId)
+                                    ->where('devis_id', $devis->id)
+                                    ->first();
+                    
+                    if ($item) {
+                        $item->update(['montant' => $montant]);
                     }
                 }
+                
+                // Recharger les relations pour avoir les données fraîches
+                $devis->load('items');
             }
-        }
-        
-        // Pour l'email et le SMS, on utilise les informations du premier colis de la première liste
-        $premierColis = Colis::find($allColisIds[0]);
-        $colisCollection = Colis::whereIn('id', $allColisIds)->get();
-    
-        // Création de l'objet paiement factice pour l'email
-        $paiementFactice = new Paiement();
-        $paiementFactice->montant = $prixTotalGeneral; // Utiliser le prix total général
-        $paiementFactice->montant_paye = 0;
-        $paiementFactice->statut_paiement = 'En attente';
-        $paiementFactice->methode_paiement = 'Non défini';
-        $paiementFactice->date_validation = now();
-        $paiementFactice->setRelation('expediteur', $premierColis->expediteur);
-    
-        // Envoi de l'email
-        try {
-            Mail::to($premierColis->expediteur->email)->send(new ColisValidatedMail($paiementFactice, $colisCollection));
-            Log::info("Email de validation du devis envoyé à " . $premierColis->expediteur->email);
-        } catch (\Exception $e) {
-            Log::error("Erreur lors de l'envoi de l'email de validation du devis: " . $e->getMessage());
-        }
-    
-        // Envoi du SMS
-        $message = "Bonjour " . $premierColis->expediteur->nom . ", le devis pour votre colis (Réf: " . $premierColis->reference_colis . ") est disponible. Montant Total: " . $prixTotalGeneral . " EUR/FCFA. Veuillez consulter vos emails.";
-        
-        try {
-            $infobipSmsService->sendSms($premierColis->expediteur->tel, $message);
-        } catch (\Exception $e) {
-            Log::error('Erreur envoi SMS: ' . $e->getMessage());
-        }
 
-    return redirect()->route('colis.hold')->with('success', 'Devis faits avec succès !');
-}
+            // 4. Mettre à jour le montant et l'état du devis
+            $devis->montant = $validatedData['montant'];
+            $devis->etat = 'Validé';
+            $devis->save();
+
+            DB::commit();
+
+            // Le reste du code pour les notifications...
+            $paiementFactice = new Paiement();
+            $paiementFactice->montant = $devis->montant;
+            $paiementFactice->montant_paye = 0;
+            $paiementFactice->statut_paiement = 'En attente';
+            $paiementFactice->methode_paiement = 'Non défini';
+            $paiementFactice->date_validation = now();
+            
+            $expediteurInfo = (object)[
+                'email' => $devis->email_expediteur,
+                'nom' => $devis->nom_expediteur,
+                'tel' => $devis->tel_expediteur
+            ];
+            $paiementFactice->expediteur = $expediteurInfo;
+
+            // Envoi de l'email à l'agent
+            try {
+                $agent = User::find($devis->user_id);
+                if ($agent && !empty($agent->email) && filter_var($agent->email, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($agent->email)->send(new ColisValidatedMail($paiementFactice, $devis->items));
+                    Log::info("Email de validation du devis envoyé avec succès à l'agent: " . $agent->email . " (Réf Devis: " . $devis->reference . ")");
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi de l'email de validation du devis à l'agent.", [
+                    'reference_devis' => $devis->reference,
+                    'exception' => $e
+                ]);
+            }
+
+            // Envoi du SMS
+            $message = "Bonjour " . $devis->nom_expediteur . ", votre devis (Réf: " . $devis->reference . ") a été validé. Montant Total: " . $devis->montant . " " . $devis->devise . ". Veuillez consulter vos emails pour les détails.";
+            
+            try {
+                $infobipSmsService->sendSms($devis->tel_expediteur, $message);
+                Log::info("SMS de validation du devis envoyé à " . $devis->tel_expediteur);
+            } catch (\Exception $e) {
+                Log::error('Erreur envoi SMS: ' . $e->getMessage());
+            }
+
+            // MODIFICATION : Mise à jour de la route
+            return redirect()->route('colis.hold')->with('success', 'Devis validé et notifié au client avec succès !');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Erreur lors de la validation du devis: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la validation du devis: ' . $e->getMessage());
+        }
+    }
+
 
 public function update_colis_valide(Request $request, $id)
 {
@@ -2975,6 +2766,342 @@ public function liste_vol(Request $request)
 {
     $referenceVol = $request->input('reference_vol', $this->generateReferenceVol());
     return view('admin.cargaison.liste_vol',compact('referenceVol'));
+}
+public function devisConfirme()
+{
+    return view('admin.colis.devisconfirme');
+}
+
+/**
+ * Récupère les devis confirmés pour DataTables
+ */
+public function get_devis_confirmes(Request $request)
+{
+    if ($request->ajax()) {
+        $devis = Devis::with('items')
+            ->where('etat', 'confirmé')
+            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+            ->get();
+
+        $devisFormatted = $devis->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'reference_colis' => $item->reference,
+                'nombre_de_colis' => $item->items->sum('quantite_colis'),
+                'expediteur_nom' => $item->nom_expediteur,
+                'expediteur_prenom' => $item->prenom_expediteur,
+                'expediteur_tel' => $item->tel_expediteur,
+                'expediteur_agence' => $item->agence_expedition,
+                'destinataire_nom' => '',
+                'destinataire_prenom' => '',
+                'destinataire_tel' => '',
+                'destinataire_agence' => $item->agence_destination,
+                'etat' => ucfirst($item->etat),
+                'created_at' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : null,
+                'details' => $item
+            ];
+        });
+
+        return DataTables::of($devisFormatted)->make(true);
+    }
+}
+
+/**
+ * Récupère les détails d'un devis spécifique
+ */
+public function get_devis_details($id)
+{
+    try {
+        Log::info("Tentative de récupération du devis ID: " . $id);
+        
+        $devis = Devis::with('items')
+            ->where('id', $id)
+            ->where('agence_expedition', 'AFT Agence Louis Bleriot')
+            ->firstOrFail();
+
+        Log::info("Devis trouvé: " . $devis->reference);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $devis->id,
+                'reference' => $devis->reference,
+                'mode_transit' => $devis->mode_transit,
+                'pays_expedition' => $devis->pays_expedition,
+                'agence_expedition' => $devis->agence_expedition,
+                'agence_destination' => $devis->agence_destination,
+                'nom_expediteur' => $devis->nom_expediteur,
+                'prenom_expediteur' => $devis->prenom_expediteur,
+                'email_expediteur' => $devis->email_expediteur,
+                'tel_expediteur' => $devis->tel_expediteur,
+                'adresse_expediteur' => $devis->adresse_expediteur,
+                'devise' => $devis->devise,
+                'montant' => $devis->montant,
+                'etat' => $devis->etat,
+                'mode_de_retrait' => $devis->mode_de_retrait,
+                'created_at' => $devis->created_at,
+                'items' => $devis->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'quantite_colis' => $item->quantite_colis,
+                        'service' => $item->service,
+                        'valeur_colis' => $item->valeur_colis,
+                        'type_colis' => $item->type_colis,
+                        'description_colis' => $item->description_colis,
+                        'poids' => $item->poids,
+                        'longueur' => $item->longueur,
+                        'largeur' => $item->largeur,
+                        'hauteur' => $item->hauteur,
+                    ];
+                })
+            ]
+        ]);
+    } catch (\Exception $e) {
+        Log::error("Erreur lors de la récupération du devis: " . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Devis non trouvé: ' . $e->getMessage()
+        ], 404);
+    }
+}
+
+/**
+ * Affiche les détails d'un devis spécifique
+ */
+public function show($id)
+{
+    $devis = Devis::with('items')->findOrFail($id);
+    return view('admin.colis.show', compact('devis'));
+}
+
+/**
+ * Récupère les colis déchargés
+ */
+
+/**
+ * Récupère les colis en état "Devis" ou "Validé"
+ */
+public function get_devis_colis(Request $request)
+{
+    if ($request->ajax()) {
+        $colis = Colis::select(
+                'colis.id',
+                'colis.reference_colis',
+                'colis.etat',
+                'colis.created_at',
+                'expediteurs.nom as expediteur_nom', 
+                'expediteurs.prenom as expediteur_prenom', 
+                'expediteurs.tel as expediteur_tel', 
+                'expediteurs.agence as expediteur_agence', 
+                'destinataires.nom as destinataire_nom', 
+                'destinataires.prenom as destinataire_prenom', 
+                'destinataires.agence as destinataire_agence', 
+                'destinataires.tel as destinataire_tel'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->whereIn('colis.etat', ['Devis', 'Validé'])
+            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+            ->get()
+            ->groupBy('reference_colis');
+
+        $colisWithCount = $colis->map(function ($group, $reference) {
+            return [
+                'reference_colis' => $reference,
+                'nombre_de_colis' => $group->count(),
+                'expediteur_nom' => $group->first()->expediteur_nom,
+                'expediteur_prenom' => $group->first()->expediteur_prenom,
+                'expediteur_tel' => $group->first()->expediteur_tel,
+                'expediteur_agence' => $group->first()->expediteur_agence,
+                'destinataire_nom' => $group->first()->destinataire_nom,
+                'destinataire_prenom' => $group->first()->destinataire_prenom,
+                'destinataire_tel' => $group->first()->destinataire_tel,
+                'destinataire_agence' => $group->first()->destinataire_agence,
+                'etat' => $group->first()->etat === 'Devis' ? 'Dévis validé' : 'Colis validé',
+                'created_at' => $group->first()->created_at ? $group->first()->created_at->format('Y-m-d H:i:s') : null,
+                'colis' => $group
+            ];
+        })->values();
+        
+        return DataTables::of($colisWithCount)
+            ->addColumn('action', function ($row) {
+                $printUrl = route('colis.qrcode.edit', ['id' => $row['colis']->first()->id]);
+                return '
+                    <div class="btn-group">
+                        <a href="' . $printUrl . '" class="btn btn-sm btn-info" title="View">
+                            <i class="fas fa-print"></i>
+                        </a>
+                    </div>
+                ';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+}
+
+/**
+ * Récupère les colis validés avec statut de paiement
+ */
+public function get_colis_valide(Request $request)
+{
+    if ($request->ajax()) {
+        try {
+            $colis = Colis::select(
+                'colis.id',
+                'colis.reference_colis',
+                'colis.quantite_colis',
+                'colis.prix_transit_colis',
+                'colis.expediteur_id',
+                'colis.destinataire_id',
+                'colis.etat',
+                'colis.created_at',
+                'expediteurs.nom as expediteur_nom',
+                'expediteurs.prenom as expediteur_prenom',
+                'expediteurs.tel as expediteur_tel',
+                'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom',
+                'destinataires.prenom as destinataire_prenom',
+                'destinataires.agence as destinataire_agence',
+                'destinataires.tel as destinataire_tel'
+            )
+            ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+            ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+            ->where('colis.etat', 'Validé')
+            ->where('expediteurs.agence', 'AFT Agence Louis Bleriot')
+            ->whereNull('colis.archived_at')
+            ->orderBy('colis.created_at', 'desc')
+            ->get();
+
+            $colisIds = $colis->pluck('id')->unique()->toArray();
+
+            $paiements = Paiement::whereIn('colis_id', $colisIds)
+                                ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                                ->groupBy('colis_id')
+                                ->get()
+                                ->keyBy('colis_id'); 
+
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+                $firstColis = $group->first();
+                $quantiteTotale = $group->sum('quantite_colis');
+                $prixTotalColis = $group->sum('prix_transit_colis');
+                $montantTotalPaye = 0;
+                $colisIdsInGroup = $group->pluck('id')->toArray();
+
+                foreach ($colisIdsInGroup as $colisId) {
+                    if (isset($paiements[$colisId])) {
+                        $montantTotalPaye += $paiements[$colisId]->total_paye;
+                    }
+                }
+
+                $paymentStatus = 'impaye';
+                $tolerance = 0.01;
+
+                if ($montantTotalPaye > 0) {
+                    if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
+                        $paymentStatus = 'paye';
+                    } elseif ($montantTotalPaye < $prixTotalColis) {
+                        $paymentStatus = 'partiel';
+                    }
+                }
+
+                return [
+                    'reference_colis' => $reference,
+                    'nombre_de_colis' => $quantiteTotale,
+                    'expediteur_nom' => $firstColis->expediteur_nom,
+                    'expediteur_prenom' => $firstColis->expediteur_prenom,
+                    'expediteur_tel' => $firstColis->expediteur_tel,
+                    'expediteur_agence' => $firstColis->expediteur_agence,
+                    'destinataire_nom' => $firstColis->destinataire_nom,
+                    'destinataire_prenom' => $firstColis->destinataire_prenom,
+                    'destinataire_tel' => $firstColis->destinataire_tel,
+                    'destinataire_agence' => $firstColis->destinataire_agence,
+                    'etat' => $firstColis->etat,
+                    'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A',
+                    'payment_status' => $paymentStatus,
+                    'prix_total' => $prixTotalColis,
+                    'montant_paye' => $montantTotalPaye,
+                    'colis_ids' => json_encode($colisIdsInGroup),
+                    'first_colis_id' => $firstColis->id
+                ];
+            })->values();
+
+            return DataTables::of($processedData)
+                ->addColumn('statut_paiement', function ($row) {
+                    $status = $row['payment_status'];
+                    $iconClass = ''; $iconColor = ''; $title = '';
+                    $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
+                    $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
+                    
+                    switch ($status) {
+                        case 'paye':
+                            $iconClass = 'fas fa-check-circle'; $iconColor = 'green';
+                            $title = 'Payé (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
+                            break;
+                        case 'partiel':
+                            $iconClass = 'fas fa-exclamation-circle'; $iconColor = 'orange';
+                            $title = 'Paiement Partiel (' . $montantPayeFormatted . ' / ' . $prixTotalFormatted . ')';
+                            break;
+                        case 'impaye':
+                        default:
+                            $iconClass = 'fas fa-times-circle'; $iconColor = 'red';
+                            $title = 'Impayé (0 / ' . $prixTotalFormatted . ')';
+                            break;
+                    }
+                    return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
+                })
+                ->addColumn('action', function ($row) {
+                    $reference = $row['reference_colis'];
+                    $firstColisId = $row['first_colis_id'];
+
+                    $editUrl = route('colis.valide.edit', ['id' => $firstColisId]);
+                    $invoiceUrl = route('colis.valide.edit.invoice', ['id' => $firstColisId]);
+                    $deleteUrl = route('colis.destroy.colis.valide', ['reference' => $reference]);
+
+                    $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
+                                    <i class="fas fa-edit"></i>
+                                </a>';
+
+                    $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
+                                        data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                        data-total="' . $row['prix_total'] . '"
+                                        data-paid="' . $row['montant_paye'] . '"
+                                        data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                                        title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>';
+
+                    $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
+                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                            data-url="' . $deleteUrl . '"
+                                            title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                        <i class="fas fa-trash"></i>
+                                    </button>';
+
+                    $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
+                                    <i class="fas fa-file-invoice"></i>
+                                   </a>';
+
+                    return '<div class="action-buttons-container">'
+                           . $editBtn
+                           . $payBtn
+                           . $deleteBtn
+                           . $invoiceBtn
+                           . '</div>';
+                })
+                ->rawColumns(['action', 'statut_paiement'])
+                ->make(true); 
+
+        } catch (\Exception $e) {
+            Log::error('Erreur dans get_colis_valide: ' . $e->getMessage());
+            return response()->json(['error' => 'Une erreur interne est survenue.'], 500);
+        }
+    }
+
+    Log::warning("Requête non-AJAX reçue sur get_colis_valide");
+    abort(404); 
 }
 
 

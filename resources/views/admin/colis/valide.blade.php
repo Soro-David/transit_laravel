@@ -368,8 +368,6 @@ $(document).ready(function () {
         });
     });
 
-    // --- Logique pour le bouton Supprimer/Archiver ---
-
     // Utilisation de la délégation d'événement sur le tbody pour les boutons ajoutés dynamiquement
     $('#productTable tbody').on('click', '.delete-btn', function (e) {
         e.preventDefault(); // Bonne pratique
@@ -392,7 +390,7 @@ $(document).ready(function () {
             showCancelButton: true,
             confirmButtonColor: '#d33', // Rouge pour la suppression/archivage
             cancelButtonColor: '#3085d6', // Bleu pour annuler
-            confirmButtonText: 'Oui, supprimer!',
+            confirmButtonText: 'Oui, Supprimer!',
             cancelButtonText: 'Annuler'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -427,6 +425,8 @@ $(document).ready(function () {
             }
         });
     });
+
+
 }); // Fin $(document).ready
 </script>
 

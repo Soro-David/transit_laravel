@@ -33,12 +33,10 @@
                     Swal.showLoading();
                 },
                 willClose: () => {
-                    // Redirection quand le popup se ferme
                     window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
                 }
             });
 
-            // Redirection de secours après 4 secondes
             setTimeout(() => {
                 window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
             }, 4000);
@@ -67,7 +65,7 @@
             </div>
         @endif
 
-        {{-- Top card with progress (design like image1) --}}
+        {{-- Top card with progress --}}
         <div class="wizard-card mb-4">
             <div class="wizard-top">
                 <ul class="wizard-progress-list">
@@ -87,8 +85,9 @@
             </div>
 
             <div class="wizard-title text-center">
-                <div class="title-emoji">🚚</div>
-                <h3>Informations Transport</h3>
+                <div class="title-emoji" id="wizard-emoji">🚚</div>
+                <h3 id="wizard-title" class="animate__animated">Informations Transport</h3>
+                <p id="wizard-subtitle" class="text-muted small mt-1">Remplis les informations pour commencer</p>
             </div>
         </div>
 
@@ -107,7 +106,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label for="agence_destination_societe" class="form-label">Agence Destination</label>
+                        <label for="agence_destination_societe" class="form-label">Agence D'expedition</label>
                         <select name="agence_destination_societe" id="agence_destination_societe" class="form-select">
                             <option value="" disabled selected>-- Choisir --</option>
                             <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
@@ -229,7 +228,6 @@
 
                 <div class="mt-3 text-end">
                     <button type="button" class="btn btn-secondary btn-prev">← Précédent</button>
-                    <!-- CHANGEZ CE BOUTON : type="submit" → type="button" et ajoutez un ID -->
                     <button type="button" id="btn-submit-devis" class="btn btn-success">Valider</button>
                 </div>
             </div>
@@ -257,6 +255,7 @@
     .wizard-step .circle { width:46px; height:46px; border-radius:50%; background:#e6e9ec; margin:0 auto; display:flex; align-items:center; justify-content:center; font-weight:700; color:#333; box-shadow:0 6px 18px rgba(11,124,255,0.06); transition:all .25s; }
     .wizard-step .label { margin-top:10px; font-size:13px; color:var(--muted); }
     .wizard-step.active .circle { background:var(--accent-2); color:#fff; transform:scale(1.05); box-shadow:0 10px 28px rgba(5,168,5,0.18); }
+    .wizard-step.active .label { color:#222; font-weight:600; }
     .wizard-title { padding:14px 10px 4px; }
     .wizard-title h3 { margin:0; font-weight:600; color:#222; }
     .wizard-title .title-emoji { font-size:26px; margin-bottom:6px; }
@@ -293,10 +292,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form.form-container');
     const deviseHidden = document.getElementById('devise_hidden');
     const modeTransitSelect = document.getElementById('mode_transit');
-    const modeSelect = document.getElementById('mode_transit');
     const agenceDestSelect = document.querySelector('select[name="agence_destination_societe"]');
     const btnSubmitDevis = document.getElementById('btn-submit-devis');
-    
+    const wizardTitle = document.getElementById('wizard-title');
+    const wizardEmoji = document.getElementById('wizard-emoji');
+    const wizardSubtitle = document.getElementById('wizard-subtitle');
+
+    // ---------- Titres dynamiques par étape ----------
+    const TITLES = [
+        { title: 'Informations Transport', emoji: '🚚', subtitle: 'Mode de transit, agence et options de transport' },
+        { title: 'Informations sur le client', emoji: '🧑‍🤝‍🧑', subtitle: 'Détails du client / expéditeur' },
+        { title: 'Informations sur le colis', emoji: '📦', subtitle: 'Ajoutez les colis, dimensions et descriptions' }
+    ];
+
+    function updateWizardTitle(step) {
+        const item = TITLES[step] || TITLES[0];
+        // animation: ajouter puis retirer une classe pour relancer l'animation
+        wizardTitle.classList.remove('animate__fadeIn');
+        void wizardTitle.offsetWidth; // reflow pour relancer animation
+        wizardEmoji.textContent = item.emoji;
+        wizardTitle.textContent = item.title;
+        wizardSubtitle.textContent = item.subtitle;
+        wizardTitle.classList.add('animate__fadeIn');
+    }
+
     // ---------- Devise fixée à EUR ----------
     function setDeviseToEUR() {
         if (deviseHidden) {
@@ -305,7 +324,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setDeviseToEUR();
 
-    if (!modeSelect || !agenceDestSelect) return;
+    if (!modeTransitSelect || !agenceDestSelect) {
+        // continue, mais certaines fonctionnalités seront désactivées
+    }
 
     const targetsByMode = {
         maritime: ['Carrefour Angré', 'Carrefour Angre', 'Carrefour-Angré'],
@@ -336,10 +357,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    modeSelect.addEventListener('change', function() {
-        setAgenceByMode(this.value);
-    });
-    setAgenceByMode(modeSelect.value);
+    if (modeTransitSelect) {
+        modeTransitSelect.addEventListener('change', function() {
+            setAgenceByMode(this.value);
+            toggleFields(this.value);
+        });
+        setAgenceByMode(modeTransitSelect.value);
+    }
 
     // ---------- Toggle dimension/poids ----------
     function toggleFields(mode) {
@@ -358,12 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (poids) poids.style.display = 'none';
             }
         });
-    }
-    if (modeTransitSelect) {
-        modeTransitSelect.addEventListener('change', function() {
-            toggleFields(this.value);
-        });
-        toggleFields(modeTransitSelect.value);
     }
 
     // ---------- Dimension listeners ----------
@@ -463,7 +481,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', function(ev) {
             ev.preventDefault();
-            // La soumission est maintenant gérée par le bouton "Valider"
         });
     }
 
@@ -475,114 +492,76 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
- // ---------- Fonction pour soumettre le formulaire ----------
-function submitDevisForm() {
-    // Activer tous les champs désactivés avant soumission
-    document.querySelectorAll('#colisContainer input, #colisContainer select, #colisContainer textarea').forEach(i => i.removeAttribute('disabled'));
-    
-    document.querySelectorAll('select[name="type_colis[]"]').forEach(s => { if (!s.value) s.value = 'standard'; });
-    document.querySelectorAll('input[name="quantite_colis[]"]').forEach(q => { if (!q.value) q.value = 1; });
+    // ---------- Fonction pour soumettre le formulaire ----------
+    function submitDevisForm() {
+        document.querySelectorAll('#colisContainer input, #colisContainer select, #colisContainer textarea').forEach(i => i.removeAttribute('disabled'));
+        document.querySelectorAll('select[name="type_colis[]"]').forEach(s => { if (!s.value) s.value = 'standard'; });
+        document.querySelectorAll('input[name="quantite_colis[]"]').forEach(q => { if (!q.value) q.value = 1; });
 
-    // Soumettre le formulaire
-    const formData = new FormData(form);
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Afficher le popup de confirmation avec option "Plus tard"
-            showConfirmationPopup(data.reference_generee);
-        } else {
-            // Gérer les erreurs de création de devis
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showConfirmationPopup(data.reference_generee);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: data.message || 'Erreur lors de la création du devis',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Erreur',
-                text: data.message || 'Erreur lors de la création du devis',
+                text: 'Une erreur est survenue lors de la soumission',
                 confirmButtonText: 'OK'
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: 'Une erreur est survenue lors de la soumission',
-            confirmButtonText: 'OK'
-        });
-    });
-}
-
-// ---------- Fonction pour afficher le popup de confirmation ----------
-function showConfirmationPopup(referenceGeneree) {
-    Swal.fire({
-        title: '✅ Devis créé avec succès !',
-        html: `
-            <div class="text-start">
-                <p class="mb-3">Référence du programme : <strong>${referenceGeneree}</strong></p>
-                <p class="mb-3">Le devis a été enregistré avec l'état <strong>"à planifié"</strong>.</p>
-                <p class="text-muted">Vous pourrez ultérieurement attribuer une date et un chauffeur.</p>
-            </div>
-        `,
-        icon: 'success',
-        confirmButtonText: 'Programmer maintenant',
-        cancelButtonText: 'Plus tard',
-        showCancelButton: true,
-        confirmButtonColor: '#05a805',
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Si l'utilisateur veut programmer maintenant
-            chargerChauffeurs().then(() => {
-                showProgrammationForm(referenceGeneree);
-            });
-        } else {
-            // Si l'utilisateur clique sur "Plus tard" - redirection simple
-            window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
-        }
-    });
-}
-    // ---------- Fonction pour afficher le popup de programmation ----------
-    function showProgrammationPopup(referenceDevis) {
-        // Charger d'abord la liste des chauffeurs
-        chargerChauffeurs().then(() => {
-            Swal.fire({
-                title: '🎉 Devis créé avec succès !',
-                html: `
-                    <div class="text-start">
-                        <p class="mb-3">Référence du devis : <strong>${referenceDevis}</strong></p>
-                        <p class="mb-3">Souhaitez-vous programmer une récupération pour ce devis ?</p>
-                    </div>
-                `,
-                icon: 'success',
-                showCancelButton: true,
-                confirmButtonText: '📅 Programmer',
-                cancelButtonText: 'Plus tard',
-                confirmButtonColor: '#05a805',
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    return showProgrammationForm(referenceDevis);
-                }
-            }).then((result) => {
-                if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Rediriger vers la page d'accueil si l'utilisateur clique sur "Plus tard"
-                    window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
-                }
             });
         });
     }
 
-    // ---------- Fonction pour charger les chauffeurs ----------
+    function showConfirmationPopup(referenceGeneree) {
+        Swal.fire({
+            title: '✅ Programme enregistrée avec succès !',
+            html: `
+                <div class="text-start">
+                    <p class="mb-3">Référence du programme : <strong>${referenceGeneree}</strong></p>
+                    <p class="mb-3">Le programme a été enregistré avec l'état <strong>"à planifié"</strong>.</p>
+                    <p class="text-muted">Vous pourrez ultérieurement attribuer une date et un chauffeur.</p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Programmer maintenant',
+            cancelButtonText: 'Plus tard',
+            showCancelButton: true,
+            confirmButtonColor: '#05a805',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                chargerChauffeurs().then(() => {
+                    showProgrammationForm(referenceGeneree);
+                });
+            } else {
+                window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+            }
+        });
+    }
+
     async function chargerChauffeurs() {
         try {
             const response = await fetch("{{ route('aftlb_transport.chauffeurs.list') }}");
             const data = await response.json();
-            
+
             if (data.success) {
                 listeChauffeurs = data.chauffeurs;
             } else {
@@ -594,122 +573,112 @@ function showConfirmationPopup(referenceGeneree) {
         }
     }
 
-   // ---------- Fonction pour afficher le formulaire de programmation ----------
-   function showProgrammationForm(referenceDevis) {
-    const chauffeursOptions = listeChauffeurs.map(chauffeur => 
-        `<option value="${chauffeur.id}">${chauffeur.full_name}</option>`
-    ).join('');
+    function showProgrammationForm(referenceDevis) {
+        const chauffeursOptions = listeChauffeurs.map(chauffeur =>
+            `<option value="${chauffeur.id}">${chauffeur.full_name}</option>`
+        ).join('');
 
-    // Date minimale (aujourd'hui)
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        const quantiteTotale = calculerQuantiteTotale();
 
-    // CALCULER LA QUANTITÉ TOTALE DES COLIS
-    const quantiteTotale = calculerQuantiteTotale();
-
-    return Swal.fire({
-        title: '📅 Programmer la récupération',
-        html: `
-            <form id="programmationForm">
-                <div class="mb-3">
-                    <label class="form-label">Référence du programme</label>
-                    <input type="text" class="form-control" value="${referenceDevis}" readonly>
-                    <input type="hidden" name="reference_devis" value="${referenceDevis}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Date de récupération *</label>
-                    <input type="date" name="date_programme" class="form-control" min="${today}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Chauffeur *</label>
-                    <select name="user_id" class="form-select" required>
-                        <option value="">-- Choisir un chauffeur --</option>
-                        ${chauffeursOptions}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Quantité totale *</label>
-                    <input type="number" name="quantite" class="form-control" value="${quantiteTotale}" min="1" readonly>
-                    <small class="form-text text-muted">Quantité calculée automatiquement à partir des colis</small>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Nature du colis *</label>
-                    <input type="text" name="nature_du_colis" class="form-control" value="Colis divers" required>
-                </div>
-            </form>
-        `,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: '✅ Programmer',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#05a805',
-        preConfirm: () => {
-            const form = document.getElementById('programmationForm');
-            const formData = new FormData(form);
-            
-            // Récupérer les données du formulaire original pour compléter
-            const nomExp = document.querySelector('input[name="nom_expediteur"]').value;
-            const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value;
-            const telExp = document.querySelector('input[name="tel_expediteur"]').value;
-            const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value;
-
-            formData.append('nom_expediteur', `${nomExp} ${prenomExp}`);
-            formData.append('tel_expediteur', telExp);
-            formData.append('lieu_expedition', adresseExp);
-
-            // CORRECTION : Utiliser le bon nom de route
-            const url = "{{ route('aftlb_transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
-            
-            return fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message);
-                }
-                return data;
-            });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({
-                title: '✅ Succès !',
-                html: `
-                    <div class="text-start">
-                        <p>Récupération programmée avec succès !</p>
-                        <p><strong>Référence :</strong> ${result.value.programme.reference_generee}</p>
-                        <p class="text-muted">Vous allez être redirigé...</p>
+        return Swal.fire({
+            title: '📅 Programmer la récupération',
+            html: `
+                <form id="programmationForm">
+                    <div class="mb-3">
+                        <label class="form-label">Référence du programme</label>
+                        <input type="text" class="form-control" value="${referenceDevis}" readonly>
+                        <input type="hidden" name="reference_devis" value="${referenceDevis}">
                     </div>
-                `,
-                icon: 'success',
-                timer: 3000,
-                timerProgressBar: true,
-                willClose: () => {
-                    window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
-                }
-            });
-        }
-    });
-}
-// ---------- Fonction pour calculer la quantité totale des colis ----------
-function calculerQuantiteTotale() {
-    let quantiteTotale = 0;
-    
-    // Sélectionner tous les champs de quantité des colis
-    const champsQuantite = document.querySelectorAll('input[name="quantite_colis[]"]');
-    
-    champsQuantite.forEach(champ => {
-        const quantite = parseInt(champ.value) || 0;
-        quantiteTotale += quantite;
-    });
-    
-    // Retourner au moins 1 si aucune quantité n'est définie
-    return quantiteTotale > 0 ? quantiteTotale : 1;
-}
+                    <div class="mb-3">
+                        <label class="form-label">Date de récupération *</label>
+                        <input type="date" name="date_programme" class="form-control" min="${today}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Chauffeur *</label>
+                        <select name="user_id" class="form-select" required>
+                            <option value="">-- Choisir un chauffeur --</option>
+                            ${chauffeursOptions}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantité totale *</label>
+                        <input type="number" name="quantite" class="form-control" value="${quantiteTotale}" min="1" readonly>
+                        <small class="form-text text-muted">Quantité calculée automatiquement à partir des colis</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nature du colis *</label>
+                        <input type="text" name="nature_du_colis" class="form-control" value="Colis divers" required>
+                    </div>
+                </form>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '✅ Programmer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#05a805',
+            preConfirm: () => {
+                const form = document.getElementById('programmationForm');
+                const formData = new FormData(form);
+
+                const nomExp = document.querySelector('input[name="nom_expediteur"]').value;
+                const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value;
+                const telExp = document.querySelector('input[name="tel_expediteur"]').value;
+                const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value;
+
+                formData.append('nom_expediteur', `${nomExp} ${prenomExp}`);
+                formData.append('tel_expediteur', telExp);
+                formData.append('lieu_expedition', adresseExp);
+
+                const url = "{{ route('aftlb_transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+
+                return fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message);
+                    }
+                    return data;
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: '✅ Succès !',
+                    html: `
+                        <div class="text-start">
+                            <p>Récupération programmée avec succès !</p>
+                            <p><strong>Référence :</strong> ${result.value.programme.reference_generee}</p>
+                            <p class="text-muted">Vous allez être redirigé...</p>
+                        </div>
+                    `,
+                    icon: 'success',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    willClose: () => {
+                        window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+                    }
+                });
+            }
+        });
+    }
+
+    function calculerQuantiteTotale() {
+        let quantiteTotale = 0;
+        const champsQuantite = document.querySelectorAll('input[name="quantite_colis[]"]');
+        champsQuantite.forEach(champ => {
+            const quantite = parseInt(champ.value) || 0;
+            quantiteTotale += quantite;
+        });
+        return quantiteTotale > 0 ? quantiteTotale : 1;
+    }
+
     // ---------- Navigation multi-step ----------
     let currentStep = 0;
     const fieldsets = Array.from(document.querySelectorAll('.step-fieldset'));
@@ -720,6 +689,7 @@ function calculerQuantiteTotale() {
     function showStep(step) {
         fieldsets.forEach((fs, idx) => fs.style.display = (idx === step) ? 'block' : 'none');
         stepItems.forEach((it, idx) => it.classList.toggle('active', idx <= step));
+        updateWizardTitle(step);
         document.querySelector('.wizard-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -738,6 +708,7 @@ function calculerQuantiteTotale() {
         showStep(currentStep);
     }));
 
+    // afficher l'étape initiale avec titre mis à jour
     showStep(currentStep);
     attachDimensionListeners(document);
 

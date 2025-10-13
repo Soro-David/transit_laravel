@@ -1,4 +1,5 @@
-@extends('AFT_LOUIS_BLERIOT.layouts.agent')
+{{-- views/admin/transport/planingedit.blade.php --}}
+@extends('admin.layouts.admin')
 
 @section('content-header')
 <div class="content-header">
@@ -9,7 +10,7 @@
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('aftlb_transport.planing.chauffeur') }}">📊 Programmes</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('transport.planing') }}">📊 Programmes</a></li>
                     <li class="breadcrumb-item active">✏️ Modification</li>
                 </ol>
             </div>
@@ -53,7 +54,7 @@
                 </div>
             </div>
 
-            <form id="editProgrammeForm" action="{{ route('aftlb_transport.programme.update', $programme->id) }}" method="POST">
+            <form id="editProgrammeForm" action="{{ route('transport.programme.update', $programme->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
@@ -365,7 +366,7 @@ $(document).ready(function() {
                 cancelButtonText: 'Annuler'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const deleteUrl = '{{ route("aftlb_transport.programme.deleteItem", ["programmeId" => $programme->id, "itemId" => "PLACEHOLDER"]) }}'.replace('PLACEHOLDER', itemId);
+                    const deleteUrl = '{{ route("transport.programme.deleteItem", ["programmeId" => $programme->id, "itemId" => "PLACEHOLDER"]) }}'.replace('PLACEHOLDER', itemId);
                     axios.delete(deleteUrl)
                         .then(response => {
                             if (response.data.success) {
@@ -459,7 +460,7 @@ $(document).ready(function() {
                         text: response.data.message,
                     }).then(() => {
                         // Redirection vers la page du planning
-                        window.location.href = "{{ route('aftlb_transport.planing.chauffeur') }}";
+                        window.location.href = "{{ route('transport.planing') }}";
                     });
                 } else {
                     // Gérer les erreurs métier renvoyées par le serveur

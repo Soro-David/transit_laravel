@@ -1,4 +1,4 @@
-@extends('AFT_LOUIS_BLERIOT.layouts.agent')
+@extends('AGENCE_CHINE.layouts.agent')
 
 @section('content-header')
 <div class="content-header">
@@ -9,7 +9,7 @@
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('aftlb_transport.planing.chauffeur') }}">📊 Programmes</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('chine_programme.planing.index') }}">📊 Programmes</a></li>
                     <li class="breadcrumb-item active">✏️ Modification</li>
                 </ol>
             </div>
@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <form id="editProgrammeForm" action="{{ route('aftlb_transport.programme.update', $programme->id) }}" method="POST">
+            <form id="editProgrammeForm" action="{{ route('chine_programme.programme.update', $programme->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
@@ -290,7 +290,7 @@
                         <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-save mr-1"></i> Enregistrer les modifications
                         </button>
-                        <a href="{{ route('aftlb_transport.planing.chauffeur') }}" class="btn btn-secondary">
+                        <a href="{{ route('chine_programme.planing.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left mr-1"></i> Retour
                         </a>
                     </div>
@@ -365,7 +365,7 @@ $(document).ready(function() {
                 cancelButtonText: 'Annuler'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const deleteUrl = '{{ route("aftlb_transport.programme.deleteItem", ["programmeId" => $programme->id, "itemId" => "PLACEHOLDER"]) }}'.replace('PLACEHOLDER', itemId);
+                    const deleteUrl = '{{ route("chine_programme.programme.deleteItem", ["programmeId" => $programme->id, "itemId" => "PLACEHOLDER"]) }}'.replace('PLACEHOLDER', itemId);
                     axios.delete(deleteUrl)
                         .then(response => {
                             if (response.data.success) {
@@ -459,7 +459,7 @@ $(document).ready(function() {
                         text: response.data.message,
                     }).then(() => {
                         // Redirection vers la page du planning
-                        window.location.href = "{{ route('aftlb_transport.planing.chauffeur') }}";
+                        window.location.href = "{{ route('chine_programme.planing.index') }}";
                     });
                 } else {
                     // Gérer les erreurs métier renvoyées par le serveur
@@ -478,9 +478,6 @@ $(document).ready(function() {
                 submitBtn.prop('disabled', false).html(originalText);
             });
     });
-
-   
-
 
     // Logique pour programme déjà effectué (inchangé)
     @if($programme->etat_rdv === 'effectué')
