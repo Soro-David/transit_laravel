@@ -452,7 +452,7 @@ class AftlbScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Livré') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été Livré succès.";
             } elseif ($colis->etat === 'Dechargé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'Livré';
@@ -460,9 +460,9 @@ class AftlbScanController extends Controller
                 $updatedColis[] = [
                     'etat'        => $colis->etat,
                 ];
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été Livré succès.";
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Déchargé. Impossible de le mettre Livré.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  n'est pas encore Déchargé. Impossible de le mettre Livré.";
             }
         }
 
@@ -516,7 +516,7 @@ class AftlbScanController extends Controller
 
             if ($colis->etat === 'En entrepot') {
                 // Colis déjà en entrepôt, on ne le modifie pas
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà en entrepôt.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est déjà en entrepôt.";
             } elseif ($colis->etat === 'Validé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'En entrepot';
@@ -527,10 +527,10 @@ class AftlbScanController extends Controller
                     'etat' => $colis->etat,
                 ];
 
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis en entrepôt avec succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été mis en entrepôt avec succès.";
             } else {
                 // Colis pas encore validé
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore validé. Impossible de le mettre en entrepôt.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  n'est pas encore validé. Impossible de le mettre en entrepôt.";
             }
         }
 
@@ -585,7 +585,7 @@ class AftlbScanController extends Controller
             $etatActuel = strtolower(trim($colis->etat));
 
             if ($etatActuel === 'chargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est déjà Chargé.";
             } elseif (in_array($etatActuel, ['validé', 'en entrepot'])) {
                 $colis->etat = 'Chargé';
                 $colis->save();
@@ -597,9 +597,9 @@ class AftlbScanController extends Controller
                 ];
 
                 // dd($updatedColis);
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis à jour en 'Chargé' avec succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été 'Chargé' avec succès.";
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est dans l'état {$colis->etat} et n'a pas été modifié.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est dans l'état {$colis->etat} et n'a pas été Chargé.";
             }
         }
         
@@ -648,7 +648,7 @@ class AftlbScanController extends Controller
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Dechargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà déchargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est déjà déchargé.";
             } elseif ($colis->etat === 'Fermé' || $colis->etat === 'Arrivé') {
                 
                 $colis->etat = 'Déchargé';
@@ -658,10 +658,10 @@ class AftlbScanController extends Controller
                     'reference_colis' => $colis->reference_colis,
                     'id'          => $colis->id,
                 ];
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé avec succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été déchargé avec succès.";
                 $colisSuccessfullyDecharged[] = $colis;
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas dans un état permettant le déchargement (actuellement : {$colis->etat}).";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  n'est pas dans un état permettant le déchargement (actuellement : {$colis->etat}).";
             }
         }
 

@@ -600,6 +600,7 @@ private function generateReferenceParMode(string $mode_transit)
             session('step2', [])
         );
 
+        // dd( $data);
         // Validation de base pour s'assurer que les données nécessaires sont présentes
         if (empty($data) || !isset($data['quantite_colis']) || !is_array($data['quantite_colis'])) {
             Log::error('Données de session invalides ou manquantes pour generer_qrcode.', ['session_data' => $data]);
@@ -641,7 +642,7 @@ private function generateReferenceParMode(string $mode_transit)
             'tel' => $expediteurTel,
             'user_id' => $user_id,
             'agence' => $data['agence_expediteur_societe'] ?? $data['agence_expediteur'] ?? '',
-            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur_particulier'] ?? 'null',
+            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null',
         ];
 
         $destinataireData = [
@@ -661,26 +662,69 @@ private function generateReferenceParMode(string $mode_transit)
             Log::error('Erreur création Expediteur/Destinataire: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors de la sauvegarde des informations expéditeur/destinataire.');
         }
-
+        // dd($data);
         // Logique de gestion du paiement
         $payementDataSession = session('step1', []);
-        $montantTotalEstime = collect($data['prix'] ?? [])->sum() + collect($data['prix_service'] ?? [])->sum();
-        
+
+
+
+        // -------------------------------
+        //  CALCUL DU MONTANT TOTAL ESTIMÉ
+        // -------------------------------
+        $quantites = collect($data['quantite_colis'] ?? []);
+        $prixUnitaires = collect($data['prix'] ?? []);
+
+        // Montant total des produits (quantité × prix)
+        $montantProduits = $quantites
+            ->zip($prixUnitaires)
+            ->map(fn($pair) => ((float)($pair[0]) ?: 0) * ((float)($pair[1]) ?: 0))
+            ->sum();
+
+        // Montant du service éventuel
+        $montantService = collect($data['prix_service'] ?? [])->sum();
+
+        // Total général
+        $montantTotalEstime = $montantProduits + $montantService;
+
+
+        // -------------------------------
+        // 💰 GESTION DU MODE DE PAIEMENT
+        // -------------------------------
         $modePaiement = $payementDataSession['mode_payement'] ?? null;
         $montantPaiementTransaction = 0;
 
-        if ($modePaiement === 'cash') {
-            $montantPaiementTransaction = $payementDataSession['montant_reçu'] ?? 0;
-        } elseif ($modePaiement === 'delivery') {
-            $montantPaiementTransaction = 0; // Payé à la livraison
-        } elseif ($modePaiement) { // Ex: CinetPay, Virement, etc.
-            $montantPaiementTransaction = $montantTotalEstime;
+        switch ($modePaiement) {
+            case 'cash':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_reçu'] ?? 0);
+                break;
+
+            case 'delivery':
+                $montantPaiementTransaction = 0; // Payé à la livraison
+                break;
+
+            case 'bank':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_bank'] ?? 0);
+                break;
+
+            case 'cheque':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_cheque'] ?? 0);
+                break;
+
+            default:
+                $montantPaiementTransaction = 0;
+                break;
         }
 
-        // Détermination du statut global du paiement
+
+        // -------------------------------
+        // 🧾 DÉTERMINATION DU STATUT DE PAIEMENT
+        // -------------------------------
         $statutPaiementGlobal = 'non payé';
+
         if ($modePaiement === 'delivery') {
+            // Le client paiera à la livraison
             $statutPaiementGlobal = 'non payé';
+
         } elseif ($modePaiement === 'cash') {
             if ($montantPaiementTransaction <= 0) {
                 $statutPaiementGlobal = 'non payé';
@@ -689,9 +733,19 @@ private function generateReferenceParMode(string $mode_transit)
             } else {
                 $statutPaiementGlobal = 'payé';
             }
-        } elseif ($modePaiement) { // Autres modes de paiement considérés comme payés
-            $statutPaiementGlobal = 'payé';
-        }
+
+        } 
+
+
+        // -------------------------------
+        // 🧠 RÉSULTATS POUR CONTRÔLE
+        // -------------------------------
+        // dd([
+        //     'mode_paiement' => $modePaiement,
+        //     'montant_total_estime' => $montantTotalEstime,
+        //     'montant_paiement' => $montantPaiementTransaction,
+        //     'statut_paiement' => $statutPaiementGlobal,
+        // ]);
 
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
@@ -802,8 +856,8 @@ private function generateReferenceParMode(string $mode_transit)
                     'agence' => $agence,
                     'devise' => 'EUR',
                     'quantite_colis' => 1, // Chaque enregistrement représente un colis physique unique
-                    'service' => $data['service'][$index] ?? null,
-                    'montant_service' => $data['prix_service'][$index] ?? null,
+                    'service' => $data['service'] ?? null,
+                    'montant_service' => $data['prix_service'] ?? null,
                     'produit' => $data['produit'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids'][$index] ?? null,
@@ -1294,6 +1348,7 @@ private function generateReferenceParMode(string $mode_transit)
         $date_facture = now();
         $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
         $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1338,6 +1393,7 @@ private function generateReferenceParMode(string $mode_transit)
                 'montant_service' => (float)$firstColis->montant_service,
             ];
         }
+        // dd( $service_info, $produitsGroupes);
 
         $montant_service_total = $service_info ? $service_info['montant_service'] : 0;
         $prix_total_invoice = $sous_total_produits + $montant_service_total;
@@ -1374,6 +1430,7 @@ private function generateReferenceParMode(string $mode_transit)
             'reference_colis',
             'expediteur',
             'tel_expediteur',
+            'adresse_expediteur',
             'destinataire',
             'tel_destinataire',
             'adresse_destinataire',
@@ -1490,6 +1547,7 @@ private function generateReferenceParMode(string $mode_transit)
         $date_facture = now();
         $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
         $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1555,6 +1613,7 @@ private function generateReferenceParMode(string $mode_transit)
             [
                 'nom_agent' => $nom_agent,
                 'nom_expediteur' => $expediteur,
+                'adresse_expediteur' => $adresse_expediteur,
                 'nom_destinataire' => $destinataire,
                 'expediteur_id' => optional($firstColis->expediteur)->id,
                 'destinataire_id' => optional($firstColis->destinataire)->id,
@@ -1570,6 +1629,7 @@ private function generateReferenceParMode(string $mode_transit)
             'reference_colis',
             'expediteur',
             'tel_expediteur',
+            'adresse_expediteur',
             'destinataire',
             'tel_destinataire',
             'adresse_destinataire',
@@ -2393,7 +2453,7 @@ public function get_devis_details($id)
     abort(404); 
 }
 
-public function enregistrerPaiement(Request $request)
+public function enregistrer_paiement(Request $request)
 {
     $validated = $request->validate([
         'reference_colis' => 'required|string|exists:colis,reference_colis',
@@ -2401,6 +2461,7 @@ public function enregistrerPaiement(Request $request)
         'colis_ids'       => 'required|json', 
     ]);
 
+    // dd($validated);
     try {
         $colisIdsJson = $validated['colis_ids'];
         $nouveauMontantPaye = (float) $validated['montant_a_payer'];
@@ -3564,7 +3625,7 @@ public function get_colis_bateau(Request $request)
                 $reference = $row['reference_colis'];
                 $firstColisId = $row['first_colis_id'];
 
-                $invoiceUrl = route('aftlb_colis.valide.edit.invoice', ['id' => $firstColisId]);
+                // $invoiceUrl = route('aftlb_colis.valide.edit.invoice', ['id' => $firstColisId]);
                 $deleteUrl  = route('aftlb_colis.destroy.colis.valide', ['reference' => $reference]);
 
                 $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
@@ -3576,11 +3637,9 @@ public function get_colis_bateau(Request $request)
                             <i class="fas fa-dollar-sign"></i>
                         </button>';
 
-                $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
-                                <i class="fas fa-file-invoice"></i>
-                            </a>';
+               
 
-                return '<div class="action-buttons-container">' . $payBtn . $invoiceBtn . '</div>';
+                return '<div class="action-buttons-container">' . $payBtn . '</div>';
             })
             ->rawColumns(['action', 'statut_paiement'])
             ->make(true);

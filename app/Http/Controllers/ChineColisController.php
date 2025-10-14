@@ -651,7 +651,7 @@ public function vol_fermer(Request $request)
             'tel' => $expediteurTel,
             'user_id' => $user_id,
             'agence' => $data['agence_expediteur_societe'] ?? $data['agence_expediteur'] ?? '',
-            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur_particulier'] ?? 'null',
+            'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null',
         ]; 
 
         $destinataireData = [
@@ -674,24 +674,63 @@ public function vol_fermer(Request $request)
 
         // Logique de gestion du paiement
         $payementDataSession = session('step1', []);
-        $montantTotalEstime = collect($data['prix'] ?? [])->sum() + collect($data['prix_service'] ?? [])->sum();
-        
+        // -------------------------------
+        //  CALCUL DU MONTANT TOTAL ESTIMÉ
+        // -------------------------------
+        $quantites = collect($data['quantite_colis'] ?? []);
+        $prixUnitaires = collect($data['prix'] ?? []);
+
+        // Montant total des produits (quantité × prix)
+        $montantProduits = $quantites
+            ->zip($prixUnitaires)
+            ->map(fn($pair) => ((float)($pair[0]) ?: 0) * ((float)($pair[1]) ?: 0))
+            ->sum();
+
+        // Montant du service éventuel
+        $montantService = collect($data['prix_service'] ?? [])->sum();
+
+        // Total général
+        $montantTotalEstime = $montantProduits + $montantService;
+
+
+        // -------------------------------
+        // 💰 GESTION DU MODE DE PAIEMENT
+        // -------------------------------
         $modePaiement = $payementDataSession['mode_payement'] ?? null;
         $montantPaiementTransaction = 0;
 
-        if ($modePaiement === 'cash') {
-            $montantPaiementTransaction = $payementDataSession['montant_reçu'] ?? 0;
-        } elseif ($modePaiement === 'delivery') {
-            $montantPaiementTransaction = 0; // Payé à la livraison
-        } elseif ($modePaiement) { // Ex: CinetPay, Virement, etc.
-            $montantPaiementTransaction = $montantTotalEstime;
-        }
-        // dd($montantTotalEstime, $montantPaiementTransaction);
+        switch ($modePaiement) {
+            case 'cash':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_reçu'] ?? 0);
+                break;
 
-        // Détermination du statut global du paiement
+            case 'delivery':
+                $montantPaiementTransaction = 0; // Payé à la livraison
+                break;
+
+            case 'bank':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_bank'] ?? 0);
+                break;
+
+            case 'cheque':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_cheque'] ?? 0);
+                break;
+
+            default:
+                $montantPaiementTransaction = 0;
+                break;
+        }
+
+
+        // -------------------------------
+        // 🧾 DÉTERMINATION DU STATUT DE PAIEMENT
+        // -------------------------------
         $statutPaiementGlobal = 'non payé';
+
         if ($modePaiement === 'delivery') {
+            // Le client paiera à la livraison
             $statutPaiementGlobal = 'non payé';
+
         } elseif ($modePaiement === 'cash') {
             if ($montantPaiementTransaction <= 0) {
                 $statutPaiementGlobal = 'non payé';
@@ -700,9 +739,19 @@ public function vol_fermer(Request $request)
             } else {
                 $statutPaiementGlobal = 'payé';
             }
-        } elseif ($modePaiement) { // Autres modes de paiement considérés comme payés
-            $statutPaiementGlobal = 'payé';
-        }
+
+        } 
+
+
+        // -------------------------------
+        // 🧠 RÉSULTATS POUR CONTRÔLE
+        // -------------------------------
+        // dd([
+        //     'mode_paiement' => $modePaiement,
+        //     'montant_total_estime' => $montantTotalEstime,
+        //     'montant_paiement' => $montantPaiementTransaction,
+        //     'statut_paiement' => $statutPaiementGlobal,
+        // ]);
 
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
@@ -983,6 +1032,70 @@ public function vol_fermer(Request $request)
         ])->with('success', 'Colis bien enregistré');
     }
     
+public function enregistrer_paiement(Request $request)
+{
+    $validated = $request->validate([
+        'reference_colis' => 'required|string|exists:colis,reference_colis',
+        'montant_a_payer' => 'required|numeric|min:0.01',
+        'colis_ids'       => 'required|json', 
+    ]);
+
+    // dd($validated);
+    try {
+        $colisIdsJson = $validated['colis_ids'];
+        $nouveauMontantPaye = (float) $validated['montant_a_payer'];
+        $referenceColis = $validated['reference_colis'];
+
+        $colisIds = json_decode($colisIdsJson, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($colisIds) || empty($colisIds)) {
+            Log::error('JSON colis_ids invalide ou vide reçu:', ['json_string' => $colisIdsJson]);
+            return response()->json(['error' => 'Liste des IDs de colis invalide ou vide.'], 400);
+        }
+
+        $firstColisId = $colisIds[0];
+
+        $colisExists = Colis::where('id', $firstColisId)
+                            ->where('reference_colis', $referenceColis)
+                            ->exists();
+
+        if (!$colisExists) {
+            Log::warning('Incohérence détectée : colis non trouvé malgré la validation.', ['id' => $firstColisId, 'ref' => $referenceColis]);
+            return response()->json(['error' => 'Colis de référence non trouvé pour enregistrer le paiement.'], 404);
+        }
+
+        DB::beginTransaction();
+
+        $ancienMontantPaye = Paiement::where('colis_id', $firstColisId)->sum('montant_paye');
+
+        $montantTotal = $ancienMontantPaye + $nouveauMontantPaye;
+
+        Paiement::create([
+            'colis_id'         => $firstColisId, 
+            'montant_paye'     => $nouveauMontantPaye,
+            'date_paiement'    => now(), 
+            'methode_paiement' => $request->input('methode_paiement', 'Espèce'),
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => 'Paiement enregistré avec succès pour la référence ' . $referenceColis,
+            'ancien_montant_paye' => $ancienMontantPaye,
+            'nouveau_montant'     => $nouveauMontantPaye,
+            'montant_total'       => $montantTotal
+        ]);
+
+    } catch (ValidationException $e) {
+        Log::error("Erreur de validation paiement: " . $e->getMessage(), $e->errors());
+        return response()->json(['error' => 'Données invalides.', 'details' => $e->errors()], 422);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erreur enregistrement paiement: " . $e->getMessage() . ' dans ' . $e->getFile() . ' ligne ' . $e->getLine());
+        return response()->json(['error' => 'Une erreur technique est survenue lors de l\'enregistrement du paiement.'], 500);
+    }
+}
     public function editEtiquette($id)
     {
         try {
@@ -1044,6 +1157,7 @@ public function vol_fermer(Request $request)
         $date_facture = now();
         $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
         $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1109,6 +1223,7 @@ public function vol_fermer(Request $request)
             [
                 'nom_agent' => $nom_agent,
                 'nom_expediteur' => $expediteur,
+                'adresse_expediteur' => $adresse_expediteur,
                 'nom_destinataire' => $destinataire,
                 'expediteur_id' => optional($firstColis->expediteur)->id,
                 'destinataire_id' => optional($firstColis->destinataire)->id,
@@ -1124,6 +1239,7 @@ public function vol_fermer(Request $request)
             'reference_colis',
             'expediteur',
             'tel_expediteur',
+            'adresse_expediteur',
             'destinataire',
             'tel_destinataire',
             'adresse_destinataire',
@@ -1453,6 +1569,7 @@ public function vol_fermer(Request $request)
         $date_facture = now();
         $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
         $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1518,6 +1635,7 @@ public function vol_fermer(Request $request)
             [
                 'nom_agent' => $nom_agent,
                 'nom_expediteur' => $expediteur,
+                'adresse_expediteur' => $adresse_expediteur,
                 'nom_destinataire' => $destinataire,
                 'expediteur_id' => optional($firstColis->expediteur)->id,
                 'destinataire_id' => optional($firstColis->destinataire)->id,
@@ -1533,6 +1651,7 @@ public function vol_fermer(Request $request)
             'reference_colis',
             'expediteur',
             'tel_expediteur',
+            'adresse_expediteur',
             'destinataire',
             'tel_destinataire',
             'adresse_destinataire',
@@ -3459,7 +3578,7 @@ public function liste_colis_par_bateau($reference_conteneur)
                 $reference = $row['reference_colis'];
                 $firstColisId = $row['first_colis_id'];
 
-                $invoiceUrl = route('chine_colis.valide.edit.invoice', ['id' => $firstColisId]);
+                // $invoiceUrl = route('chine_colis.valide.edit.invoice', ['id' => $firstColisId]);
                 $deleteUrl  = route('chine_colis.destroy.colis.valide', ['reference' => $reference]);
 
                 $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
@@ -3471,11 +3590,7 @@ public function liste_colis_par_bateau($reference_conteneur)
                             <i class="fas fa-dollar-sign"></i>
                         </button>';
 
-                $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
-                                <i class="fas fa-file-invoice"></i>
-                            </a>';
-
-                return '<div class="action-buttons-container">' . $payBtn . $invoiceBtn . '</div>';
+                return '<div class="action-buttons-container">' . $payBtn . '</div>';
             })
             ->rawColumns(['action', 'statut_paiement'])
             ->make(true);

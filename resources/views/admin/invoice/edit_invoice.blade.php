@@ -485,12 +485,14 @@
             <!-- Infos client et facture -->
             <div class="client-invoice-details">
                 <div class="client-details">
-                    <h3>De: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
-                    <p>Tel: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <h3>Expéditeur: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
+                    <p>Téléphone: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <p>Adresse: {{ $adresse_expediteur ?? 'N/A' }}</p>
                     <br>
-                    <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
-                    <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
-                    <p>Adresse: {{ $adresse_destinataire ?? 'N/A' }}</p>
+                    {{-- @dd($adresse_expediteur) --}}
+                    <h3>Destinataire: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
+                    <p>Téléphone: {{ $tel_destinataire ?? 'N/A' }}</p>
+                    <p>Adresse Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
                 </div>
                 <div class="invoice-meta">
                     <table>

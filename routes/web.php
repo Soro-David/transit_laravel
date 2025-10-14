@@ -82,6 +82,7 @@ use App\Http\Controllers\AftProspectController;
 use App\Http\Controllers\ColisTrackingController;
 use App\Http\Controllers\Devis\DevisAutoController;
 use App\Http\Controllers\Devis\DevisController;
+use App\Http\Controllers\Chauffeur\Enlevement\EnlevementController;
 
 
 use App\Http\Controllers\OrangeSmsController; 

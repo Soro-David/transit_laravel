@@ -41,13 +41,11 @@ class ProgrammeItems extends Model
         return $this->belongsTo(Programme::class, 'programme_id');
     }
 
-    // Si tu veux reproduire le comportement d'observer de DevisItems (mise à jour automatique),
-    // tu peux décommenter / adapter le code suivant en fonction d'une méthode existante sur Programme :
-    
     protected static function boot()
     {
         parent::boot();
 
+        // Met à jour le montant total du programme quand un item est ajouté ou supprimé
         static::saved(function ($item) {
             if ($item->programme && method_exists($item->programme, 'mettreAJourMontantTotal')) {
                 $item->programme->mettreAJourMontantTotal();
@@ -60,5 +58,4 @@ class ProgrammeItems extends Model
             }
         });
     }
-    
 }

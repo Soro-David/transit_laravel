@@ -484,12 +484,13 @@
             <!-- Infos client et facture -->
             <div class="client-invoice-details">
                 <div class="client-details">
-                    <h3>De: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
-                    <p>Tel: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <h3>Expéditeur: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
+                    <p>Téléphone: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <p>Adresse: {{ $adresse_expediteur ?? 'N/A' }}</p>
                     <br>
-                    <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
-                    <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
-                    <p>Adresse: {{ $adresse_destinataire ?? 'N/A' }}</p>
+                    <h3>Destinataire: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
+                    <p>Téléphone: {{ $tel_destinataire ?? 'N/A' }}</p>
+                    <p>Adresse Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
                 </div>
                 <div class="invoice-meta">
                     <table>
@@ -506,41 +507,41 @@
             </div>
 
             <!-- Tableau des articles -->
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th class="col-produit">Produit / Service</th>
-                        <th class="col-qty">Qté</th>
-                        <th class="col-price">P.U. ({{ $devise ?? '' }})</th>
-                        <th class="col-montant">Montant ({{ $devise ?? '' }})</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{-- Produits --}}
-                    @forelse ($produitsGroupes as $produit)
-                    <tr>
-                        <td>{{ $produit['produit'] ?? 'Produit non défini' }}</td>
-                        <td class="col-qty">{{ number_format($produit['nombre_colis'], 0, ',', ' ') }}</td>
-                        <td class="col-price">{{ number_format($produit['prix_unitaire_moyen'], 2, ',', ' ') }}</td>
-                        <td class="col-montant">{{ number_format($produit['montant_total_ligne'], 0, ',', ' ') }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="text-center">Aucun produit trouvé.</td>
-                    </tr>
-                    @endforelse
+<table class="items-table">
+    <thead>
+        <tr>
+            <th class="col-produit">Produit / Service</th>
+            <th class="col-qty">Qté</th>
+            <th class="col-price">P.U. ({{ $devise ?? '' }})</th>
+            <th class="col-montant">Montant ({{ $devise ?? '' }})</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{-- Produits --}}
+        @forelse ($produitsGroupes as $produit)
+        <tr>
+            <td>{{ $produit['produit'] ?? 'Produit non défini' }}</td>
+            <td class="col-qty">{{ number_format($produit['nombre_colis'], 0, ',', ' ') }}</td>
+            <td class="col-price">{{ number_format($produit['prix_unitaire_moyen'], 2, ',', ' ') }}</td>
+            <td class="col-montant">{{ number_format($produit['montant_total_ligne'], 0, ',', ' ') }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="4" class="text-center">Aucun produit trouvé.</td>
+        </tr>
+        @endforelse
 
-                    {{-- Service éventuel --}}
-                    @if ($service_info)
-                    <tr>
-                        <td>{{ $service_info['service'] }}</td>
-                        <td class="col-qty">1</td>
-                        <td class="col-price">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
-                        <td class="col-montant">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
-                    </tr>
-                    @endif
-                </tbody>
-            </table>
+        {{-- Service éventuel --}}
+        @if ($service_info)
+        <tr>
+            <td>{{ $service_info['service'] }}</td>
+            <td class="col-qty">1</td>
+            <td class="col-price">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
+            <td class="col-montant">{{ number_format($service_info['montant_service'], 2, ',', ' ') }}</td>
+        </tr>
+        @endif
+    </tbody>
+</table>
 
             <div class="simulated-barcode-small"></div>
 

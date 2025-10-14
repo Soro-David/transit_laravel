@@ -508,7 +508,7 @@ public function get_colis_charge(Request $request)
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Livré') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été Livré succès.";
             } elseif ($colis->etat === 'Dechargé') {
                 // Modifier l'état du colis en "En entrepot"
                 $colis->etat = 'Livré';
@@ -516,9 +516,9 @@ public function get_colis_charge(Request $request)
                 $updatedColis[] = [
                     'etat'        => $colis->etat,
                 ];
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été Livré succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été Livré succès.";
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas encore Déchargé. Impossible de le mettre Livré.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  n'est pas encore Déchargé. Impossible de le mettre Livré.";
             }
         }
 
@@ -628,64 +628,6 @@ public function updateColisEntrepot(Request $request)
 }
 
     
-    // Fonction Ajax pour le Scan chargement
-    // {{ route("scan.get.colis.charge") }}
-// public function updateColisCharge(Request $request)
-// {
-//     // Vérification des paramètres
-//     if (!$request->has('colisId') || !$request->has('id')) {
-//         $missingParams = [];
-//         if (!$request->has('colisId')) $missingParams[] = 'colisId';
-//         if (!$request->has('id')) $missingParams[] = 'id';
-
-//         return response()->json([
-//             'success'  => false,
-//             'messages' => [implode(" et ", $missingParams) . ' manquant(s).']
-//         ], 400);
-//     }
-
-//     // Récupération des colis correspondants
-//     $colisList = Colis::where('reference_colis', $request->colisId)
-//                       ->where('id', $request->id)
-//                       ->get();
-
-//     if ($colisList->isEmpty()) {
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'Aucun colis trouvé avec cette référence et cet identifiant.'
-//         ], 404);
-//     }
-
-//     $messages = [];
-//     $updatedColis = [];
-
-//     foreach ($colisList as $colis) {
-//         if (in_array($colis->etat, ['Validé', 'En Entrepot'])) {
-//             // Mise à jour vers Chargé
-//             $colis->etat = 'Chargé';
-//             $colis->save();
-
-//             $updatedColis[] = [
-//                 'id'    => $colis->id,
-//                 'etat'  => $colis->etat,
-//                 'ref'   => $colis->reference_colis,
-//             ];
-
-//             $messages[] = "✅ Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été chargé.";
-//         } elseif ($colis->etat === 'Chargé') {
-//             $messages[] = "ℹ️ Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà chargé.";
-//         } else {
-//             $messages[] = "⛔ Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) ne peut pas être chargé depuis l'état '{$colis->etat}'.";
-//         }
-//     }
-
-//     return response()->json([
-//         'success'  => !empty($updatedColis),
-//         'messages' => $messages,
-//         'colis'    => $updatedColis,
-//     ]);
-// }
-
 
     public function updateColisCharge(Request $request)
     {
@@ -725,7 +667,7 @@ public function updateColisEntrepot(Request $request)
             $etatActuel = strtolower(trim($colis->etat));
 
             if ($etatActuel === 'chargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà Chargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est déjà Chargé.";
             } elseif (in_array($etatActuel, ['validé', 'en entrepot'])) {
                 $colis->etat = 'Chargé';
                 $colis->save();
@@ -737,9 +679,9 @@ public function updateColisEntrepot(Request $request)
                 ];
 
                 // dd($updatedColis);
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis à jour en 'Chargé' avec succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été 'Chargé' avec succès.";
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est dans l'état {$colis->etat} et n'a pas été modifié.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est dans l'état {$colis->etat} et n'a pas été Chargé.";
             }
         }
         
@@ -790,7 +732,7 @@ public function updateColisEntrepot(Request $request)
         // Parcourir chaque colis trouvé
         foreach ($colisList as $colis) {
             if ($colis->etat === 'Dechargé') {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est déjà déchargé.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  est déjà déchargé.";
             } elseif ($colis->etat === 'Fermé' || $colis->etat === 'Arrivé') { // Condition pour les états où le déchargement est possible
                 // Modifier l'état du colis en "Déchargé"
                 $colis->etat = 'Déchargé';
@@ -800,10 +742,10 @@ public function updateColisEntrepot(Request $request)
                     'reference_colis' => $colis->reference_colis,
                     'id'              => $colis->id,
                 ];
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été déchargé avec succès.";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  a été déchargé avec succès.";
                 $colisSuccessfullyDecharged[] = $colis; // Ajout du colis à la liste pour l'envoi de SMS
             } else {
-                $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) n'est pas dans un état permettant le déchargement (actuellement : {$colis->etat}).";
+                $messages[] = "Le colis avec la référence {$colis->reference_colis}  n'est pas dans un état permettant le déchargement (actuellement : {$colis->etat}).";
             }
         }
 

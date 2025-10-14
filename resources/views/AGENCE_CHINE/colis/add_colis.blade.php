@@ -94,8 +94,9 @@
                 {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
                 <div id="particulier_expediteur_section" style="display: none;">
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="adresse_expediteur" class="form-label">Adresse Expéditeur</label><input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control" placeholder="Ex: Louis Blériot"></div>
                         <div class="col-md-6 mb-3"><label for="email_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur" id="email_expediteur" class="form-control"></div>
                         <div class="col-md-6 mb-3"><label for="tel_expediteur" class="form-label">Téléphone</label><input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789"></div>
                     </div>
@@ -529,7 +530,7 @@
                 <div class="colis-item form-section mb-4 border p-3">
                     <div class="row">
                         <div class="col-md-2"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis"></div>
-                        <div class="col-md-4"><label class="form-label">Produit</label><input type="text" name="service[]" class="form-control produit-input"></div>
+                        <div class="col-md-4"><label class="form-label">Produit</label><input type="text" name="produit[]" class="form-control produit-input"></div>
                         {{-- <div class="col-md-2"><label class="form-label">Valeur</label><input type="number" name="valeur_colis[]" class="form-control prix-colis"></div> --}}
                         <div class="col-md-2"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix">
                             {{-- <div class="mt-2">Prix Total: <span class="prix-total">0.00</span></div> --}}
@@ -567,14 +568,14 @@
                     <div class="col-md-6 position-relative">
                         <label class="form-label">Service(s)</label>
                         <div class="input-group">
-                            <input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service">
+                            <input type="text" name="service" class="form-control service-input" placeholder="Rechercher ou saisir un service">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button>
                         </div>
                         <div class="autocomplete-results"></div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Prix</label>
-                        <input type="number" name="prix_service[]" class="form-control prix-service" placeholder="Prix">
+                        <input type="number" name="prix_service" class="form-control prix-service" placeholder="Prix">
                         <div class="mt-2">Prix Total: <span class="prix-total-service">0</span></div>
                     </div>
                 </div>
@@ -633,9 +634,9 @@
                 <div class="payment-section mt-3" id="bank_section" style="display:none;">
                     <h5>Détails Bancaires</h5>
                     <div class="row">
-                        <div class="col-md-4 mb-3"><label class="form-label">Nom de la banque</label><input type="text" name="bank_nom_banque" class="form-control"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Numéro de compte</label><input type="text" name="bank_numero_compte" class="form-control"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Montant</label><input type="text" name="bank_montant" class="form-control"></div>
+                        {{-- <div class="col-md-4 mb-3"><label class="form-label">Nom de la banque</label><input type="text" name="bank_nom_banque" class="form-control"></div> --}}
+                        {{-- <div class="col-md-4 mb-3"><label class="form-label">Numéro de compte</label><input type="text" name="bank_numero_compte" class="form-control"></div> --}}
+                        <div class="col-md-4 mb-3"><label class="form-label">Montant</label><input type="text" name="montant_bank" class="form-control"></div>
                     </div>
                 </div>
                 <div class="payment-section mt-3" id="mobile_money_section" style="display:none;">
@@ -655,7 +656,9 @@
                 </div>
                 <div class="payment-section mt-3" id="cheque_section" style="display:none;">
                     <h5>Détails du Chèque</h5>
-                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Montant du chèque</label><input type="text" name="montant_reçu" class="form-control"></div></div>
+                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Numéro du chèque</label><input type="text" name="numero_cheque" class="form-control"></div></div>
+                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Montant du chèque</label><input type="text" name="montant_cheque" class="form-control"></div></div>
+                    
                 </div>
                 <div class="payment-section mt-3" id="cash_section" style="display:none;">
                     <h5>Paiement en Espèces</h5>
@@ -692,7 +695,9 @@
                             <select name="agence" id="agence_service" class="form-control">
                                 <option value="" disabled selected>-- Sélectionnez --</option>
                                 <option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option>
-                                <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div>
+                                <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
+                            </select>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('chine_colis.store.service') }}">Créer</button></div>
@@ -808,7 +813,7 @@ function chargerInformationsCompletesDuDevis(programmeId) {
 
         if(itemData){
             ligne.find('input[name="quantite_colis[]"]').val(itemData.quantite_colis || itemData.quantite || 1);
-            ligne.find('input[name="service[]"]').val(itemData.service || '');
+            ligne.find('input[name="produit[]"]').val(itemData.service || '');
             // ligne.find('input[name="valeur_colis[]"]').val(itemData.valeur_colis || itemData.prix_unitaire || '');
             ligne.find('input[name="prix[]"]').val(itemData.montant || '');
             ligne.find('select[name="type_colis[]"]').val(itemData.type_colis || 'standard');
@@ -867,6 +872,7 @@ $(document).ready(function () {
                                 $('#prenom_expediteur').val(client.last_name);
                                 $('#email_expediteur').val(client.email);
                                 $('#tel_expediteur').val(client.tel);
+                                $('#adresse_expediteur').val(client.adresse);
                             } else if (client.category === 'societe') {
                                 $('#categorie_client').val('societe').trigger('change');
                                 $('#nom_societe_expediteur').val(client.first_name);

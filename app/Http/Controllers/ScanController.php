@@ -509,9 +509,9 @@ public function updateColisCharge(Request $request)
                 'nouvel_etat'  => $colis->etat,
             ];
 
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis à jour en 'Chargé' avec succès.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) a été mis 'Chargé' avec succès.";
         } else {
-            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est dans l'état {$colis->etat} et n'a pas été modifié.";
+            $messages[] = "Le colis avec la référence {$colis->reference_colis} (ID: {$colis->id}) est dans l'état {$colis->etat} et n'a pas été Chargé.";
         }
     }
     

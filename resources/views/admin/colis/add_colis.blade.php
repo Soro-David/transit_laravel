@@ -94,8 +94,9 @@
                 {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
                 <div id="particulier_expediteur_section" style="display: none;">
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="adresse_expediteur" class="form-label">Adresse Expéditeur</label><input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control" placeholder="Ex:Louis Blériot"></div>
                         <div class="col-md-6 mb-3"><label for="email_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur" id="email_expediteur" class="form-control"></div>
                         <div class="col-md-6 mb-3"><label for="tel_expediteur" class="form-label">Téléphone</label><input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789"></div>
                     </div>
@@ -497,8 +498,8 @@
             <h5 class="text-center mb-4 mt-5">Services Additionnels et Récapitulatif</h5>
             <div class="form-section">
                 <div class="row g-3">
-                    <div class="col-md-6 position-relative"><label class="form-label">Service(s)</label><div class="input-group"><input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service"><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button></div><div class="autocomplete-results"></div></div>
-                    <div class="col-md-3"><label class="form-label">Prix</label><input type="number" name="prix_service[]" class="form-control prix-service" placeholder="Prix"><div class="mt-2">Prix Total: <span name="prix_service[]" class="prix-total-service">0</span></div></div>
+                    <div class="col-md-6 position-relative"><label class="form-label">Service(s)</label><div class="input-group"><input type="text" name="service" class="form-control service-input" placeholder="Rechercher ou saisir un service"><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button></div><div class="autocomplete-results"></div></div>
+                    <div class="col-md-3"><label class="form-label">Prix</label><input type="number" name="prix_service" class="form-control prix-service" placeholder="Prix"><div class="mt-2">Prix Total: <span name="prix_service" class="prix-total-service">0</span></div></div>
                 </div>
             </div>
 
@@ -546,9 +547,37 @@
                         </select>
                     </div>
                 </div>
-                <div class="payment-section mt-3" id="bank_section" style="display:none;"><h5>Détails Bancaires</h5><div class="row"><div class="col-md-4 mb-3"><label for="bank_nom_banque" class="form-label">Nom de la banque</label><input type="text" name="bank_nom_banque" id="bank_nom_banque" class="form-control"></div><div class="col-md-4 mb-3"><label for="bank_numero_compte" class="form-label">Numéro de compte</label><input type="text" name="bank_numero_compte" id="bank_numero_compte" class="form-control"></div><div class="col-md-4 mb-3"><label for="bank_montant" class="form-label">Montant</label><input type="number" name="montant_reçu" id="bank_montant" class="form-control" min="0"></div></div></div>
+                <div class="payment-section mt-3" id="bank_section" style="display:none;">
+                    <h5>Détails Bancaires</h5>
+                    <div class="row">
+                        {{-- <div class="col-md-4 mb-3">
+                            <label for="bank_nom_banque" class="form-label">Nom de la banque</label>
+                            <input type="text" name="bank_nom_banque" id="bank_nom_banque" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="bank_numero_compte" class="form-label">Numéro de compte</label>
+                            <input type="text" name="bank_numero_compte" id="bank_numero_compte" class="form-control">
+                        </div> --}}
+                        <div class="col-md-4 mb-3">
+                            <label for="bank_montant" class="form-label">Montant</label>
+                            <input type="number" name="montant_bank" id="bank_montant" class="form-control" min="0">
+                        </div>
+                    </div>
+                </div>
                 <div class="payment-section mt-3" id="mobile_money_section" style="display:none;"><h5>Paiement Mobile Money</h5><div class="row"><div class="col-md-6 mb-3"><label for="mobile_operateur" class="form-label">Opérateur</label><select name="mobile_operateur" id="mobile_operateur" class="form-control"><option value="">-- Sélectionnez --</option><option value="orange_money">Orange Money</option><option value="wave">Wave</option><option value="mtn_money">MTN Money</option></select></div><div class="col-md-6 mb-3"><label for="mobile_numero_tel" class="form-label">Numéro de téléphone</label><input type="text" name="mobile_numero_tel" id="mobile_numero_tel" class="form-control"></div></div><button type="button" class="btn btn-primary mt-2" id="cinetpayButton" style="display:none;">Payer via Mobile Money</button></div>
-                <div class="payment-section mt-3" id="cheque_section" style="display:none;"><h5>Détails du Chèque</h5><div class="row"><div class="col-md-6 mb-3"><label for="cheque_montant" class="form-label">Montant du chèque</label><input type="number" name="montant_reçu" id="cheque_montant" class="form-control" min="0"></div></div></div>
+                <div class="payment-section mt-3" id="cheque_section" style="display:none;">
+                    <h5>Détails du Chèque</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="numero_cheque" class="form-label">Numero de chèque</label>
+                            <input type="number" name="numero_cheque" id="numero_cheque" class="form-control" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cheque_montant" class="form-label">Montant du chèque</label>
+                            <input type="number" name="montant_cheque" id="cheque_montant" class="form-control" min="0">
+                        </div>
+                    </div>
+                </div>
                 <div class="payment-section mt-3" id="cash_section" style="display:none;"><h5>Paiement en Espèces</h5><div class="col-md-6 mb-3"><label for="cash_montant_recu" class="form-label">Montant reçu</label><input type="number" name="montant_reçu" id="cash_montant_recu" class="form-control" min="0"></div></div>
                 <div class="payment-section mt-3" id="delivery_section" style="display:none;"><h5>Paiement à la Livraison</h5><p class="alert alert-warning">Le paiement sera effectué lors de la livraison du colis.</p></div>
             </div>
@@ -770,6 +799,7 @@ $(document).ready(function() {
                                 $('#prenom_expediteur').val(selectedClient.last_name);
                                 $('#email_expediteur').val(selectedClient.email);
                                 $('#tel_expediteur').val(selectedClient.tel);
+                                $('#adresse_expediteur').val(selectedClient.adresse);
                             } else if (selectedClient.category === 'societe') {
                                 $('#nom_societe_expediteur').val(selectedClient.first_name);
                                 $('#email_societe_expediteur').val(selectedClient.email);

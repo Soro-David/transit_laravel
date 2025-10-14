@@ -38,11 +38,12 @@ class DevisAutoController extends Controller
     public function getItems(Programme $programme)
     {
         // On charge la relation programmeItems
-        $programme->load('programmeItems');
+        $programme->load('items');
+
 
         return response()->json([
             'programme' => $programme,
-            'items' => $programme->programmeItems, // retour direct des items
+            'items' => $programme->items,
         ]);
     }
 }

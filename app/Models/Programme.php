@@ -6,10 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-<<<<<<< HEAD
-use App\Models\ProgrammeItems;
-=======
->>>>>>> 3d2bf99a86ea0e6f6f26527573ed1e52b9117280
 
 class Programme extends Model
 {
@@ -40,7 +36,7 @@ class Programme extends Model
         'montant',
         'devise',
         'etat_rdv',
-        'qr_code'
+        'qr_code',
     ];
     
     protected $casts = [
@@ -49,61 +45,48 @@ class Programme extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Relation avec User
+    // Relation avec l'utilisateur qui a créé le programme
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    // Relation avec l'agent
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'agent_id');
+    }
+
+    // Relation avec le colis (via référence)
     public function colis(): BelongsTo
     {
         return $this->belongsTo(Colis::class, 'reference_colis', 'reference_colis');
     }
 
-    // Relation avec Devis
+    // Relation avec le devis associé
     public function devis(): BelongsTo
     {
         return $this->belongsTo(Devis::class, 'reference_colis', 'reference');
     }
-<<<<<<< HEAD
-     // Relation avec l'agent qui a créé le programme
-     public function agent()
-     {
-         return $this->belongsTo(User::class, 'agent_id');
-     }
- 
- // Relation avec ProgrammeItem
- public function programmeItems()
- {
-     return $this->hasMany(ProgrammeItems::class, 'programme_id');
- }
- 
-=======
 
-    // Relation avec les programmes de dépôt pour la récupération
-    public function programmeDepot()
-    {
-        return $this->belongsTo(Programme::class, 'reference_colis', 'reference_generee')
-            ->where('actions_a_faire', 'depot')
-            ->where('etat_rdv', 'effectué');
-    }
-
-    // CORRECTION : Relation avec ProgrammeItems
+    // Relation avec les éléments du programme (colis détaillés)
     public function items(): HasMany
     {
         return $this->hasMany(ProgrammeItems::class, 'programme_id');
     }
 
-    // Relation avec l'agent qui a créé le programme
-    public function agent()
+    // Relation avec le programme de dépôt correspondant
+    public function programmeDepot(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'agent_id');
+        return $this->belongsTo(Programme::class, 'reference_colis', 'reference_generee')
+                    ->where('actions_a_faire', 'depot')
+                    ->where('etat_rdv', 'effectué');
     }
 
-    // CORRECTION : Supprimer la relation programmeItems() en double
-    // public function programmeItems() // ❌ À supprimer
-    // {
-    //     return $this->hasMany(ProgrammeItem::class, 'programme_id');
-    // }
->>>>>>> 3d2bf99a86ea0e6f6f26527573ed1e52b9117280
+    // Exemple : recalcul automatique du montant total
+    public function mettreAJourMontantTotal(): void
+    {
+        $this->montant = $this->items()->sum('montant');
+        $this->saveQuietly();
+    }
 }

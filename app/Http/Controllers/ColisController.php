@@ -799,7 +799,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
         'tel' => $expediteurTel,
         'user_id' => $user_id,
         'agence' => $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expediteur'] ?? '', // Ajout de agence_expedition au cas où
-        'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null', // Correction pour l'adresse
+        'lieu_expedition' => $data['adresse_expediteur_societe'] ?? $data['adresse_expediteur'] ?? 'null',
     ];
 
     $destinataireData = [
@@ -822,37 +822,84 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
 
     // dd($expediteur, $destinataire);
     $payementDataSession = session('step1', []);
-    $montantTotalEstime = collect($data['prix'] ?? [])->sum();
-    
-    $modePaiement = $payementDataSession['mode_payement'] ?? null;
-    // dd($modePaiement);
-    $montantPaiementTransaction = 0;
+        // -------------------------------
+        //  CALCUL DU MONTANT TOTAL ESTIMÉ
+        // -------------------------------
+        $quantites = collect($data['quantite_colis'] ?? []);
+        $prixUnitaires = collect($data['prix'] ?? []);
 
-    if ($modePaiement === 'cash') {
-        $montantPaiementTransaction = $payementDataSession['montant_reçu'] ?? 0;
-    } elseif ($modePaiement === 'delivery') {
+        // Montant total des produits (quantité × prix)
+        $montantProduits = $quantites
+            ->zip($prixUnitaires)
+            ->map(fn($pair) => ((float)($pair[0]) ?: 0) * ((float)($pair[1]) ?: 0))
+            ->sum();
+
+        // Montant du service éventuel
+        $montantService = collect($data['prix_service'] ?? [])->sum();
+
+        // Total général
+        $montantTotalEstime = $montantProduits + $montantService;
+
+
+        // -------------------------------
+        // 💰 GESTION DU MODE DE PAIEMENT
+        // -------------------------------
+        $modePaiement = $payementDataSession['mode_payement'] ?? null;
         $montantPaiementTransaction = 0;
-    } elseif ($modePaiement) {
-        $montantPaiementTransaction = $montantTotalEstime;
-    }
 
-    $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
-    $statutPaiementGlobal = 'non payé';
+        switch ($modePaiement) {
+            case 'cash':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_reçu'] ?? 0);
+                break;
 
-    if ($modePaiement === 'delivery') {
-        $statutPaiementGlobal = 'non payé';
-    } elseif ($modePaiement === 'cash') {
-        if ($montantPaiementTransaction <= 0) {
-            $statutPaiementGlobal = 'non payé';
-        } elseif ($montantPaiementTransaction < $montantTotalEstime) {
-            $statutPaiementGlobal = 'partiellement payé';
-        } else {
-            $statutPaiementGlobal = 'payé';
+            case 'delivery':
+                $montantPaiementTransaction = 0; // Payé à la livraison
+                break;
+
+            case 'bank':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_bank'] ?? 0);
+                break;
+
+            case 'cheque':
+                $montantPaiementTransaction = (float)($payementDataSession['montant_cheque'] ?? 0);
+                break;
+
+            default:
+                $montantPaiementTransaction = 0;
+                break;
         }
-    } elseif ($modePaiement) {
-        $statutPaiementGlobal = 'payé';
-    }
-    // dd($montantPaiementTransaction);
+
+
+        // -------------------------------
+        // 🧾 DÉTERMINATION DU STATUT DE PAIEMENT
+        // -------------------------------
+        $statutPaiementGlobal = 'non payé';
+
+        if ($modePaiement === 'delivery') {
+            // Le client paiera à la livraison
+            $statutPaiementGlobal = 'non payé';
+
+        } elseif ($modePaiement === 'cash') {
+            if ($montantPaiementTransaction <= 0) {
+                $statutPaiementGlobal = 'non payé';
+            } elseif ($montantPaiementTransaction < $montantTotalEstime) {
+                $statutPaiementGlobal = 'partiellement payé';
+            } else {
+                $statutPaiementGlobal = 'payé';
+            }
+
+        } 
+
+
+        // -------------------------------
+        // 🧠 RÉSULTATS POUR CONTRÔLE
+        // -------------------------------
+        dd([
+            'mode_paiement' => $modePaiement,
+            'montant_total_estime' => $montantTotalEstime,
+            'montant_paiement' => $montantPaiementTransaction,
+            'statut_paiement' => $statutPaiementGlobal,
+        ]);
 
     $agentId = Auth::check() ? Auth::user()->agent?->id : null;
     // $referenceColisPrincipale = $data['reference_colis'] ?? ('REF-' . strtoupper(uniqid()));
@@ -992,8 +1039,8 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 'agence'=>$agence,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => 1,
-                'service' => $data['service'][$index] ?? null,
-                'montant_service' => $data['prix_service'][$index] ?? null,
+                'service' => $data['service'],
+                'montant_service' => $data['prix_service'] ?? null,
                 'produit' => $data['produit'][$index] ?? null,
                 'prix_transit_colis' => $prixUnitairePourCetteLigne,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
@@ -1405,6 +1452,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
         $date_facture = now();
         $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
         $tel_expediteur = optional($firstColis->expediteur)->tel;
+        $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
         $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
         $tel_destinataire = optional($firstColis->destinataire)->tel;
         $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1480,6 +1528,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 'reference_colis' => $reference_colis,
             ]
         );
+                    dd($adresse_expediteur);
 
         // --- 8. Retourner la vue ---
         return view('admin.invoice.edit_invoice', compact(
@@ -1487,6 +1536,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
             'reference_colis',
             'expediteur',
             'tel_expediteur',
+            'adresse_expediteur',
             'destinataire',
             'tel_destinataire',
             'adresse_destinataire',
@@ -1606,6 +1656,7 @@ public function imprimerFacture($id)
     $date_facture = now();
     $expediteur = trim(optional($firstColis->expediteur)->nom . ' ' . optional($firstColis->expediteur)->prenom);
     $tel_expediteur = optional($firstColis->expediteur)->tel;
+    $adresse_expediteur = optional($firstColis->expediteur)->lieu_expedition;
     $destinataire = trim(optional($firstColis->destinataire)->nom . ' ' . optional($firstColis->destinataire)->prenom);
     $tel_destinataire = optional($firstColis->destinataire)->tel;
     $adresse_destinataire = optional($firstColis->destinataire)->lieu_destination;
@@ -1651,6 +1702,7 @@ public function imprimerFacture($id)
         ];
     }
 
+    // dd( $service_info,$produitsGroupes);
     $montant_service_total = $service_info ? $service_info['montant_service'] : 0;
     $prix_total_invoice = $sous_total_produits + $montant_service_total;
 
@@ -1671,6 +1723,7 @@ public function imprimerFacture($id)
         [
             'nom_agent' => $nom_agent,
             'nom_expediteur' => $expediteur,
+            'adresse_expediteur' => $adresse_expediteur,
             'nom_destinataire' => $destinataire,
             'expediteur_id' => optional($firstColis->expediteur)->id,
             'destinataire_id' => optional($firstColis->destinataire)->id,
@@ -1680,12 +1733,14 @@ public function imprimerFacture($id)
         ]
     );
 
+
     // --- 8. Retourner la vue ---
     return view('admin.invoice.edit_invoice', compact(
         'date_facture',
         'reference_colis',
         'expediteur',
         'tel_expediteur',
+        'adresse_expediteur',
         'destinataire',
         'tel_destinataire',
         'adresse_destinataire',
@@ -3501,73 +3556,74 @@ public function get_colis_hold(Request $request)
     public function get_colis_pour_contenaire(Request $request, $reference_contenaire)
     {
         if (!$request->ajax()) {
-            abort(404);
+            return abort(404); // On ne traite que les requêtes AJAX
         }
 
-        // 1. Requête de base pour les colis (inchangée)
+        // ------------------------------
+        // 1. Récupération des colis filtrés par conteneur
+        // ------------------------------
         $colis = Colis::select(
                 'colis.*',
-                'expediteurs.nom as expediteur_nom', 'expediteurs.prenom as expediteur_prenom', 'expediteurs.tel as expediteur_tel', 'expediteurs.agence as expediteur_agence',
-                'destinataires.nom as destinataire_nom', 'destinataires.prenom as destinataire_prenom', 'destinataires.agence as destinataire_agence', 'destinataires.tel as destinataire_tel'
+                'expediteurs.nom as expediteur_nom',
+                'expediteurs.prenom as expediteur_prenom',
+                'expediteurs.tel as expediteur_tel',
+                'expediteurs.agence as expediteur_agence',
+                'destinataires.nom as destinataire_nom',
+                'destinataires.prenom as destinataire_prenom',
+                'destinataires.agence as destinataire_agence',
+                'destinataires.tel as destinataire_tel'
             )
             ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
             ->where('colis.reference_contenaire', $reference_contenaire)
+            ->where('colis.agence', 'Agence de Chine')
             ->get();
 
-        // 2. Récupération des paiements associés (inchangée)
+        // ------------------------------
+        // 2. Récupération des paiements
+        // ------------------------------
         $colisIds = $colis->pluck('id')->unique()->toArray();
+
         $paiements = Paiement::whereIn('colis_id', $colisIds)
                     ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
                     ->groupBy('colis_id')
                     ->get()
                     ->keyBy('colis_id');
 
-        // 3. Groupement par référence pour agréger les colis (inchangé)
+        // ------------------------------
+        // 3. Groupement par référence_colis
+        // ------------------------------
         $colisGrouped = $colis->groupBy('reference_colis');
 
-        // 4. Préparation des données pour DataTables (MODIFIÉ)
-        $processedData = $colisGrouped->map(function ($group) use ($paiements) {
+        // ------------------------------
+        // 4. Préparation des données pour DataTables
+        // ------------------------------
+        $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+
             $firstColis = $group->first();
             $quantiteTotale = $group->sum('quantite_colis');
             $prixTotalColis = $group->sum('prix_transit_colis');
             $colisIdsInGroup = $group->pluck('id')->toArray();
 
             // Calcul du montant total payé pour le groupe
-            $montantTotalPaye = collect($colisIdsInGroup)->reduce(function ($carry, $id) use ($paiements) {
-                return $carry + ($paiements->get($id)->total_paye ?? 0);
-            }, 0);
+            $montantTotalPaye = 0;
+            foreach ($colisIdsInGroup as $colisId) {
+                $montantTotalPaye += $paiements[$colisId]->total_paye ?? 0;
+            }
 
             // Détermination du statut de paiement
             $paymentStatus = 'impaye';
-            $tolerance = 0.01; // Pour gérer les imprécisions des flottants
+            $tolerance = 0.01;
             if ($montantTotalPaye > 0) {
-                $paymentStatus = abs($prixTotalColis - $montantTotalPaye) < $tolerance ? 'paye' : 'partiel';
+                if (abs($prixTotalColis - $montantTotalPaye) < $tolerance) {
+                    $paymentStatus = 'paye';
+                } elseif ($montantTotalPaye < $prixTotalColis) {
+                    $paymentStatus = 'partiel';
+                }
             }
 
-            // --- DÉBUT DES MODIFICATIONS ---
-
-            // Génération du badge de statut directement ici
-            $statusHtml = '';
-            switch ($paymentStatus) {
-                case 'paye':
-                    $statusHtml = '<span class="badge bg-success">Payé</span>';
-                    break;
-                case 'partiel':
-                    $statusHtml = '<span class="badge bg-warning text-dark">Partiel</span>';
-                    break;
-                default:
-                    $statusHtml = '<span class="badge bg-danger">Impayé</span>';
-            }
-
-            // Génération du bouton d'action directement ici
-            // Note: l'ID utilisé pour le paiement peut être celui du premier colis du groupe
-            $actionHtml = '<button class="btn btn-primary btn-sm" onclick="showPaymentModal('.$firstColis->id.')" title="Payer">Payer</button>';
-
-            // Construction de l'objet final avec les clés attendues par le JavaScript
             return [
-                'statut_paiement'     => $statusHtml, // Clé correspondante à la 1ère colonne JS
-                'reference_colis'     => $firstColis->reference_colis,
+                'reference_colis'     => $reference,
                 'nombre_de_colis'     => $quantiteTotale,
                 'expediteur_nom'      => $firstColis->expediteur_nom,
                 'expediteur_prenom'   => $firstColis->expediteur_prenom,
@@ -3577,17 +3633,67 @@ public function get_colis_hold(Request $request)
                 'destinataire_prenom' => $firstColis->destinataire_prenom,
                 'destinataire_tel'    => $firstColis->destinataire_tel,
                 'destinataire_agence' => $firstColis->destinataire_agence,
+                'etat'                => $firstColis->etat,
                 'created_at'          => $firstColis->created_at?->format('d/m/Y H:i') ?? 'N/A',
-                'action'              => $actionHtml, // Clé correspondante à la dernière colonne JS
+                'payment_status'      => $paymentStatus,
+                'prix_total'          => $prixTotalColis,
+                'montant_paye'        => $montantTotalPaye,
+                'colis_ids'           => json_encode($colisIdsInGroup),
+                'first_colis_id'      => $firstColis->id,
             ];
-            // --- FIN DES MODIFICATIONS ---
+        })->values();
 
-        })->values(); // Important pour réindexer le tableau pour DataTables
-
-        // 5. Retour DataTables (SIMPLIFIÉ)
+        // ------------------------------
+        // 5. DataTables : ajout des colonnes calculées
+        // ------------------------------
         return DataTables::of($processedData)
-            // On indique seulement quelles colonnes contiennent du HTML à ne pas échapper
-            ->rawColumns(['statut_paiement', 'action'])
+            ->addColumn('statut_paiement', function ($row) {
+                $status = $row['payment_status'];
+                $montantPayeFormatted = number_format($row['montant_paye'], 2, ',', ' ');
+                $prixTotalFormatted = number_format($row['prix_total'], 2, ',', ' ');
+
+                switch ($status) {
+                    case 'paye':
+                        $iconClass = 'fas fa-check-circle';
+                        $iconColor = 'green';
+                        $title = "Payé ($montantPayeFormatted / $prixTotalFormatted)";
+                        break;
+                    case 'partiel':
+                        $iconClass = 'fas fa-exclamation-circle';
+                        $iconColor = 'orange';
+                        $title = "Paiement Partiel ($montantPayeFormatted / $prixTotalFormatted)";
+                        break;
+                    case 'impaye':
+                    default:
+                        $iconClass = 'fas fa-times-circle';
+                        $iconColor = 'red';
+                        $title = "Impayé (0 / $prixTotalFormatted)";
+                        break;
+                }
+
+                return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '">
+                            <i class="' . $iconClass . '" style="color:' . $iconColor . '; font-size:1.3em;"></i>
+                        </span>';
+            })
+            ->addColumn('action', function ($row) {
+                $reference = $row['reference_colis'];
+                $firstColisId = $row['first_colis_id'];
+
+                // $invoiceUrl = route('chine_colis.valide.edit.invoice', ['id' => $firstColisId]);
+                $deleteUrl  = route('colis.destroy.colis.valide', ['reference' => $reference]);
+
+                $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
+                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                                data-total="' . $row['prix_total'] . '"
+                                data-paid="' . $row['montant_paye'] . '"
+                                data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                                title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>';
+
+                return '<div class="action-buttons-container">' . $payBtn . '</div>';
+            })
+            ->rawColumns(['action', 'statut_paiement'])
             ->make(true);
     }
 

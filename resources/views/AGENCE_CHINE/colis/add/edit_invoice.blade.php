@@ -487,22 +487,23 @@
 
              <!-- Client and Invoice Meta -->
              <div class="client-invoice-details">
-                 <div class="client-details">
-                     <h3>{{ $expediteur ?? 'N/A Expediteur' }}</h3>
-                     <p>Tel: {{ $tel_expediteur ?? 'N/A' }}</p>
-                     <br>
-                     <h3>À: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
-                     <p>Tel: {{ $tel_destinataire ?? 'N/A' }}</p>
-                     <p>Adresse de Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
-                 </div>
-                 <div class="invoice-meta">
-                     <table>
-                         <tr><td>Facture No.</td><td>{{ $numero_facture ?? 'N/A' }}</td></tr>
-                         <tr><td>Date:</td><td>{{ isset($date_facture) ? $date_facture->format('d-m-Y') : 'N/A' }}</td></tr>
-                         <tr><td>Référence Colis:</td><td>{{ $reference_colis ?? 'N/A' }}</td></tr>
-                     </table>
-                 </div>
-             </div>
+                <div class="client-details">
+                    <h3>Expéditeur: {{ $expediteur ?? 'N/A Expediteur' }}</h3>
+                    <p>Téléphone: {{ $tel_expediteur ?? 'N/A' }}</p>
+                    <p>Adresse: {{ $adresse_expediteur ?? 'N/A' }}</p>
+                    <br>
+                    <h3>Destinataire: {{ $destinataire ?? 'N/A Destinataire' }}</h3>
+                    <p>Téléphone: {{ $tel_destinataire ?? 'N/A' }}</p>
+                    <p>Adresse Livraison: {{ $adresse_destinataire ?? 'N/A' }}</p>
+                </div>
+                <div class="invoice-meta">
+                    <table>
+                        <tr><td>Facture n°</td><td>{{ $numero_facture ?? 'N/A' }}</td></tr>
+                        <tr><td>Date</td><td>{{ $date_facture->format('d-m-Y') ?? 'N/A' }}</td></tr>
+                        <tr><td>Référence Colis</td><td>{{ $reference_colis ?? 'N/A' }}</td></tr>
+                    </table>
+                </div>
+            </div>
 
              <!-- Reference Section (Optional) -->
             <div class="references-section">
