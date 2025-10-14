@@ -1,52 +1,51 @@
-@extends('customer.layouts.index')
+{{-- views/admin/transport/ajoutdevis.blade.php --}}
+@extends('admin.layouts.admin')
 @section('content-header')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- Ajout du CSS pour les animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<!-- Ajout de SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endsection
 
 @section('content')
 <section class="wizard-wrap p-4 mx-auto">
-    <!-- Modal de succès pour création de devis -->
+    <!-- SweetAlert 2 pour les notifications -->
     @if(session('success_popup'))
-    <div class="modal fade show" id="successModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);" aria-modal="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Succès</h5>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem;"></i>
-                    <h5>{{ session('success_popup') }}</h5>
-                </div>
-                <div class="modal-footer">
-                    <a href="{{ route('customer_colis.devis.hold') }}" class="btn btn-success">OK</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Si bootstrap est dispo, afficher proprement
-            try {
-                const el = document.getElementById('successModal');
-                if (el) {
-                    // Utilise bootstrap Modal si présent
-                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                        const modal = new bootstrap.Modal(el);
-                        modal.show();
-                    }
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès !',
+                text: '{{ session('success_popup') }}',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#05a805',
+                background: '#fff',
+                showClass: {
+                    popup: 'animate__animated animate__bounceIn'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__bounceOut'
+                },
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                willClose: () => {
+                    window.location.href = "{{ route('transport.ajout-devis') }}";
                 }
-            } catch (e) {
-                // fallback: rien
-            }
+            });
 
-            // Redirection automatique après 2 secondes
             setTimeout(() => {
-                window.location.href = "{{ route('customer_colis.devis.hold') }}";
-            }, 2000);
+                window.location.href = "{{ route('transport.ajout-devis') }}"
+            }, 4000);
         });
     </script>
     @endif
 
-    <form action="{{ route('customer_colis.devis.store') }}" method="post" class="form-container" novalidate>
+    <form action="{{ route('transport.store.devis') }}" method="post" class="form-container" novalidate>
         @csrf
 
         {{-- Messages --}}
@@ -67,7 +66,7 @@
             </div>
         @endif
 
-        {{-- Top card with progress (design like image1) --}}
+        {{-- Top card with progress --}}
         <div class="wizard-card mb-4">
             <div class="wizard-top">
                 <ul class="wizard-progress-list">
@@ -87,18 +86,9 @@
             </div>
 
             <div class="wizard-title text-center">
-                <div class="title-row">
-                    <div class="title-emoji" id="wizard-emoji">🚚</div>
-                    <div class="title-block">
-                        <h3 id="wizard-title" class="animate__animated">Informations Transport</h3>
-                        <p id="wizard-subtitle" class="text-muted small mt-1">Mode de transit, agence et options</p>
-                    </div>
-                </div>
-
-                {{-- mini résumé live (non intrusif) --}}
-                <div id="mini-summary" class="mini-summary text-muted small mt-2">
-                    <span id="sum-mode">Mode: —</span> • <span id="sum-pays">Pays: —</span> • <span id="sum-devise">Devise: —</span>
-                </div>
+                <div class="title-emoji" id="wizard-emoji">🚚</div>
+                <h3 id="wizard-title" class="animate__animated">Informations Transport</h3>
+                <p id="wizard-subtitle" class="text-muted small mt-1">Remplis les informations pour commencer</p>
             </div>
         </div>
 
@@ -107,7 +97,7 @@
         <fieldset class="step-fieldset">
             <div class="card-body form-section p-4 mb-3">
                 <div class="row gx-3 gy-3 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="mode_transit" class="form-label">Mode de transit</label>
                         <select name="mode_transit" id="mode_transit" class="form-select">
                             <option value="" disabled selected>-- Choisir --</option>
@@ -116,36 +106,18 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <label for="agence_destination_societe" class="form-label">Agence Destination</label>
+                    <div class="col-md-4">
+                        <label for="agence_destination_societe" class="form-label">Agence D'expedition</label>
                         <select name="agence_destination_societe" id="agence_destination_societe" class="form-select">
                             <option value="" disabled selected>-- Choisir --</option>
+                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
+                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <label for="pays_expedition" class="form-label">Pays d'expédition</label>
-                        <select name="pays_expedition" id="pays_expedition" class="form-select">
-                            <option value="" disabled selected>-- Choisir --</option>
-                            @foreach ($paysUniques as $pays)
-                                <option value="{{ $pays }}">{{ $pays }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="agence_expedition" class="form-label">Agence d'expédition</label>
-                        <select name="agence_expedition" id="agence_expedition" class="form-select">
-                            <option value="" disabled selected>-- Choisir --</option>
-                            @foreach ($agencesExpedition as $agence)
-                                <option value="{{ $agence->nom_agence }}"
-                                        data-pays="{{ $agence->pays_agence ?? '' }}"
-                                        data-devise="{{ $agence->devise ?? '' }}">
-                                    {{ $agence->nom_agence }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    {{-- Champs cachés pour les données fixes --}}
+                    <input type="hidden" name="pays_expedition" value="France">
+                    <input type="hidden" name="agence_expedition" value="AFT Agence Louis Bleriot">
 
                     <div class="col-12 text-end mt-3">
                         <button type="button" class="btn btn-primary btn-next">Suivant →</button>
@@ -161,24 +133,24 @@
                 <div class="row gx-3 gy-3">
                     <div class="col-md-6">
                         <label for="nom_expediteur" class="form-label">Nom</label>
-                        <input type="text" name="nom_expediteur" id="nom_expediteur" value="{{ $user->first_name }}" class="form-control" required>
+                        <input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control" required>
                     </div>
                     <div class="col-md-6">
                         <label for="prenom_expediteur" class="form-label">Prénom</label>
-                        <input type="text" name="prenom_expediteur" id="prenom_expediteur" value="{{ $user->last_name }}" class="form-control" required>
+                        <input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control" required>
                     </div>
 
                     <div class="col-md-4">
                         <label for="email_expediteur" class="form-label">Email</label>
-                        <input type="email" name="email_expediteur" id="email_expediteur" value="{{ $user->email }}" class="form-control">
+                        <input type="email" name="email_expediteur" id="email_expediteur" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <label for="tel_expediteur" class="form-label">Téléphone</label>
-                        <input type="text" name="tel_expediteur" id="tel_expediteur" value="{{ $user->country_code_expediteur.' '.$user->tel }}" class="form-control">
+                        <input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <label for="adresse_expediteur" class="form-label">Adresse</label>
-                        <input type="text" name="adresse_expediteur" id="adresse_expediteur" value="{{ $user->adresse }}" class="form-control" required>
+                        <input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control" required>
                     </div>
                 </div>
             </div>
@@ -193,17 +165,6 @@
         <fieldset class="step-fieldset" style="display:none;">
             <div class="card-body form-section p-4 mb-3">
                 <h5 class="text-center mb-3">Informations sur le colis</h5>
-
-                <div class="row mb-3 gx-3">
-                    <div class="col-md-3">
-                        <label for="devise" class="form-label">Devise</label>
-                        <select name="devise_visible" id="devise" class="form-select" required>
-                            <option value="" disabled selected>-- Choisir --</option>
-                            <option value="EUR">EUR</option>
-                            <option value="FCFA">FCFA</option>
-                        </select>
-                    </div>
-                </div>
 
                 {{-- Template (invisible) --}}
                 <div id="colisTemplate" style="display:none;">
@@ -221,8 +182,8 @@
                             </div>
 
                             <div class="col-md-2">
-                                <label class="form-label">Valeur colis</label>
-                                <input type="number" name="valeur_colis[]" class="form-control prix-colis" placeholder="Valeur" disabled>
+                                <label class="form-label">Valeur colis (EUR)</label>
+                                <input type="number" name="valeur_colis[]" class="form-control prix-colis" placeholder="Valeur en EUR" disabled>
                             </div>
 
                             <div class="col-md-2">
@@ -268,12 +229,12 @@
 
                 <div class="mt-3 text-end">
                     <button type="button" class="btn btn-secondary btn-prev">← Précédent</button>
-                    <button type="submit" class="btn btn-success">Valider</button>
+                    <button type="button" id="btn-submit-devis" class="btn btn-success">Valider</button>
                 </div>
             </div>
         </fieldset>
 
-        <input type="hidden" name="devise" id="devise_hidden" value="">
+        <input type="hidden" name="devise" id="devise_hidden" value="EUR">
 
     </form>
 </section>
@@ -295,14 +256,10 @@
     .wizard-step .circle { width:46px; height:46px; border-radius:50%; background:#e6e9ec; margin:0 auto; display:flex; align-items:center; justify-content:center; font-weight:700; color:#333; box-shadow:0 6px 18px rgba(11,124,255,0.06); transition:all .25s; }
     .wizard-step .label { margin-top:10px; font-size:13px; color:var(--muted); }
     .wizard-step.active .circle { background:var(--accent-2); color:#fff; transform:scale(1.05); box-shadow:0 10px 28px rgba(5,168,5,0.18); }
+    .wizard-step.active .label { color:#222; font-weight:600; }
     .wizard-title { padding:14px 10px 4px; }
-
-    .title-row { display:flex; align-items:center; gap:12px; justify-content:center; }
-    .title-emoji { font-size:28px; }
-    .title-block h3 { margin:0; font-weight:600; color:#222; }
-    .title-block p { margin:0; }
-
-    .mini-summary { border-top:1px dashed #eef2f7; padding-top:10px; }
+    .wizard-title h3 { margin:0; font-weight:600; color:#222; }
+    .wizard-title .title-emoji { font-size:26px; margin-bottom:6px; }
 
     .form-container { background:var(--card-bg); border-radius:12px; padding:22px; box-shadow:0 8px 24px rgba(14,20,30,0.04); }
     .form-section { background:transparent; border-radius:8px; }
@@ -322,156 +279,91 @@
     /* small responsive */
     @media (max-width:767px) {
         .wizard-progress-list::before { left:6%; right:6%; }
-        .title-row { flex-direction:column; }
     }
 </style>
 
-{{-- SCRIPTS (fusion complète : selects, toggle, clonage, navigation, fallbacks...) --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ---------------- Configuration des agences par mode ----------------
-    const agenceOptionsByMode = {
-        maritime: { value: "IPMS-SIMEX-CI", label: "DS Translog Carrefour Angré" },
-        aerien: { value: "IPMS-SIMEX-CI Angre 8ème Tranche", label: "DS Translog Angré 8ème Tranche" }
-    };
+    // ---------------- Variables globales ----------------
+    let dernierDevisCree = null;
+    let listeChauffeurs = [];
 
     // ---------------- DOM references ----------------
     const form = document.querySelector('form.form-container');
-    const paysSelect = document.getElementById('pays_expedition');
-    const agenceSelect = document.getElementById('agence_expedition');
-    const allAgenceOptions = agenceSelect ? Array.from(agenceSelect.querySelectorAll('option')) : [];
-    const deviseSelect = document.getElementById('devise');
     const deviseHidden = document.getElementById('devise_hidden');
     const modeTransitSelect = document.getElementById('mode_transit');
-    const agenceDestSelect = document.getElementById('agence_destination_societe');
-
+    const agenceDestSelect = document.querySelector('select[name="agence_destination_societe"]');
+    const btnSubmitDevis = document.getElementById('btn-submit-devis');
     const wizardTitle = document.getElementById('wizard-title');
     const wizardEmoji = document.getElementById('wizard-emoji');
     const wizardSubtitle = document.getElementById('wizard-subtitle');
-    const sumMode = document.getElementById('sum-mode');
-    const sumPays = document.getElementById('sum-pays');
-    const sumDevise = document.getElementById('sum-devise');
 
     // ---------- Titres dynamiques par étape ----------
     const TITLES = [
-        { title: 'Informations Transport', emoji: '🚚', subtitle: 'Mode de transit, agence et options' },
+        { title: 'Informations Transport', emoji: '🚚', subtitle: 'Mode de transit, agence et options de transport' },
         { title: 'Informations sur le client', emoji: '🧑‍🤝‍🧑', subtitle: 'Détails du client / expéditeur' },
         { title: 'Informations sur le colis', emoji: '📦', subtitle: 'Ajoutez les colis, dimensions et descriptions' }
     ];
 
     function updateWizardTitle(step) {
         const item = TITLES[step] || TITLES[0];
+        // animation: ajouter puis retirer une classe pour relancer l'animation
+        wizardTitle.classList.remove('animate__fadeIn');
+        void wizardTitle.offsetWidth; // reflow pour relancer animation
         wizardEmoji.textContent = item.emoji;
         wizardTitle.textContent = item.title;
         wizardSubtitle.textContent = item.subtitle;
-        // animation flicker
-        wizardTitle.classList.remove('animate__fadeIn');
-        void wizardTitle.offsetWidth;
         wizardTitle.classList.add('animate__fadeIn');
     }
 
-    function updateMiniSummary() {
-        sumMode.textContent = 'Mode: ' + (modeTransitSelect && modeTransitSelect.value ? modeTransitSelect.value : '—');
-        sumPays.textContent = 'Pays: ' + (paysSelect && paysSelect.value ? paysSelect.value : '—');
-        sumDevise.textContent = 'Devise: ' + (deviseSelect && deviseSelect.value ? deviseSelect.value : (deviseHidden && deviseHidden.value ? deviseHidden.value : '—'));
+    // ---------- Devise fixée à EUR ----------
+    function setDeviseToEUR() {
+        if (deviseHidden) {
+            deviseHidden.value = 'EUR';
+        }
+    }
+    setDeviseToEUR();
+
+    if (!modeTransitSelect || !agenceDestSelect) {
+        // continue, mais certaines fonctionnalités seront désactivées
     }
 
-    // ---------- Mise à jour des options d'agence en fonction du mode ----------
-    function updateAgenceOptionsByMode(mode) {
-        if (!agenceDestSelect) return;
-        agenceDestSelect.innerHTML = '';
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.disabled = true;
-        defaultOption.selected = true;
-        defaultOption.textContent = '-- Choisir --';
-        agenceDestSelect.appendChild(defaultOption);
-        if (mode && agenceOptionsByMode[mode]) {
-            const option = document.createElement('option');
-            option.value = agenceOptionsByMode[mode].value;
-            option.textContent = agenceOptionsByMode[mode].label;
-            agenceDestSelect.appendChild(option);
-            agenceDestSelect.value = agenceOptionsByMode[mode].value;
+    const targetsByMode = {
+        maritime: ['Carrefour Angré', 'Carrefour Angre', 'Carrefour-Angré'],
+        aerien:  ['Angré 8ème Tranche', 'Angre 8ème Tranche', 'Angré 8eme Tranche']
+    };
+
+    function setAgenceByMode(mode) {
+        const targets = targetsByMode[mode] || [];
+        if (targets.length === 0) return;
+
+        for (const opt of agenceDestSelect.options) {
+            if (targets.includes(opt.value) || targets.includes(opt.text)) {
+                agenceDestSelect.value = opt.value;
+                agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
+            }
         }
-        updateMiniSummary();
+
+        for (const opt of agenceDestSelect.options) {
+            const txt = (opt.text || '').toLowerCase();
+            for (const t of targets) {
+                if (txt.indexOf(t.toLowerCase()) !== -1) {
+                    agenceDestSelect.value = opt.value;
+                    agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    return;
+                }
+            }
+        }
     }
 
     if (modeTransitSelect) {
         modeTransitSelect.addEventListener('change', function() {
-            updateAgenceOptionsByMode(this.value);
+            setAgenceByMode(this.value);
             toggleFields(this.value);
-            updateMiniSummary();
         });
-        updateAgenceOptionsByMode(modeTransitSelect.value);
-    }
-
-    // ---------- Helper: rebuild agence options based on pays ----------
-    function rebuildAgenceOptions(selectedPays) {
-        if (!agenceSelect) return;
-        const current = agenceSelect.value;
-        agenceSelect.innerHTML = '';
-        let foundCurrent = false;
-
-        const filtered = allAgenceOptions.filter(opt => {
-            const optPays = (opt.getAttribute('data-pays') || '').toString();
-            if (!selectedPays || selectedPays === '') return true;
-            return optPays === selectedPays;
-        });
-
-        if (filtered.length === 0) {
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.disabled = true;
-            placeholder.selected = true;
-            placeholder.textContent = '-- Aucune agence disponible --';
-            agenceSelect.appendChild(placeholder);
-            return;
-        }
-
-        filtered.forEach(opt => {
-            const clone = opt.cloneNode(true);
-            agenceSelect.appendChild(clone);
-            if (clone.value === current) foundCurrent = true;
-        });
-
-        if (foundCurrent) agenceSelect.value = current;
-        else agenceSelect.selectedIndex = 0;
-    }
-
-    if (paysSelect) {
-        paysSelect.addEventListener('change', function() {
-            rebuildAgenceOptions(this.value);
-            updateDeviseFromPays();
-            updateMiniSummary();
-        });
-        if (paysSelect.value) {
-            rebuildAgenceOptions(paysSelect.value);
-            updateDeviseFromPays();
-        }
-    }
-
-    // ---------- Update devise from agence logic ----------
-    function updateDeviseFromPays() {
-        if (!paysSelect || !deviseSelect) return;
-        const pays = paysSelect.value;
-
-        if (pays === 'France') {
-            deviseSelect.value = 'EUR';
-            deviseSelect.disabled = true;
-            deviseSelect.style.backgroundColor = '#f3f4f6';
-        } else if (pays === 'Chine') {
-            deviseSelect.value = 'FCFA';
-            deviseSelect.disabled = true;
-            deviseSelect.style.backgroundColor = '#f3f4f6';
-        } else {
-            // par défaut : laisse vide et disabled (ton processus server décide)
-            deviseSelect.value = '';
-            deviseSelect.disabled = true;
-            deviseSelect.style.backgroundColor = '#f3f4f6';
-        }
-
-        if (deviseHidden) deviseHidden.value = deviseSelect.value || '';
-        updateMiniSummary();
+        setAgenceByMode(modeTransitSelect.value);
     }
 
     // ---------- Toggle dimension/poids ----------
@@ -526,13 +418,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const colis = wrapper.querySelector('.colis-fieldset');
         if (!colis) return null;
 
-        // enable inputs/selects/textarea
         const inputs = colis.querySelectorAll('input, select, textarea, button');
         inputs.forEach(i => {
             i.removeAttribute('disabled');
         });
 
-        // default quantity
         colis.querySelectorAll('input.quantite-colis').forEach(q => { if (!q.value) q.value = 1; });
 
         return colis;
@@ -552,9 +442,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Delegated click handlers for add/remove (works even for cloned nodes)
+    // Delegated click handlers for add/remove
     document.addEventListener('click', function(e) {
-        // add-colis
         if (e.target && e.target.matches('.add-colis')) {
             e.preventDefault();
             const currentBlock = e.target.closest('.colis-fieldset');
@@ -570,11 +459,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('colisContainer').appendChild(newColis);
             attachDimensionListeners(newColis);
             toggleFields(modeTransitSelect ? modeTransitSelect.value : '');
-            if (deviseHidden && deviseSelect) deviseHidden.value = deviseSelect.value || '';
-            updateMiniSummary();
         }
 
-        // remove-colis
         if (e.target && e.target.matches('.remove-colis')) {
             e.preventDefault();
             const block = e.target.closest('.colis-fieldset');
@@ -589,44 +475,212 @@ document.addEventListener('DOMContentLoaded', function() {
                     const add = last.querySelector('.add-colis'); if (add) add.style.display = '';
                 }
             }
-            updateMiniSummary();
         }
     });
 
-    // initial
-    addInitialColisIfEmpty();
-
-    // ---------- Devise hidden sync & fallback before submit ----------
-    if (deviseSelect && deviseHidden) {
-        // initial sync
-        deviseHidden.value = deviseSelect.value || '';
-        deviseSelect.addEventListener('change', function() {
-            deviseHidden.value = this.value || '';
-            updateMiniSummary();
-        });
-    }
-
+    // ---------- Empêcher la soumission normale du formulaire ----------
     if (form) {
         form.addEventListener('submit', function(ev) {
-            // enable inputs inside container (in case some remained disabled)
-            document.querySelectorAll('#colisContainer :input').forEach(i => i.removeAttribute('disabled'));
-
-            // ensure devise hidden
-            if (deviseHidden && !deviseHidden.value && deviseSelect) {
-                deviseHidden.value = deviseSelect.value || '';
-            }
-
-            // fallback type_colis
-            document.querySelectorAll('select[name="type_colis[]"]').forEach(s => { if (!s.value) s.value = 'standard'; });
-
-            // fallback quantite
-            document.querySelectorAll('input[name="quantite_colis[]"]').forEach(q => { if (!q.value) q.value = 1; });
-
-            // keep existing flow: allow submit to continue
+            ev.preventDefault();
         });
     }
 
-    // ---------- Navigation multi-step (preserve your existing UX) ----------
+    // ---------- Gestion du bouton Valider ----------
+    if (btnSubmitDevis) {
+        btnSubmitDevis.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitDevisForm();
+        });
+    }
+
+    // ---------- Fonction pour soumettre le formulaire ----------
+    function submitDevisForm() {
+        document.querySelectorAll('#colisContainer input, #colisContainer select, #colisContainer textarea').forEach(i => i.removeAttribute('disabled'));
+        document.querySelectorAll('select[name="type_colis[]"]').forEach(s => { if (!s.value) s.value = 'standard'; });
+        document.querySelectorAll('input[name="quantite_colis[]"]').forEach(q => { if (!q.value) q.value = 1; });
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showConfirmationPopup(data.reference_generee);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: data.message || 'Erreur lors de la création du devis',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Une erreur est survenue lors de la soumission',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+
+    function showConfirmationPopup(referenceGeneree) {
+        Swal.fire({
+            title: '✅ Programme enregistrée avec succès !',
+            html: `
+                <div class="text-start">
+                    <p class="mb-3">Référence du programme : <strong>${referenceGeneree}</strong></p>
+                    <p class="mb-3">Le programme a été enregistré avec l'état <strong>"à planifié"</strong>.</p>
+                    <p class="text-muted">Vous pourrez ultérieurement attribuer une date et un chauffeur.</p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Programmer maintenant',
+            cancelButtonText: 'Plus tard',
+            showCancelButton: true,
+            confirmButtonColor: '#05a805',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                chargerChauffeurs().then(() => {
+                    showProgrammationForm(referenceGeneree);
+                });
+            } else {
+                window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+            }
+        });
+    }
+
+    async function chargerChauffeurs() {
+        try {
+            const response = await fetch("{{ route('transport.chauffeurs.list') }}");
+            const data = await response.json();
+
+            if (data.success) {
+                listeChauffeurs = data.chauffeurs;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Erreur chargement chauffeurs:', error);
+            listeChauffeurs = [];
+        }
+    }
+
+    function showProgrammationForm(referenceDevis) {
+        const chauffeursOptions = listeChauffeurs.map(chauffeur =>
+            `<option value="${chauffeur.id}">${chauffeur.full_name}</option>`
+        ).join('');
+
+        const today = new Date().toISOString().split('T')[0];
+        const quantiteTotale = calculerQuantiteTotale();
+
+        return Swal.fire({
+            title: '📅 Programmer la récupération',
+            html: `
+                <form id="programmationForm">
+                    <div class="mb-3">
+                        <label class="form-label">Référence du programme</label>
+                        <input type="text" class="form-control" value="${referenceDevis}" readonly>
+                        <input type="hidden" name="reference_devis" value="${referenceDevis}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date de récupération *</label>
+                        <input type="date" name="date_programme" class="form-control" min="${today}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Chauffeur *</label>
+                        <select name="user_id" class="form-select" required>
+                            <option value="">-- Choisir un chauffeur --</option>
+                            ${chauffeursOptions}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantité totale *</label>
+                        <input type="number" name="quantite" class="form-control" value="${quantiteTotale}" min="1" readonly>
+                        <small class="form-text text-muted">Quantité calculée automatiquement à partir des colis</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nature du colis *</label>
+                        <input type="text" name="nature_du_colis" class="form-control" value="Colis divers" required>
+                    </div>
+                </form>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '✅ Programmer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#05a805',
+            preConfirm: () => {
+                const form = document.getElementById('programmationForm');
+                const formData = new FormData(form);
+
+                const nomExp = document.querySelector('input[name="nom_expediteur"]').value;
+                const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value;
+                const telExp = document.querySelector('input[name="tel_expediteur"]').value;
+                const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value;
+
+                formData.append('nom_expediteur', `${nomExp} ${prenomExp}`);
+                formData.append('tel_expediteur', telExp);
+                formData.append('lieu_expedition', adresseExp);
+
+                const url = "{{ route('transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+
+                return fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message);
+                    }
+                    return data;
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: '✅ Succès !',
+                    html: `
+                        <div class="text-start">
+                            <p>Récupération programmée avec succès !</p>
+                            <p><strong>Référence :</strong> ${result.value.programme.reference_generee}</p>
+                            <p class="text-muted">Vous allez être redirigé...</p>
+                        </div>
+                    `,
+                    icon: 'success',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    willClose: () => {
+                        window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+                    }
+                });
+            }
+        });
+    }
+
+    function calculerQuantiteTotale() {
+        let quantiteTotale = 0;
+        const champsQuantite = document.querySelectorAll('input[name="quantite_colis[]"]');
+        champsQuantite.forEach(champ => {
+            const quantite = parseInt(champ.value) || 0;
+            quantiteTotale += quantite;
+        });
+        return quantiteTotale > 0 ? quantiteTotale : 1;
+    }
+
+    // ---------- Navigation multi-step ----------
     let currentStep = 0;
     const fieldsets = Array.from(document.querySelectorAll('.step-fieldset'));
     const stepItems = Array.from(document.querySelectorAll('.wizard-step'));
@@ -637,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fieldsets.forEach((fs, idx) => fs.style.display = (idx === step) ? 'block' : 'none');
         stepItems.forEach((it, idx) => it.classList.toggle('active', idx <= step));
         updateWizardTitle(step);
-        updateMiniSummary();
         document.querySelector('.wizard-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -656,12 +709,10 @@ document.addEventListener('DOMContentLoaded', function() {
         showStep(currentStep);
     }));
 
+    // afficher l'étape initiale avec titre mis à jour
     showStep(currentStep);
-
-    // Attach dimension listeners for any initial elements
     attachDimensionListeners(document);
 
-    // Observe colisContainer additions to re-apply listeners when necessary
     const colisContainer = document.getElementById('colisContainer');
     if (colisContainer) {
         const observer = new MutationObserver(function(mutations) {
@@ -676,6 +727,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         observer.observe(colisContainer, { childList: true });
     }
+
+    // Initialisation
+    addInitialColisIfEmpty();
 });
 </script>
 @endsection

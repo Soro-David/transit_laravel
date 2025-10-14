@@ -381,7 +381,13 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
         Route::put('/colis/valide/update', [ColisController::class, 'updateMultipleColis'])->name('valide.update');
-        Route::put('/on-hold', [ColisController::class, 'update_hold'])->name('hold.update');
+        Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
+         // Nouvelles routes pour les devis confirmés
+    Route::get('/devis-confirme', [ColisController::class, 'devisConfirme'])->name('devis.confirme');
+    Route::get('/get-devis-confirmes', [ColisController::class, 'get_devis_confirmes'])->name('get.devis.confirmes');
+    Route::get('/get-devis-details/{id}', [ColisController::class, 'get_devis_details'])->name('get.devis.details');
+    Route::get('/devis/{id}/show', [AftlbColisController::class, 'show'])->name('devis.show');
+    Route::delete('/devis/{id}/delete', [AftlbColisController::class, 'destroy_devis'])->name('devis.destroy');
         // Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
         // Route::put('/on-valide/{id}', [ColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print', [ColisController::class, 'print_facture'])->name('facture.colis.print');
@@ -461,6 +467,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/store/payement', [ColisController::class, 'storePayement'])->name('store.payement');
         Route::get('/create/qrcode', [ColisController::class, 'qrcode'])->name('create.qrcode');
         Route::get('/create/complete', [ColisController::class, 'complete'])->name('complete');
+        Route::get('/devis/{id}/show', [ColisController::class, 'show'])->name('devis.show');
 
         Route::get('/devis/search', [DevisAutoController::class, 'search'])->name('devis.search');
         Route::get('/devis/{programme}/items', [DevisAutoController::class, 'getItems'])->name('devis.getItems');
@@ -489,24 +496,59 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     });
     Route::prefix('admin/transport')->name('transport.')->group(function () {
+        // Routes de base
         Route::get('/', [TransportController::class, 'index'])->name('index');
-        Route::get('/chauffeur', [TransportController::class, 'show_chauffeur'])->name('show.chauffeur');
+        Route::get('/chauffeur', [TransportController::class, 'show_chauffeur'])->name('chauffeurs');
         Route::get('/planing-chauffeur', [TransportController::class, 'planing_chauffeur'])->name('planing.chauffeur');
+        
+        // Routes pour les chauffeurs
         Route::get('/chauffeur/data', [TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
         Route::post('/store-chauffeur', [TransportController::class, 'store_chauffeur'])->name('store.chauffeur');
+        Route::get('/chauffeur/{id}/edit', [TransportController::class, 'editChauffeur'])->name('chauffeur.edit');
+        Route::put('/chauffeur/{id}', [TransportController::class, 'updateChauffeur'])->name('chauffeur.update');
+        Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('chauffeur.destroy');
+        
+        // Routes pour les programmes
+        Route::get('/planing', [ProgrammeController::class, 'index'])->name('planing');
+        Route::get('/programme-data', [ProgrammeController::class, 'data'])->name('programme.data');
+        Route::post('/programme-depot', [ProgrammeController::class, 'createDepot'])->name('programme.createDepot');
+        Route::post('/programme-recuperation', [ProgrammeController::class, 'createRecuperation'])->name('programme.createRecuperation');
+        Route::post('/programme-multiple-depot', [ProgrammeController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
+        Route::post('/programme-multiple-recuperation', [ProgrammeController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
+        
+        // Routes pour les pages dédiées
+        Route::get('/depot', [ProgrammeController::class, 'showDepotPage'])->name('depot');
+        Route::get('/recuperation', [ProgrammeController::class, 'showRecuperationPage'])->name('recuperation');
+        Route::get('/livraison', [ProgrammeController::class, 'showLivraisonPage'])->name('livraison');
+        Route::get('/ajout-devis', [ProgrammeController::class, 'ajoutDevis'])->name('ajout-devis');
+        
+        // AJOUT DES ROUTES MANQUANTES POUR LES DEVIS :
+        Route::post('/store-devis', [ProgrammeController::class, 'store_devis'])->name('store.devis');
+        Route::post('/programmer-devis/{reference}', [ProgrammeController::class, 'programmerDevis'])->name('programmer.devis');
+        
+        // Routes CRUD programmes
+        Route::get('/programme-edit/{slug}', [ProgrammeController::class, 'showEdit'])->name('programme.edit.page');
+        Route::put('/programme-update/{id}', [ProgrammeController::class, 'updateProgramme'])->name('programme.update');
+        Route::delete('/programme-delete/{programme}', [ProgrammeController::class, 'destroy'])->name('programme.destroy');
+        
+        // Routes pour les articles
+        Route::put('/programme/{id}/items', [ProgrammeController::class, 'updateProgrammeItems'])->name('programme.updateItems');
+        Route::delete('/programme/{programmeId}/item/{itemId}', [ProgrammeController::class, 'deleteProgrammeItem'])->name('programme.deleteItem');
+        
+        // Routes chauffeurs pour programmes
+        Route::get('/chauffeurs-list', [ProgrammeController::class, 'getChauffeurs'])->name('chauffeurs.list');
+        
+        // AJOUT : Route pour les informations de référence
+        Route::get('/programme-reference-info/{reference}', [ProgrammeController::class, 'getReferenceInfo'])
+            ->name('programme.referenceInfo')
+            ->where('reference', '[a-zA-Z0-9\-]+');
+    
         Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
-        Route::get('/chauffeur/{id}/edit', [TransportController::class, 'editChauffeur'])->name('chauffeur.edit'); // Route pour récupérer les données pour l'édition
-    Route::put('/chauffeur/{id}', [TransportController::class, 'updateChauffeur'])->name('chauffeur.update');  // Route pour mettre à jour le chauffeur
-    //  Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('chauffeur.destroy')   ->middleware('csrf');
-     Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('chauffeur.destroy');
-    // Route::delete('/chauffeur/{id}', [TransportController::class, 'destroyChauffeur'])->name('transport.chauffeur.destroy');
     });
     Route::get('/programme-planifie', function () {
         return view('admin.Programme.programme'); // Chemin correct : admin/RDV/rdv.blade.php
     })->name('programme.index');
-    Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
-    Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
-    Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
+   
     
         // agence Route 
     Route::prefix('agence')->name('agence.')->group(function(){
@@ -541,30 +583,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     });
     
    
-    // transport
-    Route::prefix('transport')->name('transport.')->group(function(){
-        Route::get('/', [TransportController::class,'index'])->name('index'); 
-        Route::get('/create', [TransportController::class,'create'])->name('create');
-        Route::get('/programme-chauffeur', [TransportController::class,'programme_chauffeur'])->name('programme.chauffeur');
-        Route::get('/show-chauffeur', [TransportController::class,'show_chauffeur'])->name('show.chauffeur');
-        Route::get('/planing-chauffeur', [TransportController::class,'planing_chauffeur'])->name('planing.chauffeur');
-        Route::get('/reference.auto/{query}', [TransportController::class, 'reference_auto'])->name('reference.auto');
-
-        Route::get('/chauffeur/data',[TransportController::class, 'get_chauffeur_list'])->name('get.chauffeur.list');
-        Route::get('/programme/data',[TransportController::class, 'get_programme_list'])->name('get.programme.list');
-        Route::post('/store-chauffeur', [TransportController::class,'store_chauffeur'])->name('store.chauffeur'); 
-        Route::post('/store-planification', [TransportController::class,'store_plannification'])->name('store.plannification'); 
-        // route edit programme et update programme
-        Route::get('/programme/{id}/edit', [TransportController::class, 'edit_programme'])->name('programme.edit');
-        Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
-        Route::delete('/programme-transport/{id}', [TransportController::class, 'delete_chauffeur'])->name('programme.delete');
-
-        Route::get('/store',[TransportController::class, 'store'])->name('store');
-        Route::post('/store', [TransportController::class,'store'])->name('store'); 
-        
-        
-
-    });
+   
     Route::prefix('chauffeur')->name('chauffeur.')->group(function(){
     });
     
@@ -608,14 +627,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     
      
     Route::put('/profile/photo', [UserController::class, 'updateProfilePhoto'])->name('profile.photo.update');
-    Route::get('/programme-index', [ProgrammeController::class, 'index'])->name('programme.index');
-    Route::post('/programme/chauffeur/store', [ProgrammeController::class, 'storeChauffeur'])->name('programme.chauffeur.store');
-    Route::post('/programme/store', [ProgrammeController::class, 'storeProgramme'])->name('programme.store');
-    Route::get('/programme/data', [ProgrammeController::class, 'data'])->name('programme.data');
-    Route::get('/programme/export-pdf', [ProgrammeController::class, 'exportPDF'])->name('programme.export.pdf');
-    Route::get('/programme/edit/{programme}', [ProgrammeController::class, 'edit']); // Route pour récupérer les données pour l'édition
-    Route::put('/programme/update/{programme}', [ProgrammeController::class, 'update']); // Route pour la mise à jour
-    Route::delete('/programme/delete/{programme}', [ProgrammeController::class, 'destroy']); // Route pour la suppression
+     // transport
+     Route::get('/transport/planing', [ProgrammeController::class, 'index'])->name('transport.planing');
+    
+    
 
     // Ajout des routes pour le programme de l'agent
        // Ajout des routes pour le RDV
@@ -997,7 +1012,11 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/programme-devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('programme.devisInfo');
         Route::post('/programme-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createRecuperation'])->name('programme.createRecuperation');
         Route::post('/programmer-devis/{reference}', [ProgrammeLBController::class, 'programmerDevis'])->name('programmer.devis');
-        
+          // NOUVELLES ROUTES POUR AFFICHER LES PAGES DÉDIÉES
+        Route::get('/programme/depot', [ProgrammeLBController::class, 'showDepotPage'])->name('programme.depot');
+        Route::get('/programme/recuperation', [ProgrammeLBController::class, 'showRecuperationPage'])->name('programme.recuperation');
+        Route::get('/programme/livraison', [ProgrammeLBController::class, 'showLivraisonPage'])->name('programme.livraison');
+
         // Routes pour les opérations multiples
         Route::post('/programme-create-multiple-recuperation-aft-louis-b', [ProgrammeLBController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
         Route::post('/programme-multiple-depot-aft-louis-b', [ProgrammeLBController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
@@ -1016,11 +1035,11 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::get('/programme-check-items/{id}', [ProgrammeLBController::class, 'checkProgrammeItems'])->name('programme.checkItems');
         Route::get('/chauffeurs-list', [ProgrammeLBController::class, 'getChauffeurs'])->name('chauffeurs.list');
         Route::post('/programme-from-devis', [ProgrammeLBController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
-        
         // CORRECTION : Routes pour l'édition des programmes et articles
         Route::get('/programme-edit-page/{slug}', [ProgrammeLBController::class, 'showEdit'])->name('programme.edit.page');
         Route::put('/programme-update/{id}-aft-louis-b', [ProgrammeLBController::class, 'updateProgramme'])->name('programme.update');
-        Route::delete('/programme-delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroyProgramme'])->name('programme.destroy');
+         // AJOUT : Route simple pour la suppression des programmes
+         Route::delete('/programme-delete/{programme}-aft-louis-b', [ProgrammeLBController::class, 'destroy'])->name('programme.destroy');
         
         // CORRECTION : Routes pour la gestion des articles - SUPPRIMER 'aftlb_transport.' du nom
         Route::put('/programme/{id}/items', [ProgrammeLBController::class, 'updateProgrammeItems'])->name('programme.updateItems');
@@ -1038,14 +1057,7 @@ Route::prefix('AFT_LOUIS_BLERIOT')->middleware(['auth', 'role:agent'])->group(fu
         Route::delete('/chauffeurs/{id}', [AgentLBTransportController::class, 'destroy'])->name('destroy');
     });
     
-    // Route::prefix('programme')->name('programme.')->group(function() {
-    //     Route::get('/data-aft-louis-b', [ProgrammeLBController::class, 'data'])->name('data');
-    //     Route::post('/depot-aft-louis-b', [ProgrammeLBController::class, 'createDepot'])->name('createDepot');
-    //     Route::get('/edit/{id}-aft-louis-b', [ProgrammeLBController::class, 'edit'])->name('edit');
-    //     Route::put('/update/{id}-aft-louis-b', [ProgrammeLBController::class, 'update'])->name('update');
-    //     Route::delete('/delete/{id}-aft-louis-b', [ProgrammeLBController::class, 'destroy'])->name('destroy');
-    //     Route::get('/devis-info/{reference}-aft-louis-b', [ProgrammeLBController::class, 'getDevisInfo'])->name('devisInfo');
-    // });
+   
     Route::prefix('rdvlb')->name('lb_rdv.')->group(function(){
         Route::get('/rdv', [Rdvlbcontroller::class, 'index'])->name('rdv.index');
         Route::get('/rdv/depot/data', [Rdvlbcontroller::class, 'depotData'])->name('rdv.depot.data');
@@ -1833,21 +1845,58 @@ Route::prefix('chine_transport')->name('chine_transport.')->group(function () {
     Route::post('/planification', [AgentChineTransportController::class, 'store_plannification'])->name('planification.store');
     Route::match(['get', 'post'], '/store', [AgentChineTransportController::class, 'store'])->name('store');
 });
- Route::prefix('programmechine')->name('chine_programme.')->group(function () {
-        Route::get('/transport', [ProgrammeChineController::class, 'index'])->name('planing.index');
-          // AJOUTEZ ces nouvelles routes ici :
+Route::prefix('programmechine')->name('chine_programme.')->group(function () {
+    Route::get('/transport', [ProgrammeChineController::class, 'index'])->name('planing.index');
+    
+    // Routes pour les devis
     Route::get('/ajout-devis', [ProgrammeChineController::class, 'ajoutDevis'])->name('ajoutDevis');
     Route::get('/ajout-devis-form', [ProgrammeChineController::class, 'add_devis'])->name('ajoutDevis.form');
     Route::post('/store-devis', [ProgrammeChineController::class, 'store_devis'])->name('store.devis');
-        Route::post('/chauffeur/store', [ProgrammeChineController::class, 'storeChauffeur'])->name('chauffeur.store');
-       // Route::post('/store', [::class, 'storeProgramme'])->name('store');
-        Route::post('/store', [ProgrammeChineController::class, 'store'])->name('store');
-        Route::get('/data', [ProgrammeChineController::class, 'data'])->name('data');
-        Route::get('/edit/{programme}', [ProgrammeChineController::class, 'edit'])->name('edit');
-        Route::put('/update/{programme}', [ProgrammeChineController::class, 'update'])->name('update');
-        Route::delete('/delete/{programme}', [ProgrammeChineController::class, 'destroy'])->name('delete');
-    });
+    
+    // Nouvelles routes ajoutées pour la programmation
+    Route::get('/programme-data', [ProgrammeChineController::class, 'data'])->name('programme.data');
+    Route::post('/programme-depot', [ProgrammeChineController::class, 'createDepot'])->name('programme.createDepot');
+    Route::get('/programme-devis-info/{reference}', [ProgrammeChineController::class, 'getDevisInfo'])->name('programme.devisInfo');
+    Route::post('/programme-recuperation', [ProgrammeChineController::class, 'createRecuperation'])->name('programme.createRecuperation');
+    Route::post('/programmer-devis/{reference}', [ProgrammeChineController::class, 'programmerDevis'])->name('programmer.devis');
+    
+    // Routes pour les pages dédiées
+    Route::get('/programme/depot', [ProgrammeChineController::class, 'showDepotPage'])->name('programme.depot');
+    Route::get('/programme/recuperation', [ProgrammeChineController::class, 'showRecuperationPage'])->name('programme.recuperation');
+    Route::get('/programme/livraison', [ProgrammeChineController::class, 'showLivraisonPage'])->name('programme.livraison');
 
+    // Routes pour les opérations multiples
+    Route::post('/programme-create-multiple-recuperation', [ProgrammeChineController::class, 'createMultipleRecuperation'])->name('programme.createMultipleRecuperation');
+    Route::post('/programme-multiple-depot', [ProgrammeChineController::class, 'createMultipleDepot'])->name('programme.createMultipleDepot');
+    
+    // Route pour les informations de référence
+    Route::get('/programme-reference-info/{reference}', [ProgrammeChineController::class, 'getReferenceInfo'])
+        ->name('programme.referenceInfo')
+        ->where('reference', '[a-zA-Z0-9\-]+');
+    
+    // Routes pour la gestion des programmes
+    Route::get('/programme-check-items/{id}', [ProgrammeChineController::class, 'checkProgrammeItems'])->name('programme.checkItems');
+    Route::get('/chauffeurs-list', [ProgrammeChineController::class, 'getChauffeurs'])->name('chauffeurs.list');
+    Route::post('/programme-from-devis', [ProgrammeChineController::class, 'createRecuperationFromDevis'])->name('programme.from.devis');
+    
+    // Routes pour l'édition des programmes et articles
+    Route::get('/programme-edit-page/{slug}', [ProgrammeChineController::class, 'showEdit'])->name('programme.edit.page');
+    Route::put('/programme-update/{id}', [ProgrammeChineController::class, 'updateProgramme'])->name('programme.update');
+    Route::delete('/programme-delete/{programme}', [ProgrammeChineController::class, 'destroy'])->name('programme.destroy');
+    
+    // Routes pour la gestion des articles
+    Route::put('/programme/{id}/items', [ProgrammeChineController::class, 'updateProgrammeItems'])->name('programme.updateItems');
+    Route::delete('/programme/{programmeId}/item/{itemId}', [ProgrammeChineController::class, 'deleteProgrammeItem'])->name('programme.deleteItem');
+    Route::put('/programme-update-items/{id}', [ProgrammeChineController::class, 'updateProgrammeItems'])->name('programme.updateItems');
+    
+    // Routes chauffeurs
+    Route::post('/chauffeur/store', [ProgrammeChineController::class, 'storeChauffeur'])->name('chauffeur.store');
+    Route::post('/store', [ProgrammeChineController::class, 'store'])->name('store');
+    Route::get('/data', [ProgrammeChineController::class, 'data'])->name('data');
+    Route::get('/edit/{programme}', [ProgrammeChineController::class, 'edit'])->name('edit');
+    Route::put('/update/{programme}', [ProgrammeChineController::class, 'update'])->name('update');
+    Route::delete('/delete/{programme}', [ProgrammeChineController::class, 'destroy'])->name('delete');
+});
  // Ajout des routes pour le RDV
  Route::prefix('chinrdv')->name('rdv_chine.')->group(function(){
     Route::get('/rdv', [RdvchineController::class, 'index'])->name('rdv.index');

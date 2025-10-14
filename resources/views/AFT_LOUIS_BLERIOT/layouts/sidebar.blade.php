@@ -263,15 +263,27 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('aftlb_transport.programme.depot') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-success"></i>
+                                <p>{{ __('Créer un Dépôt') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('aftlb_transport.programme.recuperation') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-warning"></i>
+                                <p>{{ __('Créer une Récupération') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('aftlb_transport.ajoutDevis') }}" class="nav-link">
                                 <i class="far nav-icon"></i> {{-- Adaptez l'icône si besoin --}}
-                                <p>{{ __('Programmation') }}</p>
+                                <p>{{ __('Programmer via Devis') }}</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('aftlb_transport.planing.chauffeur') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
-                                <p>{{ __('Planifier') }}</p>
+                                <p>{{ __('Liste des Programmes') }}</p>
                             </a>
                         </li>
                         

@@ -1,751 +1,642 @@
+{{-- views/AGENCE_CHINE/transport/planing.blade.php --}}
 @extends('AGENCE_CHINE.layouts.agent')
 
 @section('content-header')
-
-@section('content')
-    <div class="container">
-       
-
-        <h1 class="mb-4">Gestion des Programmes</h1>
-
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProgrammeModal">
-                Ajouter Programme
-            </button>
-
-            <div class="form-inline">
-                <input type="text" id="search" class="form-control mr-2" placeholder="Rechercher...">
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-primary">
+                    <i class="fas fa-calendar-alt mr-2"></i>Programmes de Transport
+                </h1>
             </div>
-        </div>
-        <div class="mb-3 d-flex justify-content-start align-items-center">
-            <div class="mr-2">Afficher par page:</div>
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="pageSizeDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span id="pageSizeDisplay">10</span>
+            <div class="col-sm-6 text-right">
+                <button class="btn btn-success" id="refreshBtn">
+                    <i class="fas fa-sync-alt mr-1"></i>Actualiser
                 </button>
-                <div class="dropdown-menu" aria-labelledby="pageSizeDropdown">
-                    <a class="dropdown-item page-size-btn" href="#" data-size="10">10</a>
-                    <a class="dropdown-item page-size-btn" href="#" data-size="50">50</a>
-                    <a class="dropdown-item page-size-btn" href="#" data-size="100">100</a>
-                </div>
-            </div>
-        </div>
-
-      <!-- Modal d'ajout de programme -->
-<div class="modal fade" id="addProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="addProgrammeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="addProgrammeModalLabel">Créer un Programme</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="post" action="{{ route('chine_programme.store') }}" novalidate>
-                    @csrf
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="date_programme" class="form-label">Date du Programme:</label>
-                                <input type="date" name="date_programme" id="date_programme" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="user_id" class="form-label">Chauffeur:</label>
-                                <select name="user_id" id="user_id" class="form-control" required>
-                                    <option value="">-- Sélectionner un Chauffeur --</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="programme-entries-container">
-                        <!-- Premier bloc de programme -->
-                        <div class="programme-entry card mb-3">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="actions_a_faire_0" class="form-label">Actions à faire :</label>
-                                            <select name="actions_a_faire[]" class="form-control required-field" required>
-                                                <option value="">-- Sélectionner une action --</option>
-                                                <option value="depot">Dépôt</option>
-                                                <option value="recuperation">Récupération</option>
-                                                <option value="livraison">Livraison</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="reference_colis_0" class="form-label">Référence Colis :</label>
-                                            <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                                   data-index="0" id="reference_colis_0">
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="mb-3">
-                                            <label for="nature_du_colis_0" class="form-label">Nature du Colis :</label>
-                                            <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_0">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
-                                        <div class="mb-3">
-                                            <label for="nom_expediteur_0" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_expediteur[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="Adresse_expedition_0" class="form-label">Adresse d'enlèvement :</label>
-                                            <input type="text" name="Adresse_expedition[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="tel_expediteur_0" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_expediteur[]" class="form-control" >
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <h6 class="border-bottom pb-2">Informations Destinataire</h6>
-                                        <div class="mb-3">
-                                            <label for="nom_destinataire_0" class="form-label">Nom :</label>
-                                            <input type="text" name="nom_destinataire[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="tel_destinataire_0" class="form-label">Téléphone :</label>
-                                            <input type="text" name="tel_destinataire[]" class="form-control" >
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="Adresse_destination_0" class="form-label">Adresse Destination :</label>
-                                            <input type="text" name="Adresse_destination[]" class="form-control" >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button type="button" class="btn btn-success" id="add-programme-entry">
-                            <i class="fa fa-plus"></i> Ajouter un Colis
-                        </button>
-                        <button type="button" class="btn btn-danger" id="remove-programme-entry" style="margin-left: 10px;">
-                            <i class="fa fa-minus"></i> Retirer le Dernier
-                        </button>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer les Programmes</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
 </div>
+@endsection
 
-        {{-- Modal d'édition de programme --}}
-        <div class="modal fade" id="editProgrammeModal" tabindex="-1" role="dialog" aria-labelledby="editProgrammeModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="editProgrammeModalLabel">Modifier le Programme</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editProgrammeForm" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="programme_id" id="edit_programme_id">
-                            <div class="mb-3">
-                                <label for="edit_date_programme" class="form-label">Date du Programme:</label>
-                                <input type="date" name="date_programme" id="edit_date_programme" class="form-control" data-modified="false">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_user_id" class="form-label">Chauffeur:</label>
-                                <select name="user_id" id="edit_user_id" class="form-control" data-modified="false">
-                                    <option value="">-- Sélectionner un Chauffeur --</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                            <label for="edit_reference_colis">Référence Colis :</label>
-                            <input type="text" name="reference_colis" class="form-control" id="edit_reference_colis">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_actions_a_faire" class="form-label">Actions à faire :</label>
-                                <select name="actions_a_faire" id="edit_actions_a_faire" class="form-control" data-modified="false">
-                                    <option value="">-- Sélectionner une action --</option>
-                                    <option value="depot">Dépôt</option>
-                                    <option value="recuperation">Récupération</option>
-                                    <option value="livraison">Livraison</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_nature_du_colis">Nature du Colis :</label>
-                                <input type="text" name="nature_du_colis" class="form-control" id="edit_nature_du_colis">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_etat_rdv" class="form-label">Etat du RDV:</label>
-                                <input type="text" class="form-control" id="edit_etat_rdv" readonly>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-                            </div>
-                        </form>
-                    </div>
+@section('content')
+<div class="container-fluid">
+    <!-- Statistiques Rapides -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 id="totalProgrammes">0</h3>
+                    <p>Total Programmes</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-tasks"></i>
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h2 class="card-title mb-0">Liste des Programmes</h2>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead class="bg-light">
-                        <tr>
-                            <th>Date Programme</th>
-                            <th>Chauffeur</th>
-                            <th>Référence Colis</th>
-                            <th>Nature du Colis</th>
-                            <th>Actions à faire</th>
-                            <th>Nom Expéditeur</th>
-                            <th>Adresse Expédition</th>
-                            <th>Téléphone Expéditeur</th>
-                            <th>Nom Destinataire</th>
-                            <th>Téléphone Destinataire</th>
-                            <th>Adresse Destination</th>
-                            <th>Etat RDV</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody id="programmes-table">
-                        <!-- Programmes générés par js -->
-                        </tbody>
-                    </table>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3 id="programmesAttente">0</h3>
+                    <p>En Attente</p>
                 </div>
-                <div class="mt-3 d-flex justify-content-center">
-                    <nav aria-label="Page navigation">
-                        <ul id="pagination" class="pagination">
-                            <!-- Pagination générée par js -->
-                        </ul>
-                    </nav>
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3 id="programmesEffectue">0</h3>
+                    <p>Effectués</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3 id="programmesPlanifie">0</h3>
+                    <p>À Planifier</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar-plus"></i>
                 </div>
             </div>
         </div>
     </div>
-    <datalist id="colis-list"></datalist>
-    {{-- <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script> --}}
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-Font-Awesome-Kit-ID.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-        $(document).ready(function() {
-        let programmesData = { programmes: [], colisValides: [] };
-        let currentPage = 1;
-        let itemsPerPage = 10;
-
-        $('#remove-programme-entry').hide();
-
-        function generateTable(programmes) {
-            const tableBody = $('#programmes-table');
-            tableBody.empty();
-
-            if (programmes.length === 0) {
-                tableBody.append('<tr><td colspan="13" class="text-center">Aucun programme trouvé.</td></tr>');
-                return;
-            }
-
-            programmes.forEach(programme => {
-                let rowClass = '';
-                if (programme.etat_rdv === 'effectué') {
-                    rowClass = 'table-success';
-                } else if (programme.etat_rdv === 'à replanifié') {
-                    rowClass = 'table-warning';
-                }
-                
-                tableBody.append(`
-                    <tr class="${rowClass}">
-                        <td>${programme.date_programme}</td>
-                        <td>${programme.user ? programme.user.first_name + ' ' + programme.user.last_name : 'N/A'}</td>
-                        <td>${programme.reference_colis || 'N/A'}</td>
-                        <td>${programme.nature_du_colis || 'N/A'}</td>
-                        <td>${programme.actions_a_faire || 'N/A'}</td>
-                        <td>${programme.nom_expediteur || 'N/A'}</td>
-                        <td>${programme.Adresse_expedition || 'N/A'}</td>
-                        <td>${programme.tel_expediteur || 'N/A'}</td>
-                        <td>${programme.nom_destinataire || 'N/A'}</td>
-                        <td>${programme.tel_destinataire || 'N/A'}</td>
-                        <td>${programme.Adresse_destination || 'N/A'}</td>
-                        <td>${programme.etat_rdv || 'N/A'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-info edit-programme-btn" data-id="${programme.id}">Modifier</button>
-                            <button class="btn btn-sm btn-danger delete-programme-btn" data-id="${programme.id}">Supprimer</button>
-                        </td>
-                    </tr>
-                `);
-            });
-        }
-
-        
-        function generatePagination(totalItems) {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            const paginationContainer = $('#pagination');
-            paginationContainer.empty();
-            if (totalPages <= 1) return;
-
-            const prevButton = $(`<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" aria-label="Précédent"><span aria-hidden="true">«</span></a></li>`);
-            prevButton.on('click', () => { if (currentPage > 1) { currentPage--; updateTable(); } });
-            paginationContainer.append(prevButton);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = $(`<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#">${i}</a></li>`);
-                pageButton.on('click', () => { currentPage = i; updateTable(); });
-                paginationContainer.append(pageButton);
-            }
-
-            const nextButton = $(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" aria-label="Suivant"><span aria-hidden="true">»</span></a></li>`);
-            nextButton.on('click', () => { if (currentPage < totalPages) { currentPage++; updateTable(); } });
-            paginationContainer.append(nextButton);
-        }
-
-        function updateTable() {
-            const searchTerm = $('#search').val().toLowerCase();
-            const filteredProgrammes = programmesData.programmes.filter(programme =>
-                Object.values(programme).some(value => 
-                    value && value.toString().toLowerCase().includes(searchTerm)
-                ) ||
-                (programme.user && 
-                 (programme.user.first_name.toLowerCase().includes(searchTerm) ||
-                  programme.user.last_name.toLowerCase().includes(searchTerm))
-                )
-            );
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const programmesToDisplay = filteredProgrammes.slice(startIndex, endIndex);
-            generateTable(programmesToDisplay);
-            generatePagination(filteredProgrammes.length);
-        }
-
-        axios.get("{{ route('chine_programme.data') }}")
-            .then(function(response) {
-                programmesData.programmes = response.data.programmes;
-                programmesData.colisValides = response.data.colisValides;
-
-                // Mettre à jour les selects des chauffeurs (users)
-                var chauffeurs = response.data.chauffeurs;
-                var selectChauffeurAdd = $('#user_id');
-                var selectChauffeurEdit = $('#edit_user_id');
-                
-                selectChauffeurAdd.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-                selectChauffeurEdit.empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-                
-                chauffeurs.forEach(chauffeur => {
-                    selectChauffeurAdd.append(`<option value="${chauffeur.id}">${chauffeur.first_name} ${chauffeur.last_name}</option>`);
-                    selectChauffeurEdit.append(`<option value="${chauffeur.id}">${chauffeur.first_name} ${chauffeur.last_name}</option>`);
-                });
-
-                var colisList = $('#colis-list');
-                colisList.empty();
-                response.data.colisValides.forEach(colis => {
-                    colisList.append(`<option value="${colis.reference_colis}">${colis.reference_colis}</option>`);
-                });
-
-                updateTable();
-            })
-            .catch(function(error) {
-                console.error('Erreur de requête:', error);
-            });
-
-        // Recherche
-        $('#search').on('input', function() {
-            currentPage = 1;
-            updateTable();
-        });
-
-        // Pagination
-        $('.page-size-btn').on('click', function(e) {
-            e.preventDefault();
-            itemsPerPage = parseInt($(this).data('size'));
-            currentPage = 1;
-            $('#pageSizeDisplay').text(itemsPerPage);
-            updateTable();
-        });
-        $('#add-programme-entry').on('click', function() {
-            const index = $('.programme-entry').length;
-            let newEntry = `
-                <div class="programme-entry card mb-3">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="actions_a_faire_${index}" class="form-label">Actions à faire :</label>
-                                    <select name="actions_a_faire[]" class="form-control required-field" required>
-                                        <option value="">-- Sélectionner une action --</option>
+    <div class="card">
+        <div class="card-header bg-light text-dark">
+            <h3 class="card-title mb-0 font-weight-bold">
+                <i class="fas fa-road mr-2 text-primary"></i>PLANIFICATION DES TRANSPORTS
+            </h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filtres Avancés -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-light">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="card-title font-weight-bold text-dark">
+                                <i class="fas fa-filter mr-1 text-primary"></i>Filtres et Recherche
+                            </h5>
+                        </div>
+                        <div class="card-body bg-light">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-white border-right-0">
+                                                <i class="fas fa-search text-muted"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" id="search" class="form-control border-left-0" placeholder="Référence, nom, téléphone, adresse...">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <select id="actionFilter" class="form-control select2">
+                                        <option value="">Toutes les actions</option>
                                         <option value="depot">Dépôt</option>
                                         <option value="recuperation">Récupération</option>
                                         <option value="livraison">Livraison</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="reference_colis_${index}" class="form-label">Référence Colis :</label>
-                                    <input type="text" name="reference_colis[]" class="form-control reference_colis" 
-                                           data-index="${index}" id="reference_colis_${index}">
+                                <div class="col-md-2 mb-2">
+                                    <select id="etatFilter" class="form-control select2">
+                                        <option value="">Tous les états</option>
+                                        <option value="à planifié">À planifié</option>
+                                        <option value="en attente">En attente</option>
+                                        <option value="programmé">Programmé</option>
+                                        <option value="effectué">Effectué</option>
+                                    </select>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="nature_du_colis_${index}" class="form-label">Nature du Colis :</label>
-                                    <input type="text" name="nature_du_colis[]" class="form-control" id="nature_du_colis_${index}">
+                                <div class="col-md-2 mb-2">
+                                    <select id="chauffeurFilter" class="form-control select2">
+                                        <option value="">Tous chauffeurs</option>
+                                    </select>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="border-bottom pb-2">Informations Expéditeur</h6>
-                                <div class="mb-3">
-                                    <label for="nom_expediteur_${index}" class="form-label">Nom :</label>
-                                    <input type="text" name="nom_expediteur[]" class="form-control">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="Adresse_expedition_${index}" class="form-label">Adresse d'enlèvement :</label>
-                                    <input type="text" name="Adresse_expedition[]" class="form-control">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="tel_expediteur_${index}" class="form-label">Téléphone :</label>
-                                    <input type="text" name="tel_expediteur[]" class="form-control">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="border-bottom pb-2">Informations Destinataire</h6>
-                                <div class="mb-3">
-                                    <label for="nom_destinataire_${index}" class="form-label">Nom :</label>
-                                    <input type="text" name="nom_destinataire[]" class="form-control">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="tel_destinataire_${index}" class="form-label">Téléphone :</label>
-                                    <input type="text" name="tel_destinataire[]" class="form-control">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="Adresse_destination_${index}" class="form-label">Adresse Destination :</label>
-                                    <input type="text" name="Adresse_destination[]" class="form-control">
+                                <div class="col-md-2 mb-2">
+                                    <div class="btn-group w-100">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pageSizeDropdown" data-toggle="dropdown">
+                                            <i class="fas fa-list-ol mr-1"></i><span id="pageSizeDisplay">10</span>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item page-size-btn" href="#" data-size="10">
+                                                <i class="fas fa-list mr-1"></i>10 éléments
+                                            </a>
+                                            <a class="dropdown-item page-size-btn" href="#" data-size="25">
+                                                <i class="fas fa-list-alt mr-1"></i>25 éléments
+                                            </a>
+                                            <a class="dropdown-item page-size-btn" href="#" data-size="50">
+                                                <i class="fas fa-th-list mr-1"></i>50 éléments
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            `;
-            $('#programme-entries-container').append(newEntry);
-            $('#remove-programme-entry').show();
+            </div>
+
+            <!-- Tableau des programmes -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="text-center" style="width: 80px;">
+                                <i class="fas fa-hashtag text-muted"></i> Qté
+                            </th>
+                            <th class="text-center" style="width: 120px;">
+                                <i class="fas fa-bolt text-muted"></i> Action
+                            </th>
+                            <th style="width: 150px;">
+                                <i class="fas fa-barcode text-muted"></i> Référence
+                            </th>
+                            <th style="width: 120px;">
+                                <i class="fas fa-box text-muted"></i> Nature
+                            </th>
+                            <th>
+                                <i class="fas fa-user text-muted"></i> Client
+                            </th>
+                            <th style="width: 130px;">
+                                <i class="fas fa-phone text-muted"></i> Téléphone
+                            </th>
+                            <th>
+                                <i class="fas fa-map-marker-alt text-muted"></i> Adresse
+                            </th>
+                            <th style="width: 150px;">
+                                <i class="fas fa-id-card text-muted"></i> Chauffeur
+                            </th>
+                            <th class="text-center" style="width: 130px;">
+                                <i class="fas fa-flag text-muted"></i> État
+                            </th>
+                            <th class="text-center" style="width: 100px;">
+                                <i class="fas fa-cogs text-muted"></i> Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="programmes-table">
+                        <!-- Données chargées via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Indicateur de chargement -->
+            <div id="loadingIndicator" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Chargement...</span>
+                </div>
+                <p class="mt-2 text-muted">Chargement des programmes...</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4 d-flex justify-content-between align-items-center">
+                <div class="text-muted" id="paginationInfo">
+                    Affichage de 0 à 0 sur 0 éléments
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul id="pagination" class="pagination pagination-sm">
+                        <!-- Généré par JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+
+<script>
+$(document).ready(function() {
+    let programmesData = [];
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let totalItems = 0;
+
+    function initApp() {
+        // Initialiser Select2
+        $('.select2').select2({
+            width: '100%',
+            placeholder: 'Sélectionnez...'
         });
-                 // Gestion de la suppression des entrées de programme
-                 $('#remove-programme-entry').on('click', function() {
-            const entries = $('.programme-entry');
-            if (entries.length > 1) {
-                entries.last().remove();
-                if ($('.programme-entry').length === 1) {
-                    $('#remove-programme-entry').hide();
-                }
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Action impossible',
-                    text: 'Vous ne pouvez pas supprimer la dernière entrée',
-                    timer: 2000
-                });
-            }
-        });
-        $(document).on('input', '.reference_colis', function() {
-            const entry = $(this).closest('.programme-entry');
-            const selectedReference = $(this).val();
-            const index = $(this).data('index');
-            const action = entry.find('select[name="actions_a_faire[]"]').val();
 
-            if (selectedReference.length >= 3 && action !== 'recuperation') {
-        axios.get(`/admin/colis/getColisInfo/${selectedReference}`)
-            .then(response => {
-                const colis = response.data;
-                if (colis) {
-                    // Remplir les champs avec les données du colis
-                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val(colis.expediteur.nom + ' ' + colis.expediteur.prenom);
-                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val(colis.expediteur.lieu_expedition);
-                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val(colis.expediteur.tel);
-                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val(colis.destinataire.nom + ' ' + colis.destinataire.prenom);
-                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val(colis.destinataire.tel);
-                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val(colis.destinataire.lieu_destination);
-
-                    // Si c'est une récupération, rendre les champs éditables
-                    if (action === 'recuperation') {
-                        entry.find('input[name="nom_expediteur[]"]').prop('readonly', false);
-                        entry.find('input[name="Adresse_expedition[]"]').prop('readonly', false);
-                        entry.find('input[name="tel_expediteur[]"]').prop('readonly', false);
-                    }
-                } else {
-                    // Effacer les champs si le colis n'est pas trouvé
-                    $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                    $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                    $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                    $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                    $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                    $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur lors de la récupération des informations du colis:', error);
-                // Effacer les champs en cas d'erreur
-                $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-                $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-                $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-                $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-                $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-                $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-            });
-    } else {
-        // Effacer les champs si la référence est trop courte
-        $(`input[name="nom_expediteur[]"]:eq(${index})`).val('');
-        $(`input[name="Adresse_expedition[]"]:eq(${index})`).val('');
-        $(`input[name="tel_expediteur[]"]:eq(${index})`).val('');
-        $(`input[name="nom_destinataire[]"]:eq(${index})`).val('');
-        $(`input[name="tel_destinataire[]"]:eq(${index})`).val('');
-        $(`input[name="Adresse_destination[]"]:eq(${index})`).val('');
-    }
-});
-
-        // Remplir le modal d'édition et gérer la soumission
-        $(document).on('click', '.edit-programme-btn', function() {
-            const programmeId = $(this).data('id');
-            const editModal = $('#editProgrammeModal');
-            const editForm = $('#editProgrammeForm');
-
-            // Définir l'URL de soumission du formulaire AVEC le préfixe /admin
-            editForm.attr('action', `/AGENCE_CHINE/programmechine/update/${programmeId}`);
-            // Modifier l'URL pour la requête GET AVEC le préfixe /admin
-            axios.get(`/AGENCE_CHINE/programmechine/edit/${programmeId}`)
-            .then(response => {
-                    const programme = response.data.programme;
-                    const chauffeurs = response.data.chauffeurs;
-
-                    $('#edit_programme_id').val(programme.id);
-                    $('#edit_date_programme').val(programme.date_programme);
-                    $('#edit_nature_du_colis').val(programme.nature_du_colis);
-                    
-                    // Remplir le select des chauffeurs (users)
-                    $('#edit_user_id').empty().append('<option value="">-- Sélectionner un Chauffeur --</option>');
-                    chauffeurs.forEach(chauffeur => {
-                        $('#edit_user_id').append(`<option value="${chauffeur.id}" ${programme.user_id == chauffeur.id ? 'selected' : ''}>${chauffeur.first_name} ${chauffeur.last_name}</option>`);
-                    });
-
-                    $('#edit_reference_colis').val(programme.reference_colis);
-                    $('#edit_actions_a_faire').val(programme.actions_a_faire);
-                    $('#edit_etat_rdv').val(programme.etat_rdv);
-
-                    editModal.modal('show');
-
-                    // Réinitialiser les indicateurs de modification
-                    $('#editProgrammeModal input, #editProgrammeModal select').attr('data-modified', 'false');
-                    
-                    // Ajouter les écouteurs d'événements pour détecter les changements
-                    $('#editProgrammeModal input, #editProgrammeModal select').off('change').on('change', function() {
-                        $(this).attr('data-modified', 'true');
-                    });
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la récupération des données du programme:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur',
-                        text: 'Impossible de charger les données du programme',
-                    });
-                });
-        });
-     // Gestion de la soumission du formulaire de modification
-$('#editProgrammeForm').off('submit').on('submit', function(event) {
-    event.preventDefault();
-    const programmeId = $('#edit_programme_id').val();
-    const formData = {};
-    const formElements = $('#editProgrammeModal input, #editProgrammeModal select');
-
-    formElements.each(function() {
-        const element = $(this);
-        if (element.attr('data-modified') === 'true') {
-            formData[element.attr('name')] = element.val();
-        }
-    });
-
-    // Utilisez la même URL que pour l'édition
-    axios.put(`/AGENCE_CHINE/programmechine/update/${programmeId}`, formData)
-        .then(response => {
-            if (response.data.success) {
-                // Recharger les données depuis le serveur
-                return axios.get("{{ route('chine_programme.data') }}");
-            } else {
-                throw new Error(response.data.message);
-            }
-        })
-        .then(response => {
-            programmesData.programmes = response.data.programmes;
+        loadData();
+        
+        // Événements de filtrage
+        $('#search').on('input', debounce(function() {
+            currentPage = 1;
             updateTable();
-            generatePagination(programmesData.programmes.length);
-            Swal.fire({
-                icon: 'success',
-                title: 'Programme mis à jour avec succès!',
-                showConfirmButton: false,
-                timer: 2000
-            });
-            $('#editProgrammeModal').modal('hide');
-        })
-        .catch(error => {
-            console.error('Erreur lors de la mise à jour du programme:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: error.response?.data?.message || error.message,
-            });
-        });
-});
-    // Gestion du clic sur la croix et le bouton Fermer
-        $('#editProgrammeModal .close, #editProgrammeModal .btn-secondary').off('click').on('click', function() {
-            $('#editProgrammeModal').modal('hide');
+        }, 300));
+
+        $('#actionFilter, #etatFilter, #chauffeurFilter').on('change', function() {
+            currentPage = 1;
+            updateTable();
         });
 
-         // Gestion de la soumission du formulaire d'ajout
-        $('#addProgrammeModal form').off('submit').on('submit', function(event) {
-            event.preventDefault();
+        $('.page-size-btn').on('click', function(e) {
+            e.preventDefault();
+            itemsPerPage = parseInt($(this).data('size'));
+            $('#pageSizeDisplay').text(itemsPerPage);
+            currentPage = 1;
+            updateTable();
+        });
 
-            axios.post("{{ route('chine_programme.store') }}", $(this).serialize())
-                .then(response => {
-                    // recharger les données une fois le programme créé
-                    return axios.get("{{ route('chine_programme.data') }}")
-                })
-                .then(response => {
-                    programmesData.programmes = response.data.programmes;
-                    programmesData.colisValides = response.data.colisValides; //Mise à jour des colis valide
-                    updateTable();
-                    generatePagination(programmesData.programmes.length);
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Programme créé avec succès!',
-                        showConfirmButton: false,
-                        timer: 2000
+        $('#pagination').on('click', 'a.page-link', function(e) {
+            e.preventDefault();
+            currentPage = parseInt($(this).data('page'));
+            updateTable();
+            scrollToTop();
+        });
+
+        $('#refreshBtn').on('click', function() {
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Actualisation...');
+            loadData().finally(() => {
+                setTimeout(() => {
+                    $(this).prop('disabled', false).html('<i class="fas fa-sync-alt mr-1"></i>Actualiser');
+                }, 1000);
+            });
+        });
+
+        // Gestion de la suppression
+        $(document).on('click', '.delete-programme-btn', function() {
+        const programmeId = $(this).data('id');
+        const programmeRow = $(this).closest('tr'); // Cible la ligne du tableau
+
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: "Cette action est irréversible et supprimera définitivement le programme.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer !',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Construction de l'URL de suppression
+                const url = "{{ route('chine_programme.programme.destroy', ['programme' => 'PROGRAMME_ID']) }}".replace('PROGRAMME_ID', programmeId);
+
+                axios.delete(url)
+                    .then(response => {
+                        Swal.fire(
+                            'Supprimé !',
+                            response.data.message,
+                            'success'
+                        );
+                        // Recharger les données pour mettre à jour le tableau et les statistiques
+                        loadData(); 
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            'Erreur !',
+                            error.response?.data?.message || 'Une erreur est survenue lors de la suppression.',
+                            'error'
+                        );
                     });
-                      $('#addProgrammeModal').modal('hide');
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la création du programme:', error);
-                    if (error.response && error.response.data.errors) {
-
-                    }
-                });
+            }
         });
-       
-       // Validation du formulaire
- // Remplacer la validation existante par ceci :
- $('#addProgrammeModal form').off('submit').on('submit', function(event) {
-    let isValid = true;
-    let errorMessage = '';
+    });
+    }
+ 
+    function loadData() {
+        showLoading(true);
+        return axios.get("{{ route('chine_programme.programme.data') }}")
+            .then(function(response) {
+                programmesData = response.data.programmes || [];
+                updateStatistics();
+                updateChauffeurFilter();
+                updateTable();
+            })
+            .catch(function(error) {
+                console.error('Erreur de chargement des données:', error);
+                showError('Impossible de charger les données du serveur.');
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+    }
 
-    $('.programme-entry').each(function(index) {
-        const action = $(this).find('select[name="actions_a_faire[]"]').val();
-        const refInput = $(this).find('.reference_colis');
+    function updateStatistics() {
+        const total = programmesData.length;
+        const attente = programmesData.filter(p => p.etat_rdv === 'en attente').length;
+        const effectue = programmesData.filter(p => p.etat_rdv === 'effectué').length;
+        const planifie = programmesData.filter(p => p.etat_rdv === 'à planifié').length;
+
+        $('#totalProgrammes').text(total);
+        $('#programmesAttente').text(attente);
+        $('#programmesEffectue').text(effectue);
+        $('#programmesPlanifie').text(planifie);
+    }
+
+    function updateChauffeurFilter() {
+        const chauffeurs = [...new Set(programmesData
+            .filter(p => p.user)
+            .map(p => `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim())
+            .filter(name => name !== '')
+        )];
+
+        const select = $('#chauffeurFilter');
+        select.empty().append('<option value="">Tous chauffeurs</option>');
         
-        // Vérifier que l'action est sélectionnée
-        if (!action) {
-            isValid = false;
-            errorMessage = 'Veuillez sélectionner une action à faire pour chaque entrée.';
-            return false; // Arrêter la boucle
+        chauffeurs.forEach(chauffeur => {
+            select.append(`<option value="${chauffeur}">${chauffeur}</option>`);
+        });
+        select.trigger('change');
+    }
+
+    function filterProgrammes() {
+        const searchTerm = $('#search').val().toLowerCase();
+        const actionFilter = $('#actionFilter').val();
+        const etatFilter = $('#etatFilter').val();
+        const chauffeurFilter = $('#chauffeurFilter').val();
+        
+        return programmesData.filter(p => {
+            if (!p) return false;
+            
+            // Filtre recherche
+            const matchesSearch = !searchTerm || 
+                (p.reference_a_afficher && p.reference_a_afficher.toLowerCase().includes(searchTerm)) ||
+                (p.nom_expediteur && p.nom_expediteur.toLowerCase().includes(searchTerm)) ||
+                (p.tel_expediteur && p.tel_expediteur.toLowerCase().includes(searchTerm)) ||
+                (p.lieu_expedition && p.lieu_expedition.toLowerCase().includes(searchTerm));
+
+            // Filtres sélect
+            const matchesAction = !actionFilter || p.actions_a_faire === actionFilter;
+            const matchesEtat = !etatFilter || p.etat_rdv === etatFilter;
+            
+            // Filtre chauffeur
+            const chauffeurName = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : '';
+            const matchesChauffeur = !chauffeurFilter || chauffeurName === chauffeurFilter;
+            
+            return matchesSearch && matchesAction && matchesEtat && matchesChauffeur;
+        });
+    }
+    
+    function updateTable() {
+        const filtered = filterProgrammes();
+        totalItems = filtered.length;
+        const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+        
+        generateTable(paginated);
+        generatePagination(totalItems);
+        updatePaginationInfo(filtered.length);
+    }
+
+    function generateTable(programmes) {
+        const tableBody = $('#programmes-table');
+        tableBody.empty();
+        
+        if (!programmes || programmes.length === 0) {
+            tableBody.append(`
+                <tr>
+                    <td colspan="10" class="text-center py-4">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">Aucun programme trouvé</p>
+                    </td>
+                </tr>
+            `);
+            return;
         }
         
-        // Pour les actions autres que la récupération, la référence colis est obligatoire
-        if (action !== 'recuperation') {
-            if (!refInput.val()) {
-                isValid = false;
-                errorMessage = 'La référence colis est obligatoire pour les actions de dépôt et livraison.';
-                return false;
+        programmes.forEach(p => {
+            const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : '<span class="text-muted">N/A</span>';
+            const reference = p.reference_a_afficher || 'N/A';
+            const etat = p.etat_rdv || 'N/A';
+            
+            const actionsHtml = etat !== 'effectué' ? 
+               `<div class="btn-group btn-group-sm">
+                    <a href="{{ route('chine_programme.programme.edit.page', '') }}/${p.id}" class="btn btn-outline-info" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button class="btn btn-outline-danger delete-programme-btn" data-id="${p.id}" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>` : 
+                `<button class="btn btn-sm btn-outline-success" disabled title="Programme terminé">
+                    <i class="fas fa-check-circle"></i>
+                </button>`;
+
+            tableBody.append(`
+                <tr>
+                    <td class="text-center font-weight-bold">${p.quantite || 1}</td>
+                    <td class="text-center">${getActionBadge(p.actions_a_faire)}</td>
+                    <td>
+                        <span class="font-weight-bold text-dark">${reference}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-light border text-dark">${p.nature_du_colis || 'N/A'}</span>
+                    </td>
+                    <td>
+                        <div class="client-info">
+                            <div class="font-weight-bold text-dark">${p.nom_expediteur || 'N/A'}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="tel:${p.tel_expediteur || ''}" class="text-dark">
+                            <i class="fas fa-phone mr-1 text-muted"></i>${p.tel_expediteur || 'N/A'}
+                        </a>
+                    </td>
+                    <td class="text-truncate" style="max-width: 200px;" title="${p.lieu_expedition || ''}">
+                        <i class="fas fa-map-marker-alt text-muted mr-1"></i>
+                        ${p.lieu_expedition || 'N/A'}
+                    </td>
+                    <td>
+                        <span class="font-weight-bold text-dark">${user}</span>
+                    </td>
+                    <td class="text-center">${getEtatBadge(etat)}</td>
+                    <td class="text-center">${actionsHtml}</td>
+                </tr>
+            `);
+        });
+    }
+
+    function generatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const pagination = $('#pagination');
+        pagination.empty();
+        
+        if (totalPages <= 1) return;
+
+        // Previous button
+        pagination.append(`
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link text-dark" href="#" data-page="${currentPage - 1}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `);
+
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                pagination.append(`
+                    <li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <a class="page-link ${currentPage === i ? 'bg-primary border-primary' : 'text-dark'}" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `);
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                pagination.append('<li class="page-item disabled"><a class="page-link text-muted" href="#">...</a></li>');
             }
         }
-    });
 
-    if (!isValid) {
+        // Next button
+        pagination.append(`
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link text-dark" href="#" data-page="${currentPage + 1}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `);
+    }
+
+    function updatePaginationInfo(totalFiltered) {
+        const start = totalFiltered === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, totalFiltered);
+        
+        $('#paginationInfo').html(`
+            Affichage de <strong>${start}</strong> à <strong>${end}</strong> sur <strong>${totalFiltered}</strong> élément(s)
+        `);
+    }
+
+    // Fonctions utilitaires
+    function getActionBadge(action) {
+        const config = {
+            'depot': { class: 'bg-success text-white', text: 'DÉPÔT', icon: 'fa-upload' },
+            'recuperation': { class: 'bg-warning text-dark', text: 'RÉCUPÉRATION', icon: 'fa-download' },
+            'livraison': { class: 'bg-info text-white', text: 'LIVRAISON', icon: 'fa-truck' }
+        };
+        
+        const cfg = config[action] || { class: 'bg-secondary text-white', text: action, icon: 'fa-question' };
+        return `<span class="badge ${cfg.class} font-weight-normal"><i class="fas ${cfg.icon} mr-1"></i>${cfg.text}</span>`;
+    }
+
+    function getEtatBadge(etat) {
+        const config = {
+            'effectué': { class: 'bg-success text-white', icon: 'fa-check-circle' },
+            'en attente': { class: 'bg-warning text-dark', icon: 'fa-clock' },
+            'à planifié': { class: 'bg-info text-white', icon: 'fa-calendar-plus' },
+            'programmé': { class: 'bg-primary text-white', icon: 'fa-calendar-check' }
+        };
+        
+        const cfg = config[etat] || { class: 'bg-secondary text-white', icon: 'fa-question' };
+        return `<span class="badge ${cfg.class} font-weight-normal"><i class="fas ${cfg.icon} mr-1"></i>${etat}</span>`;
+    }
+
+    function showLoading(show) {
+        $('#loadingIndicator').toggle(show);
+        $('#programmes-table').toggle(!show);
+    }
+
+   
+    function showError(message) {
         Swal.fire({
             icon: 'error',
-            title: 'Champs obligatoires manquants',
-            text: errorMessage,
+            title: 'Erreur',
+            text: message,
+            confirmButtonText: 'OK'
         });
-        event.preventDefault();
     }
-});
-$(document).on('change', 'select[name="actions_a_faire[]"]', function() {
-    const entry = $(this).closest('.programme-entry');
-    const refInput = entry.find('.reference_colis');
-    const isRecuperation = $(this).val() === 'recuperation';
 
-    if (isRecuperation) {
-        // Pour une récupération, vider tous les champs
-        refInput.val('');
-        entry.find('input[name="nom_expediteur[]"]').val('');
-        entry.find('input[name="Adresse_expedition[]"]').val('');
-        entry.find('input[name="tel_expediteur[]"]').val('');
-        entry.find('input[name="nom_destinataire[]"]').val('');
-        entry.find('input[name="tel_destinataire[]"]').val('');
-        entry.find('input[name="Adresse_destination[]"]').val('');
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
-});
-// Désactiver la recherche AJAX pour les références en mode récupération
-$(document).on('input', '.reference_colis', function() {
-            
-            const entry = $(this).closest('.programme-entry');
-            const isRecuperation = entry.find('select[name="actions_a_faire[]"]').val() === 'recuperation';
-            
-            if (isRecuperation) return;
-        });
-        // Appliquer au chargement initial pour les entrées existantes
-        $('select[name="actions_a_faire[]"]').each(function() {
-            $(this).trigger('change');
-        });
-             // Gestion de la suppression
-        $(document).on('click', '.delete-programme-btn', function() {
-            const programmeId = $(this).data('id');
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce programme ?')) {
-        axios.delete(`/AGENCE_CHINE/programmechine/delete/${programmeId}`)
-            .then(response => {
-                if (response.data.success) {
-                    // Supprimer le programme localement
-                    programmesData.programmes = programmesData.programmes.filter(p => p.id !== programmeId);
-                    
-                    // Actualiser l'affichage
-                    updateTable();
-                    
-                    // Message de succès
-                    $('.container').prepend('<div class="alert alert-success">' + response.data.message + '</div>');
-                    setTimeout(() => $(".alert-success").remove(), 3000);
-                } else {
-                    throw new Error(response.data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Erreur lors de la suppression:', error);
-                $('.container').prepend('<div class="alert alert-danger">' + error.message + '</div>');
-                setTimeout(() => $(".alert-danger").remove(), 3000);
-            });
+
+    function scrollToTop() {
+        $('html, body').animate({ scrollTop: 0 }, 300);
     }
+
+    // Initialisation
+    initApp();
 });
-    });
 </script>
+
+<style>
+.small-box {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    position: relative;
+    display: block;
+    margin-bottom: 20px;
+}
+.small-box>.inner { padding: 10px; }
+.small-box h3 { font-size: 2.2rem; font-weight: bold; margin: 0 0 10px 0; }
+.small-box p { font-size: 1rem; }
+.small-box .icon { position: absolute; top: 15px; right: 15px; z-index: 0; font-size: 70px; color: rgba(0,0,0,0.15); }
+
+.card { border: 1px solid #dee2e6; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+
+.badge { font-size: 0.75rem; padding: 0.4em 0.6em; font-weight: 500; border: none; }
+
+.table th { 
+    border-top: 1px solid #dee2e6; 
+    border-bottom: 2px solid #dee2e6; 
+    font-weight: 600; 
+    background-color: #f8f9fa;
+    color: #495057;
+}
+.table td { 
+    vertical-align: middle; 
+    border-color: #dee2e6;
+    color: #495057;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.pagination { margin-bottom: 0; }
+.page-link { color: #495057; border-color: #dee2e6; }
+.page-link:hover { color: #495057; background-color: #e9ecef; border-color: #dee2e6; }
+.page-item.active .page-link { background-color: #007bff; border-color: #007bff; }
+
+.client-info { max-width: 200px; }
+
+.select2-container .select2-selection--single { 
+    height: 38px; 
+    border: 1px solid #ced4da;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered { 
+    line-height: 36px; 
+    color: #495057;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow { 
+    height: 36px; 
+}
+
+#loadingIndicator { display: none; }
+
+.btn { border-radius: 0.375rem; }
+.btn-outline-info { color: #17a2b8; border-color: #17a2b8; }
+.btn-outline-info:hover { background-color: #17a2b8; border-color: #17a2b8; }
+.btn-outline-danger { color: #dc3545; border-color: #dc3545; }
+.btn-outline-danger:hover { background-color: #dc3545; border-color: #dc3545; }
+.btn-outline-success { color: #28a745; border-color: #28a745; }
+.btn-outline-success:hover { background-color: #28a745; border-color: #28a745; }
+
+.bg-warning { background-color: #ffc107 !important; }
+.bg-warning.text-dark { color: #212529 !important; }
+</style>
 @endsection

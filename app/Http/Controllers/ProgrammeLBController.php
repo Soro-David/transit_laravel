@@ -40,76 +40,79 @@ class ProgrammeLBController extends Controller
     /**
      * Retourne les données nécessaires au front
      */
-    public function data()
-    {
-        // Récupération des chauffeurs
-        $rawChauffeurs = User::where('agence_id', 5)
-            ->where('role', 'chauffeur')
-            ->where('is_active', true)
-            ->get(['id', 'first_name', 'last_name']);
-    
-        $chauffeurs = $rawChauffeurs->map(function ($c) {
-            $first = $c->first_name ?? $c->nom ?? ($c->name ?? '');
-            $last  = $c->last_name  ?? $c->prenom ?? '';
-            return [
-                'id' => $c->id,
-                'first_name' => trim($first),
-                'last_name' => trim($last),
-            ];
-        })->values();
-    
-        // Récupération des programmes (INCLUANT "à planifié")
-        $programmes = Programme::with(['user', 'devis'])
-            ->where(function($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('agence_id', 5)
-                      ->where('role', 'chauffeur');
-                })->orWhereNull('user_id'); // Inclure les programmes sans chauffeur (à planifié)
-            })
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($programme) {
-                // Déterminer la référence à afficher
-                $programme->reference_a_afficher = $programme->reference_generee ?: $programme->reference_colis;
-    
-                // S'assurer que les données utilisateur sont bien formatées
-                if ($programme->user) {
-                    $first = $programme->user->first_name ?? $programme->user->nom ?? '';
-                    $last = $programme->user->last_name ?? $programme->user->prenom ?? '';
-                    $programme->user->full_name = trim($first . ' ' . $last);
-                }
-    
-                return $programme;
-            });
-    
-        // Récupérer les références de devis confirmés
-        $devisConfirmes = Devis::where('etat', 'confirmé')
-            ->whereNotIn('reference', Programme::pluck('reference_colis')->toArray())
-            ->pluck('reference');
-    
-        // Récupérer les références de dépôts disponibles pour récupération
-        $depotsPourRecuperation = Programme::where('actions_a_faire', 'depot')
-            ->where('etat_rdv', 'effectué')
-            ->whereNotNull('reference_generee')
-            ->whereNotIn('reference_generee', Programme::where('actions_a_faire', 'recuperation')->pluck('reference_colis')->toArray())
-            ->pluck('reference_generee');
-    
-        $response = [
-            'chauffeurs' => $chauffeurs,
-            'programmes' => $programmes,
-            'devisReferences' => $devisConfirmes,
-            'depotsPourRecuperation' => $depotsPourRecuperation,
-            'debug_info' => [
-                'chauffeurs_count' => $chauffeurs->count(),
-                'programmes_count' => $programmes->count(),
-                'devis_count' => $devisConfirmes->count(),
-                'depots_recuperables_count' => $depotsPourRecuperation->count(),
-                'timestamp' => now()->toDateTimeString()
-            ]
+   /**
+ * Retourne les données nécessaires au front
+ */
+public function data()
+{
+    // Récupération des chauffeurs
+    $rawChauffeurs = User::where('agence_id', 5)
+        ->where('role', 'chauffeur')
+        ->where('is_active', true)
+        ->get(['id', 'first_name', 'last_name']);
+
+    $chauffeurs = $rawChauffeurs->map(function ($c) {
+        $first = $c->first_name ?? $c->nom ?? ($c->name ?? '');
+        $last  = $c->last_name  ?? $c->prenom ?? '';
+        return [
+            'id' => $c->id,
+            'first_name' => trim($first),
+            'last_name' => trim($last),
         ];
-    
-        return response()->json($response);
-    }
+    })->values();
+
+    // Récupération des programmes (INCLUANT "à planifié")
+    $programmes = Programme::with(['user', 'devis'])
+        ->where(function($query) {
+            $query->whereHas('user', function ($q) {
+                $q->where('agence_id', 5)
+                  ->where('role', 'chauffeur');
+            })->orWhereNull('user_id'); // Inclure les programmes sans chauffeur (à planifié)
+        })
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($programme) {
+            // Déterminer la référence à afficher
+            $programme->reference_a_afficher = $programme->reference_generee ?: $programme->reference_colis;
+
+            // S'assurer que les données utilisateur sont bien formatées
+            if ($programme->user) {
+                $first = $programme->user->first_name ?? $programme->user->nom ?? '';
+                $last = $programme->user->last_name ?? $programme->user->prenom ?? '';
+                $programme->user->full_name = trim($first . ' ' . $last);
+            }
+
+            return $programme;
+        });
+
+    // Récupérer les références de devis confirmés
+    $devisConfirmes = Devis::where('etat', 'confirmé')
+        ->whereNotIn('reference', Programme::pluck('reference_colis')->toArray())
+        ->pluck('reference');
+
+    // CORRECTION : Récupérer uniquement les dépôts EFFECTUÉS pour récupération
+    $depotsPourRecuperation = Programme::where('actions_a_faire', 'depot')
+        ->where('etat_rdv', 'effectué') // ← CONDITION AJOUTÉE
+        ->whereNotNull('reference_generee')
+        ->whereNotIn('reference_generee', Programme::where('actions_a_faire', 'recuperation')->pluck('reference_colis')->toArray())
+        ->pluck('reference_generee');
+
+    $response = [
+        'chauffeurs' => $chauffeurs,
+        'programmes' => $programmes,
+        'devisReferences' => $devisConfirmes,
+        'depotsPourRecuperation' => $depotsPourRecuperation,
+        'debug_info' => [
+            'chauffeurs_count' => $chauffeurs->count(),
+            'programmes_count' => $programmes->count(),
+            'devis_count' => $devisConfirmes->count(),
+            'depots_recuperables_count' => $depotsPourRecuperation->count(),
+            'timestamp' => now()->toDateTimeString()
+        ]
+    ];
+
+    return response()->json($response);
+}
     /**
      * Création d'un dépôt avec référence générée
      */
@@ -495,111 +498,159 @@ if ($modeTransit === 'aerien') {
      * Récupère les informations d'un devis ou dépôt par référence
      */
 
-     public function getReferenceInfo($reference)
-     {
-         try {
-             Log::info("Recherche référence: " . $reference);
-     
-             // Rechercher d'abord les devis confirmés
-             $devis = Devis::where('reference', $reference)
-                 ->where('etat', 'confirmé')
-                 ->with('items')
-                 ->first();
-     
-             if ($devis) {
-                 $items = $devis->items;
-                 
-                 $itemsData = $items->map(function($item) {
-                     return [
-                         'quantite_colis' => $item->quantite_colis,
-                         'service' => $item->service,
-                         'valeur_colis' => $item->valeur_colis,
-                         'type_colis' => $item->type_colis,
-                         'description_colis' => $item->description_colis,
-                         'poids' => $item->poids,
-                         'longueur' => $item->longueur,
-                         'largeur' => $item->largeur,
-                         'hauteur' => $item->hauteur
-                     ];
-                 });
-     
-                 $natureColis = $items->first()->type_colis ?? 'Colis divers';
-                 $quantiteTotale = $items->sum('quantite_colis') ?? 1;
-                 
-                 Log::info("Devis confirmé trouvé: " . $devis->reference);
-                 
-                 return response()->json([
-                     'type' => 'devis',
-                     'existe' => true,
-                     'valide' => true,
-                     'etat_devis' => $devis->etat,
-                     'data' => [
-                         'nom_expediteur' => trim($devis->nom_expediteur . ' ' . $devis->prenom_expediteur),
-                         'prenom_expediteur' => $devis->prenom_expediteur,
-                         'email_expediteur' => $devis->email_expediteur,
-                         'tel_expediteur' => $devis->tel_expediteur,
-                         'lieu_expedition' => $devis->adresse_expediteur,
-                         'nature_du_colis' => $natureColis,
-                         'quantite' => $quantiteTotale,
-                         'mode_transit' => $devis->mode_transit,
-                         'pays_expedition' => $devis->pays_expedition,
-                         'agence_expedition' => $devis->agence_expedition,
-                         'agence_destination' => $devis->agence_destination,
-                         'devise' => $devis->devise,
-                         'montant' => $devis->montant,
-                         'mode_de_retrait' => $devis->mode_de_retrait,
-                         'items' => $itemsData
-                     ],
-                     'message' => '✅ Devis confirmé trouvé - Remplissage automatique'
-                 ]);
-             }
-    
-            // LOGIQUE EXISTANTE POUR LES DÉPÔTS
-            $depot = Programme::where('reference_generee', $reference)
-                ->where('actions_a_faire', 'depot')
-                ->first();
-    
-            if ($depot) {
-                $estEffectue = $depot->etat_rdv === 'effectué';
-                
-                Log::info("Dépôt trouvé: " . $depot->reference_generee . " - État: " . $depot->etat_rdv);
-                
-                return response()->json([
-                    'type' => 'depot',
-                    'existe' => true,
-                    'valide' => $estEffectue,
-                    'data' => [
-                        'nom_expediteur' => $depot->nom_expediteur,
-                        'lieu_expedition' => $depot->lieu_expedition,
-                        'tel_expediteur' => $depot->tel_expediteur,
-                        'nature_du_colis' => $depot->nature_du_colis,
-                        'quantite' => $depot->quantite
-                    ],
-                    'message' => $estEffectue ? 
-                        '✅ Dépôt effectué trouvé' : 
-                        '⚠️ Dépôt trouvé mais pas encore effectué'
-                ]);
-            }
-    
-            // Référence non trouvée - considérée comme manuelle
-            Log::info("Référence non trouvée, considérée comme manuelle: " . $reference);
+   /**
+ * Récupère les informations d'un devis ou dépôt par référence
+ */
+public function getReferenceInfo($reference)
+{
+    try {
+        Log::info("Recherche référence: " . $reference);
+ 
+        // Rechercher d'abord les devis confirmés
+        $devis = Devis::where('reference', $reference)
+            ->where('etat', 'confirmé')
+            ->with('items')
+            ->first();
+ 
+        if ($devis) {
+            $items = $devis->items;
+            
+            $itemsData = $items->map(function($item) {
+                return [
+                    'quantite_colis' => $item->quantite_colis,
+                    'service' => $item->service,
+                    'valeur_colis' => $item->valeur_colis,
+                    'type_colis' => $item->type_colis,
+                    'description_colis' => $item->description_colis,
+                    'poids' => $item->poids,
+                    'longueur' => $item->longueur,
+                    'largeur' => $item->largeur,
+                    'hauteur' => $item->hauteur
+                ];
+            });
+ 
+            $natureColis = $items->first()->type_colis ?? 'Colis divers';
+            $quantiteTotale = $items->sum('quantite_colis') ?? 1;
+            
+            Log::info("Devis confirmé trouvé: " . $devis->reference);
+            
             return response()->json([
-                'type' => 'manuel',
-                'existe' => false,
-                'valide' => false,
-                'data' => null,
-                'message' => 'ℹ️ Référence manuelle - Veuillez remplir les informations'
+                'type' => 'devis',
+                'existe' => true,
+                'valide' => true,
+                'etat_devis' => $devis->etat,
+                'data' => [
+                    'nom_expediteur' => trim($devis->nom_expediteur . ' ' . $devis->prenom_expediteur),
+                    'prenom_expediteur' => $devis->prenom_expediteur,
+                    'email_expediteur' => $devis->email_expediteur,
+                    'tel_expediteur' => $devis->tel_expediteur,
+                    'lieu_expedition' => $devis->adresse_expediteur,
+                    'nature_du_colis' => $natureColis,
+                    'quantite' => $quantiteTotale,
+                    'mode_transit' => $devis->mode_transit,
+                    'pays_expedition' => $devis->pays_expedition,
+                    'agence_expedition' => $devis->agence_expedition,
+                    'agence_destination' => $devis->agence_destination,
+                    'devise' => $devis->devise,
+                    'montant' => $devis->montant,
+                    'mode_de_retrait' => $devis->mode_de_retrait,
+                    'items' => $itemsData
+                ],
+                'message' => '✅ Devis confirmé trouvé - Remplissage automatique'
             ]);
-    
-        } catch (\Exception $e) {
-            Log::error("Erreur getReferenceInfo: " . $e->getMessage());
-            return response()->json([
-                'error' => $e->getMessage(),
-                'existe' => false,
-                'valide' => false
-            ], 500);
         }
+
+        // CORRECTION : Rechercher uniquement les dépôts EFFECTUÉS
+        $depot = Programme::where('reference_generee', $reference)
+            ->where('actions_a_faire', 'depot')
+            ->where('etat_rdv', 'effectué') // ← AJOUT DE CETTE CONDITION IMPORTANTE
+            ->with('items') // ← AJOUT pour récupérer les articles du dépôt
+            ->first();
+
+        if ($depot) {
+            $estEffectue = $depot->etat_rdv === 'effectué';
+            
+            Log::info("Dépôt effectué trouvé: " . $depot->reference_generee . " - État: " . $depot->etat_rdv);
+            
+            // Récupérer les items du dépôt s'ils existent
+            $itemsData = [];
+            if ($depot->items && $depot->items->count() > 0) {
+                $itemsData = $depot->items->map(function($item) {
+                    return [
+                        'quantite_colis' => $item->quantite_colis,
+                        'service' => $item->service,
+                        'valeur_colis' => $item->valeur_colis,
+                        'type_colis' => $item->type_colis,
+                        'description_colis' => $item->description_colis,
+                        'poids' => $item->poids,
+                        'longueur' => $item->longueur,
+                        'largeur' => $item->largeur,
+                        'hauteur' => $item->hauteur
+                    ];
+                })->toArray();
+            }
+            
+            return response()->json([
+                'type' => 'depot',
+                'existe' => true,
+                'valide' => $estEffectue,
+                'data' => [
+                    'nom_expediteur' => $depot->nom_expediteur,
+                    'lieu_expedition' => $depot->lieu_expedition,
+                    'tel_expediteur' => $depot->tel_expediteur,
+                    'nature_du_colis' => $depot->nature_du_colis,
+                    'quantite' => $depot->quantite,
+                    'items' => $itemsData // ← INCLURE LES ARTICLES DU DÉPÔT
+                ],
+                'message' => $estEffectue ? 
+                    '✅ Dépôt effectué trouvé - Récupération possible' : 
+                    '⚠️ Dépôt trouvé mais pas encore effectué'
+            ]);
+        }
+
+        // CORRECTION : Vérifier aussi si c'est un dépôt en attente pour informer l'utilisateur
+        $depotEnAttente = Programme::where('reference_generee', $reference)
+            ->where('actions_a_faire', 'depot')
+            ->where('etat_rdv', 'en attente')
+            ->first();
+
+        if ($depotEnAttente) {
+            Log::info("Dépôt en attente trouvé: " . $depotEnAttente->reference_generee);
+            
+            return response()->json([
+                'type' => 'depot',
+                'existe' => true,
+                'valide' => false,
+                'data' => [
+                    'nom_expediteur' => $depotEnAttente->nom_expediteur,
+                    'lieu_expedition' => $depotEnAttente->lieu_expedition,
+                    'tel_expediteur' => $depotEnAttente->tel_expediteur,
+                    'nature_du_colis' => $depotEnAttente->nature_du_colis,
+                    'quantite' => $depotEnAttente->quantite
+                ],
+                'message' => '❌ Dépôt trouvé mais encore en attente - Impossible de récupérer'
+            ]);
+        }
+
+        // Référence non trouvée - considérée comme manuelle
+        Log::info("Référence non trouvée, considérée comme manuelle: " . $reference);
+        return response()->json([
+            'type' => 'manuel',
+            'existe' => false,
+            'valide' => false,
+            'data' => null,
+            'message' => 'ℹ️ Référence manuelle - Veuillez remplir les informations'
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error("Erreur getReferenceInfo: " . $e->getMessage());
+        return response()->json([
+            'error' => $e->getMessage(),
+            'existe' => false,
+            'valide' => false
+        ], 500);
     }
+}
     public function getDevisInfo($reference)
     {
         try {
@@ -676,23 +727,7 @@ if ($modeTransit === 'aerien') {
     }
 
    
-    public function destroy($id)
-    {
-        try {
-            $programme = Programme::findOrFail($id);
-            $programme->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Programme supprimé avec succès'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la suppression'
-            ], 500);
-        }
-    }
+    
     public function checkProgrammeItems($programmeId)
 {
     try {
@@ -765,18 +800,21 @@ public function store_devis(Request $request)
 
             // 4. Création du programme directement
             $programme = Programme::create([
-                'quantite' => $this->calculerQuantiteTotale($request), // Fonction à créer
-                'date_programme' => null, // Pas de date pour "Plus tard"
+                'quantite' => $this->calculerQuantiteTotale($request),
+                'date_programme' => null,
                 'user_id' => null, // Pas de chauffeur attribué pour l'instant
+                'agent_id' => auth()->id(), // <-- AJOUT : ID de l'agent connecté
                 'reference_colis' => $reference,
                 'reference_generee' => $referenceGeneree,
                 'type_reference' => 'devis',
                 'actions_a_faire' => 'recuperation',
                 'nom_expediteur' => $request->nom_expediteur,
+                'prenom_expediteur' => $request->prenom_expediteur,
+                'agence_expedition' => $request->agence_expedition,
                 'lieu_expedition' => $request->adresse_expediteur,
                 'tel_expediteur' => $request->tel_expediteur,
                 'nature_du_colis' => 'Colis divers',
-                'etat_rdv' => 'à planifié', // Nouvel état
+                'etat_rdv' => 'à planifié',
                 'mode_transit' => $request->mode_transit,
                 'agence_destination' => $request->agence_destination_societe,
             ]);
@@ -810,8 +848,8 @@ public function store_devis(Request $request)
                 'tel_expediteur' => $request->tel_expediteur,
                 'adresse_expediteur' => $request->adresse_expediteur,
                 'devise' => 'EUR',
-                'user_id' => auth()->id(),
-                'etat' => 'à planifié', // Même état
+                'user_id' => auth()->id(), // Ici, 'user_id' fait référence au créateur du devis, ce qui est correct.
+                'etat' => 'à planifié',
             ]);
 
             // Créer les items du devis
@@ -838,7 +876,7 @@ public function store_devis(Request $request)
         // Retourner une réponse JSON pour le traitement en AJAX
         return response()->json([
             'success' => true,
-            'message' => 'Programme enregister !',
+            'message' => 'Programme enregistré !',
             'reference_generee' => $devis['programme']->reference_generee,
             'programme' => $devis['programme'],
             'devis' => $devis['devis']
@@ -1322,6 +1360,26 @@ if ($typeReference === 'devis') {
         ], 500);
     }
 }
+public function destroy(Programme $programme)
+{
+    try {
+        $programme->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Le programme a été supprimé avec succès.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        // Optionnel : enregistrer l'erreur pour le débogage
+        // Log::error("Erreur de suppression du programme #{$programme->id}: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Une erreur est survenue lors de la suppression du programme.'
+        ], 500);
+    }
+}
 // Afficher la page d'édition
 public function showEdit($slug)
 {
@@ -1444,11 +1502,7 @@ public function updateProgramme(Request $request, $id)
 
         Log::info("✅✅ Mise à jour complète du programme " . $programme->reference_generee . " réussie !");
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Programme et articles mis à jour avec succès !'
-        ]);
-
+        return redirect()->route('aftlb_transport.planing.chauffeur')->with('success','programme modifier avec succes') ;   
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error("❌ Erreur lors de la mise à jour du programme: " . $e->getMessage());
@@ -1461,52 +1515,7 @@ public function updateProgramme(Request $request, $id)
     }
 }
 // Supprimer un programme et ses items
-public function destroyProgramme($id)
-{
-    try {
-        $id_numerique = explode('-', $id)[0];
-        
-        // CORRECTION : Autoriser la suppression des programmes sans chauffeur
-        $programme = Programme::where(function($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('agence_id', 5)
-                      ->where('role', 'chauffeur');
-                })
-                ->orWhereNull('user_id');
-            })
-            ->whereIn('etat_rdv', ['en attente', 'à planifié']) // Seulement ces états
-            ->findOrFail($id_numerique);
 
-        // Vérifier si le programme est déjà effectué (sécurité)
-        if ($programme->etat_rdv === 'effectué') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Impossible de supprimer un programme déjà effectué'
-            ], 422);
-        }
-
-        // Supprimer les items liés
-        ProgrammeItems::where('programme_id', $programme->id)->delete();
-        
-        // Supprimer le programme
-        $programme->delete();
-
-        Log::info("✅ Programme supprimé: " . $programme->reference_generee);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Programme et ses articles supprimés avec succès'
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error("❌ Erreur suppression programme: " . $e->getMessage());
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
-        ], 500);
-    }
-}
 public function updateProgrammeItems(Request $request, $id)
 {
     try {
@@ -1753,5 +1762,26 @@ public function deleteProgrammeItem($programmeId, $itemId)
             'message' => 'Erreur lors de la suppression'
         ], 500);
     }
+}
+public function showDepotPage()
+{
+    return view('AFT_LOUIS_BLERIOT.transport.depot');
+}
+
+/**
+ * Affiche la page de création de récupération.
+ */
+public function showRecuperationPage()
+{
+    return view('AFT_LOUIS_BLERIOT.transport.recuperation');
+}
+
+/**
+ * Affiche la page de création de livraison (à venir).
+ */
+public function showLivraisonPage()
+{
+    // Pour l'instant, vous pouvez créer une vue simple pour celle-ci.
+    return view('AFT_LOUIS_BLERIOT.transport.livraison');
 }
 }

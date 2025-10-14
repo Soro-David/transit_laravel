@@ -24,7 +24,7 @@
                                     <th class="text-center">Nb. Colis</th>
                                     <th>Expéditeur</th>
                                     <th>Tél. Exp</th>
-                                    {{-- <th>Agence Expéditeur</th> --}}
+                                    <th>Agence Expéditeur</th>
                                     <th>Destinataire</th>
                                     <th>Tél. Dest.</th>
                                     <th>Agence Dest.</th>
@@ -92,35 +92,28 @@
 
 </section>
 
-{{-- Styles (Peuvent être déplacés dans un fichier CSS) --}}
 <style>
-    /* Styles généraux pour la table et les boutons */
     #productTable {
         width: 100% !important;
-        /* white-space: nowrap;  Optionnel: Décommenter si le non-retour à la ligne est préféré */
     }
 
     #productTable th,
     #productTable td {
-        vertical-align: middle; /* Alignement vertical au centre */
-        /* padding: 8px 10px; */ /* Ajuster le padding si nécessaire */
+        vertical-align: middle;
     }
 
-    /* Centrer le texte dans des colonnes spécifiques si nécessaire */
     #productTable .text-center {
         text-align: center;
     }
 
-    /* Conteneur pour les boutons d'action pour utiliser Flexbox */
     .action-buttons-container {
         display: flex;
-        justify-content: center; /* Centre les boutons horizontalement */
-        align-items: center;    /* Centre les boutons verticalement */
-        gap: 5px;              /* Espace entre les boutons */
-        flex-wrap: nowrap;     /* Empêche le retour à la ligne des boutons */
+        justify-content: center;
+        align-items: center;
+        gap: 5px;  
+        flex-wrap: nowrap;
     }
 
-    /* Ajustements pour DataTables (optionnel) */
     .dataTables_wrapper {
          /* width: 100%; */
          /* margin: 0 auto; */
@@ -129,10 +122,9 @@
         margin-bottom: 15px;
     }
 
-    /* Styles responsives */
     @media (max-width: 768px) {
         #productTable {
-             white-space: normal; /* Permettre le retour à la ligne sur petits écrans */
+             white-space: normal;
         }
         .dt-buttons {
             text-align: center;
@@ -143,63 +135,61 @@
             width: 80%;
         }
         .action-buttons-container {
-            flex-wrap: wrap; /* Permettre aux boutons de passer à la ligne si nécessaire */
+            flex-wrap: wrap;
             justify-content: center;
         }
     }
 
-    /* Style pour le message d'erreur de validation dans la modale */
      .is-invalid {
-        border-color: #dc3545; /* Couleur de bordure Bootstrap pour l'erreur */
+        border-color: #dc3545;
     }
     .invalid-feedback {
-        display: none; /* Caché par défaut */
+        display: none;
         width: 100%;
         margin-top: .25rem;
         font-size: .875em;
-        color: #dc3545; /* Couleur du texte d'erreur Bootstrap */
+        color: #dc3545;
     }
     .is-invalid ~ .invalid-feedback {
-        display: block; /* Affiché quand le champ est invalide */
+        display: block;
     }
 
 </style>
 
-{{-- Script pour DataTables et les interactions --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 <script>
 $(document).ready(function () {
-    // Configuration du header CSRF pour toutes les requêtes AJAX
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    // Initialisation de DataTables
     var table = $("#productTable").DataTable({
         processing: true,
         serverSide: true,
         responsive: true,
-        language: { url: "{{ asset('js/fr-FR.json') }}" }, // Assurez-vous que ce fichier existe
-        ajax: '{{ route("colis.get.colis.valide") }}', // Route vers la méthode du contrôleur
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("colis.get.colis.valide") }}',
         columns: [
-            // La colonne 'statut_paiement' est générée côté serveur avec HTML
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
-            // La colonne 'nombre_de_colis' est calculée côté serveur
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
             {
-                data: null, name: 'expediteur_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'expediteur_nom',
                 render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); },
-                searchable: true, orderable: true // Permettre recherche/tri sur le nom complet
+                searchable: true, orderable: true
             },
-            { data: 'expediteur_tel', name: 'expediteurs.tel' }, // Utiliser le nom de table correct pour le tri/recherche serveur si possible
+            { data: 'expediteur_tel', name: 'expediteurs.tel' },
+            { data: 'expediteur_agence', name: 'expediteurs.agence' },
             {
-                data: null, name: 'destinataire_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'destinataire_nom',
                 render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); },
-                 searchable: true, orderable: true // Permettre recherche/tri
+                 searchable: true, orderable: true
             },
-            { data: 'destinataire_tel', name: 'destinataires.tel' }, // Utiliser le nom de table correct
+            { data: 'destinataire_tel', name: 'destinataires.tel' },
             {
                 data: 'destinataire_agence',
                 name: 'destinataire_agence.nom_agence',
@@ -211,35 +201,31 @@ $(document).ready(function () {
                     }
                     return data;
                 }
-            }, // Utiliser le nom de table correct
-            { data: 'etat', name: 'colis.etat' }, // Utiliser le nom de table correct
-            { data: 'created_at', name: 'colis.created_at' }, // Utiliser le nom de table correct
-             // La colonne 'action' est générée côté serveur avec HTML
+            },
+            { data: 'etat', name: 'colis.etat' },
+            { data: 'created_at', name: 'colis.created_at' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
         ],
-        // Configuration des boutons d'exportation (si utilisés)
-        dom: 'Bfrtip', // Afficher les boutons, le filtre, la table, les informations et la pagination
+        dom: 'Bfrtip',
         buttons: [
-                // Bouton Excel
                 {
                     extend: 'excelHtml5',
                     text: 'Exporter en Excel',
                     title: 'FANIFESTE',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
                     },
                     customize: function (xlsx) {
                         console.log("Exportation Excel réussie sans image.");
                     }
                 },
 
-                // Bouton Imprimer
                 {
                     extend: 'print',
                     text: 'Imprimer',
                     title: 'FANIFESTE',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
                     },
                     customize: function (win) {
                         var logoUrl = "{{ url('images/LOGOAFT.png') }}";
@@ -261,58 +247,47 @@ $(document).ready(function () {
                     }
                 }
         ],
-         order: [[ 1, 'desc' ]] // Trier par référence par défaut (colonne index 1)
+         order: [[ 1, 'desc' ]]
     });
 
-    // --- Logique pour la Modale de Paiement ---
 
-    // 1. Ouvrir la modale et pré-remplir les champs quand on clique sur le bouton Payer (.pay-btn)
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
-        e.preventDefault(); // Empêcher le comportement par défaut du bouton
+        e.preventDefault();
 
         var button = $(this);
         var reference = button.data('reference');
-        var total = parseFloat(button.data('total')); // Garder en nombre pour le calcul
-        var paid = parseFloat(button.data('paid'));   // Garder en nombre pour le calcul
+        var total = parseFloat(button.data('total'));
+        var paid = parseFloat(button.data('paid'));
         var colisIds = JSON.stringify(button.data('colis-ids'));
 
-        // Calculer le montant restant à payer
         var remainingDue = total - paid;
-        // Stocker cette valeur sur le formulaire pour y accéder facilement lors de la soumission
         $('#paymentForm').data('remaining-due', remainingDue.toFixed(2));
 
         console.log("Opening payment modal for reference:", reference);
         console.log("Total:", total, "Paid:", paid, "Remaining:", remainingDue, "Colis IDs:", colisIds);
 
 
-        // Fonction pour formater les nombres en devise (exemple XOF)
         function formatCurrency(value) {
             const num = Number(value);
             if (isNaN(num)) return 'N/A';
-            // Ajuster 'fr-CI' et 'XOF' selon votre localisation
             return num.toLocaleString('fr-CI', { style: 'currency', currency: 'XOF' });
         }
 
-        // Remplir les champs de la modale
         $('#modalDisplayReference').val(reference);
         $('#modalTotalAmount').val(formatCurrency(total));
         $('#modalAmountAlreadyPaid').val(formatCurrency(paid));
-        $('#modalReferenceColis').val(reference);    // Champ caché pour la soumission
-        $('#modalColisIds').val(colisIds);           // Champ caché pour la soumission (JSON string)
+        $('#modalReferenceColis').val(reference); 
+        $('#modalColisIds').val(colisIds); 
 
-        // Réinitialiser le champ du nouveau montant et les erreurs
         $('#modalNewPaymentAmount').val('').removeClass('is-invalid');
-        $('#paymentAmountError').text('').hide(); // Cacher le message d'erreur
+        $('#paymentAmountError').text('').hide();
 
-        // Afficher la modale (Bootstrap 5)
         $('#paymentModal').modal('show');
     });
 
-    // 2. Soumettre le formulaire de paiement via AJAX
     $('#paymentForm').on('submit', function(e) {
-        e.preventDefault(); // Empêcher la soumission standard du formulaire
+        e.preventDefault();
 
-        // Vider les erreurs précédentes
         $('#modalNewPaymentAmount').removeClass('is-invalid');
         $('#paymentAmountError').text('').hide();
 
@@ -320,14 +295,12 @@ $(document).ready(function () {
         var newPaymentAmount = parseFloat($('#modalNewPaymentAmount').val());
         var remainingDue = parseFloat($('#paymentForm').data('remaining-due'));
 
-        // Cas 1 : Le montant n'est pas un nombre ou est négatif/nul
         if (isNaN(newPaymentAmount) || newPaymentAmount <= 0) {
             $('#modalNewPaymentAmount').addClass('is-invalid');
             $('#paymentAmountError').text('Veuillez saisir un montant valide et positif.').show();
-            return; // Bloque l'envoi AJAX
+            return;
         }
 
-        // Cas 2 : Le montant saisi est supérieur au montant restant
         if (newPaymentAmount > remainingDue) {
             $('#modalNewPaymentAmount').addClass('is-invalid');
             $('#paymentAmountError').text('Le montant saisi ne peut pas dépasser le solde restant.').show();
@@ -336,9 +309,8 @@ $(document).ready(function () {
                 title: 'Montant Invalide',
                 text: 'Le montant du paiement est supérieur au solde restant à payer.'
             });
-            return; // Bloque l'envoi AJAX
+            return;
         }
-        // ======================= FIN DE LA VALIDATION CÔTÉ CLIENT =======================
 
         var form = $(this);
         var submitButton = $('#submitPaymentBtn');
@@ -346,25 +318,24 @@ $(document).ready(function () {
         submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'); // Indicateur de chargement
 
         $.ajax({
-            url: '{{ route("colis.valide.payer") }}', // Utiliser la route nommée pour l'enregistrement du paiement
+            url: '{{ route("colis.valide.payer") }}',
             type: 'POST',
-            data: form.serialize(), // Envoyer les données du formulaire
+            data: form.serialize(),
             dataType: 'json',
             success: function(response) {
-                $('#paymentModal').modal('hide'); // Fermer la modale
+                $('#paymentModal').modal('hide');
                 Swal.fire({
                     icon: 'success',
                     title: 'Succès!',
                     text: response.success || 'Paiement enregistré avec succès.',
-                    timer: 2500, // Fermer automatiquement après 2.5 secondes
+                    timer: 2500,
                     showConfirmButton: false
                 });
-                table.ajax.reload(null, false); // Recharger DataTables sans réinitialiser la pagination/recherche
+                table.ajax.reload(null, false);
             },
             error: function(xhr, status, error) {
                 var errorMessage = 'Une erreur est survenue lors de l\'enregistrement.';
 
-                // Gérer les erreurs de validation (statut 422)
                 if (xhr.status === 422 && xhr.responseJSON) {
                     if (xhr.responseJSON.errors && xhr.responseJSON.errors.montant_a_payer) {
                         $('#modalNewPaymentAmount').addClass('is-invalid');
@@ -388,13 +359,11 @@ $(document).ready(function () {
                 });
             },
             complete: function () {
-                // Réactiver le bouton et restaurer son texte initial, que la requête réussisse ou échoue
                  submitButton.prop('disabled', false).html(originalButtonText);
             }
         });
     });
 
-    // --- Logique pour le bouton Supprimer/Archiver ---
     $('#productTable tbody').on('click', '.delete-btn', function (e) {
         e.preventDefault();
 
@@ -448,7 +417,7 @@ $(document).ready(function () {
             }
         });
     });
-}); // Fin $(document).ready
+});
 </script>
 
 @endsection

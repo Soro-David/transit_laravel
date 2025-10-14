@@ -58,6 +58,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('colis.devis.confirme') }}" class="nav-link">
+                                <i class="far nav-icon"></i>
+                                <p>{{ __('Dévis confirmés') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('colis.devis.hold') }}" class="nav-link">
                                 <i class="far nav-icon"></i>
                                 <p>{{ __('Suivi des dévis ') }}</p>
@@ -275,30 +281,48 @@
                         <p>{{ __('Prospect') }}</p>
                     </a>
                 </li>
-                {{-- Transport --}}
-                <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link {{ activeSegment('products') }}">
-                        <i class="fas fa-car"></i>
-                        <p>{{ __('Transport') }}</p>
-                        <i class="right fas fa-angle-left"></i>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('transport.show.chauffeur') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Chauffeurs') }}</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('programme.index') }}" class="nav-link">
-                                <i class="far nav-icon"></i>
-                                <p>{{ __('Programme') }}</p>
-                            </a>
-                        </li>
-
-                        <li class="nav-item has-treeview">
-                    </ul>
-                </li>
+            {{-- Transport Admin --}}
+<li class="nav-item has-treeview">
+    <a href="#" class="nav-link {{ activeSegment('transport') }}">
+        <i class="fas fa-car"></i>
+        <p>{{ __('Transport') }}</p>
+        <i class="right fas fa-angle-left"></i>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{{ route('transport.chauffeurs') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Chauffeurs') }}</p>
+            </a>
+        </li>
+       
+        <li class="nav-item">
+            <a href="{{ route('transport.depot') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Créer un Dépôt') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('transport.recuperation') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Créer une Récupération') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('transport.ajout-devis') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Programmer via Devis') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('transport.planing') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Liste des Programmes') }}</p>
+            </a>
+        </li>
+        
+    </ul>
+</li>
                 <a href="{{ route('bilan.bilan') }}" class="nav-link {{ activeSegment('bilan') }}">
         <i class="nav-icon fas fa-chart-bar"></i> <p>Bilan Import/Export</p>
     </a>

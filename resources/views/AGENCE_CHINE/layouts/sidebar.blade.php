@@ -196,6 +196,7 @@
                         <p>{{ __('Clients') }}</p>
                     </a>
                 </li>
+<<<<<<< HEAD
                 <li class="nav-item has-treeview">
                     <a href="{{ route('chine_prospects.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
@@ -231,6 +232,48 @@
     
 </ul>
                 </li>
+=======
+               {{-- programme de transport --}}
+<li class="nav-item has-treeview">
+    <a href="#" class="nav-link {{ activeSegment('products') }}">
+        <i class="fas fa-car"></i>
+        <p>{{ __('Transport') }}</p>
+        <i class="right fas fa-angle-left"></i>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{{ route('chine_transport.chauffeurs.show') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Chauffeurs') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('chine_programme.programme.depot') }}" class="nav-link">
+                <i class="far fa-circle nav-icon text-success"></i>
+                <p>{{ __('Créer un Dépôt') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('chine_programme.programme.recuperation') }}" class="nav-link">
+                <i class="far fa-circle nav-icon text-warning"></i>
+                <p>{{ __('Créer une Récupération') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('chine_programme.ajoutDevis') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Programmer via Devis') }}</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('chine_programme.planing.index') }}" class="nav-link">
+                <i class="far nav-icon"></i>
+                <p>{{ __('Liste des Programmes') }}</p>
+            </a>
+        </li>
+    </ul>
+</li>
+>>>>>>> 1aedc3d299d0a565bfd7b5a51b18f7bff19131ee
                 <li class="nav-item">
             <a href="{{ route('bilan.chine') }}" class="nav-link">
                 <i class="fas fa-flag-checkered mr-2"></i>
