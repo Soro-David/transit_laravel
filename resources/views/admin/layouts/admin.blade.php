@@ -141,6 +141,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     
+
     <!-- Script du Loader -->
     <script>
         window.addEventListener('load', function() {

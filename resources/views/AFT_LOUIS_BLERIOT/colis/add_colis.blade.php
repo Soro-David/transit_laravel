@@ -1114,7 +1114,8 @@ $(document).ready(function () {
     }
 
     $(document).on('click', function(e) {
-        if (!$(e.target).closest('.produit-input, .service-input, .autocomplete-results').length) { $('.autocomplete-results').hide(); }
+        if (!$(e.target).closest('.produit-input, .service-input, .autocomplete-results').length) {
+             $('.autocomplete-results').hide(); }
     });
 
     let activeProduitInput = null;

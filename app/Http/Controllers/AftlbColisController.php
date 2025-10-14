@@ -737,16 +737,6 @@ private function generateReferenceParMode(string $mode_transit)
         } 
 
 
-        // -------------------------------
-        // 🧠 RÉSULTATS POUR CONTRÔLE
-        // -------------------------------
-        // dd([
-        //     'mode_paiement' => $modePaiement,
-        //     'montant_total_estime' => $montantTotalEstime,
-        //     'montant_paiement' => $montantPaiementTransaction,
-        //     'statut_paiement' => $statutPaiementGlobal,
-        // ]);
-
         $agentId = Auth::check() ? Auth::user()->agent?->id : null;
         $transactionId = $request->input('cinetpay_transaction_id') ?? $payementDataSession['transaction_id'] ?? ('MANUAL-' . uniqid());
 
@@ -829,10 +819,6 @@ private function generateReferenceParMode(string $mode_transit)
             }
         }
         
-        // --- FIN DE LA SECTION DE LOGIQUE DE RÉFÉRENCE ---
-        // À ce stade, $referenceColisPrincipale et $id_reference_next_available sont correctement définis
-        // pour le premier colis à créer dans ce lot.
-
         $colisEnregistres = [];
         $erreursCreation = [];
 
@@ -846,8 +832,19 @@ private function generateReferenceParMode(string $mode_transit)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
-            $prixUnitairePourCetteLigne = (float)($data['prix'][$index] ?? 0);
-        
+            $quantiteColis = (float)($data['quantite_colis'][$index] ?? 1);
+            $prix = (float)($data['prix'][$index] ?? 0);
+            $poids = (float)($data['poids'][$index] ?? 0);
+
+            if ($data['mode_transit'] === 'aerien') {
+                // Si le mode est aérien → prix = prix * poids / quantité
+                $prixUnitairePourCetteLigne = $quantiteColis > 0 
+                    ? ($prix * $poids) / $quantiteColis 
+                    : 0;
+            } else {
+                // Sinon, garde le prix normal
+                $prixUnitairePourCetteLigne = $prix;
+            }
             // Créer un colis pour chaque unité physique de la quantité spécifiée
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
@@ -1677,17 +1674,15 @@ private function generateReferenceParMode(string $mode_transit)
     
         // dd($totalPrixTransit,$totalQuantite,$colisEnregistres->sum('prix_transit_colis'));
         // Préparer les paiements associés à ces colis
-        $colisId = $firstColis->id;
-
-        $paiements = Paiement::where('colis_id', $colisId)->get();
-
+        $colisIds = collect($colisEnregistres)->pluck('id');
+        $paiements = Paiement::whereIn('colis_id', $colisIds)->get();
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-
         $totalMontantPaye = $paiements->sum('montant_paye');
 
-        $montantTotalColis = (float) $firstColis->montant_service + (float) $firstColis->prix_transit_colis;
+        
+        // dd($totalMontantPaye);
 
-        $restePaye = $montantTotalColis - $totalMontantPaye;
+        $restePaye = $totalPrixTransit - $totalMontantPaye;
 
         $restePaye = max(0, $restePaye);
 

@@ -1019,9 +1019,19 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
         $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
         
         $prixTotalPourCetteLigne = (float)($data['prix'][$index] ?? 0);
-    // On s'assure de ne pas diviser par zéro
-    $prixUnitairePourCetteLigne = ($quantite_pour_ligne_article > 0) ? ($prixTotalPourCetteLigne) : 0;
-    
+             $quantiteColis = (float)($data['quantite_colis'][$index] ?? 1);
+            $prix = (float)($data['prix'][$index] ?? 0);
+            $poids = (float)($data['poids'][$index] ?? 0);
+
+            if ($data['mode_transit'] === 'aerien') {
+                // Si le mode est aérien → prix = prix * poids / quantité
+                $prixUnitairePourCetteLigne = $quantiteColis > 0 
+                    ? ($prix * $poids) / $quantiteColis 
+                    : 0;
+            } else {
+                // Sinon, garde le prix normal
+                $prixUnitairePourCetteLigne = $prix;
+            }
     for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
     
     
@@ -1782,12 +1792,13 @@ public function imprimerFacture($id)
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
         $totalPrixTransit = ($colisEnregistres->sum('prix_transit_colis') + $firstColis['montant_service']);
         
-        $colisId = $firstColis->id;
-        $paiements = Paiement::where('colis_id', $colisId)->get();
+        $colisIds = collect($colisEnregistres)->pluck('id');
+        $paiements = Paiement::whereIn('colis_id', $colisIds)->get();
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
         $totalMontantPaye = $paiements->sum('montant_paye');
-        $montantTotalColis = (float) $firstColis->montant_service + (float) $firstColis->prix_transit_colis;
-        $restePaye = $montantTotalColis - $totalMontantPaye;
+
+
+        $restePaye = $totalPrixTransit - $totalMontantPaye;
         $restePaye = max(0, $restePaye);
 
         return view('admin.invoice.edit', [
