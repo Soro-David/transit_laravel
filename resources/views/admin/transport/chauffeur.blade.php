@@ -348,15 +348,13 @@
                     searchable: false,
                     render: function(data, type, row) {
                         if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                            return 'Angré 8ème Tranche';
+                            return 'DS Translog Angré 8ème Tranche';
                         } else if (data === 'IPMS-SIMEX-CI') {
-                            return 'Carrefour Angré';
-                        } else {
-                            return data;
+                            return 'DS Translog Carrefour Angré';
                         }
+                        return data;
                     }
                 },
-
                 {
                     data: 'action',
                     name: 'action',

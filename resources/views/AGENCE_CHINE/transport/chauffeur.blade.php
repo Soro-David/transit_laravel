@@ -325,10 +325,18 @@
                         name: 'email'
                     },
                     {
-                        data: 'agence', // Data for the agency column
+                        data: 'agence',
                         name: 'agence',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        render: function(data, type, row) {
+                            if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                                return 'DS Translog Angré 8ème Tranche';
+                            } else if (data === 'IPMS-SIMEX-CI') {
+                                return 'DS Translog Carrefour Angré';
+                            }
+                            return data;
+                        }
                     },
                     {
                         data: 'action',

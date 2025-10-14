@@ -233,7 +233,19 @@ $(document).ready(function () {
             { data: 'nombre_de_colis', className: 'text-center fw-semibold' },
             { render: function (data, type, row) { return row.expediteur_nom + ' ' + row.expediteur_prenom; }},
             { data: 'expediteur_tel', className:'text-muted' },
-            { data: 'destinataire_agence', className:'fw-semibold' },
+            // { data: 'destinataire_agence', className:'fw-semibold' },
+            { 
+                data: 'destinataire_agence',
+                name: 'destinataire_agence.nom_agence',
+                render: function(data, type, row) {
+                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                        return 'DS Translog Angré 8ème Tranche';
+                    } else if (data === 'IPMS-SIMEX-CI') {
+                        return 'DS Translog Carrefour Angré';
+                    }
+                    return data;
+                }
+            },
             { 
                 data: 'etat',
                 render: function(data) {
