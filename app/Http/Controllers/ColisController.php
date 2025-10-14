@@ -1780,18 +1780,15 @@ public function imprimerFacture($id)
         // dd($firstInfo);
     
         $totalQuantite = $colisEnregistres->sum('quantite_colis');
-        $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
+        $totalPrixTransit = ($colisEnregistres->sum('prix_transit_colis') + $firstColis['montant_service']);
         
-        // Préparer les paiements associés à ces colis
-        $ids_colis = $colisEnregistres->pluck('id')->toArray();
-        $paiements = Paiement::whereIn('colis_id', $ids_colis)->get();
+        $colisId = $firstColis->id;
+        $paiements = Paiement::where('colis_id', $colisId)->get();
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-        $totalMontant = $paiements->sum('montant');
-        $totalMontantPaye = $paiements->first()->montant_paye ?? 0;
-    
-        $restePaye = $totalMontant - $totalMontantPaye;
-    
-        dd($totalQuantite, $totalPrixTransit,$restePaye);
+        $totalMontantPaye = $paiements->sum('montant_paye');
+        $montantTotalColis = (float) $firstColis->montant_service + (float) $firstColis->prix_transit_colis;
+        $restePaye = $montantTotalColis - $totalMontantPaye;
+        $restePaye = max(0, $restePaye);
 
         return view('admin.invoice.edit', [
             'colis' => $colisEnregistres,
@@ -3912,6 +3909,7 @@ public function get_colis_valide(Request $request)
                 'colis.expediteur_id',
                 'colis.destinataire_id',
                 'colis.etat',
+                'colis.montant_service',
                 'colis.created_at',
                 'expediteurs.nom as expediteur_nom',
                 'expediteurs.prenom as expediteur_prenom',
@@ -3943,9 +3941,11 @@ public function get_colis_valide(Request $request)
             $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
                 $firstColis = $group->first();
                 $quantiteTotale = $group->sum('quantite_colis');
-                $prixTotalColis = $group->sum('prix_transit_colis');
+                $montantService = (float) $firstColis->montant_service;
+                $prixTotalColisProduit = $group->sum('prix_transit_colis');
                 $montantTotalPaye = 0;
                 $colisIdsInGroup = $group->pluck('id')->toArray();
+                $prixTotalColis = $prixTotalColisProduit + $montantService;
 
                 foreach ($colisIdsInGroup as $colisId) {
                     if (isset($paiements[$colisId])) {

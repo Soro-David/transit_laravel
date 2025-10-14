@@ -180,26 +180,24 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         responsive: true,
-        language: { url: "{{ asset('js/fr-FR.json') }}" }, // Assurez-vous que ce fichier existe
-        ajax: '{{ route("aftlb_colis.get.colis.valide") }}', // Route vers la méthode du contrôleur
+        language: { url: "{{ asset('js/fr-FR.json') }}" },
+        ajax: '{{ route("aftlb_colis.get.colis.valide") }}',
         columns: [
-            // La colonne 'statut_paiement' est générée côté serveur avec HTML
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
-            // La colonne 'nombre_de_colis' est calculée côté serveur
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
             {
-                data: null, name: 'expediteur_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'expediteur_nom',
                 render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); },
-                searchable: true, orderable: true // Permettre recherche/tri sur le nom complet
+                searchable: true, orderable: true 
             },
-            { data: 'expediteur_tel', name: 'expediteurs.tel' }, // Utiliser le nom de table correct pour le tri/recherche serveur si possible
+            { data: 'expediteur_tel', name: 'expediteurs.tel' },
             {
-                data: null, name: 'destinataire_nom', // Utiliser un nom existant pour le tri/recherche serveur
+                data: null, name: 'destinataire_nom',
                 render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); },
-                 searchable: true, orderable: true // Permettre recherche/tri
+                 searchable: true, orderable: true
             },
-            { data: 'destinataire_tel', name: 'destinataires.tel' }, // Utiliser le nom de table correct
+            { data: 'destinataire_tel', name: 'destinataires.tel' },
             {
                 data: 'destinataire_agence',
                 name: 'destinataire_agence.nom_agence',
@@ -268,7 +266,7 @@ $(document).ready(function () {
 
     // 1. Ouvrir la modale et pré-remplir les champs quand on clique sur le bouton Payer (.pay-btn)
     $('#productTable tbody').on('click', '.pay-btn', function (e) {
-        e.preventDefault(); // Empêcher le comportement par défaut du bouton
+        e.preventDefault();
 
         var button = $(this);
         var reference = button.data('reference');
