@@ -8,10 +8,9 @@
   </ul>
   <ul class="navbar-nav ml-auto">
     <!-- Notifications -->
-<<<<<<< HEAD
-<<<<<<< Updated upstream
+
     <li class="nav-item dropdown">
-=======
+
 
     
     {{-- <li class="nav-item dropdown">

@@ -1680,6 +1680,7 @@ Route::prefix('AGENCE_CHINE')->middleware(['auth', 'role:agent'])->group(functio
 
         Route::delete('/devis/{id}/destroy-chine', [ChineColisController::class, 'destroy_devis'])->name('devis.destroy');
         Route::get('/get-devis-confirmes-chine', [ChineColisController::class, 'get_devis_confirmes'])->name('get.devis.confirmes');
+        
         // Routes pour la gestion des devis
 
         // Route pour récupérer les détails d'un devis (AJAX)

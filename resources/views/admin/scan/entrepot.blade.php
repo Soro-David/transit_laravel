@@ -1,8 +1,11 @@
 @extends('admin.layouts.admin')
 @section('content-header')
-
-{{-- <script src="'public/js/Html5-qrcode.js'"></script> --}}
+{{-- CSRF Token pour les requêtes AJAX --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- Font Awesome --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{{-- jQuery --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @endsection
 
 @section('content')

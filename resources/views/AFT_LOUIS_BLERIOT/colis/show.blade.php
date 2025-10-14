@@ -5,7 +5,6 @@
 @endsection
 
 @section('content')
-<section class="py-3">
 <div class="container py-4">
     <div class="card shadow-lg rounded-3 border-0">
         <div class="card-header" style="background: linear-gradient(90deg, #0d6efd, #6f42c1); color:#fff;">
@@ -175,105 +174,104 @@
         </div>
     </div>
 </div>
-</section>
 @endsection
 
-@section('js')
+@section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const validationForm = document.getElementById('validationForm');
-        const montantItemsInput = document.getElementById('montantItemsInput');
-        const montantTotalInput = document.getElementById('montant');
-        const montantItemInputs = document.querySelectorAll('.montant-item');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const validationForm = document.getElementById('validationForm');
+    const montantItemsInput = document.getElementById('montantItemsInput');
+    const montantTotalInput = document.getElementById('montant');
+    const montantItemInputs = document.querySelectorAll('.montant-item');
 
-        // Fonction pour calculer le montant total
-        function calculerMontantTotal() {
-            let total = 0;
-            montantItemInputs.forEach(input => {
-                total += parseFloat(input.value) || 0;
-            });
-            montantTotalInput.value = total.toFixed(2);
-            return total;
-        }
-
-        // Mettre à jour le montant total quand un montant d'item change
+    // Fonction pour calculer le montant total
+    function calculerMontantTotal() {
+        let total = 0;
         montantItemInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                calculerMontantTotal();
+            total += parseFloat(input.value) || 0;
+        });
+        montantTotalInput.value = total.toFixed(2);
+        return total;
+    }
+
+    // Mettre à jour le montant total quand un montant d'item change
+    montantItemInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            calculerMontantTotal();
+        });
+        
+        input.addEventListener('input', function() {
+            calculerMontantTotal();
+        });
+    });
+
+    // Préparer les données avant soumission
+    if (validationForm) {
+        validationForm.addEventListener('submit', function (event) {
+            // Rassembler tous les montants des items dans un objet
+            const montantItems = {};
+            montantItemInputs.forEach(input => {
+                const itemId = input.getAttribute('data-item-id');
+                montantItems[itemId] = parseFloat(input.value) || 0;
             });
             
-            input.addEventListener('input', function() {
-                calculerMontantTotal();
+            // Mettre l'objet dans le champ caché
+            montantItemsInput.value = JSON.stringify(montantItems);
+            
+            // Afficher le pop-up de confirmation
+            event.preventDefault();
+            Swal.fire({
+                title: 'Confirmer la validation',
+                text: "Êtes-vous sûr de vouloir valider et envoyer ce devis ?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, valider le devis',
+                cancelButtonText: 'Annuler',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return new Promise((resolve) => {
+                        // Soumettre le formulaire
+                        validationForm.submit();
+                        resolve();
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Cette partie sera exécutée après la soumission réussie
+                    // grâce à la redirection depuis le contrôleur
+                }
             });
         });
+    }
 
-        // Préparer les données avant soumission
-        if (validationForm) {
-            validationForm.addEventListener('submit', function (event) {
-                // Rassembler tous les montants des items dans un objet
-                const montantItems = {};
-                montantItemInputs.forEach(input => {
-                    const itemId = input.getAttribute('data-item-id');
-                    montantItems[itemId] = parseFloat(input.value) || 0;
-                });
-                
-                // Mettre l'objet dans le champ caché
-                montantItemsInput.value = JSON.stringify(montantItems);
-                
-                // Afficher le pop-up de confirmation
-                event.preventDefault();
-                Swal.fire({
-                    title: 'Confirmer la validation',
-                    text: "Êtes-vous sûr de vouloir valider et envoyer ce devis ?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#28a745',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Oui, valider le devis',
-                    cancelButtonText: 'Annuler',
-                    showLoaderOnConfirm: true,
-                    preConfirm: () => {
-                        return new Promise((resolve) => {
-                            // Soumettre le formulaire
-                            validationForm.submit();
-                            resolve();
-                        });
-                    },
-                    allowOutsideClick: () => !Swal.isLoading()
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Cette partie sera exécutée après la soumission réussie
-                        // grâce à la redirection depuis le contrôleur
-                    }
-                });
-            });
-        }
+    // Calcul initial
+    calculerMontantTotal();
 
-        // Calcul initial
-        calculerMontantTotal();
-
-        // Afficher le message de succès si présent dans la session
-        @if(session('success'))
-        Swal.fire({
-            title: 'Devis envoyé !',
-            text: '{{ session('success') }}',
-            icon: 'success',
-            confirmButtonColor: '#28a745',
-            confirmButtonText: 'OK'
-        });
-        @endif
-
-        // Afficher les erreurs si présentes
-        @if($errors->any())
-        Swal.fire({
-            title: 'Erreur',
-            text: '{{ $errors->first() }}',
-            icon: 'error',
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'OK'
-        });
-        @endif
+    // Afficher le message de succès si présent dans la session
+    @if(session('success'))
+    Swal.fire({
+        title: 'Devis envoyé !',
+        text: '{{ session('success') }}',
+        icon: 'success',
+        confirmButtonColor: '#28a745',
+        confirmButtonText: 'OK'
     });
-    </script>
+    @endif
+
+    // Afficher les erreurs si présentes
+    @if($errors->any())
+    Swal.fire({
+        title: 'Erreur',
+        text: '{{ $errors->first() }}',
+        icon: 'error',
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'OK'
+    });
+    @endif
+});
+</script>
 @endsection
