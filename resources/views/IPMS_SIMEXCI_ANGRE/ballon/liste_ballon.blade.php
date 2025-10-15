@@ -57,6 +57,7 @@
                                     <th>Référence Ballon</th>
                                     <th>Date départ</th>
                                     <th>Date arrivée</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -69,63 +70,33 @@
     </div>
 
 <script>
-    function validerBallon(button) {
-        let referenceConteneur = button.getAttribute('data-reference-conteneur');
-
-        Swal.fire({
-            title: 'Voulez-vous vraiment récupérer ce ballon ?',
-            text: "Cette action est irréversible.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Oui, récupérer!',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '{{ route("ipms_angre_colis.valider.ballon") }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        reference_conteneur: referenceConteneur
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire('Récupéré!', response.message, 'success')
-                                .then(() => location.reload());
-                        } else {
-                            Swal.fire('Erreur!', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr) {
-                        let message = 'Une erreur est survenue lors de la récupération du bateau.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            message = xhr.responseJSON.message;
-                        }
-                        Swal.fire('Erreur!', message, 'error');
-                    }
-                });
-            }
-        });
-    }
-
     $(document).ready(function () {
-        $("#productTable").DataTable({
+        // DataTable des ballons
+        const table = $("#productTable").DataTable({
             responsive: true,
-            language: {
-                url: "{{ asset('js/fr-FR.json') }}" 
-            },
+            language: { url: "{{ asset('js/fr-FR.json') }}" },
             ajax: '{{ route('ipms_angre_colis.get.ballon') }}',
             columns: [
-                { data: 'reference_bateau', title: "Référence Bateau" },
-                { data: 'date_depart', title: "Date de Départ" },
-                { data: 'date_arriver', title: "Date d'Arrivée" }
+                { data: 'reference_bateau' },
+                { data: 'date_depart' },
+                { data: 'date_arriver' },
+                { data: 'action', orderable: false, searchable: false }
             ],
         });
+
+        // Redirection vers la page des colis
+        $('#productTable').on('click', '.voir-colis', function () {
+            const reference = $(this).data('reference');
+            // La route doit être du type edit_ballon avec paramètre reference_vol
+             const url = '{{ route("ipms_angre_colis.edit_colis_ballon") }}' + '?reference_vol=' + reference;
+             
+            window.location.href = url;
+        });
     });
+
 </script>
 
+</section>
 <style>
     .btn {
         width: 15%;
@@ -188,6 +159,5 @@
     }
 
 </style>
-
-</section>
 @endsection
+

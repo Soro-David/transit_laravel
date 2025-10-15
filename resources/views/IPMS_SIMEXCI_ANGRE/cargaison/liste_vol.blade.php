@@ -47,7 +47,7 @@
             var table = $("#productTable").DataTable({
                 responsive: true,
                 language: {
-                        url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
+                        url: "{{ asset('js/fr-FR.json') }}"
                     },
                 ajax: '{{ route('ipms_angre_colis.get.colis.vol') }}',
                 columns: [
@@ -86,9 +86,7 @@
                     confirmButtonText: "Oui, fermer",
                     cancelButtonText: "Annuler"
                 }).then((result) => {
-                    // Si l'utilisateur confirme, soumettre le formulaire
                     if (result.isConfirmed) {
-                    // console.log("n,bb,nhk")
                     $('#btnFermerVol').submit();
                     }
                 });

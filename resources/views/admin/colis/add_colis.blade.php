@@ -453,14 +453,7 @@
                 <div class="colis-item form-section mb-4">
                     <div class="row">
                         <div class="col-md-2 mb-3"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis" value="1" min="1"></div>
-                        <div class="col-md-4 position-relative mb-3">
-                            <label class="form-label">Produit(s)</label>
-                            <div class="input-group">
-                                <input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit" required>
-                                <button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                            </div>
-                            <div class="autocomplete-results"></div>
-                        </div>
+                        <div class="col-md-4 position-relative mb-3"><label class="form-label">Produit(s)</label><div class="input-group"><input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit" required><button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button></div><div class="autocomplete-results"></div></div>
                         <div class="col-md-2 mb-3"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix"><div class="mt-2">Prix Total: <span class="prix-total">0</span></div></div>
                         <div class="col-md-2 mb-3"><label class="form-label">Type colis</label><select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select></div>
                         <div class="col-md-2 mb-3"><label class="form-label">Devise</label><select name="devise[]" class="form-control devise-select"><option value="EUR">EUR</option><option value="FCFA">FCFA</option></select></div>
@@ -484,14 +477,7 @@
              <div class="colis-item form-section mb-4">
                 <div class="row">
                     <div class="col-md-2 mb-3"><label class="form-label">Quantité</label><input type="number" name="quantite_colis[]" class="form-control quantite-colis" value="1" min="1"></div>
-                    <div class="col-md-4 position-relative mb-3">
-                        <label class="form-label">Produit(s)</label>
-                        <div class="input-group">
-                            <input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit">
-                            <button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button>
-                        </div>
-                        <div class="autocomplete-results"></div>
-                    </div>
+                    <div class="col-md-4 position-relative mb-3"><label class="form-label">Produit(s)</label><div class="input-group"><input type="text" name="produit[]" class="form-control produit-input" placeholder="Rechercher ou saisir un produit"><button type="button" class="btn btn-success btn-add-produit" data-bs-toggle="modal" data-bs-target="#produitModal">+</button></div><div class="autocomplete-results"></div></div>
                     <div class="col-md-2 mb-3"><label class="form-label">Prix/Kg</label><input type="number" name="prix[]" class="form-control prix-colis" placeholder="Prix"><div class="mt-2">Prix Total: <span class="prix-total">0</span></div></div>
                     <div class="col-md-2 mb-3"><label class="form-label">Type colis</label><select name="type_colis[]" class="form-control"><option value="standard">Standard</option><option value="fragile">Fragile</option></select></div>
                     <div class="col-md-2 mb-3"><label class="form-label">Devise</label><select name="devise[]" class="form-control devise-select"><option value="EUR">EUR</option><option value="FCFA">FCFA</option></select></div>
@@ -511,13 +497,7 @@
             <h5 class="text-center mb-4 mt-5">Services Additionnels et Récapitulatif</h5>
             <div class="form-section">
                 <div class="row g-3">
-                    <div class="col-md-6 position-relative">
-                        <label class="form-label">Service(s)</label>
-                        <div class="input-group"><input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button>
-                        </div>
-                        <div class="autocomplete-results"></div>
-                    </div>
+                    <div class="col-md-6 position-relative"><label class="form-label">Service(s)</label><div class="input-group"><input type="text" name="service[]" class="form-control service-input" placeholder="Rechercher ou saisir un service"><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ServiceModal">+</button></div><div class="autocomplete-results"></div></div>
                     <div class="col-md-3"><label class="form-label">Prix</label><input type="number" name="prix_service[]" class="form-control prix-service" placeholder="Prix"><div class="mt-2">Prix Total: <span name="prix_service[]" class="prix-total-service">0</span></div></div>
                 </div>
             </div>
@@ -583,42 +563,7 @@
     </form>
 
     {{-- MODALS --}}
-    <div class="modal fade" id="ServiceModal" tabindex="-1" aria-labelledby="ServiceModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ServiceModalLabel">Ajouter un Service</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="serviceForm">
-                        <div class="mb-3">
-                            <label for="description_service" class="form-label">Description</label>
-                            <input type="text" name="description" id="description_service" class="form-control">
-                        </div>
-                        <input type="hidden" name="categorie" value="Service">
-                        <div class="mb-3">
-                            <label for="prix_unitaire_service" class="form-label">Prix Unitaire</label>
-                            <input type="number" name="prix" id="prix_unitaire_service" class="form-control" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="agence_service" class="form-label">Agence</label>
-                            <select name="agence" id="agence_service" class="form-control">
-                                <option value="" disabled selected>-- Sélectionnez --</option>
-                                <option value="Agence de Chine">Agence de Chine</option>
-                                <option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                    <button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('colis.store.service') }}">Créer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <div class="modal fade" id="ServiceModal" tabindex="-1" aria-labelledby="ServiceModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="ServiceModalLabel">Ajouter un Service</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="serviceForm"><div class="mb-3"><label for="description_service" class="form-label">Description</label><input type="text" name="description" id="description_service" class="form-control"></div><input type="hidden" name="categorie" value="Service"><div class="mb-3"><label for="prix_unitaire_service" class="form-label">Prix Unitaire</label><input type="number" name="prix" id="prix_unitaire_service" class="form-control" min="0"></div><div class="mb-3"><label for="agence_service" class="form-label">Agence de destination</label><select name="agence" id="agence_service" class="form-control"><option value="" disabled selected>-- Sélectionnez --</option><option value="IPMS-SIMEX-CI Angre 8ème Tranche">DS Translog Angré 8ème Tranche</option><option value="AFT Agence Louis Bleriot">AFT Agence Louis Bleriot</option></select></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button type="button" class="btn btn-primary btn-save-service" data-url="{{ route('colis.store.service') }}">Créer</button></div></div></div></div>
     <div class="modal fade" id="produitModal" tabindex="-1" aria-labelledby="produitModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -652,13 +597,8 @@
                     </div>
                 </div>
 </section>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script> {{-- ✅ AJOUTEZ CETTE LIGNE --}}
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-@section('js')
 <script>
-
 $(document).ready(function() {
     // =================================================================
     // INITIALISATION ET VARIABLES GLOBALES
@@ -1148,13 +1088,14 @@ $(document).ready(function() {
     });
     
     // Cacher les résultats d'autocomplétion si on clique ailleurs
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.produit-input, .service-input, .autocomplete-results').length) {
-             $('.autocomplete-results').hide(); }
+    $(document).on('click', e => {
+        if (!$(e.target).closest('.position-relative').length) {
+            $('.autocomplete-results').hide();
+        }
     });
 });
 </script>
-@endsection
+
 <style>
     .form-container {
         max-width: 95%;

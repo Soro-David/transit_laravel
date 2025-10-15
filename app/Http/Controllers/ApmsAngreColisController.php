@@ -1413,7 +1413,7 @@ public function get_colis_hold(Request $request)
 
         if ($request->ajax()) {
             $colis = Colis::select(
-                'colis.id', // Ajout de l'id pour éviter les erreurs
+                'colis.id',
                 'colis.reference_colis',
                 'expediteurs.nom as expediteur_nom', 
                 'expediteurs.prenom as expediteur_prenom', 
@@ -1475,6 +1475,8 @@ public function get_colis_hold(Request $request)
         }
     }
 
+
+
     public function get_cargaison_ferme(Request $request)
     {
         if ($request->ajax()) {
@@ -1522,64 +1524,48 @@ public function get_colis_hold(Request $request)
         }
     }
 
-    // public function cargaison_ferme(Request $request)
-    // {
-
-    //     $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
-
-    //     // Récupérer les références de conteneurs fermés, sans doublons
-    //     $referenceFermes = Colis::where('etat', 'Fermé')->pluck('reference_contenaire')->unique()->toArray();
-
-    //     // Obtenir le mois et l'année actuels
-    //     $mois = Carbon::now()->translatedFormat('F'); // Ex: Janvier, Février...
-    //     $annee = Carbon::now()->year;
-
-    //     return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
-    // }
-
-
     public function cargaison_ferme(Request $request)
-{
-    // Récupérer les agences de destination
-    $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
+    {
+        // Récupérer les agences de destination
+        $agencesDestination = Agence::where('pays_agence', 'Côte d\'Ivoire')->get();
 
-    // Étape 1 : Récupérer tous les colis fermés
-    $colisFermes = Colis::select('colis.reference_contenaire', 'colis.reference_vol')
-                       ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
-                        ->where('colis.etat', 'Fermé')
-                        ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche') // <-- adapte selon besoin
-                        ->get();
-    // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
-    $referencesColis = collect($colisFermes)
-        ->flatMap(function ($colis) {
-            return [$colis->reference_contenaire, $colis->reference_vol];
-        })
-        ->filter()  // Supprimer les valeurs nulles
-        ->unique()
-        ->values()
-        ->toArray();
+        // Étape 1 : Récupérer tous les colis fermés
+        $colisFermes = Colis::select('colis.reference_contenaire', 'colis.reference_vol')
+                        ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+                            ->where('colis.etat', 'Fermé')
+                            ->where('expediteurs.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche') // <-- adapte selon besoin
+                            ->get();
+        // Étape 2 : Fusionner les références conteneur et vol dans un tableau unique
+        $referencesColis = collect($colisFermes)
+            ->flatMap(function ($colis) {
+                return [$colis->reference_contenaire, $colis->reference_vol];
+            })
+            ->filter()  // Supprimer les valeurs nulles
+            ->unique()
+            ->values()
+            ->toArray();
 
-    // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
-    $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
-        ->selectRaw('reference_conteneur, COUNT(*) as total')
-        ->groupBy('reference_conteneur')
-        ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
-        ->toArray();
+        // Étape 3 : Récupérer les références avec le nombre d’occurrences dans Bateaux
+        $referencesBateauxCounts = Bateaux::whereIn('reference_conteneur', $referencesColis)
+            ->selectRaw('reference_conteneur, COUNT(*) as total')
+            ->groupBy('reference_conteneur')
+            ->pluck('total', 'reference_conteneur') // ['REF123' => 2, 'REF456' => 1, ...]
+            ->toArray();
 
-    // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
-    $referenceFermes = collect($referencesColis)
-        ->filter(function ($ref) use ($referencesBateauxCounts) {
-            return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
-        })
-        ->values()
-        ->toArray();
+        // Étape 4 : Ne garder que les références qui n'existent pas OU qui existent 1 fois
+        $referenceFermes = collect($referencesColis)
+            ->filter(function ($ref) use ($referencesBateauxCounts) {
+                return !isset($referencesBateauxCounts[$ref]) || $referencesBateauxCounts[$ref] < 2;
+            })
+            ->values()
+            ->toArray();
 
-    // Mois et année
-    $mois = Carbon::now()->translatedFormat('F');
-    $annee = Carbon::now()->year;
+        // Mois et année
+        $mois = Carbon::now()->translatedFormat('F');
+        $annee = Carbon::now()->year;
 
-    return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
-}
+        return view('IPMS_SIMEXCI_ANGRE.cargaison.cargaison_ferme', compact('agencesDestination', 'referenceFermes', 'mois', 'annee'));
+    }
 
 
     public function edit_bateaux($id)
@@ -1882,50 +1868,6 @@ public function get_colis_hold(Request $request)
         }
     }
 
-    // public function get_colis_vol(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'colis.reference_colis as reference_colis',
-    //             'expediteurs.nom as expediteur_nom', 
-    //             'expediteurs.prenom as expediteur_prenom', 
-    //             'expediteurs.tel as expediteur_tel', 
-    //             'expediteurs.agence as expediteur_agence', 
-    //             'destinataires.nom as destinataire_nom', 
-    //             'destinataires.prenom as destinataire_prenom', 
-    //             'destinataires.agence as destinataire_agence', 
-    //             'destinataires.tel as destinataire_tel',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table destinataires
-    //         ->where('colis.mode_transit', 'Aerien')  // Filtre pour le mode de transit
-    //         ->where('colis.etat', 'Chargé')  // Filtre l'état des colis
-    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-    //         ->get(); // Exécute la requête 
-
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
-   
     public function contenaire_fermer(Request $request)
     {
     
@@ -2082,8 +2024,9 @@ public function validerBallon(Request $request)
             // dd($ballon);
             $referenceConteneur = $ballon->reference_conteneur;
 
+            // dd($referenceConteneur);
             // Récupérer tous les colis liés à ce conteneur
-            $colis = Colis::where('reference_contenaire', $referenceConteneur)->get();
+            $colis = Colis::where('reference_vol', $referenceConteneur)->get();
 
             if ($colis->isEmpty()) {
                 throw new Exception('📦 Aucun colis trouvé pour ce conteneur.');
@@ -2113,24 +2056,168 @@ public function validerBallon(Request $request)
 public function get_ballon(Request $request)
 {
     if ($request->ajax()) {
-        $ballon = Bateaux::select(
+        $ballons = Bateaux::select(
+            'id',
             'reference_bateau',
+            'reference_conteneur', // clé pour les colis
             'created_at as date_depart',
             'date_arriver'
-        )->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-        ->where('recuperer', '=', 'oui')
-        ->get();
+        )
+        ->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+        ->where('recuperer', 'oui');
 
-        // dd($ballon);
-        return DataTables::of($ballon)
-            ->editColumn('date_depart', function ($row) {
-                return $row->date_depart ? \Carbon\Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A';
+        return DataTables::of($ballons)
+            ->editColumn('date_depart', fn($row) => $row->date_depart ? Carbon::parse($row->date_depart)->format('d/m/Y H:i') : 'N/A')
+            ->editColumn('date_arriver', fn($row) => $row->date_arriver ? Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A')
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-primary btn-sm voir-colis"
+                            data-reference="'.$row->reference_conteneur.'">
+                            <i class="fas fa-box"></i> Voir Colis
+                        </button>';
             })
-            ->editColumn('date_arriver', function ($row) {
-                return $row->date_arriver ? \Carbon\Carbon::parse($row->date_arriver)->format('d/m/Y H:i') : 'N/A';
-            })
+            ->rawColumns(['action'])
             ->make(true);
     }
+
+    return view('IPMS_SIMEXCI_ANGRE.ballon.edit_bateau');
+}
+
+
+
+
+
+public function edit_colis_ballon(Request $request)
+{
+    // Récupère la référence du vol depuis la requête
+    $referenceVol = $request->query('reference_vol');
+
+    if (!$referenceVol) {
+        // Gérer le cas où la référence du vol n'est pas fournie
+        abort(400, 'La référence du vol est manquante.');
+    }
+
+    // Retourne la vue en lui passant la variable referenceVol
+    return view('IPMS_SIMEXCI_ANGRE.ballon.edit_ballon', ['referenceVol' => $referenceVol]);
+}
+
+    /**
+     * Fournit les données formatées pour DataTables via une requête AJAX.
+     */
+public function get_colis_list(Request $request)
+{
+    $referenceVol = $request->reference_vol;
+    $query = Colis::select(
+            'colis.reference_colis',
+            DB::raw('count(colis.id) as nombre_de_colis'),
+            'expediteurs.nom as expediteur_nom',
+            'expediteurs.prenom as expediteur_prenom',
+            'expediteurs.tel as expediteur_tel',
+            'expediteurs.agence as expediteur_agence',
+            'destinataires.nom as destinataire_nom',
+            'destinataires.prenom as destinataire_prenom',
+            'destinataires.tel as destinataire_tel',
+            'destinataires.agence as destinataire_agence',
+            DB::raw('MIN(colis.created_at) as created_at')
+        )
+        ->leftJoin('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')
+        ->leftJoin('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
+        ->where('colis.reference_vol', $referenceVol)
+        ->where('colis.etat', 'Livré')
+        ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+        ->where('colis.mode_transit', 'aerien')
+        ->groupBy(
+            'colis.reference_colis',
+            'expediteurs.nom', 'expediteurs.prenom', 'expediteurs.tel', 'expediteurs.agence',
+            'destinataires.nom', 'destinataires.prenom', 'destinataires.tel', 'destinataires.agence'
+        );
+
+    return DataTables::of($query)
+        ->addColumn('expediteur_complet', function ($row) {
+            return $row->expediteur_nom . ' ' . $row->expediteur_prenom;
+        })
+        ->addColumn('destinataire_complet', function ($row) {
+            return $row->destinataire_nom . ' ' . $row->destinataire_prenom;
+        })
+        ->editColumn('destinataire_agence', function ($row) {
+            if ($row->destinataire_agence === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
+                return 'DS Translog Angré 8ème Tranche';
+            }
+            if ($row->destinataire_agence === 'IPMS-SIMEX-CI') {
+                return 'DS Translog Carrefour Angré';
+            }
+            return $row->destinataire_agence;
+        })
+        ->editColumn('created_at', function ($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('action', function ($row) {
+            return '<button class="btn-valider" data-ref="' . $row->reference_colis . '">Valider</button>';
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
+
+
+
+
+public function dget_colis_list(Request $request)
+{
+    if ($request->ajax()) {
+        // Requête pour récupérer les colis liés aux bateaux arrivés à l'agence spécifiée
+        $colis = Colis::join('bateaux', 'colis.reference_vol', '=', 'bateaux.reference_conteneur')
+            ->where('bateaux.agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+            ->where('bateaux.recuperer', '=', 'oui')
+            ->select([
+                'colis.id',
+                'colis.reference_colis',
+                'colis.nom_client',
+                'colis.tel_client',
+                'colis.etat',
+                'bateaux.reference_bateau',
+                'bateaux.date_arriver'
+            ]);
+
+        return DataTables::of($colis)
+            ->editColumn('date_arriver', function ($row) {
+                return $row->date_arriver
+                    ? Carbon::parse($row->date_arriver)->format('d/m/Y')
+                    : 'N/A';
+            })
+            ->editColumn('etat', function ($row) {
+                // Vous pouvez personnaliser l'affichage du statut ici
+                // Par exemple, avec un badge de couleur
+                if ($row->etat === 'recu') {
+                    return '<span class="badge bg-success">Reçu</span>';
+                }
+                return '<span class="badge bg-warning text-dark">En attente</span>';
+            })
+            ->addColumn('action', function ($row) {
+                // Personnalisez les boutons d'action selon vos besoins
+                return '<div class="action-buttons-container">
+                            <button class="btn btn-info btn-sm details-btn" data-id="'.$row->id.'">
+                                <i class="fas fa-eye"></i> Détails
+                            </button>
+                            <button class="btn btn-primary btn-sm reception-btn" data-id="'.$row->id.'">
+                                <i class="fas fa-dolly"></i> Réceptionner
+                            </button>
+                        </div>';
+            })
+            ->rawColumns(['action', 'etat']) 
+            ->make(true);
+    }
+}
+
+
+public function edit_ballon($referenceVol)
+{
+    // Récupérer le ballon
+    $ballons = Bateaux::where('reference_conteneur', $referenceVol)
+                ->where('agence_destination', 'IPMS-SIMEX-CI Angre 8ème Tranche')
+                ->where('recuperer', 'oui')
+                ->get();
+
+    return view('IPMS_SIMEXCI_ANGRE.ballon.edit_ballon', compact('ballons', 'referenceVol'));
 }
 
 public function imprimerBon_livraison($id)
