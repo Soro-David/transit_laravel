@@ -1434,8 +1434,8 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::put('/on-hold/{id}', [ApmsAngreColisController::class, 'update_hold'])->name('hold.update');
         Route::put('/on-valide/{id}', [ApmsAngreColisController::class, 'update_colis_valide'])->name('valide.update');
         Route::get('/colis-facture/{id}/print-IPMS', [ApmsAngreColisController::class, 'print_facture'])->name('facture.colis.print');
-  // La route pour enregistrer le paiement
-  Route::post('/colis/valide/payer-IPMS', [ApmsAngreColisController::class, 'enregistrerPaiement'])->name('valide.payer');
+        // La route pour enregistrer le paiement
+        Route::post('/colis/valide/payer-IPMS', [ApmsAngreColisController::class, 'enregistrerPaiement'])->name('valide.payer');
         // Routes pour les cargaisons
         Route::get('/get-vol-colis-IPMS', [ApmsAngreColisController::class, 'get_colis_vol'])->name('get.colis.vol');
         Route::get('/cargaison-ferme-IPMS', [ApmsAngreColisController::class, 'cargaison_ferme'])->name('cargaison.ferme');
@@ -1451,6 +1451,11 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::post('/vol-fermer-IPMS',[ApmsAngreColisController::class, 'vol_fermer'])->name('vol.fermer');
 
         Route::get('/get-ballon-suivi-IPMS', [ApmsAngreColisController::class, 'get_ballon'])->name('get.ballon');
+        Route::get('/vol-colis', [ApmsAngreColisController::class, 'get_colis_ballon'])->name('colis_ballon');  
+        Route::get('/vol-colis', [ApmsAngreColisController::class, 'edit_colis_ballon'])->name('edit_colis_ballon');  
+        Route::get('/get-colis-list-angre', [ApmsAngreColisController::class, 'get_colis_list'])->name('get_colis_list');
+
+
         Route::get('/on-ballon-IPMS', [ApmsAngreColisController::class, 'liste_ballon'])->name('liste_ballon'); 
 
         Route::post('/valider/ballon-IPMS', [ApmsAngreColisController::class, 'validerBallon'])->name('valider.ballon');

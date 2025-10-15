@@ -20,7 +20,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item has-treeview {{ isMenuOpen(['ipms_angre_colis.create.colis', 'ipms_angre_colis.colis.valide']) }}">
+                {{-- <li class="nav-item has-treeview {{ isMenuOpen(['ipms_angre_colis.create.colis', 'ipms_angre_colis.colis.valide']) }}">
                     <a href="#" class="nav-link {{ isActiveRoute(['ipms_angre_colis.create.colis', 'ipms_angre_colis.colis.valide']) }}">
                         <i class="fas fa-concierge-bell"></i>
                         <p>{{ __("Gestion des colis d'Exp") }}</p>
@@ -38,7 +38,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
 
                 <li class="nav-item has-treeview {{ isMenuOpen(['ipms_angre_colis.suivi', 'ipms_angre_colis.dump']) }}">
                     <a href="#" class="nav-link {{ isActiveRoute(['ipms_angre_colis.suivi', 'ipms_angre_colis.dump']) }}">
@@ -60,7 +60,7 @@
                     </ul>
                 </li>
 
-                <li class="nav-item has-treeview {{ isMenuOpen(['ipms_angre_colis.liste.vol', 'ipms_angre_colis.cargaison.ferme']) }}">
+                {{-- <li class="nav-item has-treeview {{ isMenuOpen(['ipms_angre_colis.liste.vol', 'ipms_angre_colis.cargaison.ferme']) }}">
                     <a href="#" class="nav-link {{ isActiveRoute(['ipms_angre_colis.liste.vol', 'ipms_angre_colis.cargaison.ferme']) }}">
                         <i class="fas fa-shipping-fast"></i>
                         <p>{{ __('Gestion des cargaisons') }}</p>
@@ -78,7 +78,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
 
                 <li class="nav-item"> <!-- Supprimé has-treeview car c'est un lien direct -->
                     <a href="{{ route('ipms_angre_colis.liste_ballon') }}" class="nav-link {{ isActiveRoute('ipms_angre_colis.liste_ballon') }}">
@@ -94,7 +94,7 @@
                         <i class="right fas fa-angle-left"></i>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a href="{{route('ipms_angre_scan.entrepot')}}" class="nav-link {{ isActiveRoute('ipms_angre_scan.entrepot') }}">
                                 <p>{{ __('Mise en Entrépot') }}</p>
                             </a>
@@ -103,7 +103,7 @@
                             <a href="{{route('ipms_angre_scan.chargement')}}" class="nav-link {{ isActiveRoute('ipms_angre_scan.chargement') }}">
                                 <p>{{ __('Chargement') }}</p>
                             </a>
-                        </li>
+                        </li> --}}
                         <li class="nav-item">
                             <a href="{{route('ipms_angre_scan.dechargement')}}" class="nav-link {{ isActiveRoute('ipms_angre_scan.dechargement') }}">
                                 <p>{{ __('Dechargement') }}</p>

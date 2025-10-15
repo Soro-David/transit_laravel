@@ -852,8 +852,19 @@ public function vol_fermer(Request $request)
             $longueur = $data['longueur'][$index] ?? null;
             $dimension_result = (isset($hauteur, $largeur, $longueur)) ? "{$hauteur}x{$largeur}x{$longueur}" : null;
             
-            $prixUnitairePourCetteLigne = (float)($data['prix'][$index] ?? 0);
-        // dd( $agence,$reference_colis_fournie);
+           $quantiteColis = (float)($data['quantite_colis'][$index] ?? 1);
+            $prix = (float)($data['prix'][$index] ?? 0);
+            $poids = (float)($data['poids'][$index] ?? 0);
+
+            if ($data['mode_transit'] === 'aerien') {
+                // Si le mode est aérien → prix = prix * poids / quantité
+                $prixUnitairePourCetteLigne = $quantiteColis > 0 
+                    ? ($prix * $poids) / $quantiteColis 
+                    : 0;
+            } else {
+                // Sinon, garde le prix normal
+                $prixUnitairePourCetteLigne = $prix;
+            }
         
             // Créer un colis pour chaque unité physique de la quantité spécifiée
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
@@ -1693,27 +1704,17 @@ public function enregistrer_paiement(Request $request)
             'tel_expediteur' => optional($firstColis->expediteur)->tel,
             'devise' => optional($firstColis)->devise,
         ];
-    
-        $totalQuantite = $colisEnregistres->sum('quantite_colis');
-        // $totalPrixTransit = $colisEnregistres->sum('prix_transit_colis');
-        $totalPrixTransit = ($colisEnregistres->sum('prix_transit_colis') + $firstColis['montant_service']);
-
-    
         // Préparer les paiements associés à ces colis
-
-
-        $colisId = $firstColis->id;
-
-        $paiements = Paiement::where('colis_id', $colisId)->get();
-
+        $totalQuantite = $colisEnregistres->sum('quantite_colis');
+        $totalPrixTransit = ($colisEnregistres->sum('prix_transit_colis') + $firstColis['montant_service']);
+        
+        $colisIds = collect($colisEnregistres)->pluck('id');
+        $paiements = Paiement::whereIn('colis_id', $colisIds)->get();
         $mode_payement = $paiements->pluck('methode_paiement')->unique()->first();
-
         $totalMontantPaye = $paiements->sum('montant_paye');
 
-        $montantTotalColis = (float) $firstColis->montant_service + (float) $firstColis->prix_transit_colis;
 
-        $restePaye = $montantTotalColis - $totalMontantPaye;
-
+        $restePaye = $totalPrixTransit - $totalMontantPaye;
         $restePaye = max(0, $restePaye);
 
         return view('AGENCE_CHINE.invoice.edit', [
