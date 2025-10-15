@@ -786,7 +786,14 @@ public function vol_fermer(Request $request)
 
         $mode_transit = $data['mode_transit'] ?? '';
         $agence = $data['agence_expediteur'] ?? 'Agence de Chine';
-        $reference_colis_fournie = $data['reference_colis_maritime'] ?? $data['reference_colis_aerien'] ?? null;
+
+        if (($data['mode_transit'] ?? '') === 'maritime') {
+            $reference_colis_fournie = $data['reference_colis_maritime'] ?? null;
+        } elseif (($data['mode_transit'] ?? '') === 'aerien') {
+            $reference_colis_fournie = $data['reference_colis_aerien'] ?? null;
+        } else {
+           $reference_colis_fournie = $data['reference_colis'] ?? null;
+        }
 
         // Récupérer le dernier colis enregistré pour ce mode de transit et cette agence
         $dernierColis = DB::table('colis')
@@ -795,10 +802,13 @@ public function vol_fermer(Request $request)
             ->orderByDesc('id')
             ->first();
 
+            // dd( $dernierColis);
         if (!$dernierColis) {
             // Cas 1: Aucun colis précédent pour ce mode de transit et agence.
             // On commence un nouveau conteneur avec la référence fournie.
             $referenceColisPrincipale = $reference_colis_fournie;
+            // dd( $referenceColisPrincipale);
+
             $id_reference_next_available = 1;
         } else {
             // Cas 2: Un colis précédent existe. Déterminer si on continue le conteneur existant ou en crée un nouveau.
@@ -842,6 +852,19 @@ public function vol_fermer(Request $request)
         $colisEnregistres = [];
         $erreursCreation = [];
 
+        $service = $data['service'] ?? [];
+        $montantService = $data['prix_service'] ?? [];
+    
+
+      $serviceValue = is_array($service) ? ($service[0] ?? null) : $service;
+      $montantServiceValue = is_array($montantService) ? ($montantService[0] ?? null) : $montantService;
+
+       // 3️⃣ Nettoyage des valeurs vides
+       $serviceValue = $serviceValue ?: 'Aucun'; // ou null selon ton besoin
+       $montantServiceValue = ($montantServiceValue === '' || $montantServiceValue === null)
+         ? 0
+         : (float) $montantServiceValue;
+
         // Boucle sur chaque ligne d'article pour créer les colis correspondants
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -866,6 +889,7 @@ public function vol_fermer(Request $request)
                 $prixUnitairePourCetteLigne = $prix;
             }
         
+
             // Créer un colis pour chaque unité physique de la quantité spécifiée
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
@@ -873,8 +897,8 @@ public function vol_fermer(Request $request)
                     'id_reference' => $id_reference_next_available, // Utilise l'ID de référence actuel
                     'agence' => $agence,
                     'quantite_colis' => 1, // Chaque enregistrement représente un colis physique unique
-                    'service' => $data['service'][$index] ?? null,
-                    'montant_service' => $data['prix_service'][$index] ?? null,
+                    'service' => $serviceValue,
+                    'montant_service' => $montantService,
                     'produit' => $data['produit'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids'][$index] ?? null,
@@ -970,15 +994,12 @@ public function vol_fermer(Request $request)
         $expediteurTelForSms = $expediteurTel;
         $destinataireTelForSms = $destinataireTel;
 
-        // dd($expediteurTelForSms, $destinataireTelForSms);
-        
         $colisReferences = $colisEnregistresCollection
             ->pluck('reference_colis')
             ->unique()
             ->implode(', ');
         $messageSms = "Cher(e) client(e), votre colis (Réf: {$colisReferences}) a été enregistrer et est en attente d'expédition. Merci de nous faire confiance. Suivi : https://aft-app.com";
-            // Envoi du SMS à l'expéditeur 
-        if ($expediteurTelForSms) { // Utilisation du numéro complet
+        if ($expediteurTelForSms) {
             try {
                 $smsService->sendSms($expediteurTelForSms, $messageSms);
                 Log::info("SMS envoyé à l'expéditeur {$expediteurTelForSms} pour le colis {$colisReferences}.");
