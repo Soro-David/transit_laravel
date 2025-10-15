@@ -1,7 +1,14 @@
 @extends('AGENCE_CHINE.layouts.agent')
 @section('content-header')
-    Détails du Devis
+{{-- CSRF Token pour les requêtes AJAX --}}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- Font Awesome --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{{-- jQuery --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @endsection
+    Détails du Devis
+
 
 @section('content')
 <div class="container py-4">
@@ -175,7 +182,7 @@
 </div>
 @endsection
 
-@section('scripts   ')
+@section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -232,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
+                cancelButtonColor: '#ff0000',
                 confirmButtonText: 'Oui, valider le devis',
                 cancelButtonText: 'Annuler',
                 showLoaderOnConfirm: true,

@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
+                cancelButtonColor: '#ff0000',
                 confirmButtonText: 'Oui, valider le devis',
                 cancelButtonText: 'Annuler',
                 showLoaderOnConfirm: true,
