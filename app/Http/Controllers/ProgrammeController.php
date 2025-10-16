@@ -323,8 +323,7 @@ class ProgrammeController extends Controller
     {
         \Log::info('Données reçues admin:', $request->all());
 
-        dd($request);
-        try {
+            try {
             $devis = DB::transaction(function () use ($request) {
                 // 1. Génération de référence pour admin
                 $initialNom = mb_substr($request->nom_expediteur, 0, 1);
@@ -366,6 +365,8 @@ class ProgrammeController extends Controller
                     'agence_destination' => $request->agence_destination_societe,
                     'is_admin' => true, // Marquer comme créé par admin
                 ]);
+
+                dd($programme);
 
                 // 4. Créer les items du programme
                 foreach ($request->service as $key => $service) {
@@ -430,6 +431,7 @@ class ProgrammeController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            dd( $e);
             Log::error('Erreur lors de la création du devis admin: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
