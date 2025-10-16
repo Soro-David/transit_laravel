@@ -431,7 +431,6 @@ public function storeService(Request $request)
             ->orderByDesc('id')
             ->first();
 
-            // dd( $referenceMaitre);
         // Si aucune référence existante, en générer une nouvelle
             if ($mode_transit === 'maritime') {
                 $referenceMaitre = Colis::where('mode_transit', 'maritime')
@@ -444,10 +443,11 @@ public function storeService(Request $request)
                     $nouvelleRef = $this->generateReferenceContenaire($nomAgence);
 
                     $referenceMaitre = new Colis([
-                        'reference_contenaire' => $nouvelleRef,
+                        'reference_contenaire' => 'TC1',
                         'id_reference' => 0,
                     ]);
                 }
+
 
             } elseif ($mode_transit === 'aerien') {
                 $referenceMaitre = Colis::where('mode_transit', 'aerien')
@@ -459,16 +459,18 @@ public function storeService(Request $request)
                 if (!$referenceMaitre) {
                     $nouvelleRef = $this->generateReferenceVol($nomAgence);
 
-                    // dd($nouvelleRef);
                     $referenceMaitre = new Colis([
                         'reference_contenaire' => $nouvelleRef,
                         'id_reference' => 0,
+                        'agence' => $nomAgence,
                     ]);
+
                 }
 
             } else {
                 throw new \Exception("Mode de transit invalide : $mode_transit");
             }
+
 
 
 
@@ -479,17 +481,11 @@ public function storeService(Request $request)
                 ->orderByDesc('id_reference')
                 ->first();
 
-
-            // dd($dernierColisPourCetteRef);
-
         $nextIdRef = ($dernierColisPourCetteRef?->id_reference ?? 0) + 1;
-
 
         // Numéro formaté
         $numero = str_pad($nextIdRef, 4, '0', STR_PAD_LEFT);
         $colValue = $referenceMaitre->$colName ?? null;
-
-        // dd($colValue);
 
         if (is_null($colValue) && !empty($referenceMaitre->reference_colis)) {
             // Récupérer la partie après le dernier tiret "-"
