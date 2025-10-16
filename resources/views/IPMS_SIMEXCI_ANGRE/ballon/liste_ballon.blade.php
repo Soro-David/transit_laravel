@@ -87,7 +87,6 @@
         // Redirection vers la page des colis
         $('#productTable').on('click', '.voir-colis', function () {
             const reference = $(this).data('reference');
-            // La route doit être du type edit_ballon avec paramètre reference_vol
              const url = '{{ route("ipms_angre_colis.edit_colis_ballon") }}' + '?reference_vol=' + reference;
              
             window.location.href = url;
