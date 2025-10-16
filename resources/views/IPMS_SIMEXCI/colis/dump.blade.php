@@ -118,7 +118,7 @@
 <script>
 $(document).ready(function () {
     const EUR_TO_FCFA_RATE = parseFloat("{{ App\Services\CurrencyConverterService::FCFA_TO_EUR_RATE }}") || 655.957;
-    function formatCfa(val){return Math.round(val).toLocaleString('fr-FR')+' FCFA';}
+    function formatCfa(val){return Math.round(val).toLocaleString('fr-FR')+' ';}
     function formatEur(val){return Number(val).toFixed(2).replace('.',',')+' €';}
 
     $.ajaxSetup({headers:{'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')}});
@@ -149,7 +149,7 @@ $(document).ready(function () {
         dom:'Bfrtip',
         buttons:[
             'excel',
-                
+
             {
                 extend: 'print',
                 title: 'MANIFESTE DES COLIS ARRIVÉS',

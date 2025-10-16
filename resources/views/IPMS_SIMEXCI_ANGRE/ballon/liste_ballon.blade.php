@@ -57,7 +57,7 @@
                                     <th>Référence Ballon</th>
                                     <th>Date départ</th>
                                     <th>Date arrivée</th>
-                                    <th>Actions</th>
+                                    {{-- <th>Actions</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,7 +80,7 @@
                 { data: 'reference_bateau' },
                 { data: 'date_depart' },
                 { data: 'date_arriver' },
-                { data: 'action', orderable: false, searchable: false }
+                // { data: 'action', orderable: false, searchable: false }
             ],
         });
 

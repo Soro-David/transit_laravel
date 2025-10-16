@@ -13,7 +13,13 @@
                 <h4 class="text-left mt-4 mb-3">
                     <i class="fa fa-box"></i> Liste des colis à arrivés
                 </h4>
-
+                <div class="row mb-3">
+                    <div class="col-md-12 text-end">
+                        <a href="{{ route('ipms_angre_colis.download.pdf') }}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Télécharger PDF
+                        </a>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table id="productTable" class="table table-bordered table-striped display nowrap" style="width:100%">
                         <thead class="table-warning text-center align-middle">
@@ -112,9 +118,9 @@ $(document).ready(function () {
             { data: 'reference_colis' },
             { data: 'nom_produit' },
             { data: 'nombre_de_colis', render: d => d ? d.toLocaleString('fr-FR') : '-' },
-            { data: 'montant_total', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
-            { data: 'montant_paye', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
-            { data: 'reste_a_payer', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
+            { data: 'montant_total', render: d => d ? d.toLocaleString('fr-FR') + ' ' : '-' },
+            { data: 'montant_paye', render: d => d ? d.toLocaleString('fr-FR') + ' ' : '-' },
+            { data: 'reste_a_payer', render: d => d ? d.toLocaleString('fr-FR') + ' ' : '-' },
             { data: null, render: (d, t, r) => (r.expediteur_nom || '') + ' ' + (r.expediteur_prenom || '') },
             { data: 'expediteur_tel' },
             { data: null, render: (d, t, r) => (r.destinataire_nom || '') + ' ' + (r.destinataire_prenom || '') },

@@ -184,7 +184,7 @@
     <div class="container">
         <!-- En-tête -->
         <div class="header">
-            <h2 style="color: #667eea; margin: 0; font-size: 16px;">DS TRANSLOG Carrefour Angré</h2>
+            <h2 style="color: #667eea; margin: 0; font-size: 16px;">DS TRANSLOG Angré 8ème Tranche</h2>
             <h1>RAPPORT DES COLIS VALIDÉS</h1>
             <div class="subtitle">
                 Généré le {{ $dateGeneration }}

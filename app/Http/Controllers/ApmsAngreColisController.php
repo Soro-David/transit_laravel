@@ -1220,7 +1220,224 @@ public function get_colis_dump(Request $request)
 }
 
 
+    public function downloadColisPdf(Request $request)
+    {
+        try {
+            // Appliquer les mêmes conditions que get_colis_dump
+            $colis = Colis::with(['expediteur', 'destinataire', 'paiement', 'agent'])
+                ->where('etat', 'Dechargé')
+                ->whereHas('destinataire', function ($query) {
+                    $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+                })
+                ->get();
 
+            $colisIds = $colis->pluck('id')->unique()->toArray();
+
+            // Somme des paiements par colis (même logique que get_colis_dump)
+            $paiements = Paiement::whereIn('colis_id', $colisIds)
+                ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                ->groupBy('colis_id')
+                ->get()
+                ->keyBy('colis_id');
+
+            // Grouper par référence_colis et calculer les totaux (même logique)
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+                $firstColis = $group->first();
+
+                $quantiteTotale = $group->sum('quantite_colis');
+                $prixTotalColis = $group->sum('prix_transit_colis');
+                $prixTotal = $prixTotalColis + ($firstColis->montant_service ?? 0);
+
+                // Montant total payé pour ce groupe de colis
+                $montantTotalPaye = $group->sum(function ($colisItem) use ($paiements) {
+                    return $paiements[$colisItem->id]->total_paye ?? 0;
+                });
+
+                $resteAPayer = max(0, $prixTotal - $montantTotalPaye);
+
+                // Statut de paiement
+                $paymentStatus = 'impaye';
+                if ($montantTotalPaye >= $prixTotal) {
+                    $paymentStatus = 'paye';
+                } elseif ($montantTotalPaye > 0 && $montantTotalPaye < $prixTotal) {
+                    $paymentStatus = 'partiel';
+                }
+
+                return [
+                    'reference_colis' => $firstColis->reference_colis,
+                    'nom_produit' => $firstColis->produit,
+                    'nombre_de_colis' => $quantiteTotale,
+                    'montant_total' => round($prixTotal, 2),
+                    'montant_paye' => round($montantTotalPaye, 2),
+                    'reste_a_payer' => round($resteAPayer, 2),
+                    'payment_status' => $paymentStatus,
+                    'expediteur_nom' => optional($firstColis->expediteur)->nom,
+                    'expediteur_prenom' => optional($firstColis->expediteur)->prenom,
+                    'expediteur_tel' => optional($firstColis->expediteur)->tel,
+                    'destinataire_nom' => optional($firstColis->destinataire)->nom,
+                    'destinataire_prenom' => optional($firstColis->destinataire)->prenom,
+                    'destinataire_tel' => optional($firstColis->destinataire)->tel,
+                    'destinataire_agence' => optional($firstColis->destinataire)->agence,
+                    'etat' => $firstColis->etat,
+                    'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A',
+                    'colis_ids' => $group->pluck('id')->toArray(),
+                    'first_colis_id' => $firstColis->id,
+                    'creator_agence_id' => optional($firstColis->agent)->agence_id,
+                ];
+            })->values();
+
+            // Calculer les totaux pour le PDF
+            $totalMontant = $processedData->sum('montant_total');
+            $totalPaye = $processedData->sum('montant_paye');
+            $totalReste = $processedData->sum('reste_a_payer');
+
+            $data = [
+                'title' => 'RAPPORT DES COLIS DÉCHARGÉS - ' . date('d/m/Y'),
+                'colis' => $processedData,
+                'totalMontant' => $totalMontant,
+                'totalPaye' => $totalPaye,
+                'totalReste' => $totalReste,
+                'totalColis' => $processedData->count(),
+                'dateGeneration' => now()->format('d/m/Y à H:i'),
+                'filtres' => [
+                    'etat' => 'Déchargé',
+                    'agence_destinataire' => 'IPMS-SIMEX-CI Angre 8ème Tranche'
+                ]
+            ];
+
+            $pdf = PDF::loadView('pdf.colis-report_angre', $data);
+            
+            // Configuration du PDF
+            $pdf->setPaper('A4', 'landscape');
+            $pdf->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'Arial',
+                'dpi' => 150,
+            ]);
+
+            return $pdf->download('rapport-colis-decharges-' . date('Y-m-d') . '.pdf');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur downloadColisPdf: '.$e->getMessage());
+            
+            // Retourner une réponse d'erreur ou rediriger
+            return back()->with('error', 'Erreur lors de la génération du PDF: ' . $e->getMessage());
+        }
+    } 
+
+
+    public function downloadColisSuiviPdf(Request $request)
+    {
+        try {
+            // Correction de la condition where - utiliser whereIn pour multiple états
+            $colis = Colis::with(['expediteur', 'destinataire', 'paiement', 'agent'])
+                ->whereIn('etat', ['Validé','Dechargé', 'Chargé', 'Fermé'])
+                ->whereHas('destinataire', function ($query) {
+                    $query->where('agence', 'IPMS-SIMEX-CI Angre 8ème Tranche');
+                })
+                ->get();
+
+            $colisIds = $colis->pluck('id')->unique()->toArray();
+
+            // Somme des paiements par colis
+            $paiements = Paiement::whereIn('colis_id', $colisIds)
+                ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
+                ->groupBy('colis_id')
+                ->get()
+                ->keyBy('colis_id');
+
+            // Grouper par référence_colis et calculer les totaux
+            $colisGrouped = $colis->groupBy('reference_colis');
+
+            $processedData = $colisGrouped->map(function ($group, $reference) use ($paiements) {
+                $firstColis = $group->first();
+
+                $quantiteTotale = $group->sum('quantite_colis');
+                $prixTotalColis = $group->sum('prix_transit_colis');
+                $prixTotal = $prixTotalColis + ($firstColis->montant_service ?? 0);
+
+                // Montant total payé pour ce groupe de colis
+                $montantTotalPaye = $group->sum(function ($colisItem) use ($paiements) {
+                    return $paiements[$colisItem->id]->total_paye ?? 0;
+                });
+
+                $resteAPayer = max(0, $prixTotal - $montantTotalPaye);
+
+                // Statut de paiement
+                $paymentStatus = 'impaye';
+                if ($montantTotalPaye >= $prixTotal) {
+                    $paymentStatus = 'paye';
+                } elseif ($montantTotalPaye > 0 && $montantTotalPaye < $prixTotal) {
+                    $paymentStatus = 'partiel';
+                }
+
+                return [
+                    'reference_colis' => $firstColis->reference_colis,
+                    'nom_produit' => $firstColis->produit,
+                    'nombre_de_colis' => $quantiteTotale,
+                    'montant_total' => round($prixTotal, 2),
+                    'montant_paye' => round($montantTotalPaye, 2),
+                    'reste_a_payer' => round($resteAPayer, 2),
+                    'payment_status' => $paymentStatus,
+                    'expediteur_nom' => optional($firstColis->expediteur)->nom,
+                    'expediteur_prenom' => optional($firstColis->expediteur)->prenom,
+                    'expediteur_tel' => optional($firstColis->expediteur)->tel,
+                    'destinataire_nom' => optional($firstColis->destinataire)->nom,
+                    'destinataire_prenom' => optional($firstColis->destinataire)->prenom,
+                    'destinataire_tel' => optional($firstColis->destinataire)->tel,
+                    'destinataire_agence' => optional($firstColis->destinataire)->agence,
+                    'etat' => $firstColis->etat,
+                    'created_at' => $firstColis->created_at ? $firstColis->created_at->format('d/m/Y H:i') : 'N/A',
+                    'colis_ids' => $group->pluck('id')->toArray(),
+                    'first_colis_id' => $firstColis->id,
+                    'creator_agence_id' => optional($firstColis->agent)->agence_id,
+                ];
+            })->values();
+
+            // Calculer les totaux pour le PDF
+            $totalMontant = $processedData->sum('montant_total');
+            $totalPaye = $processedData->sum('montant_paye');
+            $totalReste = $processedData->sum('reste_a_payer');
+            $totalColisCount = $processedData->sum('nombre_de_colis');
+
+            $data = [
+                'title' => 'RAPPORT DES COLIS VALIDÉS - ' . date('d/m/Y'),
+                'colis' => $processedData,
+                'totalMontant' => $totalMontant,
+                'totalPaye' => $totalPaye,
+                'totalReste' => $totalReste,
+                'totalColis' => $processedData->count(),
+                'totalColisCount' => $totalColisCount,
+                'dateGeneration' => now()->format('d/m/Y à H:i'),
+                'filtres' => [
+                    'etat' => 'Déchargé, Chargé, Fermé',
+                    'agence_destinataire' => 'IPMS-SIMEX-CI Angre 8ème Tranche'
+                ]
+            ];
+
+            $pdf = PDF::loadView('pdf.colis-suivi_angre', $data);
+            
+            // Configuration du PDF
+            $pdf->setPaper('A4', 'landscape');
+            $pdf->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'Arial',
+                'dpi' => 150,
+            ]);
+
+            return $pdf->download('rapport-colis-valides-' . date('Y-m-d') . '.pdf');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur downloadColisPdf: '.$e->getMessage());
+            
+            // Retourner une réponse d'erreur ou rediriger
+            return back()->with('error', 'Erreur lors de la génération du PDF: ' . $e->getMessage());
+        }
+    }
 
 
 

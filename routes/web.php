@@ -1466,6 +1466,8 @@ Route::prefix('IPMS_SIMEXCI_ANGRE')->middleware(['auth', 'role:agent'])->group(f
         Route::post('/store-expediteur', [ApmsAngreColisController::class, 'store_expediteur'])->name('store.expediteur'); 
         Route::post('/store-destinataire', [ApmsAngreColisController::class, 'store_destinataire'])->name('store.destinataire'); 
         Route::get('/search-expediteurs', [ApmsAngreColisController::class, 'search'])->name('search.expediteurs');
+        Route::get('/colis/download-pdf', [ApmsAngreColisController::class, 'downloadColisPdf'])->name('download.pdf');
+        Route::get('/colis/download-suivi-pdf', [ApmsAngreColisController::class, 'downloadColisSuiviPdf'])->name('downloadColisSuiviPdf');
        
     });
 
