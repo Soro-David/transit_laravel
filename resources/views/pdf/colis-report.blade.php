@@ -183,9 +183,9 @@
                         <td class="text-bold">{{ $item['reference_colis'] }}</td>
                         <td>{{ $item['nom_produit'] ?? 'N/A' }}</td>
                         <td class="text-center">{{ $item['nombre_de_colis'] }}</td>
-                        <td class="montant montant-total text-right">{{ number_format($item['montant_total'], 0, ',', ' ') }} FCFA</td>
-                        <td class="montant montant-paye text-right">{{ number_format($item['montant_paye'], 0, ',', ' ') }} FCFA</td>
-                        <td class="montant montant-reste text-right">{{ number_format($item['reste_a_payer'], 0, ',', ' ') }} FCFA</td>
+                        <td class="montant montant-total text-right">{{ number_format($item['montant_total'], 0, ',', ' ') }} </td>
+                        <td class="montant montant-paye text-right">{{ number_format($item['montant_paye'], 0, ',', ' ') }} </td>
+                        <td class="montant montant-reste text-right">{{ number_format($item['reste_a_payer'], 0, ',', ' ') }} </td>
                         <td>
                             @php
                                 $statusClass = match($item['payment_status']) {
