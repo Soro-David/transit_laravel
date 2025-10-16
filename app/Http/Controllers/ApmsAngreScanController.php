@@ -210,46 +210,46 @@ class ApmsAngreScanController extends Controller
                         }
                         return '<span title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '"><i class="' . $iconClass . '" style="color: ' . $iconColor . '; font-size: 1.3em;"></i></span>';
                     })
-                    ->addColumn('action', function ($row) {
-                        // Générer les boutons d'action
-                        $reference = $row['reference_colis'];
-                        $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
+                    // ->addColumn('action', function ($row) {
+                    //     // Générer les boutons d'action
+                    //     $reference = $row['reference_colis'];
+                    //     $firstColisId = $row['first_colis_id']; // ID pour Edit/Invoice
 
-                        $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $firstColisId]); // Route pour modifier (utilise l'ID)
-                        $invoiceUrl = route('ipms_angre_colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
-                        $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
+                    //     $editUrl = route('ipms_angre_colis.valide.edit', ['id' => $firstColisId]); // Route pour modifier (utilise l'ID)
+                    //     $invoiceUrl = route('ipms_angre_colis.valide.edit.invoice', ['id' => $firstColisId]); // Route pour la facture (utilise l'ID)
+                    //     $deleteUrl = route('ipms_angre_colis.destroy.colis.valide', ['reference' => $reference]); // Route pour archiver (utilise la référence)
 
-                        $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
-                                        <i class="fas fa-edit"></i>
-                                    </a>';
+                    //     $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-warning" title="Modifier le colis groupé">
+                    //                     <i class="fas fa-edit"></i>
+                    //                 </a>';
 
-                        $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
-                                            data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                            data-total="' . $row['prix_total'] . '"
-                                            data-paid="' . $row['montant_paye'] . '"
-                                            data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
-                                            title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                        <i class="fas fa-dollar-sign"></i>
-                                    </button>';
+                    //     $payBtn = '<button type="button" class="btn btn-sm btn-success pay-btn"
+                    //                         data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                    //                         data-total="' . $row['prix_total'] . '"
+                    //                         data-paid="' . $row['montant_paye'] . '"
+                    //                         data-colis-ids="' . htmlspecialchars($row['colis_ids'], ENT_QUOTES, 'UTF-8') . '"
+                    //                         title="Enregistrer un Paiement pour la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                    //                     <i class="fas fa-dollar-sign"></i>
+                    //                 </button>';
 
-                        $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
-                                                data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
-                                                data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
-                                            <i class="fas fa-trash"></i>
-                                        </button>';
+                    //     $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
+                    //                             data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
+                    //                             data-url="' . $deleteUrl . '"
+                    //                             title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                    //                         <i class="fas fa-trash"></i>
+                    //                     </button>';
 
-                        $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
-                                        <i class="fas fa-file-invoice"></i>
-                                       </a>';
+                    //     $invoiceBtn = '<a href="' . $invoiceUrl . '" class="btn btn-sm btn-primary" title="Voir la Facture">
+                    //                     <i class="fas fa-file-invoice"></i>
+                    //                    </a>';
 
-                        return '<div class="action-buttons-container">'
-                               . $editBtn
-                               . $payBtn
-                               . $deleteBtn
-                               . $invoiceBtn
-                               . '</div>';
-                    })
+                    //     return '<div class="action-buttons-container">'
+                    //            . $editBtn
+                    //            . $payBtn
+                    //            . $deleteBtn
+                    //            . $invoiceBtn
+                    //            . '</div>';
+                    // })
                     ->rawColumns(['action', 'statut_paiement'])
                     ->make(true); 
 
@@ -314,47 +314,6 @@ class ApmsAngreScanController extends Controller
         }
     }
 
-    // Ajax pour récupérer la liste des colis en Charge
-    // public function get_colis_charge(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $colis = Colis::select(
-    //             'colis.*',  // Sélectionne toutes les colonnes de colis
-    //             'expediteurs.nom as nom_expediteur', 
-    //             'expediteurs.prenom as prenom_expediteur', 
-    //             'expediteurs.tel as tel_expediteur', 
-    //             'expediteurs.agence as agence_expedition', 
-    //             'destinataires.nom as nom_destinataire', 
-    //             'destinataires.prenom as prenom_destinataire', 
-    //             'destinataires.tel as tel_destinataire', 
-    //             'destinataires.agence as agence_destination',
-    //             'colis.etat as etat',
-    //             'colis.created_at as created_at'
-    //         )
-    //         ->join('expediteurs', 'colis.expediteur_id', '=', 'expediteurs.id')  // Jointure avec la table users pour expediteurs
-    //         ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')  // Jointure avec la table users pour destinataires
-    //         ->where('etat', 'Chargé')  // Filtre l'état des colis
-    //         ->where('destinataires.agence', 'IPMS-SIMEX-CI Angre 8ème Tranche')
-    //         ->get(); 
-    //         return DataTables::of($colis)
-    //             ->addColumn('action', function ($row) {
-    //                 $editUrl = '/users/' . $row->id . '/edit'; // Si vous avez une route d'édition pour chaque colis
-
-    //                 return '
-    //                     <div class="btn-group">
-    //                         <a href="' . $editUrl . '" class="btn btn-sm btn-info" title="View" data-bs-toggle="modal" data-bs-target="#showModal">
-    //                             <i class="fas fa-eye"></i>
-    //                         </a>
-    //                         <a href="#" class="btn btn-sm btn-success" title="Payment" data-bs-toggle="modal" data-bs-target="#paymentModal">
-    //                             <i class="fas fa-credit-card"></i>
-    //                         </a>
-    //                     </div>
-    //                 ';
-    //             })
-    //             ->rawColumns(['action']) // Permet de rendre le HTML dans la colonne "action"
-    //             ->make(true);
-    //     }
-    // }
 
     public function get_colis_charge(Request $request)
     {
@@ -559,99 +518,6 @@ class ApmsAngreScanController extends Controller
     }
     
 
-   
-
-
-
-//     public function updateColisDecharge(Request $request, InfobipSmsService $smsService)
-// {
-//     if (!$request->has('colisIds')) {
-//         return response()->json([
-//             'success'  => false,
-//             'messages' => ['Paramètre manquant : colisIds (liste des colis à décharger)']
-//         ], 400);
-//     }
-
-//     $colisIds = (array) $request->input('colisIds'); // Liste de colis scannés
-//     $agenceCible = 'IPMS-SIMEX-CI Angre 8ème Tranche';
-
-//     try {
-//         // Charger les colis avec leurs expéditeurs et destinataires
-//         $colisList = Colis::with('expediteur', 'destinataire')
-//             ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
-//             ->whereIn('colis.id', $colisIds)
-//             ->where('destinataires.agence', $agenceCible)
-//             ->select('colis.*')
-//             ->get();
-
-//         if ($colisList->isEmpty()) {
-//             return response()->json([
-//                 'success' => false,
-//                 'messages' => ["Aucun colis trouvé pour l'agence '{$agenceCible}'."]
-//             ], 404);
-//         }
-
-//         $messages = [];
-//         $updatedColis = [];
-//         $expediteursNotifies = []; // Pour éviter d'envoyer plusieurs fois
-
-//         foreach ($colisList as $colis) {
-//             if ($colis->etat === 'Déchargé') {
-//                 $messages[] = "Colis {$colis->reference_colis} (ID: {$colis->id}) déjà déchargé.";
-//                 continue;
-//             }
-
-//             if (in_array($colis->etat, ['Fermé', 'Arrivé'])) {
-//                 $colis->etat = 'Déchargé';
-//                 $colis->save();
-//                 $updatedColis[] = [
-//                     'id' => $colis->id,
-//                     'etat' => $colis->etat,
-//                     'reference_colis' => $colis->reference_colis
-//                 ];
-//                 $messages[] = "Colis {$colis->reference_colis} (ID: {$colis->id}) déchargé.";
-
-//                 // Préparer SMS uniquement si expéditeur valide
-//                 if ($colis->expediteur && $colis->expediteur->tel) {
-//                     $tel = $colis->expediteur->tel;
-
-//                     // Vérifier si on a déjà envoyé un SMS à ce numéro
-//                     if (!in_array($tel, $expediteursNotifies)) {
-//                         $nom_expediteur = $colis->expediteur->nom ?? '';
-//                         $prenom_expediteur = $colis->expediteur->prenom ?? '';
-//                         $agence_dest = $colis->destinataire->agence ?? $agenceCible;
-
-//                         $messageSms = "Bonjour {$nom_expediteur} {$prenom_expediteur}, vos colis ont été déchargés à l'agence {$agence_dest}. AFT IMPORT/EXPORT vous remercie.";
-
-//                         try {
-//                             $smsService->sendSms($tel, $messageSms);
-//                             $messages[] = "SMS envoyé à l'expéditeur {$tel}.";
-//                             $expediteursNotifies[] = $tel; // Marquer comme déjà notifié
-//                         } catch (\Exception $e) {
-//                             Log::error("Erreur SMS pour {$tel} : " . $e->getMessage());
-//                             $messages[] = "Erreur SMS pour {$tel}.";
-//                         }
-//                     }
-//                 }
-//             } else {
-//                 $messages[] = "Colis {$colis->reference_colis} (ID: {$colis->id}) est dans l'état '{$colis->etat}', non déchargeable.";
-//             }
-//         }
-
-//         return response()->json([
-//             'success' => count($updatedColis) > 0,
-//             'messages' => $messages,
-//             'colis' => $updatedColis
-//         ]);
-
-//     } catch (\Exception $e) {
-//         Log::error("Erreur déchargement colis : " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-//         return response()->json([
-//             'success' => false,
-//             'messages' => ["ERREUR technique : " . $e->getMessage()]
-//         ], 500);
-//     }
-// }
 
     public function updateColisDecharge(Request $request, InfobipSmsService $smsService)
     {

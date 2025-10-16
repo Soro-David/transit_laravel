@@ -57,7 +57,7 @@
                                     <th>Référence Ballon</th>
                                     <th>Date départ</th>
                                     <th>Date arrivée</th>
-                                    <th>Actions</th>
+                                    {{-- <th>Actions</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,14 +80,13 @@
                 { data: 'reference_bateau' },
                 { data: 'date_depart' },
                 { data: 'date_arriver' },
-                { data: 'action', orderable: false, searchable: false }
+                // { data: 'action', orderable: false, searchable: false }
             ],
         });
 
         // Redirection vers la page des colis
         $('#productTable').on('click', '.voir-colis', function () {
             const reference = $(this).data('reference');
-            // La route doit être du type edit_ballon avec paramètre reference_vol
              const url = '{{ route("ipms_angre_colis.edit_colis_ballon") }}' + '?reference_vol=' + reference;
              
             window.location.href = url;

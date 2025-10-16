@@ -11,6 +11,13 @@
                     <div class="col-md-12">
                         <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
                             <h4 class="text-left mt-4">Liste des colis Validés</h4><br>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-end">
+                                    <a href="{{ route('ipms_angre_colis.download.pdf') }}" class="btn btn-success">
+                                        <i class="fas fa-download me-2"></i>Télécharger PDF
+                                    </a>
+                                </div>
+                            </div>
                             <div id="products-container">
                                 <div class="table-responsive">
                                     <table id="productTable" class="table table-bordered table-striped display">
