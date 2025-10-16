@@ -25,7 +25,6 @@
                                     <th>Téléphone</th>
                                     <th>Agence Destinataire</th>
                                     <th>Date</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,7 +72,7 @@ $(document).ready(function () {
         { data: 'destinataire_tel', name: 'destinataires.tel' },
         { data: 'destinataire_agence', name: 'destinataires.agence' },
         { data: 'created_at', name: 'created_at' },
-        { data: 'action', name: null, orderable: false, searchable: false }
+        // { data: 'action', name: null, orderable: false, searchable: false }
     ]
 });
 

@@ -36,7 +36,7 @@
                                     <th style="width: 48%;">Agence Dest.</th>
                                     <th>Status Colis</th>
                                     <th>Date</th>
-                                    <th class="text-center">Action</th>
+                                    {{-- <th class="text-center">Action</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -335,7 +335,7 @@ $(document).ready(function () {
             { data: 'etat', name: 'colis.etat' }, // Utiliser le nom de table correct
             { data: 'created_at', name: 'colis.created_at' }, // Utiliser le nom de table correct
              // La colonne 'action' est générée côté serveur avec HTML
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
+            // { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
         ],
         // Configuration des boutons d'exportation (si utilisés)
         dom: 'Bfrtip', // Afficher les boutons, le filtre, la table, les informations et la pagination

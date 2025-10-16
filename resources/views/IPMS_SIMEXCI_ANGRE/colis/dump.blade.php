@@ -10,296 +10,210 @@
     <div class="row">
         <div class="col-md-12">
             <div class="border p-4 rounded shadow-sm" style="border-color: #ffa500;">
-                <h4 class="text-left mt-4">Liste des colis à arrivés</h4><br>
+                <h4 class="text-left mt-4 mb-3">
+                    <i class="fa fa-box"></i> Liste des colis à arrivés
+                </h4>
+
                 <div class="table-responsive">
-                    <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
-                        <thead>
+                    <table id="productTable" class="table table-bordered table-striped display nowrap" style="width:100%">
+                        <thead class="table-warning text-center align-middle">
                             <tr>
-                                <th class="text-center">St. Paiement</th>
+                                <th>St. Paiement</th>
                                 <th>Référence</th>
-                                <th class="text-center">Nb. Colis</th>
+                                <th>Produit</th>
+                                <th>Nb. Colis</th>
+                                <th>Montant Total</th>
+                                <th>Payé</th>
+                                <th>Reste à Payer</th>
                                 <th>Expéditeur</th>
                                 <th>Tél. Exp</th>
                                 <th>Destinataire</th>
                                 <th>Tél. Dest.</th>
-                                <th>Agence Dest.</th>
                                 <th>Status Colis</th>
                                 <th>Date</th>
-                                <th class="text-center">Action</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {{-- Le contenu sera chargé par DataTables --}}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-   {{-- ===== MODALE DE PAIEMENT UNIVERSELLE ===== --}}
-   <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Enregistrer un Paiement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="paymentForm">
-                @csrf 
-                <div class="modal-body">
-                    {{-- Champs généraux --}}
-                    <input type="hidden" id="modalColisId" name="colis_id" value="">
-                    <input type="hidden" id="modalColisIds" name="colis_ids" value="">
-                    <div class="mb-3"><label class="form-label">Référence Colis</label><input type="text" class="form-control" id="modalDisplayReference" readonly></div>
-                    <div class="mb-3"><label class="form-label">Montant Total Dû</label><input type="text" class="form-control" id="modalTotalAmount" readonly style="font-weight: bold;"></div>
-                    <div class="mb-3"><label class="form-label">Montant Déjà Payé</label><input type="text" class="form-control" id="modalAmountAlreadyPaid" readonly style="color: green;"></div>
-                    <div class="mb-3"><label class="form-label">Montant Restant à Payer</label><div id="modalRemainingAmountDisplay" class="form-control" style="font-weight: bold; color: #dc3545; background-color: #f8f9fa;"></div></div>
-
-                    {{-- Section pour les agences type EURO (cachée par défaut) --}}
-                    <div id="euroPaymentFields" style="display:none;">
-                        <div class="mb-3"><label for="modalNewPaymentAmountEur" class="form-label">Nouveau Paiement (en EUR) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="modalNewPaymentAmountEur" required placeholder="0.00"></div>
-                        <div class="mb-3"><label for="modalConvertedAmountCfa" class="form-label">Équivalent en FCFA</label><input type="text" class="form-control" id="modalConvertedAmountCfa" readonly style="font-weight: bold; background-color: #e9ecef;"></div>
-                    </div>
-                    {{-- Section pour l'agence id=7 (cachée par défaut) --}}
-                    <div id="fcfaPaymentFields" style="display:none;"><div class="mb-3"><label for="modalNewPaymentAmountCfa" class="form-label">Nouveau Paiement (en FCFA) <span class="text-danger">*</span></label><input type="number" step="1" class="form-control" id="modalNewPaymentAmountCfa" required placeholder="0"></div></div>
-                    
-                    <input type="hidden" id="modalNewPaymentAmount" name="montant_a_payer">
-                    <div class="invalid-feedback" id="paymentAmountError"></div>
-                </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary" id="submitPaymentBtn">Enregistrer Paiement</button></div>
-            </form>
-        </div>
-    </div>
-</div>
 </section>
 
-
-{{-- Styles (inchangés) --}}
+{{-- ========= STYLES PERSONNALISÉS ========= --}}
 <style>
-    #productTable { width: 100% !important; }
-    #productTable th, #productTable td { vertical-align: middle; }
-    #productTable .text-center { text-align: center; }
-    .action-buttons-container { display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: nowrap; }
-    .dt-buttons { margin-bottom: 15px; }
-    @media (max-width: 768px) {
-        #productTable { white-space: normal; }
-        .dt-buttons { text-align: center; }
-        .dt-button { display: block; margin: 5px auto; width: 80%; }
-        .action-buttons-container { flex-wrap: wrap; justify-content: center; }
-    }
-    .is-invalid { border-color: #dc3545; }
-    .invalid-feedback { display: none; width: 100%; margin-top: .25rem; font-size: .875em; color: #dc3545; }
-    .is-invalid ~ .invalid-feedback { display: block; }
+        #productTable {
+            width: 100% !important;
+            font-size: 13px;
+            border-spacing: 0 8px !important;
+            border-collapse: separate !important;
+        }
+
+        #productTable th, #productTable td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px 12px !important;
+        }
+
+        #productTable th {
+            background-color: #fff3cd;
+            font-weight: 600;
+            color: #000;
+            white-space: nowrap;
+        }
+
+        #productTable td {
+            background: #fff;
+            border: 1px solid #eee;
+        }
+
+        #productTable tbody tr:hover td {
+            background-color: #fef9e7;
+        }
+
+        .dt-buttons {
+            margin-bottom: 15px;
+        }
+
+        .action-buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            #productTable { font-size: 12px; }
+            .dt-buttons { text-align: center; }
+            .dt-button { display: block; margin: 5px auto; width: 90%; }
+        }
 </style>
 
-{{-- Script (LOGIQUE CORRIGÉE) --}}
+{{-- ========= SCRIPT DATATABLE ========= --}}
 <script>
 $(document).ready(function () {
     const EUR_TO_FCFA_RATE = parseFloat("{{ App\Services\CurrencyConverterService::FCFA_TO_EUR_RATE }}") || 655.957;
-
-    function formatCfa(value) { return Math.round(value).toLocaleString('fr-FR') + ' FCFA'; }
-    function formatEur(value) { return Number(value).toFixed(2).replace('.', ',') + ' €'; }
+    const logoBase64 = 'data:image/png;base64,{{ base64_encode(file_get_contents(public_path("images/LOGOAFT.png"))) }}';
 
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    if ($.fn.DataTable.isDataTable('#productTable')) {
-        $('#productTable').DataTable().clear().destroy();
-    }
-    var table = $("#productTable").DataTable({
-        processing: true, serverSide: true, responsive: true,
+    const table = $("#productTable").DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        scrollX: true,
         language: { url: "{{ asset('js/fr-FR.json') }}" },
         ajax: '{{ route("ipms_angre_colis.get.colis.dump") }}',
         columns: [
-            { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
-            { data: 'reference_colis', name: 'reference_colis' },
-            { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
-            { data: null, name: 'expediteur_nom', render: function(d,t,r){ return (r.expediteur_nom||'')+' '+(r.expediteur_prenom||''); } },
-            { data: 'expediteur_tel', name: 'expediteurs.tel' },
-            { data: null, name: 'destinataire_nom', render: function(d,t,r){ return (r.destinataire_nom||'')+' '+(r.destinataire_prenom||''); } },
-            { data: 'destinataire_tel', name: 'destinataires.tel' },
-            { data: 'destinataire_agence', name: 'destinataires.agence' },
-            { data: 'etat', name: 'colis.etat' },
-            { data: 'created_at', name: 'colis.created_at' },
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
+            { data: 'statut_paiement' },
+            { data: 'reference_colis' },
+            { data: 'nom_produit' },
+            { data: 'nombre_de_colis', render: d => d ? d.toLocaleString('fr-FR') : '-' },
+            { data: 'montant_total', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
+            { data: 'montant_paye', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
+            { data: 'reste_a_payer', render: d => d ? d.toLocaleString('fr-FR') + ' FCFA' : '-' },
+            { data: null, render: (d, t, r) => (r.expediteur_nom || '') + ' ' + (r.expediteur_prenom || '') },
+            { data: 'expediteur_tel' },
+            { data: null, render: (d, t, r) => (r.destinataire_nom || '') + ' ' + (r.destinataire_prenom || '') },
+            { data: 'destinataire_tel' },
+            { data: 'etat' },
+            { data: 'created_at' },
+            { data: 'action', orderable: false, searchable: false }
         ],
         dom: 'Bfrtip',
         buttons: [
-                // Bouton Excel
-                {
-                    extend: 'excelHtml5',
-                    text: 'Exporter en Excel',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (xlsx) {
-                        console.log("Exportation Excel réussie sans image.");
-                    }
-                },
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="fa fa-file-pdf"></i> PDF',
+                title: '', // 🔥 empêche "Exported data" d'apparaître
+                orientation: 'landscape',
+                pageSize: 'A4',
+                exportOptions: { columns: ':visible:not(:last-child)' },
+                customize: function (doc) {
+                    doc.pageMargins = [30, 50, 30, 40];
+                    doc.defaultStyle.fontSize = 9;
+                    doc.styles.tableHeader.fontSize = 10;
+                    doc.styles.tableHeader.alignment = 'center';
+                    doc.styles.tableBodyEven.alignment = 'center';
+                    doc.styles.tableBodyOdd.alignment = 'center';
 
-                // Bouton Imprimer
-                {
-                    extend: 'print',
-                    text: 'Imprimer',
-                    title: 'FANIFESTE',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclure les colonnes 0 (statut_paiement) et 10 (action)
-                    },
-                    customize: function (win) {
-                        var logoUrl = "{{ url('images/LOGOAFT.png') }}";
-                        var logo = '<img src="' + logoUrl + '" alt="Logo" style="position:relative; top:10px; left:20px; width:100px; height:auto;">';
-                        
-                        // Ajouter le logo
-                        $(win.document.body).prepend(logo);
-                        
-                        // Centrer le titre
-                        $(win.document.body).find('h1')
-                            .css('text-align', 'center')
-                            .css('margin-top', '10px');
-                            
-                        $(win.document.body).find('table').css('margin-top', '30px');
-                        
-                        // Cacher les colonnes non souhaitées
-                        $(win.document).find('th:nth-child(1), td:nth-child(1)').hide();
-                        $(win.document).find('th:nth-child(11), td:nth-child(11)').hide();
-                    }
+                    // Logo + Titre
+                    doc.content.splice(0, 0, {
+                        alignment: 'center',
+                        image: logoBase64,
+                        width: 100,
+                        margin: [0, 0, 0, 10]
+                    });
+                    doc.content.splice(1, 0, {
+                        text: 'MANIFESTE DES COLIS À ARRIVER',
+                        fontSize: 16,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, 10, 0, 20]
+                    });
+
+                    // Espacement et bordures
+                    doc.content[2].layout = {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5,
+                        hLineColor: () => '#aaa',
+                        vLineColor: () => '#aaa',
+                        paddingLeft: () => 6,
+                        paddingRight: () => 6,
+                        paddingTop: () => 4,
+                        paddingBottom: () => 4
+                    };
+
+                    // Pied de page
+                    doc.footer = (page, pages) => ({
+                        columns: [
+                            { text: 'Date : ' + new Date().toLocaleDateString('fr-FR'), alignment: 'left', margin: [40, 0, 0, 0] },
+                            { text: 'Page ' + page + ' / ' + pages, alignment: 'right', margin: [0, 0, 40, 0] }
+                        ],
+                        fontSize: 9
+                    });
                 }
+            },
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fa fa-file-excel"></i> Excel',
+                title: 'MANIFESTE_COLIS',
+                exportOptions: { columns: ':visible:not(:last-child)' }
+            },
+            {
+                extend: 'print',
+                text: '<i class="fa fa-print"></i> Imprimer',
+                title: '', // 🔥 empêche "Exported data" à l’impression
+                exportOptions: { columns: ':visible:not(:last-child)' },
+                customize: function (win) {
+                    var logoUrl = "{{ url('images/LOGOAFT.png') }}";
+                    $(win.document.body).prepend(`
+                        <div style="text-align:center; margin-bottom:20px;">
+                            <img src="${logoUrl}" style="width:100px; margin-bottom:10px;">
+                            <h3 style="margin:0;">MANIFESTE DES COLIS À ARRIVER</h3>
+                            <hr style="border:1px solid #000;">
+                        </div>
+                    `);
+                    $(win.document.body).find('table').css({
+                        'font-size': '11px',
+                        'border-collapse': 'collapse',
+                        'width': '100%'
+                    });
+                    $(win.document.body).find('th, td').css({
+                        'border': '1px solid #000',
+                        'padding': '6px 8px',
+                        'text-align': 'center'
+                    });
+                }
+            }
         ],
-        order: [[ 1, 'desc' ]]
-    });
-
-    // --- LOGIQUE CORRIGÉE POUR L'OUVERTURE DE LA MODALE ---
-    $('#productTable tbody').on('click', '.pay-btn', function (e) {
-        e.preventDefault();
-        var button = $(this);
-        
-        // On récupère les éléments input une seule fois
-        var euroInput = $('#modalNewPaymentAmountEur');
-        var fcfaInput = $('#modalNewPaymentAmountCfa');
-
-        var creatorAgenceId = parseInt(button.data('creator-agence-id')) || 0;
-        var reference = button.data('reference');
-        var colisId = button.data('colis-id'); 
-        var colisIds = button.data('colis-ids');
-        
-        $('#modalDisplayReference').val(reference);
-        $('#modalColisId').val(colisId);
-        // Assurez-vous que colisIds est bien une chaîne JSON valide
-        $('#modalColisIds').val(typeof colisIds === 'string' ? colisIds : JSON.stringify(colisIds));
-
-        if (creatorAgenceId === 7) {
-            // Logique pour l'agence FCFA
-            $('#euroPaymentFields').hide();
-            euroInput.prop('disabled', true); // <-- NOUVEAU : On désactive le champ EUR
-
-            $('#fcfaPaymentFields').show();
-            fcfaInput.prop('disabled', false); // <-- NOUVEAU : On active le champ FCFA
-
-            let total = parseFloat(button.data('total')) || 0;
-            let paid = parseFloat(button.data('paid')) || 0;
-            let remaining = total - paid;
-            if (remaining <= 0) { Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info'); return; }
-            $('#modalTotalAmount').val(formatCfa(total));
-            $('#modalAmountAlreadyPaid').val(formatCfa(paid));
-            $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatCfa(remaining)}</strong>`);
-            $('#modalNewPaymentAmountCfa').val(Math.round(remaining));
-            $('#modalNewPaymentAmountCfa').trigger('input');
-        } else {
-            // Logique pour les agences EURO
-            $('#fcfaPaymentFields').hide();
-            fcfaInput.prop('disabled', true); // <-- NOUVEAU : On désactive le champ FCFA
-
-            $('#euroPaymentFields').show();
-            euroInput.prop('disabled', false); // <-- NOUVEAU : On active le champ EUR
-
-            let totalEur = parseFloat(button.data('total')) || 0;
-            let paidEur = parseFloat(button.data('paid')) || 0;
-            let remainingEur = totalEur - paidEur;
-            if (remainingEur <= 0) { Swal.fire('Information', 'Ce colis est déjà entièrement payé.', 'info'); return; }
-            let totalCfa = totalEur * EUR_TO_FCFA_RATE;
-            let paidCfa = paidEur * EUR_TO_FCFA_RATE;
-            let remainingCfa = remainingEur * EUR_TO_FCFA_RATE;
-            $('#modalTotalAmount').val(`${formatEur(totalEur)} soit ${formatCfa(totalCfa)}`);
-            $('#modalAmountAlreadyPaid').val(`${formatEur(paidEur)} soit ${formatCfa(paidCfa)}`);
-            $('#modalRemainingAmountDisplay').html(`<strong style="color: #dc3545;">${formatEur(remainingEur)}</strong> soit ${formatCfa(remainingCfa)}`);
-            $('#modalNewPaymentAmountEur').val(remainingEur.toFixed(2));
-            $('#modalNewPaymentAmountEur').trigger('input');
-        }
-        $('#paymentModal').modal('show');
-    });
-
-
-    $('#modalNewPaymentAmountEur').on('input', function() {
-        let amountEur = parseFloat($(this).val()) || 0;
-        $('#modalConvertedAmountCfa').val(formatCfa(amountEur * EUR_TO_FCFA_RATE));
-        $('#modalNewPaymentAmount').val(Math.round(amountEur * EUR_TO_FCFA_RATE));
-    });
-
-    $('#modalNewPaymentAmountCfa').on('input', function() {
-        $('#modalNewPaymentAmount').val(Math.round(parseFloat($(this).val()) || 0));
-    });
-    // --- Logique de soumission du formulaire (inchangée) ---
-    $('#paymentForm').on('submit', function(e) {
-        e.preventDefault(); 
-        var form = $(this);
-        var submitButton = $('#submitPaymentBtn');
-        var originalButtonText = submitButton.html();
-        submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Enregistrement...');
-        var formData = form.serialize();
-
-        $.ajax({
-            url: '{{ route("ipms_angre_colis.valide.payer") }}',
-            type: 'POST',
-            data: formData,
-            dataType: 'json',
-            success: function(response) {
-                $('#paymentModal').modal('hide');
-                Swal.fire({ icon: 'success', title: 'Succès!', text: response.success, timer: 2500, showConfirmButton: false });
-                table.ajax.reload(null, false); 
-            },
-            error: function(xhr) {
-                var errorMessage = 'Une erreur est survenue lors de l\'enregistrement.';
-                if (xhr.responseJSON && xhr.responseJSON.error) { errorMessage = xhr.responseJSON.error; }
-                Swal.fire({ icon: 'error', title: 'Erreur!', text: errorMessage });
-            },
-            complete: function () {
-                submitButton.prop('disabled', false).html(originalButtonText);
-            }
-        });
-    });
-
-    // --- Logique pour le bouton Supprimer/Archiver (inchangée) ---
-    $('#productTable tbody').on('click', '.delete-btn', function (e) {
-        // ... (logique de suppression inchangée) ...
-        e.preventDefault();
-        const button = $(this);
-        const deleteUrl = button.data('url');
-        const reference = button.data('reference');
-        if (!deleteUrl) { Swal.fire('Erreur', 'Impossible de trouver l\'action de suppression.', 'error'); return; }
-        Swal.fire({
-            title: 'Êtes-vous sûr?',
-            html: `Voulez-vous vraiment archiver le(s) colis avec la référence <strong>${reference}</strong> ?<br><small>Cette action est généralement réversible.</small>`,
-            icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Oui, archiver!', cancelButtonText: 'Annuler'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: deleteUrl, type: 'DELETE', dataType: 'json',
-                    success: function (response) {
-                        Swal.fire('Archivé!', response.success || `Le(s) colis avec la référence ${reference} ont été archivés.`, 'success');
-                        table.ajax.reload(null, false);
-                    },
-                    error: function (xhr) {
-                        let errorMsg = 'Une erreur est survenue lors de l\'archivage.';
-                        if(xhr.responseJSON && xhr.responseJSON.error) { errorMsg = xhr.responseJSON.error; }
-                        Swal.fire('Erreur!', errorMsg, 'error');
-                    }
-                });
-            }
-        });
+        order: [[1, 'desc']]
     });
 });
 </script>
 
+</script>
 @endsection

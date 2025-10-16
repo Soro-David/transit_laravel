@@ -1155,7 +1155,6 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::post('/send-individual', [apmsMessagingController::class, 'sendIndividualMessage'])->name('sendIndividual');
     });
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
-        
         // --- ROUTES SPÉCIFIQUES D'ABORD ---
         Route::get('/', [ApmsColisController::class, 'index'])->name('index'); 
         Route::get('/on-dump-simexci', [ApmsColisController::class, 'dump'])->name('dump'); 
@@ -1191,6 +1190,8 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::get('/{coli}/edit', [ApmsColisController::class, 'edit'])->name('edit'); 
         Route::put('/{coli}/update', [ApmsColisController::class, 'update'])->name('update'); 
         Route::delete('/{coli}/destroy', [ApmsColisController::class, 'destroy'])->name('destroy');
+        Route::get('/colis/download-pdf', [ApmsColisController::class, 'downloadColisPdf'])->name('download.pdf');
+
     });
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
         

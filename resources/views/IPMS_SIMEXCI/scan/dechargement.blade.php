@@ -219,6 +219,9 @@ $(function() {
           return $result.text("Aucune caméra détectée.");
         }
 
+        const rearCamera = cameras.find(cam => 
+                        cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear')
+                    ) || cameras[0];
         html5QrCode.start(
           cameras[0].id,
           { fps: 10, qrbox: 250 },
