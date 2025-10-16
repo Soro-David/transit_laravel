@@ -366,8 +366,6 @@ class ProgrammeController extends Controller
                     'is_admin' => true, // Marquer comme créé par admin
                 ]);
 
-                dd($programme);
-
                 // 4. Créer les items du programme
                 foreach ($request->service as $key => $service) {
                     ProgrammeItems::create([
