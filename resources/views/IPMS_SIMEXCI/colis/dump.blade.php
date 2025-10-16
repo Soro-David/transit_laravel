@@ -149,7 +149,7 @@ $(document).ready(function () {
         dom:'Bfrtip',
         buttons:[
             'excel',
-            
+                
             {
                 extend: 'print',
                 title: 'MANIFESTE DES COLIS ARRIVÉS',

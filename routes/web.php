@@ -1191,6 +1191,7 @@ Route::prefix('IPMS_SIMEXCI')->middleware(['auth', 'role:agent'])->group(functio
         Route::put('/{coli}/update', [ApmsColisController::class, 'update'])->name('update'); 
         Route::delete('/{coli}/destroy', [ApmsColisController::class, 'destroy'])->name('destroy');
         Route::get('/colis/download-pdf', [ApmsColisController::class, 'downloadColisPdf'])->name('download.pdf');
+        Route::get('/colis/download-suivi-pdf', [ApmsColisController::class, 'downloadColisSuiviPdf'])->name('downloadColisSuiviPdf');
 
     });
     Route::prefix('ipms_colis')->name('ipms_colis.')->group(function(){
