@@ -37,9 +37,8 @@ use App\Http\Controllers\RdvlbController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AftlbMessagingController;
+use App\Http\Controllers\chineMessagingController;
 use App\Http\Controllers\MessagingController;
-
-
 use App\Models\Colis;
 use App\Http\Controllers\ProgrammeIPMXANGREController;
 use App\Http\Controllers\TransportController;
@@ -113,26 +112,6 @@ Route::get('/test-sms-vonage', function () {
     $message = $response->current();
     return "SMS envoyé avec succès. Status: " . $message->getStatus();
 });
-
-// Route::get('/test-sms', function () {
-//     try {
-//         $sid = env('TWILIO_SID');
-//         $token = env('TWILIO_AUTH_TOKEN');
-//         $twilio = new Client($sid, $token);
-
-//         $message = $twilio->messages->create(
-//             '+2250160003513', // numéro du destinataire avec code pays
-//             [
-//                 'from' => env('TWILIO_PHONE_NUMBER'),
-//                 'body' => 'Bonjour depuis Laravel ! 🚀'
-//             ]
-//         );
-
-//         return "SMS envoyé avec succès. SID : " . $message->sid;
-//     } catch (\Exception $e) {
-//         return "Erreur : " . $e->getMessage();
-//     }
-// });
 
 
 Route::get('/test-mail', function () {

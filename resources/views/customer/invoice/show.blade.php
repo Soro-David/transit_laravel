@@ -56,35 +56,61 @@
         </div>
     </div>
 
-    <!-- Informations livraison -->
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-light py-3">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-shipping-fast text-primary me-2"></i>
-                    Informations Livraison
-                </h5>
+   <!-- Informations principales -->
+<div class="col-lg-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light py-3">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Informations Expéditeur
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Expéditeur</label>
+                <p class="fw-semibold mb-0">{{ $devis->nom_expediteur ?? '-' }} {{ $devis->prenom_expediteur ?? '' }}</p>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Mode de Transit</label>
-                    <p class="fw-semibold mb-0">{{ $devis->mode_transit ?? '-' }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Mode de Retrait</label>
-                    <p class="mb-0">{{ $devis->mode_de_retrait ?? '-' }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Pays</label>
-                    <p class="mb-0">{{ $devis->pays_expedition ?? '-' }}</p>
-                </div>
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Date de Création</label>
-                    <p class="mb-0">{{ $devis->created_at->format('d/m/Y à H:i') }}</p>
-                </div>
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Téléphone</label>
+                <p class="mb-0">{{ $devis->tel_expediteur ?? '-' }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Email</label>
+                <p class="mb-0">{{ $devis->email_expediteur ?? '-' }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Lieu d'expédition</label>
+                <p class="mb-0">{{ $devis->lieu_expedition ?? '-' }}</p>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Informations destinataire -->
+<div class="col-lg-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light py-3">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-user text-primary me-2"></i>
+                Informations Destinataire
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Destinataire</label>
+                <p class="fw-semibold mb-0">{{ $devis->nom_destinataire ?? '-' }} {{ $devis->prenom_destinataire ?? '' }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Téléphone</label>
+                <p class="mb-0">{{ $devis->tel_destinataire ?? '-' }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted mb-1">Lieu de destination</label>
+                <p class="mb-0">{{ $devis->lieu_destination ?? '-' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Résumé financier -->
     <div class="col-lg-4 mb-4">
@@ -96,6 +122,10 @@
                 </h5>
             </div>
             <div class="card-body">
+                <div class="mb-3">
+                    <label class="small text-muted mb-1">Nombre de colis</label>
+                    <p class="fw-semibold mb-0">{{ $devis->colis_count ?? ($devis->devisItems->count() ?? 0) }} colis</p>
+                </div>
                 <div class="mb-3">
                     <label class="small text-muted mb-1">Montant Total</label>
                     <p class="h4 fw-bold text-primary mb-0">

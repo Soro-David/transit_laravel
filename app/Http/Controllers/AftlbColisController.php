@@ -770,8 +770,18 @@ private function generateReferenceParMode(string $mode_transit)
 
         $mode_transit = $data['mode_transit'] ?? '';
         $agence = $data['agence_expediteur'] ?? 'AFT Agence Louis Bleriot';
-        $reference_colis_fournie = $data['reference_colis_maritime'] ?? $data['reference_colis_aerien'] ?? null;
 
+        // Détermination de la référence colis selon le mode de transit
+       if (($data['mode_transit'] ?? '') === 'maritime') {
+            $reference_colis_fournie = $data['reference_colis_maritime'] ?? null;
+        } elseif (($data['mode_transit'] ?? '') === 'aerien') {
+            $reference_colis_fournie = $data['reference_colis_aerien'] ?? null;
+        } else {
+           $reference_colis_fournie = $data['reference_colis'] ?? null;
+        }
+
+
+        // dd($reference_colis_fournie);
         // Récupérer le dernier colis enregistré pour ce mode de transit et cette agence
         $dernierColis = DB::table('colis')
             ->where('mode_transit', $mode_transit)
@@ -779,8 +789,9 @@ private function generateReferenceParMode(string $mode_transit)
             ->orderByDesc('id')
             ->first();
 
+            // dd($dernierColis);
         if (!$dernierColis) {
-            // Cas 1: Aucun colis précédent pour ce mode de transit et agence.
+            // Cas 1: Aucun colis  précédent pour ce mode de transit et agence.
             // On commence un nouveau conteneur avec la référence fournie.
             $referenceColisPrincipale = $reference_colis_fournie;
             $id_reference_next_available = 1;
@@ -822,6 +833,20 @@ private function generateReferenceParMode(string $mode_transit)
         $colisEnregistres = [];
         $erreursCreation = [];
 
+            $service = $data['service'] ?? [];
+    $montantService = $data['prix_service'] ?? [];
+    
+
+    $serviceValue = is_array($service) ? ($service[0] ?? null) : $service;
+    $montantServiceValue = is_array($montantService) ? ($montantService[0] ?? null) : $montantService;
+
+    // 3️⃣ Nettoyage des valeurs vides
+    $serviceValue = $serviceValue ?: 'Aucun'; // ou null selon ton besoin
+    $montantServiceValue = ($montantServiceValue === '' || $montantServiceValue === null)
+         ? 0
+         : (float) $montantServiceValue;
+
+//    dd( $montantService,$serviceValue);
         // Boucle sur chaque ligne d'article pour créer les colis correspondants
         foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
             $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -849,10 +874,10 @@ private function generateReferenceParMode(string $mode_transit)
             for ($i = 1; $i <= $quantite_pour_ligne_article; $i++) {
                 $colisItemData = [
                     'reference_colis' => $referenceColisPrincipale,
-                    'id_reference' => $id_reference_next_available, // Utilise l'ID de référence actuel
+                    'id_reference' => $id_reference_next_available, 
                     'agence' => $agence,
                     'devise' => 'EUR',
-                    'quantite_colis' => 1, // Chaque enregistrement représente un colis physique unique
+                    'quantite_colis' => 1,
                     'service' => $data['service'] ?? null,
                     'montant_service' => $data['prix_service'] ?? null,
                     'produit' => $data['produit'][$index] ?? null,
@@ -870,6 +895,7 @@ private function generateReferenceParMode(string $mode_transit)
                     'qr_code_path' => null,
                 ];
 
+                // dd( $colisItemData);
                 try {
                     $colisModel = Colis::create($colisItemData);
                     
@@ -1680,8 +1706,6 @@ private function generateReferenceParMode(string $mode_transit)
         $totalMontantPaye = $paiements->sum('montant_paye');
 
         
-        // dd($totalMontantPaye);
-
         $restePaye = $totalPrixTransit - $totalMontantPaye;
 
         $restePaye = max(0, $restePaye);

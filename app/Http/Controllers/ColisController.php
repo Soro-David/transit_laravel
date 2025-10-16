@@ -791,9 +791,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
     $destinatairePhoneNumber = $data['tel_destinataire'] ?? $data['tel_destinataire_societe'] ?? '';
     $destinataireTel = trim($destinataireCountryCode . $destinatairePhoneNumber);
 
-    // dd($expediteurTel, $destinataireTel);
 
-    // dd($destinataireCountryCode, $expediteurCountryCode);
        $expediteurData = [
         'nom' => $data['nom_expediteur'] ?? $data['nom_expediteur_societe'] ?? '',
         'prenom' => $data['prenom_expediteur'] ?? $data['prenom_expediteur_societe'] ?? '',
@@ -849,13 +847,14 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
         $modePaiement = $payementDataSession['mode_payement'] ?? null;
         $montantPaiementTransaction = 0;
 
+
         switch ($modePaiement) {
             case 'cash':
                 $montantPaiementTransaction = (float)($payementDataSession['montant_reçu'] ?? 0);
                 break;
 
             case 'delivery':
-                $montantPaiementTransaction = 0; // Payé à la livraison
+                $montantPaiementTransaction = 0;
                 break;
 
             case 'bank':
@@ -909,7 +908,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
             'operateur' => $payementDataSession['operateur_mobile'] ?? null,
             'banque' => $payementDataSession['nom_banque'] ?? null,
             'NumeroPaiement' => $payementDataSession['numero_tel'] ?? $payementDataSession['numero_cheque'] ?? $payementDataSession['numero_compte'] ?? null,
-            'id_transaction' => $transactionId,
+            'id_transaction' => $transactionId  ?? null,
             'statut_paiement' => $statutPaiementGlobal,
             'date_validation' => now(),
             'expediteur_id' => $expediteur->id,
@@ -920,9 +919,12 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
         ];
         $paiementPrincipal = Paiement::create($basePaiementData);
     } catch (\Exception $e) {
+        dd( $e);
         Log::error("Erreur lors de la création du paiement principal : " . $e->getMessage());
         return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'enregistrement du paiement.');
     }
+
+        // dd($montantTotalEstime, $montantService,$montantProduits, $modePaiement,$paiementPrincipal);
 
     $colisEnregistres = [];
     $erreursCreation = [];
@@ -930,7 +932,8 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
     // dd($data);
     $mode_transit = $data['mode_transit'] ?? ''; // Valeur par défaut si absente
     $agence = $data['agence_expediteur_societe'] ?? $data['agence_particulier_expediteur'] ?? $data['agence_expediteur'];
-    // On récupère le dernier colis pour ce mode de transit
+    
+    // Récupération sécurisée (même si c'est un array)
 
     $reference_colis = $data['reference_colis'] ?? null;
 
@@ -1001,13 +1004,23 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 }
             }
         }
-    // dd($referenceColisPrincipale,$message,$dernierColis,);
     $referenceColisPrincipale = $reference_colis;
 
-    // dd($referenceColisPrincipale);
     }
 
-    // Résultat final
+    $service = $data['service'] ?? [];
+    $montantService = $data['prix_service'] ?? [];
+    
+
+    $serviceValue = is_array($service) ? ($service[0] ?? null) : $service;
+    $montantServiceValue = is_array($montantService) ? ($montantService[0] ?? null) : $montantService;
+
+    // 3️⃣ Nettoyage des valeurs vides
+    $serviceValue = $serviceValue ?: 'Aucun'; // ou null selon ton besoin
+    $montantServiceValue = ($montantServiceValue === '' || $montantServiceValue === null)
+         ? 0
+         : (float) $montantServiceValue;
+
 
     foreach ($data['quantite_colis'] as $index => $quantite_pour_ligne_article) {
         $quantite_pour_ligne_article = (int)$quantite_pour_ligne_article;
@@ -1042,8 +1055,8 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 'agence'=>$agence,
                 'reference_contenaire' => $data['reference_contenaire'] ?? null,
                 'quantite_colis' => 1,
-                'service' => $data['service'],
-                'montant_service' => $data['prix_service'] ?? null,
+                'service' => $serviceValue ?? 0,
+                'montant_service' =>$montantServiceValue ?? 0,
                 'produit' => $data['produit'][$index] ?? null,
                 'prix_transit_colis' => $prixUnitairePourCetteLigne,
                 'poids_colis' => $data['poids_colis'][$index] ?? null,
@@ -1059,11 +1072,11 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 'qr_code_path' => null,
             ];
 
-            // dd($colisItemData);
              // Associer le paiement principal à chaque colis créé
             try {
                 $colisModel = Colis::create($colisItemData);
                 
+                // dd( $colisModel);
                 // Mettre à jour le paiement principal avec l'ID du premier colis créé pour référence si nécessaire
                 if ($paiementPrincipal && !$paiementPrincipal->colis_id) {
                     $paiementPrincipal->update(['colis_id' => $colisModel->id]);
@@ -1100,6 +1113,7 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
 
                 // dd($colisModel);
             } catch (\Exception $e) {
+                dd($e);
                 Log::error("Erreur création colis/QR pour index {$index}, item {$i}: " . $e->getMessage(), [
                     'data' => $colisItemData,
                     'exception' => $e

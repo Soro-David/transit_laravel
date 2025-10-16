@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showProgrammationForm(referenceGeneree);
                 });
             } else {
-                window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+                window.location.href = "{{ route('transport.ajout-devis') }}";
             }
         });
     }
@@ -619,35 +619,57 @@ document.addEventListener('DOMContentLoaded', function() {
             cancelButtonText: 'Annuler',
             confirmButtonColor: '#05a805',
             preConfirm: () => {
-                const form = document.getElementById('programmationForm');
-                const formData = new FormData(form);
+    const programmationForm = document.getElementById('programmationForm');
+    const formData = new FormData(programmationForm);
 
-                const nomExp = document.querySelector('input[name="nom_expediteur"]').value;
-                const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value;
-                const telExp = document.querySelector('input[name="tel_expediteur"]').value;
-                const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value;
+    // On récupère et on ajoute explicitement certains champs qui viennent de la page principale
+    const nomExp = document.querySelector('input[name="nom_expediteur"]').value || '';
+    const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value || '';
+    const telExp = document.querySelector('input[name="tel_expediteur"]').value || '';
+    const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value || '';
 
-                formData.append('nom_expediteur', `${nomExp} ${prenomExp}`);
-                formData.append('tel_expediteur', telExp);
-                formData.append('lieu_expedition', adresseExp);
+    formData.set('nom_expediteur', `${nomExp} ${prenomExp}`.trim());
+    formData.set('tel_expediteur', telExp);
+    formData.set('lieu_expedition', adresseExp);
 
-                const url = "{{ route('transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+    // RÉPARATION IMPORTANTE : s'assurer que la nature du colis (saisie dans le popup) est bien envoyée
+    const natureInput = programmationForm.querySelector('input[name="nature_du_colis"]');
+    if (natureInput) {
+        formData.set('nature_du_colis', natureInput.value || 'Colis divers');
+    } else {
+        // fallback: si popup n'a pas d'input (improbable), essayer sur la page principale
+        const mainNature = document.querySelector('input[name="nature_du_colis"]');
+        if (mainNature) formData.set('nature_du_colis', mainNature.value || 'Colis divers');
+    }
 
-                return fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        throw new Error(data.message);
-                    }
-                    return data;
-                });
-            }
+    const url = "{{ route('transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+
+    // DEBUG: log dans la console (temporarily pour vérifier)
+    // NOTE: retirer ces logs en prod
+    // afficher quelques valeurs essentielles :
+    console.log('Programmation form payload preview:', {
+        date_programme: formData.get('date_programme'),
+        user_id: formData.get('user_id'),
+        quantite: formData.get('quantite'),
+        nature_du_colis: formData.get('nature_du_colis'),
+    });
+
+    return fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            // NE PAS fixer Content-Type ici : fetch avec FormData règle automatiquement le boundary.
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            throw new Error(data.message || 'Erreur lors de la programmation');
+        }
+        return data;
+    });
+}
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
@@ -663,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     timer: 3000,
                     timerProgressBar: true,
                     willClose: () => {
-                        window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+                        window.location.href = "{{ route('transport.ajout-devis') }}";
                     }
                 });
             }

@@ -97,7 +97,8 @@ class ProgrammeController extends Controller
 
             // Générer la référence pour admin
             $referenceGeneree = $this->generateReferenceDepotAdmin($user, $chauffeur);
-
+ // AJOUT : Récupérer la date avec l'heure actuelle
+ $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
             // Vérifier les doublons
             $existingProgramme = Programme::where('reference_generee', $referenceGeneree)
                 ->where('actions_a_faire', 'depot')
@@ -113,7 +114,7 @@ class ProgrammeController extends Controller
             // Création du programme de dépôt admin
             $programme = Programme::create([
                 'quantite' => $request->quantite,
-                'date_programme' => $request->date_programme,
+                'date_programme' => $dateAvecHeure,
                 'user_id' => $request->user_id,
                 'agent_id' => $user->id,
                 'reference_generee' => $referenceGeneree,
@@ -175,7 +176,8 @@ class ProgrammeController extends Controller
             $createdCount = 0;
             $failedCount = 0;
             $details = [];
-
+  // AJOUT : Récupérer la date avec l'heure actuelle
+  $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
             foreach ($request->programmes as $index => $programmeData) {
                 try {
                     // Générer la référence pour admin
@@ -198,7 +200,7 @@ class ProgrammeController extends Controller
                     // Création du programme de dépôt admin
                     $programme = Programme::create([
                         'quantite' => $programmeData['quantite'],
-                        'date_programme' => $request->date_programme,
+                        'date_programme' => $dateAvecHeure, 
                         'user_id' => $request->user_id,
                         'agent_id' => $user->id,
                         'reference_generee' => $referenceGeneree,
@@ -321,33 +323,33 @@ class ProgrammeController extends Controller
     }
     public function store_devis(Request $request)
     {
-        \Log::info('Données reçues admin:', $request->all());
-
+        \Log::info('Données reçues admin (store_devis):', $request->all());
+    
         try {
             $devis = DB::transaction(function () use ($request) {
                 // 1. Génération de référence pour admin
-                $initialNom = mb_substr($request->nom_expediteur, 0, 1);
-                $initialPrenom = mb_substr($request->prenom_expediteur, 0, 1);
+                $initialNom = mb_substr($request->nom_expediteur ?? '', 0, 1);
+                $initialPrenom = mb_substr($request->prenom_expediteur ?? '', 0, 1);
                 $initiales = strtoupper($initialNom . $initialPrenom);
-
+    
                 do {
                     $randomNumber = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                     $reference = 'AD' . $randomNumber . $initiales; // AD pour Admin
                 } while (Devis::where('reference', $reference)->exists());
-
+    
                 // 2. Création du programme avec référence -RE
                 $referenceGeneree = $reference . '-RE';
-
+                $dateProgramme = null;
                 // Vérifier si une récupération existe déjà
                 $existingProgramme = Programme::where('reference_generee', $referenceGeneree)->first();
                 if ($existingProgramme) {
                     throw new \Exception('Une récupération avec cette référence existe déjà.');
                 }
-
+    
                 // 3. Création du programme
                 $programme = Programme::create([
                     'quantite' => $this->calculerQuantiteTotale($request),
-                    'date_programme' => null,
+                    'date_programme' => $dateProgramme,
                     'user_id' => null,
                     'agent_id' => auth()->id(),
                     'reference_colis' => $reference,
@@ -359,21 +361,22 @@ class ProgrammeController extends Controller
                     'agence_expedition' => $request->agence_expedition,
                     'lieu_expedition' => $request->adresse_expediteur,
                     'tel_expediteur' => $request->tel_expediteur,
-                    'nature_du_colis' => 'Colis divers',
+                    // fallback lisible si la valeur n'est pas fournie au moment de la création
+                    'nature_du_colis' => $request->input('nature_du_colis', 'Colis divers'),
                     'etat_rdv' => 'à planifié',
                     'mode_transit' => $request->mode_transit,
                     'agence_destination' => $request->agence_destination_societe,
                     'is_admin' => true, // Marquer comme créé par admin
                 ]);
-
-                // 4. Créer les items du programme
-                foreach ($request->service as $key => $service) {
+    
+                // 4. Créer les items du programme (gardez safe si service absent)
+                foreach ($request->service ?? [] as $key => $service) {
                     ProgrammeItems::create([
                         'programme_id' => $programme->id,
-                        'quantite_colis' => $request->quantite_colis[$key],
+                        'quantite_colis' => $request->quantite_colis[$key] ?? 1,
                         'service' => $service,
                         'valeur_colis' => $request->valeur_colis[$key] ?? null,
-                        'type_colis' => $request->type_colis[$key],
+                        'type_colis' => $request->type_colis[$key] ?? 'standard',
                         'description_colis' => $request->description_colis[$key] ?? null,
                         'poids' => $request->poids[$key] ?? null,
                         'longueur' => $request->longueur[$key] ?? null,
@@ -381,7 +384,7 @@ class ProgrammeController extends Controller
                         'hauteur' => $request->hauteur[$key] ?? null,
                     ]);
                 }
-
+    
                 // 5. Création dans la table devis
                 $newDevis = Devis::create([
                     'reference' => $reference,
@@ -398,14 +401,14 @@ class ProgrammeController extends Controller
                     'user_id' => auth()->id(),
                     'etat' => 'à planifié',
                 ]);
-
-                // Créer les items du devis
-                foreach ($request->service as $key => $service) {
+    
+                // Créer les items du devis (safe)
+                foreach ($request->service ?? [] as $key => $service) {
                     $newDevis->items()->create([
-                        'quantite_colis' => $request->quantite_colis[$key],
+                        'quantite_colis' => $request->quantite_colis[$key] ?? 1,
                         'service' => $service,
                         'valeur_colis' => $request->valeur_colis[$key] ?? null,
-                        'type_colis' => $request->type_colis[$key],
+                        'type_colis' => $request->type_colis[$key] ?? 'standard',
                         'description_colis' => $request->description_colis[$key] ?? null,
                         'poids' => $request->poids[$key] ?? null,
                         'longueur' => $request->longueur[$key] ?? null,
@@ -413,13 +416,13 @@ class ProgrammeController extends Controller
                         'hauteur' => $request->hauteur[$key] ?? null,
                     ]);
                 }
-
+    
                 return [
                     'programme' => $programme,
                     'devis' => $newDevis
                 ];
             });
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Programme enregistré !',
@@ -427,58 +430,93 @@ class ProgrammeController extends Controller
                 'programme' => $devis['programme'],
                 'devis' => $devis['devis']
             ]);
-
+    
         } catch (\Exception $e) {
-            Log::error('Erreur lors de la création du devis admin: ' . $e->getMessage());
+            Log::error('Erreur lors de la création du devis admin: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur est survenue lors de la soumission de votre devis. Veuillez réessayer.'
             ], 500);
         }
     }
-
     /**
      * Programmation d'un devis pour admin
      */
     public function programmerDevis(Request $request, $reference)
     {
+        \Log::info('programmerDevis reçu :', $request->all());
+    
         try {
             DB::beginTransaction();
-
+    
+            // Validation : nature_du_colis est optionnelle ici
             $request->validate([
                 'date_programme' => 'required|date',
                 'user_id' => 'required|exists:users,id',
+                'nature_du_colis' => 'nullable|string|max:255',
+                'quantite' => 'nullable|integer',
             ]);
-
+    
+            // Construire la date complète (date + heure actuelle)
+            $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
+    
             // Trouver le programme existant
             $programme = Programme::where('reference_generee', $reference)->first();
-
+    
             if (!$programme) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'Programme non trouvé'
                 ], 404);
             }
-
-            // Mettre à jour le programme avec la date et le chauffeur
-            $programme->update([
-                'date_programme' => $request->date_programme,
+    
+            // Préparer les champs à mettre à jour
+            $updateData = [
+                'date_programme' => $dateAvecHeure,
                 'user_id' => $request->user_id,
                 'etat_rdv' => 'en attente',
-            ]);
-
+            ];
+    
+            // Si la nature du colis est fournie, on l'ajoute explicitement
+            if ($request->filled('nature_du_colis')) {
+                $updateData['nature_du_colis'] = $request->input('nature_du_colis');
+            }
+    
+            // Quantité si fournie (ne pas forcer)
+            if ($request->filled('quantite')) {
+                $updateData['quantite'] = $request->input('quantite');
+            }
+    
+            // Champs additionnels utiles (optionnels)
+            if ($request->filled('nom_expediteur')) {
+                $updateData['nom_expediteur'] = $request->input('nom_expediteur');
+            }
+            if ($request->filled('lieu_expedition')) {
+                $updateData['lieu_expedition'] = $request->input('lieu_expedition');
+            }
+            if ($request->filled('tel_expediteur')) {
+                $updateData['tel_expediteur'] = $request->input('tel_expediteur');
+            }
+    
+            \Log::info('programmerDevis -> updateData:', $updateData);
+    
+            // Mettre à jour
+            $programme->update($updateData);
+    
+            // Rafraîchir le modèle pour renvoyer la version à jour
+            $programme->refresh();
+    
             DB::commit();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Récupération programmée avec succès!',
                 'programme' => $programme
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Erreur programmation devis admin: " . $e->getMessage());
-
+            Log::error("Erreur programmation devis admin: " . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur: ' . $e->getMessage()
@@ -522,7 +560,8 @@ class ProgrammeController extends Controller
 
             $referenceColis = $request->reference_input;
             $modificationsApportees = $request->has('modifications_apportees');
-
+  // AJOUT : Récupérer la date avec l'heure actuelle
+  $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
             // Génération de la référence
             $referenceGeneree = null;
             if ($request->type_reference === 'manuel' && empty($referenceColis)) {
@@ -566,7 +605,7 @@ class ProgrammeController extends Controller
             // Création du programme
             $programme = Programme::create([
                 'quantite'        => $request->quantite,
-                'date_programme'  => $request->date_programme,
+                'date_programme'  => $dateAvecHeure, // Utiliser la date avec heure
                 'user_id'         => $request->user_id,
                 'reference_colis'   => $referenceColis,
                 'reference_generee' => $referenceGeneree,
@@ -728,6 +767,8 @@ class ProgrammeController extends Controller
             $createdCount = 0;
             $failedCount = 0;
             $details = [];
+   // AJOUT : Récupérer la date avec l'heure actuelle
+   $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
 
             foreach ($request->programmes as $index => $programmeData) {
                 try {
@@ -800,7 +841,7 @@ class ProgrammeController extends Controller
                     // Création du programme avec toutes les informations
                     $programme = Programme::create([
                         'quantite'        => $programmeData['quantite'],
-                        'date_programme'  => $request->date_programme,
+                        'date_programme'  => $dateAvecHeure,
                         'user_id'         => $request->user_id,
                         'agent_id'        => $user->id,
                         'reference_colis'   => $referenceColis,
@@ -1126,10 +1167,10 @@ class ProgrammeController extends Controller
                 'nature_du_colis' => 'required|string|max:255',
                 'quantite' => 'required|integer|min:1',
             ]);
-
+            $dateAvecHeure = $request->date_programme . ' ' . now()->format('H:i:s');
             // Mettre à jour le programme
             $programme->update([
-                'date_programme' => $request->date_programme,
+                'date_programme' => $dateAvecHeure, // Utiliser la date avec heure
                 'user_id' => $request->user_id,
                 'actions_a_faire' => $request->actions_a_faire,
                 'nom_expediteur' => $request->nom_expediteur,
@@ -1176,13 +1217,10 @@ class ProgrammeController extends Controller
                     }
                 }
             }
-
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Programme mis à jour avec succès!'
-            ]);
+            // Redirige vers la route nommée 'planing' avec un message de succès
+            return redirect()->route('transport.planing')->with('success', 'Programme mis à jour avec succès!');
 
         } catch (\Exception $e) {
             DB::rollBack();

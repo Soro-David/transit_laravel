@@ -243,13 +243,15 @@
                     <div class="client-details">
                         @php
                             $expediteur = trim(($devis->nom_expediteur ?? '') . ' ' . ($devis->prenom_expediteur ?? ''));
+                            $destinataire = trim(($devis->nom_destinataire ?? '') . ' ' . ($devis->prenom_destinataire ?? ''));
                         @endphp
                         <h3>De: {{ $expediteur ?: 'N/A Expediteur' }}</h3>
                         <p>Tel: {{ $devis->tel_expediteur ?? 'N/A' }}</p>
+                        <p>Adresse: {{ $devis->lieu_expedition ?? 'Non spécifié' }}</p>
                         <br>
-                        <h3>À: {{ $expediteur ?: 'N/A Destinataire' }}</h3>
-                        <p>Tel: {{ $devis->tel_expediteur ?? 'N/A' }}</p>
-                        <p>Adresse: Pas de livraison</p>
+                        <h3>À: {{ $destinataire ?: 'N/A Destinataire' }}</h3>
+                        <p>Tel: {{ $devis->tel_destinataire ?? 'N/A' }}</p>
+                        <p>Adresse: {{ $devis->lieu_destination ?? 'Non spécifié' }}</p>
                     </div>
                 </td>
                 <td style="width: 45%; vertical-align: top;">
@@ -268,35 +270,48 @@
 
         <!-- Items Table -->
         @php
-            $items = $devis->devisItems ?? $devis->items ?? collect();
-            $devise = $devis->devise ?? '';
-            $montantTotal = $devis->montant ?? ($items->sum('montant') ?? 0);
-        @endphp
+        $items = $devis->devisItems ?? $devis->items ?? collect();
+        $devise = $devis->devise ?? '';
+        $montantTotal = $devis->montant ?? ($items->sum('montant') ?? 0);
+    @endphp
 
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th class="col-produit">Produit / Service</th>
-                    <th class="col-qty text-right">Qté</th>
-                    <th class="col-price text-right">P.U. ({{ $devise }})</th>
-                    <th class="col-montant text-right">Montant ({{ $devise }})</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($items as $item)
-                    <tr>
-                        <td>{{ $item->service ?? $item->description_colis ?? '—' }}</td>
-                        <td class="text-right">{{ $item->quantite_colis ?? 1 }}</td>
-                        <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
-                        <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" style="text-align: center;">Aucun article trouvé.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+<table class="items-table">
+    <thead>
+        <tr>
+            <th class="col-produit">Produit / Service</th>
+            <th class="col-qty text-right">Qté</th>
+            <th class="col-price text-right">P.U. ({{ $devise }})</th>
+            <th class="col-montant text-right">Montant ({{ $devise }})</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($items as $item)
+            <tr>
+                <td>
+                    {{ $item->service ?? $item->description_colis ?? '—' }}
+                    @if($item->type_colis)
+                        <br><small><strong>Type:</strong> {{ $item->type_colis }}</small>
+                    @endif
+                    @if($item->poids)
+                        <br><small><strong>Poids:</strong> {{ $item->poids }} kg</small>
+                    @endif
+                    @if($item->longueur || $item->largeur || $item->hauteur)
+                        <br><small><strong>Dimensions:</strong> 
+                            {{ $item->longueur ?? '-' }} × {{ $item->largeur ?? '-' }} × {{ $item->hauteur ?? '-' }}
+                        </small>
+                    @endif
+                </td>
+                <td class="text-right">{{ $item->quantite_colis ?? 1 }}</td>
+                <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
+                <td class="text-right">{{ number_format($item->montant ?? 0, 2, ',', ' ') }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="4" style="text-align: center;">Aucun article trouvé.</td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
 
         <!-- Totals Summary -->
         <div class="totals-summary">

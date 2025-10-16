@@ -64,33 +64,34 @@
     </div>
 @else
             <div id="invoicesContainer" class="p-3">
-       @foreach($devisList as $devis)
-    @php
-        $reference = $devis->reference ?? 'N/A';
-        $clientName = trim(($devis->nom_expediteur ?? '') . ' ' . ($devis->prenom_expediteur ?? ''));
-        $service = $devis->devisItems->first()->service ?? 'Non spécifié';
-    @endphp
-      <div class="invoice-item card mb-4 border-0 shadow-sm hover-shadow transition-all" 
-         data-reference="{{ strtolower($reference) }}" 
-         data-client="{{ strtolower($clientName) }}"
-         data-service="{{ strtolower($service) }}"
-         data-status="validé">
-        <!-- Le reste du code reste inchangé -->
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h6 class="mb-0">
-                        <i class="fas fa-hashtag text-primary me-2"></i>
-                        <strong class="text-dark">{{ $reference }}</strong>
-                    </h6>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <span class="badge bg-success">
-                        <i class="fas fa-check me-1"></i>Validé
-                    </span>
-                </div>
+                @foreach($devisList as $devis)
+                @php
+                    $reference = $devis->reference ?? 'N/A';
+                    $clientName = trim(($devis->nom_expediteur ?? '') . ' ' . ($devis->prenom_expediteur ?? ''));
+                    $service = $devis->devisItems->first()->service ?? 'Non spécifié';
+                    $colisCount = $devis->colis_count ?? $devis->devisItems->count();
+                @endphp
+     <div class="invoice-item card mb-4 border-0 shadow-sm hover-shadow transition-all" 
+     data-reference="{{ strtolower($reference) }}" 
+     data-client="{{ strtolower($clientName) }}"
+     data-service="{{ strtolower($service) }}"
+     data-status="validé">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h6 class="mb-0">
+                    <i class="fas fa-hashtag text-primary me-2"></i>
+                    <strong class="text-dark">{{ $reference }}</strong>
+                    <span class="badge bg-info ms-2">{{ $colisCount }} colis</span>
+                </h6>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="badge bg-success">
+                    <i class="fas fa-check me-1"></i>Validé
+                </span>
             </div>
         </div>
+    </div>
         
         <div class="card-body">
             <div class="row mb-3">

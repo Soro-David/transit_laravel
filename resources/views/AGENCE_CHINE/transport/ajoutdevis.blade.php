@@ -617,35 +617,49 @@ document.addEventListener('DOMContentLoaded', function() {
             cancelButtonText: 'Annuler',
             confirmButtonColor: '#05a805',
             preConfirm: () => {
-                const form = document.getElementById('programmationForm');
-                const formData = new FormData(form);
+    const form = document.getElementById('programmationForm');
+    const formData = new FormData(form);
 
-                const nomExp = document.querySelector('input[name="nom_expediteur"]').value;
-                const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value;
-                const telExp = document.querySelector('input[name="tel_expediteur"]').value;
-                const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value;
+    const nomExp = document.querySelector('input[name="nom_expediteur"]').value || '';
+    const prenomExp = document.querySelector('input[name="prenom_expediteur"]').value || '';
+    const telExp = document.querySelector('input[name="tel_expediteur"]').value || '';
+    const adresseExp = document.querySelector('input[name="adresse_expediteur"]').value || '';
 
-                formData.append('nom_expediteur', `${nomExp} ${prenomExp}`);
-                formData.append('tel_expediteur', telExp);
-                formData.append('lieu_expedition', adresseExp);
+    formData.set('nom_expediteur', `${nomExp} ${prenomExp}`.trim());
+    formData.set('tel_expediteur', telExp);
+    formData.set('lieu_expedition', adresseExp);
 
-                const url = "{{ route('aftlb_transport.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+    // Assurer que la nature du colis est envoyée
+    const natureInput = form.querySelector('input[name="nature_du_colis"]');
+    if (natureInput) {
+        formData.set('nature_du_colis', natureInput.value || 'Colis divers');
+    } else {
+        // fallback : tenter depuis la page
+        const mainNature = document.querySelector('input[name="nature_du_colis"]');
+        if (mainNature) formData.set('nature_du_colis', mainNature.value || 'Colis divers');
+    }
 
-                return fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        throw new Error(data.message);
-                    }
-                    return data;
-                });
-            }
+    console.log('Programmation (Chine) payload preview:', {
+        date_programme: formData.get('date_programme'),
+        user_id: formData.get('user_id'),
+        nature_du_colis: formData.get('nature_du_colis')
+    });
+
+    const url = "{{ route('chine_programme.programmer.devis', ['reference' => ':reference']) }}".replace(':reference', referenceDevis);
+
+    return fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) throw new Error(data.message || 'Erreur lors de la programmation');
+        return data;
+    });
+}
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
@@ -661,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     timer: 3000,
                     timerProgressBar: true,
                     willClose: () => {
-                        window.location.href = "{{ route('aftlb_transport.ajoutDevis') }}";
+                        window.location.href = "{{ route('chine_programme.ajoutDevis') }}";
                     }
                 });
             }

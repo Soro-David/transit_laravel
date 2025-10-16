@@ -93,7 +93,7 @@
                         </div>
                         <div class="card-body bg-light">
                             <div class="row">
-                                <div class="col-md-4 mb-2">
+                                <div class="col-md-3 mb-2">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text bg-white border-right-0">
@@ -125,7 +125,11 @@
                                         <option value="">Tous chauffeurs</option>
                                     </select>
                                 </div>
+                                <!-- NOUVEAU FILTRE PAR DATE -->
                                 <div class="col-md-2 mb-2">
+                                    <input type="date" id="dateFilter" class="form-control" placeholder="Filtrer par date">
+                                </div>
+                                <div class="col-md-1 mb-2">
                                     <div class="btn-group w-100">
                                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pageSizeDropdown" data-toggle="dropdown">
                                             <i class="fas fa-list-ol mr-1"></i><span id="pageSizeDisplay">10</span>
@@ -177,6 +181,10 @@
                             </th>
                             <th style="width: 150px;">
                                 <i class="fas fa-id-card text-muted"></i> Chauffeur
+                            </th>
+                            <!-- NOUVELLE COLONNE DATE PROGRAMME -->
+                            <th class="text-center" style="width: 150px;">
+                                <i class="fas fa-calendar-day text-muted"></i> Date Programme
                             </th>
                             <th class="text-center" style="width: 130px;">
                                 <i class="fas fa-flag text-muted"></i> État
@@ -272,7 +280,10 @@ $(document).ready(function() {
                 }, 1000);
             });
         });
-
+        $('#dateFilter').on('change', function() {
+    currentPage = 1;
+    updateTable();
+});
         // Gestion de la suppression
         $(document).on('click', '.delete-programme-btn', function() {
         const programmeId = $(this).data('id');
@@ -365,7 +376,7 @@ $(document).ready(function() {
         const actionFilter = $('#actionFilter').val();
         const etatFilter = $('#etatFilter').val();
         const chauffeurFilter = $('#chauffeurFilter').val();
-        
+        const dateFilter = $('#dateFilter').val(); // Nouveau filtre date
         return programmesData.filter(p => {
             if (!p) return false;
             
@@ -383,8 +394,13 @@ $(document).ready(function() {
             // Filtre chauffeur
             const chauffeurName = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : '';
             const matchesChauffeur = !chauffeurFilter || chauffeurName === chauffeurFilter;
-            
-            return matchesSearch && matchesAction && matchesEtat && matchesChauffeur;
+             // NOUVEAU : Filtre par date
+        let matchesDate = true;
+        if (dateFilter && p.date_programme) {
+            const programmeDate = new Date(p.date_programme).toISOString().split('T')[0];
+            matchesDate = programmeDate === dateFilter;
+        }
+        return matchesSearch && matchesAction && matchesEtat && matchesChauffeur && matchesDate;
         });
     }
     
@@ -399,72 +415,98 @@ $(document).ready(function() {
     }
 
     function generateTable(programmes) {
-        const tableBody = $('#programmes-table');
-        tableBody.empty();
+    const tableBody = $('#programmes-table');
+    tableBody.empty();
+    
+    if (!programmes || programmes.length === 0) {
+        tableBody.append(`
+            <tr>
+                <td colspan="11" class="text-center py-4">  <!-- Changé de 10 à 11 -->
+                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">Aucun programme trouvé</p>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    programmes.forEach(p => {
+        const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : '<span class="text-muted">N/A</span>';
+        const reference = p.reference_a_afficher || 'N/A';
+        const etat = p.etat_rdv || 'N/A';
         
-        if (!programmes || programmes.length === 0) {
-            tableBody.append(`
-                <tr>
-                    <td colspan="10" class="text-center py-4">
-                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                        <p class="text-muted">Aucun programme trouvé</p>
-                    </td>
-                </tr>
-            `);
-            return;
+        // Gestion de la date du programme
+        let dateProgramme = 'Non planifié';
+        let dateClass = 'text-muted';
+        
+        if (p.date_programme) {
+            // Formater la date en français
+            const dateObj = new Date(p.date_programme);
+            dateProgramme = dateObj.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            dateClass = 'text-dark';
+            
+            // Ajouter l'heure si disponible
+            if (p.date_programme.includes(':')) {
+                const heures = dateObj.getHours().toString().padStart(2, '0');
+                const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                dateProgramme += `<br><small class="text-muted">${heures}:${minutes}</small>`;
+            }
         }
         
-        programmes.forEach(p => {
-            const user = p.user ? `${p.user.first_name || ''} ${p.user.last_name || ''}`.trim() : '<span class="text-muted">N/A</span>';
-            const reference = p.reference_a_afficher || 'N/A';
-            const etat = p.etat_rdv || 'N/A';
-            
-            const actionsHtml = etat !== 'effectué' ? 
-               `<div class="btn-group btn-group-sm">
-                    <a href="{{ route('aftlb_transport.programme.edit.page', '') }}/${p.id}-aft-louis-b" class="btn btn-outline-info" title="Modifier">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <button class="btn btn-outline-danger delete-programme-btn" data-id="${p.id}" title="Supprimer">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>` : 
-                `<button class="btn btn-sm btn-outline-success" disabled title="Programme terminé">
-                    <i class="fas fa-check-circle"></i>
-                </button>`;
+        const actionsHtml = etat !== 'effectué' ? 
+           `<div class="btn-group btn-group-sm">
+                <a href="{{ route('aftlb_transport.programme.edit.page', '') }}/${p.id}-aft-louis-b" class="btn btn-outline-info" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <button class="btn btn-outline-danger delete-programme-btn" data-id="${p.id}" title="Supprimer">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>` : 
+            `<button class="btn btn-sm btn-outline-success" disabled title="Programme terminé">
+                <i class="fas fa-check-circle"></i>
+            </button>`;
 
-            tableBody.append(`
-                <tr>
-                    <td class="text-center font-weight-bold">${p.quantite || 1}</td>
-                    <td class="text-center">${getActionBadge(p.actions_a_faire)}</td>
-                    <td>
-                        <span class="font-weight-bold text-dark">${reference}</span>
-                    </td>
-                    <td>
-                        <span class="badge badge-light border text-dark">${p.nature_du_colis || 'N/A'}</span>
-                    </td>
-                    <td>
-                        <div class="client-info">
-                            <div class="font-weight-bold text-dark">${p.nom_expediteur || 'N/A'}</div>
-                        </div>
-                    </td>
-                    <td>
-                        <a href="tel:${p.tel_expediteur || ''}" class="text-dark">
-                            <i class="fas fa-phone mr-1 text-muted"></i>${p.tel_expediteur || 'N/A'}
-                        </a>
-                    </td>
-                    <td class="text-truncate" style="max-width: 200px;" title="${p.lieu_expedition || ''}">
-                        <i class="fas fa-map-marker-alt text-muted mr-1"></i>
-                        ${p.lieu_expedition || 'N/A'}
-                    </td>
-                    <td>
-                        <span class="font-weight-bold text-dark">${user}</span>
-                    </td>
-                    <td class="text-center">${getEtatBadge(etat)}</td>
-                    <td class="text-center">${actionsHtml}</td>
-                </tr>
-            `);
-        });
-    }
+        tableBody.append(`
+            <tr>
+                <td class="text-center font-weight-bold">${p.quantite || 1}</td>
+                <td class="text-center">${getActionBadge(p.actions_a_faire)}</td>
+                <td>
+                    <span class="font-weight-bold text-dark">${reference}</span>
+                </td>
+                <td>
+                    <span class="badge badge-light border text-dark">${p.nature_du_colis || 'N/A'}</span>
+                </td>
+                <td>
+                    <div class="client-info">
+                        <div class="font-weight-bold text-dark">${p.nom_expediteur || 'N/A'}</div>
+                    </div>
+                </td>
+                <td>
+                    <a href="tel:${p.tel_expediteur || ''}" class="text-dark">
+                        <i class="fas fa-phone mr-1 text-muted"></i>${p.tel_expediteur || 'N/A'}
+                    </a>
+                </td>
+                <td class="text-truncate" style="max-width: 200px;" title="${p.lieu_expedition || ''}">
+                    <i class="fas fa-map-marker-alt text-muted mr-1"></i>
+                    ${p.lieu_expedition || 'N/A'}
+                </td>
+                <td>
+                    <span class="font-weight-bold text-dark">${user}</span>
+                </td>
+                <!-- NOUVELLE COLONNE DATE -->
+                <td class="text-center ${dateClass}">
+                    <small>${dateProgramme}</small>
+                </td>
+                <td class="text-center">${getEtatBadge(etat)}</td>
+                <td class="text-center">${actionsHtml}</td>
+            </tr>
+        `);
+    });
+}
 
     function generatePagination(totalItems) {
         const totalPages = Math.ceil(totalItems / itemsPerPage);

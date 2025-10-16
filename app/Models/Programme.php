@@ -38,11 +38,24 @@ class Programme extends Model
         'etat_rdv',
         'qr_code',
     ];
-    
+
+    /**
+     * IMPORTANT :
+     * - 'date_programme' doit être casté en "datetime" (pas 'date') pour conserver l'heure.
+     * - Ici je demande un format précis pour la sérialisation JSON : 'Y-m-d H:i:s'
+     */
     protected $casts = [
-        'date_programme' => 'date',
+        'date_programme' => 'datetime:Y-m-d H:i:s',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+    ];
+
+    /**
+     * (Optionnel) Ajoute un champ sérialisé en plus pour l'affichage frontal
+     * Exemple : '16/10/2025 09:25' -> utile si tu veux l'afficher tel quel côté JS
+     */
+    protected $appends = [
+        'date_programme_formatted',
     ];
 
     // Relation avec l'utilisateur qui a créé le programme
@@ -88,5 +101,19 @@ class Programme extends Model
     {
         $this->montant = $this->items()->sum('montant');
         $this->saveQuietly();
+    }
+
+    /**
+     * Accessor optionnel : renvoie une chaîne lisible pour l'affichage (d/m/Y H:i)
+     * Ce champ sera présent dans la JSON grâce à $appends.
+     */
+    public function getDateProgrammeFormattedAttribute(): ?string
+    {
+        if (!$this->date_programme) {
+            return null;
+        }
+
+        // $this->date_programme est un Carbon instance grâce au cast 'datetime'
+        return $this->date_programme->format('d/m/Y H:i');
     }
 }
