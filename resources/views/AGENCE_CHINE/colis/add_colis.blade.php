@@ -741,6 +741,9 @@ jQuery(document).ready(function($) {
                 url: "{{ route('chine_colis.devis.search') }}",
                 dataType: "json",
                 data: { term: request.term },
+                 headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                 success: function(data) { response(data); }
             });
         },
@@ -764,6 +767,9 @@ function chargerInformationsCompletesDuDevis(programmeId) {
         url: "{{ route('chine_colis.devis.getItems', ['programme' => 'PROGRAMME_ID']) }}"
             .replace('PROGRAMME_ID', programmeId),
         type: 'GET',
+         headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
         success: function(response) {
             if (response.programme) {
                 const programme = response.programme;
@@ -858,6 +864,9 @@ $(document).ready(function () {
             url: "{{ route('chine_colis.clients.search') }}",
             dataType: 'json',
             data: { q: query },
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function (data) {
                 resultsContainer.empty();
                 if (data.length > 0) {
@@ -1048,6 +1057,9 @@ $(document).ready(function () {
             if (query.length < 2) { resultsContainer.empty().hide(); return; }
             $.ajax({
                 url: url, type: "GET", dataType: "json", data: { query: query, categorie: categorie },
+                 headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                 success: function(data) {
                     resultsContainer.empty().show();
                     if (data.length > 0) {
@@ -1087,6 +1099,9 @@ $(document).ready(function () {
         btn.prop("disabled", true).text("Enregistrement...");
         $.ajax({
             url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function (response) {
                 alert(response.message);
                 if (activeProduitInput) {
@@ -1110,6 +1125,9 @@ $(document).ready(function () {
         btn.prop("disabled", true).text("Enregistrement...");
         $.ajax({
             url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function (response) {
                 alert(response.message);
                 $('.service-input').val(data.description);

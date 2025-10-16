@@ -715,6 +715,9 @@ $(document).ready(function() {
                 agence_expediteur: agence,
                 _token: '{{ csrf_token() }}'
             },
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function(data) {
                 if (data.error) {
                     $('#reference_colis_input').val(data.error);
@@ -755,6 +758,9 @@ $(document).ready(function() {
             url: "{{ route('colis.clients.search') }}",
             dataType: 'json',
             data: { q: query },
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function(data) {
                 resultsContainer.empty();
                 if (data.length > 0) {
@@ -893,14 +899,17 @@ $(document).ready(function() {
     // LOGIQUE DEVIS
     // =================================================================
     $("#devis_reference_autocomplete").autocomplete({
-        source: (request, response) => {
-            $.ajax({
-                url: "{{ route('colis.devis.search') }}",
-                dataType: "json",
-                data: { term: request.term },
-                success: data => response(data)
-            });
-        },
+            source: (request, response) => {
+                $.ajax({
+                    url: "{{ route('colis.devis.search') }}",
+                    dataType: "json",
+                    data: { term: request.term },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: data => response(data)
+                });
+            },
         minLength: 2,
         select: (event, ui) => {
             event.preventDefault();
@@ -917,6 +926,9 @@ $(document).ready(function() {
         $.ajax({
             url: url,
             type: 'GET',
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function(response) {
                 colisContainer.empty();
                 if (response.items && response.items.length > 0) {
@@ -966,6 +978,9 @@ $(document).ready(function() {
             if (query.length < 2) { resultsContainer.empty().hide(); return; }
             $.ajax({
                 url: url, type: "GET", dataType: "json", data: { query: query, categorie: categorie },
+                 headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                 success: function(data) {
                     resultsContainer.empty().show();
                     if (data.length > 0) {
@@ -1013,6 +1028,9 @@ $(document).ready(function() {
 
         $.ajax({
             url: btn.data("url"), type: "POST", data: data, dataType: 'json',
+             headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
             success: function(response) {
                 Swal.fire('Succès!', response.message, 'success');
                 const modal = isService ? $("#ServiceModal") : $("#produitModal");
