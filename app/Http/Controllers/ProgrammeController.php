@@ -323,6 +323,7 @@ class ProgrammeController extends Controller
     {
         \Log::info('Données reçues admin:', $request->all());
 
+        dd($request);
         try {
             $devis = DB::transaction(function () use ($request) {
                 // 1. Génération de référence pour admin
