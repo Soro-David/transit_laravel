@@ -100,17 +100,18 @@
                         <label for="mode_transit" class="form-label">Mode de transit</label>
                         <select name="mode_transit" id="mode_transit" class="form-select">
                             <option value="" disabled selected>-- Choisir --</option>
-                            <option value="maritime">Maritime</option>
-                            <option value="aerien">Aérien</option>
+                            <option value="maritime" {{ old('mode_transit') == 'maritime' ? 'selected' : '' }}>Maritime</option>
+                            <option value="aerien" {{ old('mode_transit') == 'aerien' ? 'selected' : '' }}>Aérien</option>
                         </select>
                     </div>
 
                     <div class="col-md-4">
                         <label for="agence_destination_societe" class="form-label">Agence D'expedition</label>
                         <select name="agence_destination_societe" id="agence_destination_societe" class="form-select">
+                            <!-- options générées dynamiquement par JS -->
                             <option value="" disabled selected>-- Choisir --</option>
-                            <option value="IPMS-SIMEX-CI">Carrefour Angré</option>
-                            <option value="IPMS-SIMEX-CI Angre 8ème Tranche">Angré 8ème Tranche</option>
+                            <option value="IPMS-SIMEX-CI">DS Translog Carrefour Angré</option>
+                            <option value="IPMS-SIMEX-CI-ANGRE-8">DS Translog Angré 8ème Tranche</option>
                         </select>
                     </div>
 
@@ -292,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form.form-container');
     const deviseHidden = document.getElementById('devise_hidden');
     const modeTransitSelect = document.getElementById('mode_transit');
-    const agenceDestSelect = document.querySelector('select[name="agence_destination_societe"]');
+    const agenceDestSelect = document.getElementById('agence_destination_societe');
     const btnSubmitDevis = document.getElementById('btn-submit-devis');
     const wizardTitle = document.getElementById('wizard-title');
     const wizardEmoji = document.getElementById('wizard-emoji');
@@ -324,46 +325,90 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setDeviseToEUR();
 
-    if (!modeTransitSelect || !agenceDestSelect) {
-        // continue, mais certaines fonctionnalités seront désactivées
-    }
-
-    const targetsByMode = {
-        maritime: ['Carrefour Angré', 'Carrefour Angre', 'Carrefour-Angré'],
-        aerien:  ['Angré 8ème Tranche', 'Angre 8ème Tranche', 'Angré 8eme Tranche']
+    // ------------------- Agences par mode -------------------
+    const agenceOptionsByMode = {
+        maritime: [
+            { value: 'IPMS-SIMEX-CI', label: 'DS Translog Carrefour Angré' }
+        ],
+        aerien: [
+            { value: 'IPMS-SIMEX-CI-ANGRE-8', label: 'DS Translog Angré 8ème Tranche' }
+        ]
     };
 
-    function setAgenceByMode(mode) {
-        const targets = targetsByMode[mode] || [];
-        if (targets.length === 0) return;
+    /**
+     * Remplit le select agence_destination_societe selon le mode fourni.
+     * - si mode est 'maritime' : n'affiche que l'option maritime
+     * - si mode est 'aerien' : n'affiche que l'option aerien
+     * - si mode est falsy : restaure les deux options (placeholder + toutes)
+     */
+    function updateAgenceOptions(mode) {
+        if (!agenceDestSelect) return;
 
-        for (const opt of agenceDestSelect.options) {
-            if (targets.includes(opt.value) || targets.includes(opt.text)) {
-                agenceDestSelect.value = opt.value;
-                agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                return;
-            }
-        }
+        // gardons la valeur précédente pour tenter de la restaurer si pertinente
+        const previousValue = agenceDestSelect.value || '';
 
-        for (const opt of agenceDestSelect.options) {
-            const txt = (opt.text || '').toLowerCase();
-            for (const t of targets) {
-                if (txt.indexOf(t.toLowerCase()) !== -1) {
-                    agenceDestSelect.value = opt.value;
-                    agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                    return;
+        // vide le select
+        agenceDestSelect.innerHTML = '';
+
+        // placeholder
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        placeholder.textContent = '-- Choisir --';
+        agenceDestSelect.appendChild(placeholder);
+
+        if (!mode) {
+            // mode non choisi => proposer toutes les options
+            const all = [].concat(...Object.values(agenceOptionsByMode));
+            all.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                // si old input correspond, garder sélection
+                if (previousValue && previousValue === opt.value) {
+                    o.selected = true;
                 }
+                agenceDestSelect.appendChild(o);
+            });
+            agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+        }
+
+        const list = agenceOptionsByMode[mode] || [];
+        list.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt.value;
+            o.textContent = opt.label;
+            agenceDestSelect.appendChild(o);
+        });
+
+        // si la valeur précédente correspond à une option disponible, la restaurer
+        const restore = Array.from(agenceDestSelect.options).find(o => o.value === previousValue);
+        if (restore) {
+            agenceDestSelect.value = previousValue;
+        } else {
+            // sinon sélectionner la première option du mode
+            if (list.length > 0) {
+                agenceDestSelect.value = list[0].value;
             }
         }
+
+        agenceDestSelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
+    // écouteur sur changement de mode
     if (modeTransitSelect) {
         modeTransitSelect.addEventListener('change', function() {
-            setAgenceByMode(this.value);
-            toggleFields(this.value);
+            const mode = this.value;
+            updateAgenceOptions(mode);
+            toggleFields(mode);
         });
-        setAgenceByMode(modeTransitSelect.value);
     }
+
+    // appel initial pour respecter la sélection antérieure (old value) si présente
+    const initialMode = modeTransitSelect ? modeTransitSelect.value : '';
+    updateAgenceOptions(initialMode);
 
     // ---------- Toggle dimension/poids ----------
     function toggleFields(mode) {
