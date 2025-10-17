@@ -24,11 +24,12 @@
                                     <th class="text-center">St. Paiement</th>
                                     <th>Référence</th>
                                     <th class="text-center">Nb. Colis</th>
+                                    <th class="text-center">Produit</th>
                                     <th>Expéditeur</th>
-                                    <th>Tél. Exp</th>
+                                    {{-- <th>Tél. Exp</th> --}}
                                     {{-- <th>Agence Expéditeur</th> --}}
                                     <th>Destinataire</th>
-                                    <th>Tél. Dest.</th>
+                                    {{-- <th>Tél. Dest.</th> --}}
                                     <th>Agence Dest.</th>
                                     <th>Status Colis</th>
                                     <th>Date</th>
@@ -188,18 +189,19 @@ $(document).ready(function () {
             { data: 'statut_paiement', name: 'statut_paiement', orderable: false, searchable: false, className: 'text-center' },
             { data: 'reference_colis', name: 'reference_colis' },
             { data: 'nombre_de_colis', name: 'nombre_de_colis', className: 'text-center' },
+            { data: 'produit', name: 'produit' },
             {
                 data: null, name: 'expediteur_nom',
-                render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || ''); },
+                render: function (data, type, row) { return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || '') +' '+ (row.expediteur_tel || ''); },
                 searchable: true, orderable: true 
             },
-            { data: 'expediteur_tel', name: 'expediteurs.tel' },
+            // { data: 'expediteur_tel', name: 'expediteurs.tel' },
             {
                 data: null, name: 'destinataire_nom',
-                render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || ''); },
+                render: function (data, type, row) { return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '')  +' '+ (row.destinataire_tel || ''); },
                  searchable: true, orderable: true
             },
-            { data: 'destinataire_tel', name: 'destinataires.tel' },
+            // { data: 'destinataire_tel', name: 'destinataires.tel' },
             {
                 data: 'destinataire_agence',
                 name: 'destinataire_agence.nom_agence',

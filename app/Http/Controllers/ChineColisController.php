@@ -2248,6 +2248,7 @@ public function get_colis_valide(Request $request)
                 'colis.id',
                 'colis.reference_colis',
                 'colis.quantite_colis',
+                'colis.produit',
                 'colis.prix_transit_colis',
                 'colis.expediteur_id', // Garder les IDs si besoin pour les relations
                 'colis.destinataire_id',
@@ -2311,7 +2312,8 @@ public function get_colis_valide(Request $request)
 
                 return [
                     'reference_colis' => $reference,
-                    'nombre_de_colis' => $quantiteTotale, // Somme des quantités
+                    'nombre_de_colis' => $quantiteTotale,
+                    'produit' => $firstColis->produit,
                     'expediteur_nom' => $firstColis->expediteur_nom,
                     'expediteur_prenom' => $firstColis->expediteur_prenom,
                     'expediteur_tel' => $firstColis->expediteur_tel,
