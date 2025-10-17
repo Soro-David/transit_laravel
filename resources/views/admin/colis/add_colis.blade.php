@@ -99,8 +99,9 @@
                 {{-- ===== PARTICULIER EXPÉDITEUR ===== --}}
                 <div id="particulier_expediteur_section" style="display: none;">
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="nom_expediteur" class="form-label">Nom</label><input type="text" name="nom_expediteur" id="nom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="prenom_expediteur" class="form-label">Prénom</label><input type="text" name="prenom_expediteur" id="prenom_expediteur" class="form-control"></div>
+                        <div class="col-md-4 mb-3"><label for="adresse_expediteur" class="form-label">Adresse Expéditeur</label><input type="text" name="adresse_expediteur" id="adresse_expediteur" class="form-control" placeholder="Saint Bernard"></div>
                         <div class="col-md-6 mb-3"><label for="email_expediteur" class="form-label">Email</label><input type="email" name="email_expediteur" id="email_expediteur" class="form-control"></div>
                         <div class="col-md-6 mb-3"><label for="tel_expediteur" class="form-label">Téléphone</label><input type="text" name="tel_expediteur" id="tel_expediteur" class="form-control" placeholder="Ex: 0123456789"></div>
                     </div>
@@ -781,6 +782,8 @@ $(document).ready(function() {
                                 $('#prenom_expediteur').val(selectedClient.last_name);
                                 $('#email_expediteur').val(selectedClient.email);
                                 $('#tel_expediteur').val(selectedClient.tel);
+                                // $('#tel_expediteur').val(selectedClient.tel);
+                                $('#adresse_expediteur').val(client.adresse);
                             } else if (selectedClient.category === 'societe') {
                                 $('#nom_societe_expediteur').val(selectedClient.first_name);
                                 $('#email_societe_expediteur').val(selectedClient.email);
