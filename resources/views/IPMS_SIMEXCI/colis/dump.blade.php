@@ -24,20 +24,21 @@
                     <table id="productTable" class="table table-bordered table-striped display" style="width:100%">
                         <thead>
                             <tr>
-                                <th class="text-center">St. Paiement</th>
-                                <th>Référence</th>
-                                <th>Nom Produit</th>
-                                <th class="text-center">Nb. Colis</th>
-                                <th>Montant Total</th>
-                                <th>Montant Payé</th>
-                                <th>Reste à Payer</th>
-                                <th>Expéditeur</th>
-                                <th>Tél. Exp</th>
-                                <th>Destinataire</th>
-                                <th>Tél. Dest.</th>
-                                <th>Status Colis</th>
-                                <th>Date</th>
-                                <th class="text-center">Action</th>
+                                <th >Paiement</th>
+                                <th >Référence</th>
+                                <th >Produit</th>
+                                <th >Nb.colis</th>
+                                <th >Montant Total</th>
+                                <th >Montant Payé</th>
+                                <th >Reste</th>
+                                <th >Expéditeur</th>
+                                {{-- <th >Téléphone Exp.</th> --}}
+                                <th >Destinataire</th>
+                                {{-- <th >Téléphone Dest.</th> --}}
+                                {{-- <th >Agence Destinataire</th> --}}
+                                <th >Statut</th>
+                                <th >Date</th>
+                                <th >Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -130,22 +131,67 @@ $(document).ready(function () {
         scrollX: true,
         language:{url:"{{ asset('js/fr-FR.json') }}"},
         ajax:'{{ route("ipms_colis.get.colis.dump") }}',
-        columns:[
-            { data:'statut_paiement', className:'text-center', orderable:false, searchable:false },
-            { data:'reference_colis' },
-            { data:'nom_produit' },
-            { data:'nombre_de_colis', className:'text-center' },
-            { data:'montant_total', render: function(d){return formatCfa(d);} },
-            { data:'montant_paye', render: function(d){return formatCfa(d);} },
-            { data:'reste_a_payer', render: function(d){return formatCfa(d);} },
-            { data: null, render: (d, t, r) => (r.expediteur_nom || '') + ' ' + (r.expediteur_prenom || '') },
-            { data:'expediteur_tel' },
-            { data: null, render: (d, t, r) => (r.destinataire_nom || '') + ' ' + (r.destinataire_prenom || '') },
-            { data:'destinataire_tel' },
-            { data:'etat' },
-            { data:'created_at' },
-            { data:'action', orderable:false, searchable:false, className:'text-center' }
-        ],
+         columns: [
+                { data: 'statut_paiement' },
+                { data: 'reference_colis' },
+                { data: 'nom_produit' },
+                { data: 'nombre_de_colis' },
+                { 
+                    data: 'montant_total',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
+                    }
+                },
+                { 
+                    data: 'montant_paye',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
+                    }
+                },
+                { 
+                    data: 'reste_a_payer',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        var color = data > 0 ? 'red' : 'green';
+                        return '<span style="color: ' + color + '; font-weight: bold;">' +
+                            (data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise) +
+                            '</span>';
+                    }
+                },
+
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || '')+ ' ' + (row.expediteur_tel || '');
+                    }
+                },
+                // { data: 'expediteur_tel' },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '')+ ' ' + (row.destinataire_tel || '');
+                    }
+                },
+                // { data: 'destinataire_tel' },
+                // { data: 'destinataire_agence' },
+                { 
+                    data: 'etat',
+                    render: function(data, type, row) {
+                        var badgeClass = 'badge bg-secondary';
+                        if (data === 'Validé') badgeClass = 'badge bg-success';
+                        else if (data === 'En attente') badgeClass = 'badge bg-warning';
+                        else if (data === 'Rejeté') badgeClass = 'badge bg-danger';
+                        
+                        return '<span class="' + badgeClass + '">' + (data || 'N/A') + '</span>';
+                    }
+                },
+                { 
+                    data: 'created_at',
+                },
+                { data: 'action' }
+            ],
         dom:'Bfrtip',
         buttons:[
             'excel',
@@ -239,4 +285,81 @@ $(document).ready(function () {
     });
 });
 </script>
+
+<style>
+    .btn {
+        width: auto;
+        height: 40px;
+        font-size: 16px;
+        padding: 0 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        transform: scale(1.05);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
+    }
+
+    .dataTable-wrapper {
+        width: 100% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+</style>
 @endsection

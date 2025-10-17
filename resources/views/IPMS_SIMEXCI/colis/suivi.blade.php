@@ -23,21 +23,18 @@
                             <table id="productTable" class="table table-bordered table-striped display">
                                 <thead>
                                     <tr>
-                                        <th>Référence</th>
-                                        <th>Nom Produit</th>
-                                        <th>Nombre de colis</th>
-                                        <th>Montant Total</th>
-                                        <th>Montant Payé</th>
-                                        <th>Reste à Payer</th>
-                                        <th>Statut Paiement</th>
-                                        <th>Expéditeur</th>
-                                        <th>Téléphone Exp.</th>
-                                        <th>Destinataire</th>
-                                        <th>Téléphone Dest.</th>
-                                        <th>Agence Destinataire</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
+                                        <th >Paiement</th>
+                                        <th >Référence</th>
+                                        <th >Produit</th>
+                                        <th >Nb.colis</th>
+                                        <th >Montant Total</th>
+                                        <th >Montant Payé</th>
+                                        <th >Reste</th>
+                                        <th >Expéditeur</th>
+                                        <th >Destinataire</th>
+                                        <th >Statut</th>
+                                        <th >Date</th>
+                                        <th >Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -59,46 +56,50 @@
             },
             ajax: '{{ route("ipms_colis.get.colis.suivi") }}',
             columns: [
+                { data: 'statut_paiement' },
                 { data: 'reference_colis' },
                 { data: 'nom_produit' },
                 { data: 'nombre_de_colis' },
                 { 
                     data: 'montant_total',
                     render: function(data, type, row) {
-                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' FCFA' : '0 FCFA';
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
                     }
                 },
                 { 
                     data: 'montant_paye',
                     render: function(data, type, row) {
-                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' FCFA' : '0 FCFA';
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
                     }
                 },
                 { 
                     data: 'reste_a_payer',
                     render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
                         var color = data > 0 ? 'red' : 'green';
-                        return '<span style="color: ' + color + '; font-weight: bold;">' + 
-                               (data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' FCFA' : '0 FCFA') + 
-                               '</span>';
+                        return '<span style="color: ' + color + '; font-weight: bold;">' +
+                            (data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise) +
+                            '</span>';
                     }
                 },
-                { data: 'statut_paiement' },
+
                 {
                     data: null,
                     render: function (data, type, row) {
-                        return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || '');
+                        return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || '')+ ' ' + (row.expediteur_tel || '');
                     }
                 },
-                { data: 'expediteur_tel' },
+                // { data: 'expediteur_tel' },
                 {
                     data: null,
                     render: function (data, type, row) {
-                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '');
+                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '')+ ' ' + (row.destinataire_tel || '');
                     }
                 },
-                { data: 'destinataire_tel' },
-                { data: 'destinataire_agence' },
+                // { data: 'destinataire_tel' },
+                // { data: 'destinataire_agence' },
                 { 
                     data: 'etat',
                     render: function(data, type, row) {
@@ -236,6 +237,7 @@
     .btn-success {
         background-color: #28a745;
         color: white;
+        
     }
 
     .btn-success:hover {
@@ -283,11 +285,13 @@
         font-weight: bold;
         text-align: center;
         vertical-align: middle;
+        font-size: 12px
     }
 
     .table td {
         text-align: center;
         vertical-align: middle;
+        font-size: 12px
     }
 
     .action-buttons-container {

@@ -3043,7 +3043,7 @@ public function get_colis_hold(Request $request)
                 // ->where('colis.etat', 'Validé')
                 ->where('expediteurs.agence', 'Agence de Chine')
                 ->whereNull('colis.archived_at') // Exclure les colis archivés
-                ->orderBy('colis.created_at', 'desc') // Optionnel: trier
+                ->orderBy('colis.created_at', 'desc')
                 ->get();
 
                 $colisIds = $colis->pluck('id')->unique()->toArray();

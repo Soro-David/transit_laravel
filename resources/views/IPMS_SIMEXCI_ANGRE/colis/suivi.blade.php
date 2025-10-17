@@ -23,15 +23,18 @@
                                     <table id="productTable" class="table table-bordered table-striped display">
                                         <thead>
                                             <tr>
-                                                <th>Référence</th>
-                                                <th>Nombre de colis</th>
-                                                <th>Expéditeur</th>
-                                                <th>Téléphone</th>
-                                                <th>Destinataire</th>
-                                                <th>Téléphone</th>
-                                                <th>Agence Destinataire</th>
-                                                <th>Status</th>
-                                                <th>Date</th>
+                                                <th >Paiement</th>
+                                                <th >Référence</th>
+                                                <th >Produit</th>
+                                                <th >Nb.colis</th>
+                                                <th >Montant Total</th>
+                                                <th >Montant Payé</th>
+                                                <th >Reste</th>
+                                                <th >Expéditeur</th>
+                                                <th >Destinataire</th>
+                                                <th >Statut</th>
+                                                <th >Date</th>
+                                                {{-- <th >Actions</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -52,40 +55,77 @@ $(document).ready(function () {
                 url: "{{ asset('js/fr-FR.json') }}" // Chemin local vers le fichier
             },
         ajax: '{{ route("ipms_angre_colis.get.colis.suivi")}}', // Récupération des données via AJAX
-        columns: [
-            { data: 'reference_colis' },
-            { data: 'nombre_de_colis' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    console.log(data);
-                    return row.expediteur_nom + ' ' + row.expediteur_prenom;
-                }
-            },
-            { data: 'expediteur_tel' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return row.destinataire_nom + ' ' + row.destinataire_prenom;
-                }
-            },
-            { data: 'destinataire_agence' },
-            { data: 'destinataire_tel' },
-            { data: 'etat' },
-            { data: 'created_at',
-                render: function(data, type, row) {
-                    if (data) {
-                        var date = new Date(data);
-                        var day = ('0' + date.getDate()).slice(-2);  
-                        var month = ('0' + (date.getMonth() + 1)).slice(-2);  
-                        var year = date.getFullYear().toString().slice(-2);  
-                        return day + '/' + month + '/' + year;
+         columns: [
+                { data: 'statut_paiement' },
+                { data: 'reference_colis' },
+                { data: 'nom_produit' },
+                { data: 'nombre_de_colis' },
+                { 
+                    data: 'montant_total',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
                     }
-                    return data;
-                }
-            },
-            // { data: 'action' },
-        ],
+                },
+                { 
+                    data: 'montant_paye',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        return data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise;
+                    }
+                },
+                { 
+                    data: 'reste_a_payer',
+                    render: function(data, type, row) {
+                        var devise = row.devise || 'FCFA';
+                        var color = data > 0 ? 'red' : 'green';
+                        return '<span style="color: ' + color + '; font-weight: bold;">' +
+                            (data ? parseFloat(data).toLocaleString('fr-FR', {minimumFractionDigits: 0}) + ' ' + devise : '0 ' + devise) +
+                            '</span>';
+                    }
+                },
+
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return (row.expediteur_nom || '') + ' ' + (row.expediteur_prenom || '')+ ' ' + (row.expediteur_tel || '');
+                    }
+                },
+                // { data: 'expediteur_tel' },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return (row.destinataire_nom || '') + ' ' + (row.destinataire_prenom || '')+ ' ' + (row.destinataire_tel || '');
+                    }
+                },
+                // { data: 'destinataire_tel' },
+                // { data: 'destinataire_agence' },
+                { 
+                    data: 'etat',
+                    render: function(data, type, row) {
+                        var badgeClass = 'badge bg-secondary';
+                        if (data === 'Validé') badgeClass = 'badge bg-success';
+                        else if (data === 'En attente') badgeClass = 'badge bg-warning';
+                        else if (data === 'Rejeté') badgeClass = 'badge bg-danger';
+                        
+                        return '<span class="' + badgeClass + '">' + (data || 'N/A') + '</span>';
+                    }
+                },
+                { 
+                    data: 'created_at',
+                    render: function(data, type, row) {
+                        if (data) {
+                            var date = new Date(data);
+                            var day = ('0' + date.getDate()).slice(-2);  
+                            var month = ('0' + (date.getMonth() + 1)).slice(-2);  
+                            var year = date.getFullYear().toString().slice(-2);  
+                            return day + '/' + month + '/' + year;
+                        }
+                        return data;
+                    }
+                },
+                // { data: 'action' }
+            ],
         dom: 'Bfrtip', // Placement des boutons
         buttons: [
             // Bouton Excel

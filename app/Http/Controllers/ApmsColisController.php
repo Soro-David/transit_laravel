@@ -781,6 +781,7 @@ public function get_colis_suivi(Request $request)
                 'colis_ids' => json_encode($group->pluck('id')->toArray()),
                 'first_colis_id' => $firstColis->id,
                 'creator_agence_id' => optional($firstColis->agent)->agence_id,
+                 'devise' => $firstColis->devise ?? '',
             ];
         })->values();
 
@@ -890,6 +891,8 @@ public function get_colis_suivi(Request $request)
                     'colis_ids' => json_encode($group->pluck('id')->toArray()),
                     'first_colis_id' => $firstColis->id,
                     'creator_agence_id' => optional($firstColis->agent)->agence_id,
+                    'devise' => $firstColis->devise ?? '',
+
                 ];
             })->values();
 

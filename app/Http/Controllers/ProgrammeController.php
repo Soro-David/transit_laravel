@@ -369,6 +369,7 @@ class ProgrammeController extends Controller
                     'is_admin' => true, // Marquer comme créé par admin
                 ]);
     
+                // dd($programme);
                 // 4. Créer les items du programme (gardez safe si service absent)
                 foreach ($request->service ?? [] as $key => $service) {
                     ProgrammeItems::create([
@@ -432,6 +433,7 @@ class ProgrammeController extends Controller
             ]);
     
         } catch (\Exception $e) {
+            dd( $e);
             Log::error('Erreur lors de la création du devis admin: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'success' => false,
