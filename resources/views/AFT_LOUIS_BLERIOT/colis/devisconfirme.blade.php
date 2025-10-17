@@ -211,7 +211,7 @@
   </div>
 @endsection
 
-  @section('js')
+  @section('scripts')
 <script>
 $(document).ready(function () {
     var table = $("#devisConfirmeTable").DataTable({

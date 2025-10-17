@@ -73,7 +73,7 @@
 </div>
 @endsection
 
-@section('js')
+@section('scripts')
 <script>
 $(document).ready(function () {
     var table = $("#productTable").DataTable({
@@ -94,19 +94,7 @@ $(document).ready(function () {
             { data: 'expediteur_tel', className:'text-muted' },
             // { render: function (data, type, row) { return... }}, // <!-- SUPPRIMÉ -->
             // { data: 'destinataire_tel', className:'text-muted' }, // <!-- SUPPRIMÉ -->
-            // { data: 'destinataire_agence', className:'fw-semibold' },
-            { 
-                data: 'destinataire_agence',
-                name: 'destinataire_agence.nom_agence',
-                render: function(data, type, row) {
-                    if (data === 'IPMS-SIMEX-CI Angre 8ème Tranche') {
-                        return 'DS Translog Angré 8ème Tranche';
-                    } else if (data === 'IPMS-SIMEX-CI') {
-                        return 'DS Translog Carrefour Angré';
-                    }
-                    return data;
-                }
-            },
+            { data: 'destinataire_agence', className:'fw-semibold' },
             { 
                 data: 'etat',
                 render: function(data) {

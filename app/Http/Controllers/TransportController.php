@@ -201,7 +201,7 @@ class TransportController extends Controller
             ]);
 
             // Rediriger avec un message de succès
-            return redirect()->route('transport.show.chauffeur')->with('success', 'Chauffeur ajouté avec succès!');
+            return redirect()->route('transport.chauffeurs')->with('success', 'Chauffeur mis à jour avec succès !');
         });
     }
 }

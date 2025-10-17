@@ -18,6 +18,9 @@
                         <span class="badge bg-success">
                             <i class="fas fa-check me-1"></i>{{ ucfirst($devis->etat ?? 'confirmé') }}
                         </span>
+                        <span class="badge bg-info">
+                            <i class="fas fa-box me-1"></i>{{ $devis->colis_count ?? $devis->devisItems->count() }} colis
+                        </span>
                         <span class="text-muted small">
                             <i class="fas fa-calendar me-1"></i>{{ $devis->created_at ? $devis->created_at->format('d/m/Y H:i') : '-' }}
                         </span>
@@ -35,52 +38,52 @@
         </div>
     </div>
 
-    <!-- Informations client et entreprise -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 bg-white shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-title text-primary mb-3">
-                        <i class="fas fa-user me-2"></i>Informations Client
-                    </h6>
-                    <div class="mb-2">
-                        <strong class="text-dark">{{ $devis->nom_expediteur ?? '-' }} {{ $devis->prenom_expediteur ?? '' }}</strong>
-                    </div>
-                    <div class="small text-muted mb-1">
-                        <i class="fas fa-phone me-1"></i>{{ $devis->tel_expediteur ?? 'Non spécifié' }}
-                    </div>
-                    <div class="small text-muted mb-1">
-                        <i class="fas fa-envelope me-1"></i>{{ $devis->email_expediteur ?? 'Non spécifié' }}
-                    </div>
-                    <div class="small text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>{{ $devis->adresse_expediteur ?? 'Non spécifié' }}
-                    </div>
+   <!-- Informations client et entreprise -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 bg-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-primary mb-3">
+                    <i class="fas fa-user me-2"></i>Informations Expéditeur
+                </h6>
+                <div class="mb-2">
+                    <strong class="text-dark">{{ $devis->nom_expediteur ?? '-' }} {{ $devis->prenom_expediteur ?? '' }}</strong>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-6 mt-3 mt-md-0">
-            <div class="card border-0 bg-white shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-title text-primary mb-3">
-                        <i class="fas fa-building me-2"></i>{{ config('app.name', 'Mon Entreprise') }}
-                    </h6>
-                    <div class="small text-muted mb-1">
-                        <i class="fas fa-phone me-1"></i>+33 6 52 98 35 19
-                    </div>
-                    <div class="small text-muted mb-1">
-                        <i class="fas fa-envelope me-1"></i>contact@aft-import-export.net
-                    </div>
-                    <div class="small text-muted mb-2">
-                        <i class="fas fa-globe me-1"></i>www.aft-app.com
-                    </div>
-                    <div class="mt-3 pt-2 border-top">
-                        <div class="small text-muted">Mode / Retrait</div>
-                        <strong class="text-dark">{{ $devis->mode_transit ?? '-' }} — {{ $devis->mode_de_retrait ?? '-' }}</strong>
-                    </div>
+                <div class="small text-muted mb-1">
+                    <i class="fas fa-phone me-1"></i>{{ $devis->tel_expediteur ?? 'Non spécifié' }}
+                </div>
+                <div class="small text-muted mb-1">
+                    <i class="fas fa-envelope me-1"></i>{{ $devis->email_expediteur ?? 'Non spécifié' }}
+                </div>
+                <div class="small text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ $devis->lieu_expedition ?? 'Non spécifié' }}
                 </div>
             </div>
         </div>
     </div>
+    <div class="col-md-6 mt-3 mt-md-0">
+        <div class="card border-0 bg-white shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-primary mb-3">
+                    <i class="fas fa-user me-2"></i>Informations Destinataire
+                </h6>
+                <div class="mb-2">
+                    <strong class="text-dark">{{ $devis->nom_destinataire ?? '-' }} {{ $devis->prenom_destinataire ?? '' }}</strong>
+                </div>
+                <div class="small text-muted mb-1">
+                    <i class="fas fa-phone me-1"></i>{{ $devis->tel_destinataire ?? 'Non spécifié' }}
+                </div>
+                <div class="small text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ $devis->lieu_destination ?? 'Non spécifié' }}
+                </div>
+                <div class="mt-3 pt-2 border-top">
+                    <div class="small text-muted">Mode / Retrait</div>
+                    <strong class="text-dark">{{ $devis->mode_transit ?? '-' }} — {{ $devis->mode_de_retrait ?? '-' }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Tableau des articles -->
     <div class="table-responsive mb-4">

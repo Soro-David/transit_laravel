@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -16,10 +17,10 @@ return new class extends Migration
         Schema::create('devis', function (Blueprint $table) {
             $table->id();
             $table->string('reference');
-            $table->string('mode_transit');
+            $table->string('mode_transit'); // 'maritime' ou 'aerien'
             $table->string('pays_expedition');
             $table->string('agence_expedition');
-            $table->string('agence_destination'); 
+            $table->string('agence_destination'); // Nom unifié pour la destination
             // --- Informations sur l'expéditeur (le client) ---
             $table->string('nom_expediteur');
             $table->string('prenom_expediteur');

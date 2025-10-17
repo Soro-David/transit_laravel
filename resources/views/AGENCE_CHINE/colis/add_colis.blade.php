@@ -613,7 +613,7 @@
             <div class="alert alert-info text-center">
                 <strong>Total à payer :
                     <span id="payment_total" style="font-size: 1.5em; font-weight: bold;">0.00</span>
-                    <span id="payment_devise" style="font-size: 1.5em; font-weight: bold;">EUR</span>
+                    <span id="payment_devise" style="font-size: 1.5em; font-weight: bold;">FCFA</span>
                 </strong>
             </div>
             <div class="form-section">
@@ -823,7 +823,7 @@ function chargerInformationsCompletesDuDevis(programmeId) {
             // ligne.find('input[name="valeur_colis[]"]').val(itemData.valeur_colis || itemData.prix_unitaire || '');
             ligne.find('input[name="prix[]"]').val(itemData.montant || '');
             ligne.find('select[name="type_colis[]"]').val(itemData.type_colis || 'standard');
-            ligne.find('select[name="devise[]"]').val(itemData.devise || 'EUR');
+            ligne.find('select[name="devise[]"]').val(itemData.devise || 'FCFA');
             ligne.find('textarea[name="description_colis[]"]').val(itemData.description_colis || itemData.description || '');
             ligne.find('input[name="poids[]"]').val(itemData.poids || '');
             ligne.find('input[name="longueur[]"]').val(itemData.longueur || '');
