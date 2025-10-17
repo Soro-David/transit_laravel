@@ -5,44 +5,192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport Colis Validés</title>
     <style>
-    @media print {
+        /* ------------------- Global ------------------- */
         @page {
-            size: A4 portrait; /* ou 'landscape' si tu veux paysage */
-            margin: 15mm;      /* marges de la page */
+            size: A4 portrait;
+            margin: 15mm;
         }
 
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;  /* texte principal agrandi */
+            color: #333;
             margin: 0;
-            padding: 0;
-            font-size: 10px;
+            padding: 15px;
         }
 
         .container {
-            width: 100%;
-            padding: 0;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 0 auto;
+        }
+
+        /* ------------------- Header ------------------- */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 22px;  /* agrandi */
+            margin: 5px 0;
+        }
+
+        .header h2 {
+            font-size: 18px;  /* agrandi */
+            color: #667eea;
             margin: 0;
-            border: none;
-            border-radius: 0;
         }
 
-        .table-container table {
-            font-size: 9px;
-            page-break-inside: auto;
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 11px;  /* agrandi */
+            margin-top: 3px;
         }
 
-        table, th, td {
-            border: 1px solid #000 !important;
+        /* ------------------- Filtres ------------------- */
+        .filtres-info {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 6px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 10px; /* agrandi */
         }
 
-        thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
+        /* ------------------- Statistiques ------------------- */
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            gap: 8px;
+        }
 
-        tr { page-break-inside: avoid; page-break-after: auto; }
+        .stat-card {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
 
-        /* Cacher les éléments non utiles à l’impression */
-        .no-print { display: none; }
-    }
-</style>
+        .stat-total { background: #667eea; }
+        .stat-paye { background: #27ae60; }
+        .stat-reste { background: #e74c3c; }
+        .stat-count { background: #f39c12; }
+
+        .stat-number {
+            font-size: 13px; /* agrandi */
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 9px;  /* agrandi */
+            opacity: 0.9;
+        }
+
+        /* ------------------- Tableau ------------------- */
+        .table-container {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 10px; /* agrandi */
+        }
+
+        thead {
+            background: #34495e;
+            color: white;
+        }
+
+        th, td {
+            padding: 4px 3px; /* un peu plus confortable */
+            border: 1px solid #ddd;
+            word-wrap: break-word;
+            vertical-align: middle;
+        }
+
+        th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 9px;  /* agrandi */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-bold { font-weight: bold; }
+
+        .montant { white-space: nowrap; }
+        .montant-total { color: #2c3e50; }
+        .montant-paye { color: #27ae60; }
+        .montant-reste { color: #e74c3c; }
+
+        .status-badge {
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 8px; /* agrandi */
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .status-paye { background: #d4edda; color: #155724; }
+        .status-partiel { background: #fff3cd; color: #856404; }
+        .status-impaye { background: #f8d7da; color: #721c24; }
+
+        tbody tr { page-break-inside: avoid; }
+
+        /* ------------------- Totaux ------------------- */
+        .totaux-row {
+            background: #2c3e50 !important;
+            color: white;
+            font-weight: bold;
+        }
+
+        .totaux-row td {
+            border: 1px solid #1a252f;
+        }
+
+        /* ------------------- Footer ------------------- */
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 9px;  /* agrandi */
+            color: #7f8c8d;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+        }
+
+        /* ------------------- Largeurs des colonnes ------------------- */
+        .col-ref { width: 60px; }
+        .col-produit { width: 50px; }
+        .col-nb { width: 30px; }
+        .col-montant { width: 45px; }
+        .col-statut { width: 40px; }
+        .col-expediteur { width: 60px; }
+        .col-tel { width: 40px; }
+        .col-destinataire { width: 60px; }
+        .col-etat { width: 40px; }
+        .col-date { width: 40px; }
+
+    </style>
 
 </head>
 <body>

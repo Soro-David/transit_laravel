@@ -6,13 +6,14 @@
     <title>Rapport Colis Validés</title>
     <style>
         /* ------------------- Global ------------------- */
-         @page {
+        @page {
             size: A4 portrait;
             margin: 15mm;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 10px;
+            font-size: 12px;  /* texte principal agrandi */
             color: #333;
             margin: 0;
             padding: 15px;
@@ -35,13 +36,19 @@
 
         .header h1 {
             color: #2c3e50;
-            font-size: 18px;
+            font-size: 22px;  /* agrandi */
             margin: 5px 0;
+        }
+
+        .header h2 {
+            font-size: 18px;  /* agrandi */
+            color: #667eea;
+            margin: 0;
         }
 
         .header .subtitle {
             color: #7f8c8d;
-            font-size: 9px;
+            font-size: 11px;  /* agrandi */
             margin-top: 3px;
         }
 
@@ -52,7 +59,7 @@
             padding: 6px;
             margin-bottom: 12px;
             border-radius: 4px;
-            font-size: 8px;
+            font-size: 10px; /* agrandi */
         }
 
         /* ------------------- Statistiques ------------------- */
@@ -80,12 +87,12 @@
         .stat-count { background: #f39c12; }
 
         .stat-number {
-            font-size: 11px;
+            font-size: 13px; /* agrandi */
             font-weight: bold;
         }
 
         .stat-label {
-            font-size: 7px;
+            font-size: 9px;  /* agrandi */
             opacity: 0.9;
         }
 
@@ -99,7 +106,7 @@
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            font-size: 8px;
+            font-size: 10px; /* agrandi */
         }
 
         thead {
@@ -108,7 +115,7 @@
         }
 
         th, td {
-            padding: 3px 2px;
+            padding: 4px 3px; /* un peu plus confortable */
             border: 1px solid #ddd;
             word-wrap: break-word;
             vertical-align: middle;
@@ -117,7 +124,7 @@
         th {
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 7px;
+            font-size: 9px;  /* agrandi */
         }
 
         tbody tr:nth-child(even) {
@@ -134,9 +141,9 @@
         .montant-reste { color: #e74c3c; }
 
         .status-badge {
-            padding: 2px 4px;
+            padding: 3px 6px;
             border-radius: 3px;
-            font-size: 6px;
+            font-size: 8px; /* agrandi */
             font-weight: bold;
             text-transform: uppercase;
             display: inline-block;
@@ -165,13 +172,13 @@
         .footer {
             margin-top: 15px;
             text-align: center;
-            font-size: 7px;
+            font-size: 9px;  /* agrandi */
             color: #7f8c8d;
             border-top: 1px solid #ddd;
             padding-top: 5px;
         }
 
-        /* Largeurs des colonnes */
+        /* ------------------- Largeurs des colonnes ------------------- */
         .col-ref { width: 60px; }
         .col-produit { width: 50px; }
         .col-nb { width: 30px; }
@@ -182,6 +189,7 @@
         .col-destinataire { width: 60px; }
         .col-etat { width: 40px; }
         .col-date { width: 40px; }
+
     </style>
 </head>
 <body>
