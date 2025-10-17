@@ -864,7 +864,7 @@ $(document).ready(function() {
             const quantite = parseFloat(colisElement.find(".quantite-colis").val()) || 0;
             prixTotal = quantite * prixUnitaire;
         }
-        colisElement.find(".prix-total").text(prixTotal.toFixed(2));
+        colisElement.find(".prix-total").text(prixTotal.toFixed(0));
     }
     
     function updateRemoveButtonVisibility() {

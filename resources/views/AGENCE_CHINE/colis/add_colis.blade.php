@@ -936,9 +936,9 @@ $(document).ready(function () {
                 $('#payment_total').text(total);
                 $('#payment_devise').text(devise);
                 const totalValue = parseFloat(total) || 0;
-                $('input[name="bank_montant"]').val(totalValue.toFixed(2));
-                $('input[name="cheque_montant"]').val(totalValue.toFixed(2));
-                $('input[name="cash_montant_recu"]').attr('placeholder', `Montant reçu (Total: ${totalValue.toFixed(2)} ${devise})`);
+                $('input[name="bank_montant"]').val(totalValue.toFixed(0));
+                $('input[name="cheque_montant"]').val(totalValue.toFixed(0));
+                $('input[name="cash_montant_recu"]').attr('placeholder', `Montant reçu (Total: ${totalValue.toFixed(0)} ${devise})`);
             }
             showStep(currentStep + 1);
         }
@@ -1015,7 +1015,7 @@ $(document).ready(function () {
 
     function updateTotalForColis(colisElement) {
         const prixTotal = calculateColisTotal(colisElement);
-        colisElement.find(".prix-total").text(prixTotal.toFixed(2));
+        colisElement.find(".prix-total").text(prixTotal.toFixed(0));
     }
     
     function attachColisEventListeners(colisElement) {
@@ -1031,7 +1031,7 @@ $(document).ready(function () {
     }
     
     initAutocomplete($('.service-input'), "{{ route('chine_colis.recherche.auto.service') }}", 'Service');
-    $('.prix-service').on('input', function() { $('.prix-total-service').text((parseFloat($(this).val()) || 0).toFixed(2)); });
+    $('.prix-service').on('input', function() { $('.prix-total-service').text((parseFloat($(this).val()) || 0).toFixed(0)); });
 
     $(".add-colis").click(function() {
         const newColis = $("#colis-container .colis-item:first").clone();
@@ -1071,7 +1071,7 @@ $(document).ready(function () {
                                 const prixUnitaire = parseFloat(item.prix);
                                 prixInput.val(prixUnitaire).attr('data-prix-unitaire', prixUnitaire);
                                 if (categorie === 'Colis') { updateTotalForColis(colisItem); } 
-                                else { $('.prix-total-service').text(prixUnitaire.toFixed(2)); }
+                                else { $('.prix-total-service').text(prixUnitaire.toFixed(0)); }
                                 resultsContainer.empty().hide();
                             }).appendTo(resultsContainer);
                         });
@@ -1132,7 +1132,7 @@ $(document).ready(function () {
                 alert(response.message);
                 $('.service-input').val(data.description);
                 $('.prix-service').val(data.prix);
-                $('.prix-total-service').text(parseFloat(data.prix).toFixed(2));
+                $('.prix-total-service').text(parseFloat(data.prix).toFixed(0));
                 $("#ServiceModal").modal("hide");
                 form[0].reset();
             },
@@ -1165,16 +1165,16 @@ $(document).ready(function () {
             const quantite = $(this).find('.quantite-colis').val();
             const prixTotalDuColis = calculateColisTotal($(this));
             if (produit && prixTotalDuColis > 0) {
-                detailsColisContainer.append(`<div class="d-flex justify-content-between"><span>- ${produit} (Quantité: ${quantite})</span><strong>${prixTotalDuColis.toFixed(2)} ${devise}</strong></div>`);
+                detailsColisContainer.append(`<div class="d-flex justify-content-between"><span>- ${produit} (Quantité: ${quantite})</span><strong>${prixTotalDuColis.toFixed(0)} ${devise}</strong></div>`);
                 totalColis += prixTotalDuColis;
             }
         });
         if (detailsColisContainer.is(':empty')) { detailsColisContainer.html('<p class="text-muted">Aucun colis valide ajouté.</p>'); }
         const totalServices = parseFloat($('.prix-service').val()) || 0;
         const totalAPayer = totalColis + totalServices;
-        $('#recap_total_colis').text(totalColis.toFixed(2));
-        $('#recap_total_services').text(totalServices.toFixed(2));
-        $('#recap_total_a_payer').text(totalAPayer.toFixed(2));
+        $('#recap_total_colis').text(totalColis.toFixed(0));
+        $('#recap_total_services').text(totalServices.toFixed(0));
+        $('#recap_total_a_payer').text(totalAPayer.toFixed(0));
         $('#recap_devise, .recap_devise_class').text(devise);
     }
 
