@@ -6,6 +6,10 @@
     <title>Rapport Colis Validés</title>
     <style>
         /* ------------------- Global ------------------- */
+         @page {
+            size: A4 portrait;
+            margin: 15mm;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 10px;

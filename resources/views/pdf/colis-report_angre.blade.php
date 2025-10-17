@@ -6,6 +6,10 @@
     <title>Rapport Colis Déchargés</title>
     <style>
         /* ------------------- Global ------------------- */
+         @page {
+            size: A4 portrait; /* ou 'landscape' si tu veux paysage */
+            margin: 15mm;      /* marges de la page */
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 10px;
