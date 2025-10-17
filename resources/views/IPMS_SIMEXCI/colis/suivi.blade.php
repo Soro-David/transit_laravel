@@ -34,7 +34,7 @@
                                         <th >Destinataire</th>
                                         <th >Statut</th>
                                         <th >Date</th>
-                                        <th >Actions</th>
+                                        {{-- <th >Actions</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -124,7 +124,7 @@
                         return data;
                     }
                 },
-                { data: 'action' }
+                // { data: 'action' }
             ],
             dom: 'Bfrtip',
             buttons: [
