@@ -178,9 +178,9 @@ Route::get('/', function () { return redirect('/accueil'); });
 Route::get('/login', function () { return redirect('/login'); });
 // Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-Route::get('/politique-de-confidentialite', function () {
-    return view('privacy_policy');
-})->name('privacy.policy');
+Route::get('/politique-de-confidentialite', function () {return view('privacy_policy');})->name('privacy.policy');
+Route::get('/vention-legal', function () {return view('privacy_mention');})->name('privacy.mention');
+Route::get('/condition-generale-de-vente', function () {return view('privacy_vente');})->name('privacy.vente');
 
 // Store mail 
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');

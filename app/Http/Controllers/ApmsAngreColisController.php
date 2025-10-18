@@ -1563,6 +1563,7 @@ public function get_colis_hold(Request $request)
                 })
                 ->get();
 
+                // dd($colis);
             $colisIds = $colis->pluck('id')->unique()->toArray();
 
             // Somme des paiements par colis

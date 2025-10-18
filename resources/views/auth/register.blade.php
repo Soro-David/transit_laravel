@@ -121,8 +121,7 @@
                             </div>
                         </div>
 
-                        {{-- Section ajoutée pour la politique de confidentialité --}}
-                        <div class="form-group form-check mt-3">
+                        {{-- <div class="form-group form-check mt-3">
                             <input type="checkbox" 
                                 class="form-check-input @error('privacy_policy') is-invalid @enderror" 
                                 id="privacy_policy" 
@@ -137,6 +136,68 @@
                                 </span>
                             @enderror
                         </div>
+                        <div class="form-group form-check mt-3">
+                            <input type="checkbox" 
+                                class="form-check-input @error('privacy_mention') is-invalid @enderror" 
+                                id="privacy_mention" 
+                                name="privacy_mention" 
+                                >
+                            <label class="form-check-label" for="privacy_mention">
+                                J'ai lu et j'accepte la <a href="{{ route('privacy.mention') }}" target="_blank">Mention légale de vente</a>
+                            </label>
+                            @error('privacy_mention')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="form-group form-check mt-3">
+                            <input type="checkbox" 
+                                class="form-check-input @error('privacy_vente') is-invalid @enderror" 
+                                id="privacy_vente" 
+                                name="privacy_vente" 
+                                >
+                            <label class="form-check-label" for="privacy_vente">
+                                J'ai lu et j'accepte les <a href="{{ route('privacy.vente') }}" target="_blank"> Conditions générale de vente et de prestations de services</a>
+                            </label>
+                            @error('privacy_vente')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div> --}}
+
+                        {{-- SECTION : Consentements et Politiques --}}
+                        <hr class="my-4">
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                {{-- La case à cocher unique --}}
+                                <input 
+                                    type="checkbox" 
+                                    class="form-check-input @error('terms_accepted') is-invalid @enderror" 
+                                    id="terms_accepted" 
+                                    name="terms_accepted" 
+                                    value="1"
+                                    required>
+                                
+                                {{-- Le label qui contient le texte et les liens --}}
+                                <label class="form-check-label" for="terms_accepted">
+                                    J'ai lu et j'accepte la 
+                                    <a href="{{ route('privacy.policy') }}" target="_blank">Politique de Confidentialité</a>, la 
+                                    <a href="{{ route('privacy.mention') }}" target="_blank">Mention légale de vente</a> et les 
+                                    <a href="{{ route('privacy.vente') }}" target="_blank">Conditions générales de vente</a>.
+                                </label>
+
+                                {{-- Message d'erreur unifié --}}
+                                @error('terms_accepted')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
 
                         {{-- Fin de la section ajoutée --}}
 

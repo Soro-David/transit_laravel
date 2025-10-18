@@ -5,199 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport Colis Déchargés</title>
     <style>
-        /* ------------------- Global ------------------- */
+        /* ------------------- Configuration Globale & Impression ------------------- */
         @page {
             size: A4 portrait;
-            margin: 15mm;
+            margin: 15mm 12mm 15mm 12mm;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 12px;  /* texte principal agrandi */
-            color: #333;
+            font-size: 13px;
+            color: #2c3e50;
             margin: 0;
-            padding: 15px;
+            background-color: #fff;
+            counter-reset: page;
         }
 
+        /* Pied de page : numérotation */
+        .page-footer {
+            position: fixed;
+            bottom: -12mm;
+            left: 0;
+            right: 0;
+            text-align: right;
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .page-footer .page-number::before {
+            content: "Page " counter(page);
+        }
+
+        /* ------------------- Structure principale ------------------- */
         .container {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
+            width: 100%;
             margin: 0 auto;
+            padding: 0 5px;
         }
 
-        /* ------------------- Header ------------------- */
+        /* ------------------- En-tête ------------------- */
         .header {
             text-align: center;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 3px solid #4a6cf7;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
         }
 
         .header h1 {
+            font-size: 28px;
             color: #2c3e50;
-            font-size: 22px;  /* agrandi */
-            margin: 5px 0;
+            margin: 8px 0;
         }
 
         .header h2 {
-            font-size: 18px;  /* agrandi */
-            color: #667eea;
+            font-size: 20px;
+            color: #4a6cf7;
             margin: 0;
         }
 
         .header .subtitle {
             color: #7f8c8d;
-            font-size: 11px;  /* agrandi */
-            margin-top: 3px;
-        }
-
-        /* ------------------- Filtres ------------------- */
-        .filtres-info {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 6px;
-            margin-bottom: 12px;
-            border-radius: 4px;
-            font-size: 10px; /* agrandi */
-        }
-
-        /* ------------------- Statistiques ------------------- */
-        .stats-container {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-            gap: 8px;
-        }
-
-        .stat-card {
-            flex: 1;
-            min-width: 100px;
-            padding: 8px;
-            border-radius: 6px;
-            text-align: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .stat-total { background: #667eea; }
-        .stat-paye { background: #27ae60; }
-        .stat-reste { background: #e74c3c; }
-        .stat-count { background: #f39c12; }
-
-        .stat-number {
-            font-size: 13px; /* agrandi */
-            font-weight: bold;
-        }
-
-        .stat-label {
-            font-size: 9px;  /* agrandi */
-            opacity: 0.9;
+            font-size: 12px;
+            margin-top: 6px;
         }
 
         /* ------------------- Tableau ------------------- */
         .table-container {
-            margin-top: 10px;
+            margin-top: 15px;
             width: 100%;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 10px; /* agrandi */
+            font-size: 12px;
         }
 
         thead {
-            background: #34495e;
+            background-color: #34495e;
             color: white;
+            display: table-header-group;
         }
 
         th, td {
-            padding: 4px 3px; /* un peu plus confortable */
-            border: 1px solid #ddd;
+            padding: 8px 6px;
+            border: 1px solid #dcdcdc;
             word-wrap: break-word;
+            text-align: left;
             vertical-align: middle;
         }
 
         th {
-            font-weight: 600;
+            font-weight: bold;
             text-transform: uppercase;
-            font-size: 9px;  /* agrandi */
+            font-size: 11px;
         }
 
         tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f9fafc;
         }
 
+        tbody tr:hover {
+            background-color: #eef3ff;
+        }
+
+        /* Alignements */
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .text-bold { font-weight: bold; }
 
-        .montant { white-space: nowrap; }
+        /* Champs numériques */
+        .montant { 
+            white-space: nowrap; 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+        }
         .montant-total { color: #2c3e50; }
-        .montant-paye { color: #27ae60; }
-        .montant-reste { color: #e74c3c; }
+        .montant-paye { color: #27ae60; font-weight: bold; }
+        .montant-reste { color: #e74c3c; font-weight: bold; }
 
+        /* ------------------- Badges de Statut ------------------- */
         .status-badge {
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 8px; /* agrandi */
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
+            color: white;
             display: inline-block;
-            min-width: 40px;
             text-align: center;
+            min-width: 55px;
         }
 
-        .status-paye { background: #d4edda; color: #155724; }
-        .status-partiel { background: #fff3cd; color: #856404; }
-        .status-impaye { background: #f8d7da; color: #721c24; }
+        .status-paye { background-color: #27ae60; }
+        .status-partiel { background-color: #f39c12; }
+        .status-impaye { background-color: #e74c3c; }
 
-        tbody tr { page-break-inside: avoid; }
-
-        /* ------------------- Totaux ------------------- */
+        /* ------------------- Ligne des Totaux ------------------- */
         .totaux-row {
-            background: #2c3e50 !important;
+            background-color: #2c3e50 !important;
             color: white;
             font-weight: bold;
+            font-size: 13px;
         }
 
         .totaux-row td {
-            border: 1px solid #1a252f;
+            padding-top: 10px;
+            padding-bottom: 10px;
         }
 
-        /* ------------------- Footer ------------------- */
-        .footer {
-            margin-top: 15px;
+        /* ------------------- Pied de Page (info) ------------------- */
+        .footer-info {
+            margin-top: 25px;
             text-align: center;
-            font-size: 9px;  /* agrandi */
+            font-size: 11px;
             color: #7f8c8d;
             border-top: 1px solid #ddd;
-            padding-top: 5px;
+            padding-top: 8px;
         }
-
-        /* ------------------- Largeurs des colonnes ------------------- */
-        .col-ref { width: 60px; }
-        .col-produit { width: 50px; }
-        .col-nb { width: 30px; }
-        .col-montant { width: 45px; }
-        .col-statut { width: 40px; }
-        .col-expediteur { width: 60px; }
-        .col-tel { width: 40px; }
-        .col-destinataire { width: 60px; }
-        .col-etat { width: 40px; }
-        .col-date { width: 40px; }
-
     </style>
-</head>
+    </head>
 <body>
+
+    <div class="page-footer">
+        <span class="page-number"></span>
+    </div>
+
     <div class="container">
-        <!-- En-tête -->
+        <!-- En-tête du document -->
         <div class="header">
-            <h2 style="color: #667eea; margin: 0;">DS TRANSLOG Angré 8ème Tranche</h2>
-            <h1>RAPPORT DES COLIS DÉCHARGÉS</h1>
+            <h2>DS TRANSLOG Angré 8ème Tranche</h2>
+            <h1>Rapport des Colis Déchargés</h1>
             <div class="subtitle">
                 Généré le {{ $dateGeneration }}
             </div>
@@ -208,19 +185,16 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Référence</th>
-                        <th>Produit</th>
-                        <th class="text-center">Nb. Colis</th>
-                        <th class="text-right">Montant Total</th>
-                        <th class="text-right">Montant Payé</th>
-                        <th class="text-right">Reste à Payer</th>
-                        <th>Statut Paiement</th>
-                        <th>Expéditeur</th>
-                        <th>Tél. Exp</th>
-                        <th>Destinataire</th>
-                        <th>Tél. Dest.</th>
-                        <th>État</th>
-                        <th>Date</th>
+                        <th style="width: 10%;">Référence</th>
+                        <th style="width: 10%;">Produit</th>
+                        <th class="text-center" style="width: 6%;">Nb.</th>
+                        <th class="text-right" style="width: 8%;">Total</th>
+                        <th class="text-right" style="width: 8%;">Payé</th>
+                        <th class="text-right" style="width: 8%;">Reste</th>
+                        <th class="text-center" style="width: 8%;">Statut</th>
+                        <th style="width: 13%;">Expéditeur / Tél.</th>
+                        <th style="width: 13%;">Destinataire / Tél.</th>
+                        <th class="text-center" style="width: 7%;">Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -229,10 +203,10 @@
                         <td class="text-bold">{{ $item['reference_colis'] }}</td>
                         <td>{{ $item['nom_produit'] ?? 'N/A' }}</td>
                         <td class="text-center">{{ $item['nombre_de_colis'] }}</td>
-                        <td class="montant montant-total text-right">{{ number_format($item['montant_total'], 0, ',', ' ') }} </td>
-                        <td class="montant montant-paye text-right">{{ number_format($item['montant_paye'], 0, ',', ' ') }} </td>
-                        <td class="montant montant-reste text-right">{{ number_format($item['reste_a_payer'], 0, ',', ' ') }} </td>
-                        <td>
+                        <td class="montant montant-total text-right">{{ number_format($item['montant_total'], 0, ',', ' ') }}</td>
+                        <td class="montant montant-paye text-right">{{ number_format($item['montant_paye'], 0, ',', ' ') }}</td>
+                        <td class="montant montant-reste text-right">{{ number_format($item['reste_a_payer'], 0, ',', ' ') }}</td>
+                        <td class="text-center">
                             @php
                                 $statusClass = match($item['payment_status']) {
                                     'paye' => 'status-paye',
@@ -245,29 +219,29 @@
                                     default => 'Impayé'
                                 };
                             @endphp
-                            <span class="status-badge {{ $statusClass }}">
-                                {{ $statusText }}
-                            </span>
+                            <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
                         </td>
-                        <td>{{ $item['expediteur_nom'] }} {{ $item['expediteur_prenom'] }}</td>
-                        <td>{{ $item['expediteur_tel'] ?? 'N/A' }}</td>
-                        <td>{{ $item['destinataire_nom'] }} {{ $item['destinataire_prenom'] }}</td>
-                        <td>{{ $item['destinataire_tel'] ?? 'N/A' }}</td>
-                        <td>{{ $item['etat'] }}</td>
-                        <td>{{ $item['created_at'] }}</td>
+                        <td>
+                            {{ $item['expediteur_nom'] }} {{ $item['expediteur_prenom'] }}
+                            <br><small>{{ $item['expediteur_tel'] ?? 'N/A' }}</small>
+                        </td>
+                        <td>
+                            {{ $item['destinataire_nom'] }} {{ $item['destinataire_prenom'] }}
+                            <br><small>{{ $item['destinataire_tel'] ?? 'N/A' }}</small>
+                        </td>
+                        <td class="text-center">{{ $item['created_at'] }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="13" class="text-center">Aucun colis déchargé trouvé</td>
+                        <td colspan="11" class="text-center" style="padding: 20px; font-weight: bold; color: #888;">
+                            Aucun colis déchargé trouvé.
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
-        <!-- Pied de page -->
-        <div class="footer">
-        </div>
     </div>
+
 </body>
 </html>

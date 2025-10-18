@@ -13,7 +13,7 @@
                             <h4 class="text-left mt-4">Liste des colis Validés</h4><br>
                             <div class="row mb-3">
                                 <div class="col-md-12 text-end">
-                                    <a href="{{ route('ipms_angre_colis.download.pdf') }}" class="btn btn-success">
+                                    <a href="{{ route('ipms_angre_colis.downloadColisSuiviPdf') }}" class="btn btn-success">
                                         <i class="fas fa-download me-2"></i>Télécharger PDF
                                     </a>
                                 </div>
