@@ -253,13 +253,41 @@ $(document).ready(function() {
 
 <style>
     .btn {
-        width: 15%;
-        height: 40px;
-        font-size: 18px;
+        width: auto;
+        height: 30px;
+        font-size: 16px;
+        padding: 0 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        transform: scale(1.05);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
     }
 
     .dataTable-wrapper {
-        width: 80% !important;
+        width: 100% !important;
         margin: 20px auto;
         padding: 15px;
         border: 1px solid #ccc;
@@ -277,6 +305,26 @@ $(document).ready(function() {
         cursor: pointer;
         text-transform: uppercase;
         transition: all 0.3s ease;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
     }
 </style>
 @endsection

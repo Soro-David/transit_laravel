@@ -26,10 +26,8 @@
                                     <th class="text-center">Nb. Colis</th>
                                     <th class="text-center">Produit</th>
                                     <th>Expéditeur</th>
-                                    {{-- <th>Tél. Exp</th> --}}
                                     <th>Agence Expéditeur</th>
                                     <th>Destinataire</th>
-                                    {{-- <th>Tél. Dest.</th> --}}
                                     <th>Agence Dest.</th>
                                     <th>Status Colis</th>
                                     <th>Date</th>
@@ -96,67 +94,80 @@
 </section>
 
 <style>
-    #productTable {
+    .btn {
+        width: auto;
+        height: 30px;
+        font-size: 16px;
+        padding: 0 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        transform: scale(1.05);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
+    }
+
+    .dataTable-wrapper {
         width: 100% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
     }
 
-    #productTable th,
-    #productTable td {
-        vertical-align: middle;
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
     }
 
-    #productTable .text-center {
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
         text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
     }
 
     .action-buttons-container {
         display: flex;
         justify-content: center;
-        align-items: center;
-        gap: 5px;  
-        flex-wrap: nowrap;
+        gap: 5px;
     }
-
-    .dataTables_wrapper {
-         /* width: 100%; */
-         /* margin: 0 auto; */
-    }
-    .dt-buttons {
-        margin-bottom: 15px;
-    }
-
-    @media (max-width: 768px) {
-        #productTable {
-             white-space: normal;
-        }
-        .dt-buttons {
-            text-align: center;
-        }
-        .dt-button {
-            display: block;
-            margin: 5px auto;
-            width: 80%;
-        }
-        .action-buttons-container {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-    }
-
-     .is-invalid {
-        border-color: #dc3545;
-    }
-    .invalid-feedback {
-        display: none;
-        width: 100%;
-        margin-top: .25rem;
-        font-size: .875em;
-        color: #dc3545;
-    }
-    .is-invalid ~ .invalid-feedback {
-        display: block;
-    }
-
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -26,7 +26,8 @@ class ColisTrackingController extends Controller
                 'success' => true,
                 'colis' => [
                     'reference' => $colis->reference_colis,
-                    'status' => $colis->status, // Assurez-vous que ces champs existent dans votre modèle Colis
+                    'status' => $colis->status,
+                    'agence' => $colis->agence,
                     'etat' => $colis->etat,
                     'transit' => $colis->mode_transit,
                     // Ajoutez d'autres champs que vous souhaitez afficher

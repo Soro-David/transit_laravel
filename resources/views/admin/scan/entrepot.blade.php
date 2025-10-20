@@ -413,6 +413,80 @@ $(document).ready(function () {
 
 <style>
     
+        .btn {
+        width: auto;
+        height: 30px;
+        font-size: 16px;
+        padding: 0 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        transform: scale(1.05);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
+    }
+
+    .dataTable-wrapper {
+        width: 100% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
      #reader {
       width: 100%;
       height: 400px;
@@ -435,18 +509,11 @@ $(document).ready(function () {
     /* ==== FIN DE LA CORRECTION ==== */
 
 
-    .btn {
-        width: 100%; /* Les boutons s'adaptent à la largeur du conteneur */
-        max-width: 280px; /* Largeur maximale sur les grands écrans */
-        font-size: 16px;
-        height: 40px;
-
-    }
 
     .dataTable-wrapper {
-        width: 100%; /* Prend toute la largeur disponible */
-        max-width: 1000px; /* Largeur maximale pour les grands écrans */
-        margin: 0 auto; /* Centrer le tableau */
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
         padding: 15px;
         border: 1px solid #ccc;
         border-radius: 8px;

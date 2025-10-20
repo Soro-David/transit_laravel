@@ -359,6 +359,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/imprimer-edit/etiquette/{id}', [ColisController::class, 'editEtiquette'])->name('edit.etiquette');
 
         Route::get('/on-valide/{id}/edit', [ColisController::class, 'edit_colis_valide'])->name('valide.edit');
+        Route::get('/on-valide/{id}/show', [ColisController::class, 'edit_colis_show'])->name('valide.show');
         Route::put('/colis/valide/update', [ColisController::class, 'updateMultipleColis'])->name('valide.update');
         Route::put('/on-hold/{id}', [ColisController::class, 'update_hold'])->name('hold.update');
          // Nouvelles routes pour les devis confirmés

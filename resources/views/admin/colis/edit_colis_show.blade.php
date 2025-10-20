@@ -47,25 +47,24 @@
                         {{-- Section Expéditeur avec autocomplétion --}}
                         <div class="sub-section">
                             <h5>Expéditeur</h5>
-                            <div class="row mb-3">
+                            {{-- <div class="row mb-3">
                                 <div class="col-md-6 position-relative">
                                     <label for="client_select" class="form-label">Rechercher un client existant</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         <input type="text" id="client_select" class="form-control" placeholder="Rechercher par nom, prénom, téléphone...">
                                     </div>
-                                    {{-- Le conteneur de résultats est positionné ici --}}
                                     <div class="autocomplete-results"></div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="row">
-                                <div class="col-md-3"><label>Nom</label><input type="text" name="nom_expediteur" value="{{ $info_partagees->expediteur->nom ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Prénom</label><input type="text" name="prenom_expediteur" value="{{ $info_partagees->expediteur->prenom ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Contact</label><input type="text" name="tel_expediteur" value="{{ $info_partagees->expediteur->tel ?? '' }}" class="form-control" required></div>
+                                <div class="col-md-3"><label>Nom</label><input type="text" name="nom_expediteur" value="{{ $info_partagees->expediteur->nom ?? '' }}" class="form-control" disabled></div>
+                                <div class="col-md-3"><label>Prénom</label><input type="text" name="prenom_expediteur" value="{{ $info_partagees->expediteur->prenom ?? '' }}" class="form-control" disabled></div>
+                                <div class="col-md-3"><label>Contact</label><input type="text" name="tel_expediteur" value="{{ $info_partagees->expediteur->tel ?? '' }}" class="form-control" disabled></div>
                                 <div class="col-md-3">
                                     <label class="form-label">Agence d'expédition</label>
                                     <div class="input-group">
-                                        <select name="agence_expediteur" class="form-select" required>
+                                        <select name="agence_expediteur" class="form-select " disabled>
                                             <option value="AFT Agence Louis Bleriot" selected>AFT Agence Louis Bleriot</option>
                                             <option value="Agence de Chine">Agence de Chine</option>
                                         </select>
@@ -80,10 +79,10 @@
                         <div class="sub-section mt-4">
                             <h5>Destinataire</h5>
                             <div class="row">
-                                <div class="col-md-3"><label>Nom</label><input type="text" name="nom_destinataire" value="{{ $info_partagees->destinataire->nom ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Prénom</label><input type="text" name="prenom_destinataire" value="{{ $info_partagees->destinataire->prenom ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Contact</label><input type="text" name="tel_destinataire" value="{{ $info_partagees->destinataire->tel ?? '' }}" class="form-control" required></div>
-                                <div class="col-md-3"><label>Agence de destination</label><input type="text" name="agence_destinataire" value="{{ $info_partagees->destinataire->agence ?? '' }}" class="form-control" required></div>
+                                <div class="col-md-3"><label>Nom</label><input type="text" name="nom_destinataire" value="{{ $info_partagees->destinataire->nom ?? '' }}" class="form-control" disabled></div>
+                                <div class="col-md-3"><label>Prénom</label><input type="text" name="prenom_destinataire" value="{{ $info_partagees->destinataire->prenom ?? '' }}" class="form-control" disabled></div>
+                                <div class="col-md-3"><label>Contact</label><input type="text" name="tel_destinataire" value="{{ $info_partagees->destinataire->tel ?? '' }}" class="form-control" disabled></div>
+                                <div class="col-md-3"><label>Agence de destination</label><input type="text" name="agence_destinataire" value="{{ $info_partagees->destinataire->agence ?? '' }}" class="form-control" disabled></div>
                             </div>
                         </div>
                     </div>
@@ -141,14 +140,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-danger remove-existing-colis position-absolute top-0 end-0 m-2"><i class="fas fa-trash-alt"></i></button>
+                                {{-- <button type="button" class="btn btn-sm btn-danger remove-existing-colis position-absolute top-0 end-0 m-2"><i class="fas fa-trash-alt"></i></button> --}}
                             </div>
                         @endforeach
                     </div>
-                    {{-- Bouton pour ajouter dynamiquement un nouveau groupe de colis --}} 
-                    <div class="text-center mt-3">
+                    {{-- <div class="text-center mt-3">
                         <button type="button" class="btn btn-outline-success" id="add-colis-group"><i class="fas fa-plus"></i> Ajouter un groupe de colis</button>
-                    </div>
+                    </div> --}}
                 </div>
 
                 {{-- ================================================================= --}}

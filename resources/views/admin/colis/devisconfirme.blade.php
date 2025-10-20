@@ -525,55 +525,79 @@ $(document).ready(function () {
 </script>
 
 <style>
-    .table thead th {
-        font-size: 0.85rem;
-        letter-spacing: .5px;
-        font-weight: 600;
+    .btn {
+        width: auto;
+        height: 30px;
+        font-size: 16px;
+        padding: 0 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.2s;
     }
-    .table td {
-        vertical-align: middle;
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        
     }
-    .btn-action {
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all .2s ease;
+
+    .btn-success:hover {
+        background-color: #218838;
+        transform: scale(1.05);
     }
-    .btn-action:hover {
-        transform: scale(1.1);
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
     }
-    .bg-gradient-primary {
-        background: linear-gradient(45deg, #007bff, #0056b3);
+
+    .btn-secondary:hover {
+        background-color: #545b62;
     }
-    .modal-xl {
-        max-width: 1200px;
-    }
-    
-    /* Nouveaux styles pour le modal redesigné */
-    .modal-content {
-        border-radius: 15px;
-        overflow: hidden;
-    }
-    .modal-icon {
-        backdrop-filter: blur(10px);
-    }
-    .info-item {
-        padding: 8px 0;
-    }
-    .card {
-        border-radius: 10px;
-    }
-    .bg-light {
-        background-color: #f8f9fa !important;
-    }
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(0, 123, 255, 0.05);
-    }
+
     .badge {
-        font-size: 0.75em;
+        font-size: 0.85em;
+        padding: 0.4em 0.6em;
+    }
+
+    .dataTable-wrapper {
+        width: 100% !important;
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+
+    .dt-button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 12px
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
     }
 </style>
 @endsection

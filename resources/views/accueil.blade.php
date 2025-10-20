@@ -997,7 +997,7 @@
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    {{-- <script>
         document.addEventListener("DOMContentLoaded", function () {
             const trackingForm = document.getElementById("trackingForm");
             const trackingResult = document.getElementById("trackingResult");
@@ -1125,7 +1125,141 @@
                 document.getElementById("reference").focus();
             }
         }
+    </script> --}}
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const trackingForm = document.getElementById("trackingForm");
+            const trackingResult = document.getElementById("trackingResult");
+
+            if (trackingForm) {
+                trackingForm.addEventListener("submit", function (e) {
+                    e.preventDefault(); // Empêche l'envoi standard du formulaire
+
+                    const formData = new FormData(trackingForm);
+
+                    fetch(trackingForm.action, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                            "Accept": "application/json"
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Erreur réseau ou du serveur');
+                            });
+                        }
+                        return response.json(); [1, 2]
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            let statusClass = 'status-pending';
+                            if (data.colis.status) {
+                                const lowerCaseStatus = data.colis.status.toLowerCase();
+                                if (lowerCaseStatus.includes('livré') || lowerCaseStatus.includes('delivered')) {
+                                    statusClass = 'status-delivered';
+                                } else if (lowerCaseStatus.includes('en cours') || lowerCaseStatus.includes('transit')) {
+                                    statusClass = 'status-active';
+                                } else if (lowerCaseStatus.includes('problème') || lowerCaseStatus.includes('issue')) {
+                                    statusClass = 'status-problem';
+                                }
+                            }
+                            
+                            const referenceColis = data.colis.reference || 'N/A';
+                            const etatColis = data.colis.etat || 'N/A';
+                            const agenceColis = data.colis.agence || 'N/A'; // Récupération de l'agence
+                            const transitColis = data.colis.transit || 'N/A';
+                            const lastUpdateDate = data.colis.updated_at ? new Date(data.colis.updated_at).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+
+                            // --- Début de la logique d'affichage pour l'état ---
+                            let displayedEtat = '';
+                            if (etatColis.toLowerCase() === 'fermé') {
+                                displayedEtat = `<span class="d-block">Chargé En cours d'acheminement</span>`;
+                            } else if (etatColis.toLowerCase() === 'en entrepot' && agenceColis === 'AFT Agence Louis Bleriot') {
+                                displayedEtat = 'En entrepôt France';
+                            } else if (etatColis.toLowerCase() === 'en entrepot' && agenceColis === 'Agence de Chine') {
+                                displayedEtat = 'En entrepôt Chine';
+                            } else {
+                                displayedEtat = etatColis; // Valeur par défaut si aucune condition n'est remplie
+                            }
+                            // --- Fin de la logique ---
+
+                            trackingResult.innerHTML = `
+                                <div class="tracking-details">
+                                    <h5>Détails du colis <span class="status-badge ${statusClass}"></span></h5>
+                                    <p><strong>Référence :</strong> ${referenceColis}</p>
+                                    <p><strong>État du colis :</strong> ${displayedEtat}</p>
+                                    <p><strong>Mode de transit :</strong> ${transitColis}</p>
+                                    <p><strong>Dernière mise à jour :</strong> ${lastUpdateDate}</p>
+                                </div>
+                                
+                                <div class="mt-4 text-center">
+                                    <button class="btn btn-outline-primary" onclick="resetTrackingForm()">
+                                        <i class="fas fa-search me-2"></i>Nouvelle recherche
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            trackingResult.innerHTML = `
+                                <div class="alert alert-danger text-center">
+                                    <h5>Aucun résultat trouvé</h5>
+                                    <p>${data.message || "Vérifiez votre référence ou contactez-nous pour obtenir de l'aide."}</p>
+                                </div>
+                                <div class="mt-4 text-center">
+                                    <button class="btn btn-outline-primary" onclick="resetTrackingForm()">
+                                        <i class="fas fa-search me-2"></i>Réessayer
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erreur lors de la requête Fetch :", error);
+                        trackingResult.innerHTML = `
+                            <div class="alert alert-danger text-center">
+                                <h5>Erreur de connexion</h5>
+                                <p>${error.message}</p>
+                                <p>Veuillez réessayer ultérieurement.</p>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <button class="btn btn-outline-primary" onclick="resetTrackingForm()">
+                                    <i class="fas fa-search me-2"></i>Réessayer
+                                </button>
+                            </div>
+                        `;
+                    });
+                });
+            } else {
+                console.error("Formulaire 'trackingForm' non trouvé.");
+            }
+            
+            const trackingModalElement = document.getElementById('trackingModal');
+            if (trackingModalElement) {
+                trackingModalElement.addEventListener('hidden.bs.modal', function () {
+                    if(trackingForm) trackingForm.reset();
+                    if(trackingResult) trackingResult.innerHTML = '';
+                });
+            }
+        });
+        
+        function resetTrackingForm() {
+            const trackingForm = document.getElementById("trackingForm");
+            const trackingResult = document.getElementById("trackingResult");
+            
+            if (trackingForm && trackingResult) {
+                trackingForm.reset();
+                trackingResult.innerHTML = '';
+                document.getElementById("reference").focus();
+            }
+        }
     </script>
+
 
     <script>
         $(document).ready(function() {
