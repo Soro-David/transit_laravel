@@ -896,9 +896,9 @@ public function vol_fermer(Request $request)
                     'reference_colis' => $referenceColisPrincipale,
                     'id_reference' => $id_reference_next_available, // Utilise l'ID de référence actuel
                     'agence' => $agence,
-                    'quantite_colis' => 1, // Chaque enregistrement représente un colis physique unique
-                    'service' => $serviceValue,
-                    'montant_service' => $montantService,
+                    'quantite_colis' => 1,
+                    'montant_service' => $data['prix_service'] ?? null,
+                    'produit' => $data['produit'][$index] ?? null,
                     'produit' => $data['produit'][$index] ?? null,
                     'prix_transit_colis' => $prixUnitairePourCetteLigne,
                     'poids_colis' => $data['poids'][$index] ?? null,
@@ -950,6 +950,7 @@ public function vol_fermer(Request $request)
 
                     // $id_reference_next_available++;
                 } catch (\Exception $e) {
+                    dd($e);
                     Log::error("Erreur création colis/QR: " . $e->getMessage(), ['data' => $colisItemData]);
                     $erreursCreation[] = "Erreur lors de la création du colis (Réf: {$referenceColisPrincipale}, ID interne: {$id_reference_next_available}).";
                 }
