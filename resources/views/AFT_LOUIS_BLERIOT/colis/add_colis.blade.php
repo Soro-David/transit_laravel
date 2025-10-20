@@ -127,7 +127,7 @@
                         <div class="col-md-4 mb-3"><label for="email_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire" id="email_destinataire" class="form-control"></div>
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire_particulier" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_particulier" class="form-control" required>
+                            <select name="adresse_destinataire_particulier" class="form-control">
                                 <option value="">-- Sélectionnez une commune ou un quartier --</option>
                                 <option value="Pas de livraison">Pas de Livraison</option>
 
@@ -286,7 +286,7 @@
                         <div class="col-md-6 mb-3"><label for="email_societe_destinataire" class="form-label">Email</label><input type="email" name="email_destinataire_societe" id="email_societe_destinataire" class="form-control"></div>
                         <div class="col-md-6 mb-3">
                             <label for="adresse_destinataire_societe" class="form-label">Adresse de Livraison</label>
-                            <select name="adresse_destinataire_societe" class="form-control" required>
+                            <select name="adresse_destinataire_societe" class="form-control">
                                 <option value="">-- Sélectionnez une commune ou un quartier --</option>
                                 <option value="Pas de livraison">Pas de Livraison</option>
 
