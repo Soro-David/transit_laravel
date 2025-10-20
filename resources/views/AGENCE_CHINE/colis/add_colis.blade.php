@@ -620,7 +620,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="mode_payement" class="form-label">Sélectionnez le mode de paiement</label>
-                        <select name="mode_payement" id="mode_payement" class="form-control">
+                        <select name="mode_payement" id="mode_payement" class="form-control" required>
                             <option value="" disabled selected>-- Sélectionnez --</option>
                             <option value="bank">Virement Bancaire</option>
                             <option value="mobile_money">Mobile Money</option>
