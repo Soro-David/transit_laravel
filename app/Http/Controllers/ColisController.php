@@ -775,9 +775,9 @@ public function generer_qrcode(Request $request, InfobipSmsService $smsService)
                 ->first();
             // dd($user);
         } else {
-            $user = 'null';
+            $user = null;
         }
-        $user_id = $user->id;
+        $user_id = $user?->id ?? null;
    
     $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
     $expediteurPhoneNumber = $data['tel_expediteur'] ?? $data['tel_expediteur_societe'] ?? '';
@@ -2139,7 +2139,7 @@ public function imprimerFacture($id)
                         $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
                                                 data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
                                                 data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence">
+                                                title="Supprimer la référence">
                                             <i class="fas fa-trash"></i>
                                         </button>';
                         
@@ -2245,12 +2245,12 @@ public function imprimerFacture($id)
              $colis->save();
          }
 
-         return response()->json(['success' => 'Colis avec la référence "' . $reference . '" archivés avec succès.']);
+         return response()->json(['success' => 'Colis avec la référence "' . $reference . '" Supprimer avec succès.']);
 
      } catch (\Exception $e) {
          // Log the error for debugging
-         \Log::error("Error archiving colis reference {$reference}: " . $e->getMessage());
-         return response()->json(['error' => 'Une erreur est survenue lors de l\'archivage.'], 500);
+         \Log::error("Error de Suppression du colis reference {$reference}: " . $e->getMessage());
+         return response()->json(['error' => 'Une erreur est survenue lors de Suppression.'], 500);
      }
  }
 
@@ -4100,7 +4100,7 @@ public function get_colis_valide(Request $request)
                     $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
                                             data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
                                             data-url="' . $deleteUrl . '"
-                                            title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                            title="Supprimer la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
                                         <i class="fas fa-trash"></i>
                                     </button>';
 

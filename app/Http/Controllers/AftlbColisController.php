@@ -613,17 +613,18 @@ private function generateReferenceParMode(string $mode_transit)
 
         $telephone_user = $data['tel_expediteur'] ?? null;
 
+
         if ($telephone_user) {
             $user = User::where('tel', $telephone_user)
                 ->orderByDesc('id')
                 ->first();
             // dd($user);
         } else {
-            $user = 'null';
+            $user = null;
         }
-        $user_id = $user->id;
 
-        // dd($user_id);
+        $user_id = $user?->id ?? null;
+
 
         // Préparation des numéros de téléphone complets (avec indicatif)
         $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
@@ -2558,7 +2559,7 @@ public function enregistrer_paiement(Request $request)
                 // $colis->save();
             }
     
-            return response()->json(['success' => 'Colis archivés avec succès !']);
+            return response()->json(['success' => 'Colis supprimé avec succès !']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erreur lors de l\'archivage : ' . $e->getMessage()], 500);
         }
@@ -3018,7 +3019,7 @@ public function enregistrer_paiement(Request $request)
                         $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
                                                 data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
                                                 data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                                title="Supprimer la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
                                             <i class="fas fa-trash"></i>
                                         </button>';
 

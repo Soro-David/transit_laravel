@@ -630,9 +630,9 @@ public function vol_fermer(Request $request)
                 ->first();
             // dd($user);
         } else {
-            $user = 'null';
+            $user = null;
         }
-        $user_id = $user->id;
+         $user_id = $user?->id ?? null;
     
         // Préparation des numéros de téléphone complets (avec indicatif)
         $expediteurCountryCode = $data['country_code_expediteur'] ?? '';
@@ -2382,7 +2382,7 @@ public function get_colis_valide(Request $request)
                     $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
                                             data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
                                             data-url="' . $deleteUrl . '"
-                                            title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                            title="Supprimer la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
                                         <i class="fas fa-trash"></i>
                                     </button>';
 
@@ -3045,14 +3045,14 @@ public function get_colis_hold(Request $request)
                 ->join('destinataires', 'colis.destinataire_id', '=', 'destinataires.id')
                 // ->where('colis.etat', 'Validé')
                 ->where('expediteurs.agence', 'Agence de Chine')
-                ->whereNull('colis.archived_at') // Exclure les colis archivés
+                ->whereNull('colis.archived_at')
                 ->orderBy('colis.created_at', 'desc')
                 ->get();
 
                 $colisIds = $colis->pluck('id')->unique()->toArray();
 
                 $paiements = Paiement::whereIn('colis_id', $colisIds)
-                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye')) // Sommer directement en SQL
+                                    ->select('colis_id', DB::raw('SUM(montant_paye) as total_paye'))
                                     ->groupBy('colis_id')
                                     ->get()
                                     ->keyBy('colis_id'); 
@@ -3150,7 +3150,7 @@ public function get_colis_hold(Request $request)
                         $deleteBtn = '<button type="button" class="btn btn-sm btn-danger delete-btn"
                                                 data-reference="' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '"
                                                 data-url="' . $deleteUrl . '"
-                                                title="Archiver la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
+                                                title="Supprimer la référence ' . htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') . '">
                                             <i class="fas fa-trash"></i>
                                         </button>';
 
